@@ -1,0 +1,30 @@
+#!/bin/bash
+
+
+# Compile Core
+
+cat Core/Core.js > Fit.UI.js
+cat Core/Styles.css > Fit.UI.css
+#cat Resources/FontAwesome/css/font-awesome.min.css >> Fit.UI.css
+cat Resources/FontAwesome/css/font-awesome.css >> Fit.UI.css
+
+for file in `ls Core/*js | grep -v Core/Core.js`
+do
+	cat $file >> Fit.UI.js
+done
+
+
+# Compile UI controls
+
+for dir in `ls Controls`
+do
+	for file in `ls Controls/$dir/ | grep .js`
+	do
+		cat Controls/$dir/$file >> Fit.UI.js
+	done
+
+	for file in `ls Controls/$dir/ | grep .css`
+	do
+		cat Controls/$dir/$file >> Fit.UI.css
+	done
+done
