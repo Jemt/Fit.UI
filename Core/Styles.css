@@ -1,3 +1,16 @@
+/* ControlBase */
+
+.FitUiControl
+{
+	display: inline-block;
+	width: 200px;
+}
+
+.FitUiControl * /* A bit aggressive, but makes sure sizing is done properly */
+{
+	box-sizing: border-box;
+}
+
 /* Drag and Drop */
 
 .FitDragDropDraggable

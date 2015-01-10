@@ -1,0 +1,35 @@
+div.FitUiControlInput input,
+div.FitUiControlInput textarea
+{
+	width: 100%;
+	height: 100%;
+	padding: 1px;
+	margin: 0px;
+	line-height: 100%;
+}
+
+/*.FitUiInput + span:before
+{
+	content: "V";
+}*/
+div.FitUiControlInput
+{
+	position: relative;
+}
+div.FitUiControlInput span.fa
+{
+	position: absolute;
+	top: 0px;
+	right: -20px;
+}
+
+div.FitUiControlInput input:focus,
+div.FitUiControlInput textarea:focus
+{
+	outline: none;
+}
+
+div.FitUiControlInput textarea
+{
+	resize: none;
+}
