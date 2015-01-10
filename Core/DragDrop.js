@@ -1,0 +1,382 @@
+Fit.DragDrop = {};
+
+/*
+
+TODO: Ryd op i Draggable og Dropzone!
+      Properties på objekt i _internal.active og objekter i _internal.dropzones
+      bør være instanser af Draggable og DropZone, som blot eksponerer en funktion
+      der giver adgang til relevante properties. Saml det sammen!
+
+      Performance-test: Hvordan fungerer det med 3000 draggable elementer og 1000 dropzones?
+
+*/
+
+
+
+
+
+// Draggable
+
+Fit.DragDrop.Draggable = function(domElm)
+{
+    // Private properties
+
+    var elm = domElm;
+    var me = this;
+
+    var onDragStart = null;
+    var onDragging = null;
+    var onDragStop = null;
+
+    // Construct
+
+    function init()
+    {
+        Fit.Dom.AddClass(elm, "FitDragDropDraggable");
+
+        // Mouse down
+
+        Fit.Events.AddHandler(elm, "mousedown", function(e)
+        {
+            var ev = e || window.event;
+
+            Fit.Dom.AddClass(elm, "FitDragDropDragging");
+
+            // Mouse position in viewport
+            var mouseXviewport = (ev.clientX || e.pageX);
+            var mouseYviewport = (ev.clientY || e.pageY);
+
+            // Make sure element being dragged is on top of every other draggable element
+            Fit.DragDrop.Draggable._internal.zIndex++;
+            elm.style.zIndex = Fit.DragDrop.Draggable._internal.zIndex;
+
+            // Create state information object for draggable currently being dragged
+            var state =
+            {
+                Draggable: me,
+                Positioning: (Fit.Dom.GetComputedStyle(elm, "position") === "absolute" ? "absolute" : "relative"),
+                Mouse: {Viewport: {X: -1, Y: -1}, Document: {X: -1, Y: -1}},
+                Position: {Viewport: {X: -1, Y: -1}, Document: {X: -1, Y: -1}, Offset: {X: -1, Y: -1}},
+                Events: { OnDragStart: onDragStart, OnDragging: onDragging, OnDragStop: onDragStop },
+                OnSelectStart : document.onselectstart
+            };
+
+            // Disable text selection for legacy browsers
+            document.onselectstart = function() { return false; }
+
+            // Find mouse position in viewport
+            state.Mouse.Viewport.X = mouseXviewport;
+            state.Mouse.Viewport.Y = mouseYviewport;
+
+            // Find mouse position in document (which may have been scrolled)
+            //state.Mouse.Document.X = mouseXviewport + window.scrollX;
+            //state.Mouse.Document.Y = mouseYviewport + window.scrollY;
+            var scrollPos = Fit.Dom.GetScrollPosition(elm);
+            state.Mouse.Document.X = mouseXviewport + scrollPos.X;
+            state.Mouse.Document.Y = mouseYviewport + scrollPos.Y;
+
+            // Find draggable position in viewport and document
+            state.Position.Viewport = Fit.Dom.GetPosition(elm, true);
+            state.Position.Document = Fit.Dom.GetPosition(elm);
+
+            // Find X,Y position already set for draggable (by previous drag operation or using CSS positioning)
+            var offsetX = Fit.Dom.GetComputedStyle(elm, "left");
+            var offsetY = Fit.Dom.GetComputedStyle(elm, "top");
+            state.Position.Offset.X = (offsetX.indexOf("px") > -1 ? parseInt(offsetX) : 0);
+            state.Position.Offset.Y = (offsetY.indexOf("px") > -1 ? parseInt(offsetY) : 0);
+
+            Fit.DragDrop.Draggable._internal.active = state;
+
+            // If draggable is also a dropzone, move it to the end of internal dropzones collection
+            // to make sure this dropzone is considered "on top" of other dropzones.
+            // NOTICE: This only works reliable if draggable dropzones are placed on top of each
+            // other by the user. If the dropzones are programmatically floated on top of each other,
+            // the dropzones must be added (turned into dropzones) in the same order as they appear
+            // visually.
+
+            if (Fit.Dom.HasClass(elm, "FitDragDropDropzone") === true)
+            {
+                // Find draggable dropzone in dropzones collection
+                var draggableDropzone = null;
+                Fit.Array.ForEach(Fit.DragDrop.Dropzone._internal.dropzones, function(dzState)
+                {
+                    if (dzState.Dropzone.GetElement() === elm)
+                    {
+                        draggableDropzone = dzState;
+                        return false;
+                    }
+                });
+
+                // Move dropzone to end of collection
+                Fit.Array.Remove(Fit.DragDrop.Dropzone._internal.dropzones, draggableDropzone);
+                Fit.Array.Add(Fit.DragDrop.Dropzone._internal.dropzones, draggableDropzone);
+            }
+
+            if (state.OnDragStart)
+                state.OnDragStart(elm);
+
+            // NECESSARY?
+            if (ev.preventDefault)
+                ev.preventDefault();
+            ev.cancelBubble = true;
+        });
+
+        // Mouse Up
+
+        if (Fit.DragDrop.Draggable._internal.mouseUpRegistered === false)
+        {
+            Fit.DragDrop.Draggable._internal.mouseUpRegistered = true;
+
+            Fit.Events.AddHandler(document, "mouseup", function(e)
+            {
+                if (Fit.DragDrop.Draggable._internal.active === null)
+                    return;
+
+                var ev = e || window.event;
+
+                var draggableState = Fit.DragDrop.Draggable._internal.active;
+                var draggable = Fit.DragDrop.Draggable._internal.active.Draggable;
+
+                var dropzoneState = Fit.DragDrop.Dropzone._internal.active
+                var dropzone = (dropzoneState !== null ? dropzoneState.Dropzone : null);
+
+                // Handle draggable
+
+                Fit.Dom.RemoveClass(draggable.GetElement(), "FitDragDropDragging");
+                Fit.DragDrop.Draggable._internal.active = null;
+
+                if (draggableState.OnDragStop)
+                    draggableState.OnDragStop(draggable);
+
+                // Handle active dropzone
+
+                if (dropzoneState !== null)
+                {
+                    Fit.Dom.RemoveClass(dropzone.GetElement(), "FitDragDropDropzoneActive");
+                    Fit.DragDrop.Dropzone._internal.active = null;
+
+                    if (dropzoneState.OnDrop)
+                        dropzoneState.OnDrop(dropzone, draggable);
+                }
+
+                // Restore OnSelectStart event
+                document.onselectstart = draggableState.OnSelectStart;
+            });
+        }
+
+        // Mouse move
+
+        if (Fit.DragDrop.Draggable._internal.mouseMoveRegistered === false)
+        {
+            Fit.DragDrop.Draggable._internal.mouseMoveRegistered = true;
+
+            Fit.Events.AddHandler(document, "mousemove", function(e)
+            {
+                if (Fit.DragDrop.Draggable._internal.active === null)
+                    return;
+
+                var ev = e || window.event;
+
+                // Handle draggable
+
+                var state = Fit.DragDrop.Draggable._internal.active;
+                var draggable = state.Draggable;
+                var elm = draggable.GetElement();
+
+                // Mouse position in viewport
+                var mouseXviewport = (ev.clientX || e.pageX);
+                var mouseYviewport = (ev.clientY || e.pageY);
+
+                // Mouse position in document.
+                // Potential performance optimization: Only call GetScrollPosition if element
+                // is contained in scrollable element. If not, use window.scrollX/Y instead!
+                //var mouseXdocument = mouseXviewport + window.scrollX;
+                //var mouseYdocument = mouseYviewport + window.scrollY;
+                var scrollPos = Fit.Dom.GetScrollPosition(elm);
+                mouseXdocument = mouseXviewport + scrollPos.X;
+                mouseYdocument = mouseYviewport + scrollPos.Y;
+
+                if (Fit.DragDrop.Draggable._internal.active.Positioning === "absolute")
+                {
+                    // Mouse position within draggable
+                    var mouseFromLeft = state.Mouse.Viewport.X - state.Position.Viewport.X;
+                    var mouseFromTop = state.Mouse.Viewport.Y - state.Position.Viewport.Y;
+
+                    elm.style.position = "absolute";
+                    elm.style.left = (mouseXdocument - mouseFromLeft) + "px";
+                    elm.style.top = (mouseYdocument - mouseFromTop) + "px";
+                }
+                else // relative
+                {
+                    // Number of pixels mouse moved
+                    var mouseXmoved = mouseXdocument - state.Mouse.Document.X;
+                    var mouseYmoved = mouseYdocument - state.Mouse.Document.Y;
+
+                    // Element have been initially positioned or previously moved
+                    var elementLeft = state.Position.Offset.X;
+                    var elementTop = state.Position.Offset.Y;
+
+                    elm.style.position = "relative";
+                    elm.style.left = elementLeft + mouseXmoved + "px";
+                    elm.style.top = elementTop + mouseYmoved + "px";
+                }
+
+                if (state.OnDragging)
+                    state.OnDragging(elm);
+
+                // Handle dropzones
+
+                var dropzone = null;
+                var dropzoneElement = null;
+                var pos = null;
+                var dropZoneX = -1;
+                var dropZoneY = -1;
+
+                // State objects
+                var previouslyActiveDropzone = Fit.DragDrop.Dropzone._internal.active;
+                var dropzoneActive = null;
+
+                // Find active dropzone.
+                // NOTICE: If dropzones are floated on top of each other, make sure they are added to the
+                // internal dropzones collection in order of appearance to make sure the correct dropzone
+                // is turned active.
+                Fit.Array.ForEach(Fit.DragDrop.Dropzone._internal.dropzones, function(dzState)
+                {
+                    dropzone = dzState.Dropzone;
+                    dropzoneElement = dropzone.GetElement();
+
+                    pos = Fit.Dom.GetPosition(dropzoneElement, true);
+                    dropZoneX = pos.X;
+                    dropZoneY = pos.Y;
+
+                    var dropzoneFound = (dropzoneActive === null);
+                    var dropzoneDeeperThanPreviouslyFound = (dropzoneActive === null || Fit.Dom.GetDepth(dropzoneElement) > Fit.Dom.GetDepth(dropzoneActive.Dropzone.GetElement()));
+                    var dropzoneCurrentlyBeingDragged = (Fit.Dom.HasClass(dropzoneElement, "FitDragDropDragging") === true);
+                    var draggableHoveringDropzone = (mouseXviewport > dropZoneX && mouseXviewport < (dropZoneX + dropzoneElement.offsetWidth) && mouseYviewport > dropZoneY && mouseYviewport < (dropZoneY + dropzoneElement.offsetHeight));
+
+                    if ((dropzoneFound === false || dropzoneDeeperThanPreviouslyFound === true) && dropzoneCurrentlyBeingDragged === false && draggableHoveringDropzone === true)
+                    {
+                        dropzoneActive = dzState;
+                    }
+                });
+
+                // Leave previously active dropzone if no longer active
+                if (previouslyActiveDropzone !== null && dropzoneActive !== previouslyActiveDropzone)
+                {
+                    Fit.Dom.RemoveClass(previouslyActiveDropzone.Dropzone.GetElement(), "FitDragDropDropzoneActive");
+                    Fit.DragDrop.Dropzone._internal.active = null;
+
+                    if (previouslyActiveDropzone.OnLeave)
+                        previouslyActiveDropzone.OnLeave(previouslyActiveDropzone.Dropzone);
+                }
+
+                // Mark dropzone active if not already done
+                if (dropzoneActive !== null && dropzoneActive !== previouslyActiveDropzone)
+                {
+                    Fit.Dom.AddClass(dropzoneActive.Dropzone.GetElement(), "FitDragDropDropzoneActive");
+                    Fit.DragDrop.Dropzone._internal.active = dropzoneActive;
+
+                    if (dropzoneActive.OnEnter)
+                        dropzoneActive.OnEnter(dropzoneActive.Dropzone);
+                }
+            });
+        }
+    }
+    init();
+
+    // Public
+
+    this.Reset = function()
+    {
+        elm.style.position = "";
+        elm.style.left = "";
+        elm.style.top = "";
+    }
+
+    this.GetElement = function()
+    {
+        return elm;
+    }
+
+    // Event handling
+
+    this.OnDragStart = function(cb)
+    {
+        onDragStart = cb;
+    }
+
+    this.OnDragging = function(cb)
+    {
+        onDragging = cb;
+    }
+
+    this.OnDragStop = function(cb)
+    {
+        onDragStop = cb;
+    }
+}
+Fit.DragDrop.Draggable._internal =
+{
+    /* Shared */
+    zIndex : 10000,
+    mouseUpRegistered : false,
+    mouseMoveRegistered : false,
+
+    /* Draggable state object */
+    active: null
+}
+
+// Dropzone
+
+Fit.DragDrop.Dropzone = function(domElm)
+{
+    var elm = domElm;
+
+    var cfg =
+    {
+        Dropzone: this,
+        OnEnter: null,
+        OnDrop: null,
+        OnLeave: null
+    };
+
+    function init()
+    {
+        Fit.Dom.AddClass(elm, "FitDragDropDropzone");
+        Fit.DragDrop.Dropzone._internal.dropzones.push(cfg);
+    }
+    init();
+
+    this.GetElement = function()
+    {
+        return elm;
+    }
+
+    this.OnEnter = function(cb)
+    {
+        cfg.OnEnter = cb;
+    }
+
+    this.OnDrop = function(cb)
+    {
+        cfg.OnDrop = cb;
+    }
+
+    this.OnLeave = function(cb)
+    {
+        cfg.OnLeave = cb;
+    }
+}
+Fit.DragDrop.Dropzone._internal =
+{
+    dropzones: [],
+    active: null
+}
+
+
+
+
+
+
+
+

@@ -1,0 +1,48 @@
+/* Drag and Drop */
+
+.FitDragDropDraggable
+{
+    cursor: move;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+.FitDragDropDraggable:hover
+{
+    border-color: blue !important;
+}
+
+.FitDragDropDraggable.FitDragDropDragging
+{
+    opacity: 0.6;
+    z-index: 99999;
+}
+
+/*.draggable.dragging
+{
+    z-index: 999999;
+}
+.draggable.dropzone
+{
+    z-index: 1000;
+}*/
+
+.FitDragDropDropzone
+{
+    /* Set position:relative to give
+       same stacking context behaviour
+       as draggable parts, which causes
+       draggable and dropzones to be
+       positioned on the z-axis
+       identically (last element in DOM
+       is on top) */
+    xxxxxposition: relative;
+    xborder-width: 5px;
+    xborder-style: dashed;
+}
+
+.FitDragDropDropzoneActive
+{
+    background-color: red !important;
+}
