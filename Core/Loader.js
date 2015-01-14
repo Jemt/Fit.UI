@@ -1,5 +1,30 @@
+// The order of processing scripts and stylesheets:
+// http://www.html5rocks.com/en/tutorials/internals/howbrowserswork/#The_order_of_processing_scripts_and_style_sheets
+
+/// <container name="Fit.Loader">
+/// 	Loader is a useful mechanism for loading styleheets and JavaScript on demand in a non blocking manner.
+/// </container>
 Fit.Loader = {};
 
+/// <function container="Fit.Loader" name="LoadScript" access="public" static="true">
+/// 	<description>
+/// 		Load client script on demand in a non-blocking manner.
+///
+/// 		// Example of loading a JavaScript file
+///
+/// 		Fit.Loader.LoadScript(&quot;extensions/test/test.js&quot;, function(src)
+/// 		{
+/// 			&#160;&#160;&#160;&#160; alert(&quot;JavaScript &quot; + src + &quot; loaded and ready to be used!&quot;);
+/// 		});
+/// 	</description>
+/// 	<param name="src" type="string"> Script source (path or URL) </param>
+/// 	<param name="callback" type="function" default="undefined">
+/// 		Callback function fired when script loading is complete - takes the script source requested as an argument.
+/// 		Be aware that a load error will also trigger the callback to make sure control is always returned.
+/// 		Consider using feature detection within callback function for super reliable execution - example:
+/// 		if (expectedObjectOrFunction) { /* Successfully loaded, continue.. */ }
+/// 	</param>
+/// </function>
 Fit.Loader.LoadScript = function(src, callback)
 {
 	var script = document.createElement("script");
@@ -27,6 +52,42 @@ Fit.Loader.LoadScript = function(src, callback)
 	document.getElementsByTagName("head")[0].appendChild(script);
 }
 
+/// <function container="Fit.Loader" name="LoadScripts" access="public" static="true">
+/// 	<description>
+/// 		Chain load multiple client scripts on demand in a non-blocking manner.
+///
+/// 		// Example of loading multiple JavaScript files in serial:
+///
+/// 		Fit.Loader.LoadScripts(
+/// 		[
+/// 			&#160;&#160;&#160;&#160; {
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; source: &quot;extensions/test/menu.js&quot;,
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; loaded: function(cfg) { alert(&quot;JavaScript &quot; + cfg.source + &quot; loaded&quot;); }
+/// 			&#160;&#160;&#160;&#160; },
+/// 			&#160;&#160;&#160;&#160; {
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; source: &quot;http://cdn.domain.com/chat.js&quot;,
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; loaded: function(cfg) { alert(&quot;JavaScript &quot; + cfg.source + &quot; loaded&quot;); }
+/// 			&#160;&#160;&#160;&#160; }
+/// 		],
+/// 		function(cfgs)
+/// 		{
+/// 			&#160;&#160;&#160;&#160; alert(&quot;All files loaded&quot;);
+/// 		});
+///
+/// 		First argument is an array of script configurations:
+/// 		source:string (required): Script source (path or URL)
+/// 		loaded:function (optional): Callback function to execute when file has loaded (takes file configuration as argument)
+/// 		Be aware that loaded callback is invoked even if a load error occures, to make sure control is returned to your code.
+///
+/// 		Second argument is the callback function fired when all files have finished loading - takes configuration array as argument.
+/// 		This too may be invoked even if a load error occured, to make sure control is returned to your code.
+///
+/// 		Consider using feature detection within callback functions for super reliable execution - example:
+/// 		if (expectedObjectOrFunction) { /* Successfully loaded, continue.. */ }
+/// 	</description>
+/// 	<param name="cfg" type="array"> Configuration array (see function description for details) </param>
+/// 	<param name="callback" type="function" default="undefined"> Callback function fired when all scripts have finished loading (see function description for details) </param>
+/// </function>
 Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 {
 	// Verify configuration
@@ -75,7 +136,12 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 			}
 			catch (err)
 			{
-				if (window.console) console.log(err);
+				if (window.console)
+				{
+					console.log(err.message);
+					console.log(err.stack);
+					console.log(err);
+				}
 			}
 		}
 
@@ -85,6 +151,25 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 	});
 }
 
+/// <function container="Fit.Loader" name="LoadStyleSheet" access="public" static="true">
+/// 	<description>
+/// 		Load CSS stylesheet on demand in a non-blocking manner.
+/// 		It is recommended to load stylesheets before rendering items using
+/// 		the CSS classes to avoid FOUC (Flash Of Unstyled Content).
+///
+/// 		// Example of loading a CSS file
+///
+/// 		Fit.Loader.LoadStyleSheet(&quot;extensions/test/layout.css&quot;, function(src)
+/// 		{
+/// 			&#160;&#160;&#160;&#160; alert(&quot;CSS file &quot; + src + &quot; loaded!&quot;);
+/// 		});
+/// 	</description>
+/// 	<param name="src" type="string"> CSS file source (path or URL) </param>
+/// 	<param name="callback" type="function" default="undefined">
+/// 		Callback function fired when CSS file loading is complete - takes the file source requested as an argument.
+/// 		Be aware that a load error will also trigger the callback to make sure control is always returned.
+/// 	</param>
+/// </function>
 Fit.Loader.LoadStyleSheet = function(src, callback)
 {
 	// OnError event could likely be supported using the following
@@ -116,6 +201,39 @@ Fit.Loader.LoadStyleSheet = function(src, callback)
 	document.getElementsByTagName("head")[0].appendChild(link);
 }
 
+/// <function container="Fit.Loader" name="LoadStyleSheets" access="public" static="true">
+/// 	<description>
+/// 		Load multiple stylesheets in parrallel in a non-blocking manner.
+///
+/// 		// Example of loading multiple CSS files:
+///
+/// 		Fit.Loader.LoadStyleSheets(
+/// 		[
+/// 			&#160;&#160;&#160;&#160; {
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; source: &quot;extensions/test/menu.css&quot;,
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; loaded: function(cfg) { alert(&quot;Stylesheet &quot; + cfg.source + &quot; loaded&quot;); }
+/// 			&#160;&#160;&#160;&#160; },
+/// 			&#160;&#160;&#160;&#160; {
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; source: &quot;http://cdn.domain.com/chat.css&quot;,
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; loaded: function(cfg) { alert(&quot;Stylesheet &quot; + cfg.source + &quot; loaded&quot;); }
+/// 			&#160;&#160;&#160;&#160; }
+/// 		],
+/// 		function(cfgs)
+/// 		{
+/// 			&#160;&#160;&#160;&#160; alert(&quot;All stylesheets loaded&quot;);
+/// 		});
+///
+/// 		First argument is an array of stylesheet configurations:
+/// 		source:string (required): Stylesheet source (path or URL)
+/// 		loaded:function (optional): Callback function to execute when stylesheet has loaded (takes stylesheet configuration as argument)
+/// 		Be aware that loaded callback is invoked even if a load error occures, to make sure control is returned to your code.
+///
+/// 		Second argument is the callback function fired when all stylesheets have finished loading - takes configuration array as argument.
+/// 		This too may be invoked even if a load error occured, to make sure control is returned to your code.
+/// 	</description>
+/// 	<param name="cfg" type="array"> Configuration array (see function description for details) </param>
+/// 	<param name="callback" type="function" default="undefined"> Callback function fired when all stylesheets have finished loading (see function description for details) </param>
+/// </function>
 Fit.Loader.LoadStyleSheets = function(cfg, callback)
 {
 	// Verify configuration
@@ -158,7 +276,12 @@ Fit.Loader.LoadStyleSheets = function(cfg, callback)
 						}
 						catch (err)
 						{
-							if (window.console) console.log(err);
+							if (window.console)
+							{
+								console.log(err.message);
+								console.log(err.stack);
+								console.log(err);
+							}
 						}
 					}
 

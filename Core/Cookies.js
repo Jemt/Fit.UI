@@ -1,5 +1,14 @@
+/// <container name="Fit.Cookies">
+/// 	Cookie functionality
+/// </container>
 Fit.Cookies = {};
 
+/// <function container="Fit.Cookies" name="Set" access="public" static="true" returns="boolean">
+/// 	<description> Create or update cookie - returns True on success, otherwise False </description>
+/// 	<param name="name" type="string"> Unique cookie name </param>
+/// 	<param name="value" type="string"> Cookie value (cannot contain semi colon!) </param>
+/// 	<param name="seconds" type="integer"> Expiration time in seconds </param>
+/// </function>
 Fit.Cookies.Set = function(name, value, seconds)
 {
 	if (value.indexOf(';') > -1)
@@ -10,11 +19,15 @@ Fit.Cookies.Set = function(name, value, seconds)
 
 	var date = new Date();
 	date.setTime(date.getTime() + (seconds * 1000));
-	document.cookie = name + "=" + value + "; expires=" + date.toGMTString() + "; path=/"; // TODO: Is this wise? I don't think it should be hardcoded to root path!
+	document.cookie = name + "=" + value + "; expires=" + date.toGMTString() + "; path=/";
 
 	return true;
 }
 
+/// <function container="Fit.Cookies" name="Get" access="public" static="true" returns="string">
+/// 	<description> Returns cookie value if found, otherwise Null </description>
+/// 	<param name="name" type="string"> Unique cookie name </param>
+/// </function>
 Fit.Cookies.Get = function(name)
 {
 	var name = name + "=";
@@ -35,6 +48,10 @@ Fit.Cookies.Get = function(name)
 	return null;
 }
 
+/// <function container="Fit.Cookies" name="Remove" access="public" static="true" returns="boolean">
+/// 	<description> Remove cookie - returns True on success, otherwise False </description>
+/// 	<param name="name" type="string"> Unique cookie name </param>
+/// </function>
 Fit.Cookies.Remove = function(name)
 {
 	return this.Set(name, "", -1);

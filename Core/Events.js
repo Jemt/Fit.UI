@@ -1,5 +1,14 @@
+/// <container name="Fit.Events">
+/// 	Event handler functionality
+/// </container>
 Fit.Events = {};
 
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true">
+/// 	<description> Registers handler for specified event on given DOMElement </description>
+/// 	<param name="element" type="DOMElement"> DOMElement on to which event handler is registered </param>
+/// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
+/// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
+/// </function>
 Fit.Events.AddHandler = function(element, event, eventFunction)
 {
 	if (element.addEventListener) // W3C
@@ -13,6 +22,12 @@ Fit.Events.AddHandler = function(element, event, eventFunction)
 		eventFunction();
 }
 
+/// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
+/// 	<description> Remove event handler for specified event on given DOMElement </description>
+/// 	<param name="element" type="DOMElement"> DOMElement from which event handler is removed </param>
+/// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
+/// 	<param name="eventFunction" type="function"> JavaScript function to remove </param>
+/// </function>
 Fit.Events.RemoveHandler = function(element, event, eventFunction)
 {
 	if (element.removeEventListener)
@@ -27,6 +42,10 @@ Fit.Events.RemoveHandler = function(element, event, eventFunction)
 
 Fit._internal.OnReadyHandlers = [];
 
+/// <function container="Fit.Events" name="OnReady" access="public" static="true">
+/// 	<description> Registers OnReady handler which gets fired when document is ready, or if it is already ready </description>
+/// 	<param name="callback" type="function"> JavaScript function to register </param>
+/// </function>
 Fit.Events.OnReady = function(callback)
 {
 	if (document.readyState === "complete")

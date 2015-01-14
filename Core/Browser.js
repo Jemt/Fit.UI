@@ -1,5 +1,25 @@
+/// <container name="Fit.Browser">
+/// 	Provides access to various browser information.
+///
+/// 	// Example code
+///
+/// 	var browserName = Fit.Browser.GetBrowser();
+/// 	var browserVersion = Fit.Browser.GetVersion();
+/// 	var browserLanguage = Fit.Browser.GetLanguage();
+///
+/// 	if (browserName === &quot;MSIE&quot; &amp;&amp; browserVersion &lt; 7)
+/// 	{
+/// 		&#160;&#160;&#160;&#160; if (browserLanguage === &quot;da&quot;)
+/// 		&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; alert(&quot;Opgrader venligst til IE7 eller nyere&quot;);
+/// 		&#160;&#160;&#160;&#160; else
+/// 		&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; alert(&quot;Please upgrade to IE7 or newer&quot;);
+/// 	}
+/// </container>
 Fit.Browser = {};
 
+/// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns="string">
+/// 	<description> Returns browser name. Possible values are: Chrome, Safari, MSIE, Firefox, Opera, Unknown </description>
+/// </function>
 Fit.Browser.GetBrowser = function()
 {
 	var agent = navigator.userAgent;
@@ -18,6 +38,9 @@ Fit.Browser.GetBrowser = function()
 	return "Unknown";
 }
 
+/// <function container="Fit.Browser" name="GetVersion" access="public" static="true" returns="integer">
+/// 	<description> Returns major version number for known browsers, -1 for unknown browsers </description>
+/// </function>
 Fit.Browser.GetVersion = function()
 {
 	var start = 0;
@@ -89,6 +112,9 @@ Fit.Browser.GetVersion = function()
 	return -1;
 }
 
+/// <function container="Fit.Browser" name="GetLanguage" access="public" static="true" returns="string">
+/// 	<description> Returns browser language - e.g. &quot;da&quot; (Danish), &quot;en&quot; (English) etc. </description>
+/// </function>
 Fit.Browser.GetLanguage = function()
 {
 	var lang = null;
@@ -110,6 +136,9 @@ Fit.Browser.GetLanguage = function()
 	return "en";
 }
 
+/// <function container="Fit.Browser" name="GetPageWidth" access="public" static="true" returns="integer">
+/// 	<description> Returns page width in pixels on succes, -1 on failure </description>
+/// </function>
 Fit.Browser.GetPageWidth = function()
 {
 	var w = -1;
@@ -122,6 +151,9 @@ Fit.Browser.GetPageWidth = function()
 	return w;
 }
 
+/// <function container="Fit.Browser" name="GetPageHeight" access="public" static="true" returns="integer">
+/// 	<description> Returns page height in pixels on succes, -1 on failure </description>
+/// </function>
 Fit.Browser.GetPageHeight = function()
 {
 	var h = -1;
@@ -134,6 +166,10 @@ Fit.Browser.GetPageHeight = function()
 	return h;
 }
 
+/// <function container="Fit.Browser" name="GetScreenWidth" access="public" static="true" returns="integer">
+/// 	<description> Get screen width </description>
+/// 	<param name="onlyAvailable" type="boolean" default="false"> Set True to return only available space </param>
+/// </function>
 Fit.Browser.GetScreenWidth = function(onlyAvailable)
 {
 	if (onlyAvailable === true)
@@ -142,6 +178,10 @@ Fit.Browser.GetScreenWidth = function(onlyAvailable)
 	return window.screen.width;
 }
 
+/// <function container="Fit.Browser" name="GetScreenHeight" access="public" static="true" returns="integer">
+/// 	<description> Get screen height </description>
+/// 	<param name="onlyAvailable" type="boolean" default="false"> Set True to return only available space </param>
+/// </function>
 Fit.Browser.GetScreenHeight = function(onlyAvailable)
 {
 	if (onlyAvailable === true)

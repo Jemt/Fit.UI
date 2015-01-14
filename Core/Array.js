@@ -1,5 +1,15 @@
 Fit.Array = {};
 
+/// <function container="Fit.Array" name="ForEach" access="public" static="true">
+/// 	<description>
+/// 		Loops through elements in array and passes each value to the provided callback function.
+/// 	</description>
+/// 	<param name="arr" type="array"> Array containing values to loop through </param>
+/// 	<param name="callback" type="function">
+/// 		Callback function accepting values from the array, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
 Fit.Array.ForEach = function(arr, callback)
 {
 	for (var i = 0 ; i < arr.length ; i++)
@@ -7,28 +17,68 @@ Fit.Array.ForEach = function(arr, callback)
 			break;
 }
 
-Fit.Array.Add = function(arr, elm)
+/// <function container="Fit.Array" name="Add" access="public" static="true">
+/// 	<description> Add object to array </description>
+/// 	<param name="arr" type="array"> Array to which object is added </param>
+/// 	<param name="obj" type="object"> Object to add to array </param>
+/// </function>
+Fit.Array.Add = function(arr, obj)
 {
-    arr.push(elm);
+    arr.push(obj);
 }
 
-Fit.Array.Remove = function(arr, elm)
+/// <function container="Fit.Array" name="Insert" access="public" static="true">
+/// 	<description> Insert object into array at specified index </description>
+/// 	<param name="arr" type="array"> Array into which object is inserted </param>
+/// 	<param name="idx" type="integer"> Index to insert object at </param>
+/// 	<param name="obj" type="object"> Object to insert into array </param>
+/// </function>
+Fit.Array.Insert = function(arr, idx, obj)
 {
-    var idx = Fit.Array.GetIndex(arr, elm);
+    arr.splice(idx, 0, obj);
+}
+
+/// <function container="Fit.Array" name="Remove" access="public" static="true">
+/// 	<description> Remove object from array </description>
+/// 	<param name="arr" type="array"> Array from which object is remove </param>
+/// 	<param name="obj" type="object"> Object to remove from array </param>
+/// </function>
+Fit.Array.Remove = function(arr, obj)
+{
+    var idx = Fit.Array.GetIndex(arr, obj);
 
     if (idx !== -1)
         arr.splice(idx, 1);
 }
 
+/// <function container="Fit.Array" name="RemoveAt" access="public" static="true">
+/// 	<description> Remove object from array at specified index </description>
+/// 	<param name="arr" type="array"> Array from which object is remove </param>
+/// 	<param name="idx" type="integer"> Object index in array </param>
+/// </function>
+Fit.Array.RemoveAt = function(arr, idx)
+{
+    arr.splice(idx, 1);
+}
+
+/// <function container="Fit.Array" name="Clear" access="public" static="true">
+/// 	<description> Clear all items from array </description>
+/// 	<param name="arr" type="array"> Array from which all objects are remove </param>
+/// </function>
 Fit.Array.Clear = function(arr)
 {
     arr = [];
 }
 
-Fit.Array.GetIndex = function(arr, elm)
+/// <function container="Fit.Array" name="Remove" access="public" static="true">
+/// 	<description> Get index of object in array </description>
+/// 	<param name="arr" type="array"> Array containing object </param>
+/// 	<param name="obj" type="object"> Object to obtain index for </param>
+/// </function>
+Fit.Array.GetIndex = function(arr, obj)
 {
     for (var i = 0 ; i < arr.length ; i++)
-        if (arr[i] === elm)
+        if (arr[i] === obj)
             return i;
 
     return -1;

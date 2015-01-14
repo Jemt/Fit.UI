@@ -17,6 +17,10 @@ TODO: Ryd op i Draggable og Dropzone!
 
 // Draggable
 
+/// <function container="Fit.DragDrop.Draggable" name="Draggable" access="public">
+/// 	<description> Constructor - create instance of Draggable class </description>
+/// 	<param name="domElm" type="DOMElement"> Element to turn into draggable object </param>
+/// </function>
 Fit.DragDrop.Draggable = function(domElm)
 {
     // Private properties
@@ -286,6 +290,9 @@ Fit.DragDrop.Draggable = function(domElm)
 
     // Public
 
+	/// <function container="Fit.DragDrop.Draggable" name="Reset" access="public">
+	/// 	<description> Reset draggable to initial position </description>
+	/// </function>
     this.Reset = function()
     {
         elm.style.position = "";
@@ -293,24 +300,40 @@ Fit.DragDrop.Draggable = function(domElm)
         elm.style.top = "";
     }
 
+	/// <function container="Fit.DragDrop.Draggable" name="GetElement" access="public" returns="DOMElement">
+	/// 	<description> Get draggable DOM element </description>
+	/// </function>
     this.GetElement = function()
     {
         return elm;
     }
 
     // Event handling
+	// TODO: Allow multiple event handlers !!!
 
-    this.OnDragStart = function(cb)
+    /// <function container="Fit.DragDrop.Draggable" name="OnDragStart" access="public">
+	/// 	<description> Add event handler which gets fired when dragging starts </description>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - draggable DOM element is passed to function </param>
+	/// </function>
+	this.OnDragStart = function(cb)
     {
         onDragStart = cb;
     }
 
+	/// <function container="Fit.DragDrop.Draggable" name="OnDragging" access="public">
+	/// 	<description> Add event handler which constantly gets fired when dragging takes place </description>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - draggable DOM element is passed to function </param>
+	/// </function>
     this.OnDragging = function(cb)
     {
         onDragging = cb;
     }
 
-    this.OnDragStop = function(cb)
+    /// <function container="Fit.DragDrop.Draggable" name="OnDragStop" access="public">
+	/// 	<description> Add event handler which gets fired when dragging stops </description>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - draggable DOM element is passed to function </param>
+	/// </function>
+	this.OnDragStop = function(cb)
     {
         onDragStop = cb;
     }
@@ -328,6 +351,10 @@ Fit.DragDrop.Draggable._internal =
 
 // Dropzone
 
+/// <function container="Fit.DragDrop.Dropzone" name="Dropzone" access="public">
+/// 	<description> Constructor - create instance of Dropzone class </description>
+/// 	<param name="domElm" type="DOMElement"> Element to turn into dropzone object </param>
+/// </function>
 Fit.DragDrop.Dropzone = function(domElm)
 {
     var elm = domElm;
@@ -347,21 +374,39 @@ Fit.DragDrop.Dropzone = function(domElm)
     }
     init();
 
+	/// <function container="Fit.DragDrop.Dropzone" name="GetElement" access="public" returns="DOMElement">
+	/// 	<description> Get dropzone DOM element </description>
+	/// </function>
     this.GetElement = function()
     {
         return elm;
     }
 
-    this.OnEnter = function(cb)
+	// Event handling
+	// TODO: Allow multiple event handlers !!!
+
+    /// <function container="Fit.DragDrop.Dropzone" name="OnEnter" access="public">
+	/// 	<description> Add event handler which gets fired when draggable enters dropzone, ready to be dropped </description>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Dropzone is passed to function </param>
+	/// </function>
+	this.OnEnter = function(cb)
     {
         cfg.OnEnter = cb;
     }
 
-    this.OnDrop = function(cb)
+    /// <function container="Fit.DragDrop.Dropzone" name="OnDrop" access="public">
+	/// 	<description> Add event handler which gets fired when draggable is dropped on dropzone </description>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Dropzone and Draggable is passed to function (in that order) </param>
+	/// </function>
+	this.OnDrop = function(cb)
     {
         cfg.OnDrop = cb;
     }
 
+	/// <function container="Fit.DragDrop.Dropzone" name="OnLeave" access="public">
+	/// 	<description> Add event handler which gets fired when draggable leaves dropzone </description>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Dropzone is passed to function </param>
+	/// </function>
     this.OnLeave = function(cb)
     {
         cfg.OnLeave = cb;
@@ -372,11 +417,3 @@ Fit.DragDrop.Dropzone._internal =
     dropzones: [],
     active: null
 }
-
-
-
-
-
-
-
-
