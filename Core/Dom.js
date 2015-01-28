@@ -62,7 +62,7 @@ Fit.Dom.HasClass = function(elm, cls)
 /// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string">
 /// 	<description>
 /// 		Get style value applied after stylesheets have been loaded.
-/// 		An empty string may be returned if style has not been defined, Null if style does not exist. </description>
+/// 		An empty string may be returned if style has not been defined, or Null if style does not exist. </description>
 /// 	<param name="elm" type="DOMElement"> Element which contains desired CSS style value </param>
 /// 	<param name="style" type="string"> CSS style property name </param>
 /// </function>

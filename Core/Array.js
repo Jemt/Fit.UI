@@ -2,19 +2,38 @@ Fit.Array = {};
 
 /// <function container="Fit.Array" name="ForEach" access="public" static="true">
 /// 	<description>
-/// 		Loops through elements in array and passes each value to the provided callback function.
+/// 		Iterates through elements in array and passes each value to the provided callback function.
 /// 	</description>
-/// 	<param name="arr" type="array"> Array containing values to loop through </param>
+/// 	<param name="arr" type="array"> Array containing values to iterate through </param>
 /// 	<param name="callback" type="function">
 /// 		Callback function accepting values from the array, passed in turn.
 /// 		Return False from callback to break loop.
 /// 	</param>
 /// </function>
-Fit.Array.ForEach = function(arr, callback)
+/// <function container="Fit.Array" name="ForEach" access="public" static="true">
+/// 	<description>
+/// 		Iterates through object properties and passes each property name to the provided callback function.
+/// 	</description>
+/// 	<param name="obj" type="object"> Object containing properties to iterate through </param>
+/// 	<param name="callback" type="function">
+/// 		Callback function accepting properties from the object, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+Fit.Array.ForEach = function(obj, callback)
 {
-	for (var i = 0 ; i < arr.length ; i++)
-		if (callback(arr[i]) === false)
-			break;
+	if (obj instanceof Array || typeof(obj.length) === "number") // Array or DOMNodeList
+	{
+		for (var i = 0 ; i < obj.length ; i++)
+			if (callback(obj[i]) === false)
+				break;
+	}
+	else // Object
+	{
+		for (var i in obj)
+			if (callback(i) === false)
+				break;
+	}
 }
 
 /// <function container="Fit.Array" name="Add" access="public" static="true">
@@ -70,7 +89,7 @@ Fit.Array.Clear = function(arr)
     arr = [];
 }
 
-/// <function container="Fit.Array" name="Remove" access="public" static="true">
+/// <function container="Fit.Array" name="GetIndex" access="public" static="true">
 /// 	<description> Get index of object in array </description>
 /// 	<param name="arr" type="array"> Array containing object </param>
 /// 	<param name="obj" type="object"> Object to obtain index for </param>

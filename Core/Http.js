@@ -25,11 +25,15 @@ Fit.Http = {};
 /// </function>
 Fit.Http.Request = function(url, async) // url, true|false
 {
+	// TODO: Don't use 'this' to reference class itself!
+	// Save 'this' to a local 'me' variable instead to make
+	// sure 'this' is not suddenly a window instance or similar.
+
 	this.url = url;
 	this.async = async;
 
 	this.httpRequest = getHttpRequestObject();
-	this.usingCustomHeaders = false;
+	this.customHeaders = {};
 	this.data = null;
 
 	/// <function container="Fit.Http.Request" name="AddHeader" access="public">
@@ -45,8 +49,7 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.AddHeader = function(key, value)
 	{
-		this.httpRequest.setRequestHeader(key, value)
-		this.usingCustomHeaders = true;
+		this.customHeaders[key] = value;
 	}
 
 	/// <function container="Fit.Http.Request" name="SetData" access="public">
@@ -66,7 +69,14 @@ Fit.Http.Request = function(url, async) // url, true|false
 		var method = ((this.data === null || this.data === "") ? "GET" : "POST");
 		this.httpRequest.open(method, this.url, this.async);
 
-		if (method === "POST" && this.usingCustomHeaders === false)
+		var usingCustomHeaders = false;
+		for (var header in this.customHeaders)
+		{
+			this.httpRequest.setRequestHeader(header, this.customHeaders[header]);
+			usingCustomHeaders = true;
+		}
+
+		if (method === "POST" && usingCustomHeaders === false)
 			this.httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
 		this.httpRequest.send(this.data);
@@ -105,7 +115,7 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.GetResponseJson = function()
 	{
-		return JSON.parse(this.httpRequest.responseText);
+		return ((this.httpRequest.responseText !== "") ? JSON.parse(this.httpRequest.responseText) : {});
 	}
 
 	/// <function container="Fit.Http.Request" name="SetStateListener" access="public">
