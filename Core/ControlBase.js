@@ -121,7 +121,16 @@ Fit.Controls.ControlBase = function(controlId)
 
 	this.Render = function(toElement)
 	{
-		toElement.appendChild(container);
+		if (toElement)
+		{
+			//toElement.appendChild(container);
+			toElement.appendChild(me.GetDomElement()); // Use GetDomElement() to get container - may have been overridden on derivative
+		}
+		else
+		{
+			var script = document.scripts[document.scripts.length - 1];
+			script.parentNode.insertBefore(me.GetDomElement(), script);
+		}
 	}
 
 	this.SetValueRule = function(regExStr, preventPostback)
@@ -149,22 +158,28 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Array.Add(onChangeHandlers, cb);
 	}
 
-	fireOnChange = function()
-	{
-		Fit.Array.ForEach(onChangeHandlers, function(cb)
-		{
-			cb(me, me.GetValue());
-		});
-	}
+	// Private members
 
-	addDomElement = function(elm)
+	this._internal =
 	{
-		container.appendChild(elm);
-	}
-	removeDomElement = function(elm)
-	{
-		if (elm.parentNode === container)
-			container.removeChild(elm);
+		FireOnChange: function()
+		{
+			Fit.Array.ForEach(onChangeHandlers, function(cb)
+			{
+				cb(me, me.GetValue());
+			});
+		},
+
+		AddDomElement: function(elm)
+		{
+			container.appendChild(elm);
+		},
+
+		RemoveDomElement: function(elm)
+		{
+			if (elm.parentNode === container)
+				container.removeChild(elm);
+		}
 	}
 }
 

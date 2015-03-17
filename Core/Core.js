@@ -56,7 +56,7 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 	// TEST CASE: Example below is supposed to return: TRUE!
 	/*var f1 = function() { alert("Hello"); }
 	var f2 = f1;
-	SMCore.IsEqual(
+	Fit.Core.IsEqual(
 	{
 		str: "Hello world",
 		num: 123,
@@ -111,7 +111,7 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 
 		for (var i = 0 ; i < jsObj1.length ; i++)
 		{
-			if (SMCore.IsEqual(jsObj1[i], jsObj2[i]) === false)
+			if (Fit.Core.IsEqual(jsObj1[i], jsObj2[i]) === false)
 				return false;
 		}
 
@@ -120,7 +120,7 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 	else if (typeof(jsObj1) === "object" && typeof(jsObj2) === "object" && jsObj1 !== null && jsObj2 !== null) // typeof(null) returns "object"
 	{
 		for (var k in jsObj1)
-			if (SMCore.IsEqual(jsObj1[k], jsObj2[k]) === false)
+			if (Fit.Core.IsEqual(jsObj1[k], jsObj2[k]) === false)
 				return false;
 
 		return true;
@@ -130,12 +130,12 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 		// Returns True in the following situation:
 		// var f1 = function() { alert("Hello"); }
 		// var f2 = f1;
-		// SMCore.IsEqual(f1, f2);
+		// Fit.Core.IsEqual(f1, f2);
 
 		// Returns False in the following situation:
 		// var f1 = function() { alert("Hello"); }
 		// var f2 = function() { alert("Hello"); }
-		// SMCore.IsEqual(f1, f2);
+		// Fit.Core.IsEqual(f1, f2);
 
 		return (jsObj1 === jsObj2);
 	}

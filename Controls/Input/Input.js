@@ -12,19 +12,20 @@ Fit.Controls.Input = function(ctlId)
 	// Init
 
 	var input = document.createElement("input");
+	input.name = me.GetId();
 	input.onkeyup = function()
 	{
 		if (me.GetValue()/*input.value*/ !== preVal)
 		{
 			preVal = me.GetValue(); //input.value;
-			fireOnChange();
+			me._internal.FireOnChange();
 		}
 	}
 	input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
 	{
 		input.onkeyup();
 	}
-	addDomElement(input);
+	me._internal.AddDomElement(input);
 
 	me.AddCssClass("FitUiControlInput");
 
@@ -119,12 +120,13 @@ Fit.Controls.Input = function(ctlId)
 		if (enable === true && input.tagName === "INPUT")
 		{
 			var oldInput = input;
-			removeDomElement(oldInput);
+			me._internal.RemoveDomElement(oldInput);
 
 			input = document.createElement("textarea");
+			input.name = me.GetId();
 			input.value = oldInput.value;
 			input.onkeyup = oldInput.onkeyup;
-			addDomElement(input);
+			me._internal.AddDomElement(input);
 
 			if (me.GetHeight().Value === -1)
 				me.SetHeight(150);
@@ -132,18 +134,18 @@ Fit.Controls.Input = function(ctlId)
 		else if (enable === false && input.tagName === "TEXTAREA")
 		{
 			var oldInput = input;
-			removeDomElement(oldInput);
+			me._internal.RemoveDomElement(oldInput);
 
 			if (cmdResize !== null)
 			{
-				removeDomElement(cmdResize);
+				me._internal.RemoveDomElement(cmdResize);
 				cmdResize = null;
 			}
 
 			input = document.createElement("input");
 			input.value = oldInput.value;
 			input.onkeyup = oldInput.onkeyup;
-			addDomElement(input);
+			me._internal.AddDomElement(input);
 
 			me.SetHeight(null);
 
@@ -172,7 +174,7 @@ Fit.Controls.Input = function(ctlId)
 			// Create maximize/minimize button
 
 			if (cmdResize !== null) // Already maximizable, avoid multiple buttons
-				removeDomElement(cmdResize);
+				me._internal.RemoveDomElement(cmdResize);
 
 			var h = me.GetHeight();
 			var unit = ((h.Value !== -1) ? h.Unit : "px");
@@ -203,14 +205,14 @@ Fit.Controls.Input = function(ctlId)
 			}
 			Fit.Dom.AddClass(cmdResize, "fa");
 			Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
-			addDomElement(cmdResize);
+			me._internal.AddDomElement(cmdResize);
 
 			// Set initial height
 			me.SetHeight(minHeight, unit, true);
 		}
 		else if (enable === false && cmdResize !== null)
 		{
-			removeDomElement(cmdResize);
+			me._internal.RemoveDomElement(cmdResize);
 			cmdResize = null;
 
 			if (wasMultiLineBefore === true)

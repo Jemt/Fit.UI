@@ -16,6 +16,14 @@
 /// </container>
 Fit.Http = {};
 
+// Calling .NET WebService (replace QuickNavigatorSearch with desired WS Method):
+/*
+r = new Fit.Http.Request("http://domain.com/path/to/WebService.asmx/QuickNavigatorSearch", false);
+r.SetData(JSON.stringify({"context":{"Text":"mobil","NumberOfItems":0,"SelectEnum":"ProjectSearch","WebServiceLogId":"","UserId":"domain\\username"}}));
+r.AddHeader("Content-Type", "application/json; charset=UTF-8");
+r.Start();
+*/
+
 // Use http://www.jsontest.com for testing
 
 /// <function container="Fit.Http.Request" name="Request" access="public">
@@ -108,14 +116,14 @@ Fit.Http.Request = function(url, async) // url, true|false
 
 	/// <function container="Fit.Http.Request" name="GetResponseJson" access="public" returns="object">
 	/// 	<description>
-	/// 		Returns result from request as JSON object.
+	/// 		Returns result from request as JSON object, Null if no response was returned.
 	/// 		Return value will only be as expected if GetCurrentState() returns a value of 4
 	/// 		(request done) and GetHttpStatus() returns a value of 200 (request successful).
 	/// 	</description>
 	/// </function>
 	this.GetResponseJson = function()
 	{
-		return ((this.httpRequest.responseText !== "") ? JSON.parse(this.httpRequest.responseText) : {});
+		return ((this.httpRequest.responseText !== "") ? JSON.parse(this.httpRequest.responseText) : null);
 	}
 
 	/// <function container="Fit.Http.Request" name="SetStateListener" access="public">

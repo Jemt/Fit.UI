@@ -1,7 +1,16 @@
+// Performance:
+// Once active development is over, consider disabling type checking
+// for improved performance. This is mainly used during development
+// to catch wrong data types being passed around.
+
 /// <container name="Fit.Validation">
 /// 	Validation logic
 /// </container>
 Fit.Validation = {};
+
+// ==========================================================
+// Expect
+// ==========================================================
 
 /// <function container="Fit.Validation" name="ExpectNumber" access="public" static="true">
 /// 	<description> Throws error if passed object is not a number </description>
@@ -14,7 +23,7 @@ Fit.Validation.ExpectNumber = function(val, allowNotSet)
 		return;
 
 	if (typeof(val) !== "number")
-		throw new Error("Value '" + val + "' is not a valid number");
+		Fit.Validation.ThrowError("Value '" + val + "' is not a valid number");
 }
 
 /// <function container="Fit.Validation" name="ExpectInteger" access="public" static="true">
@@ -28,7 +37,7 @@ Fit.Validation.ExpectInteger = function(val, allowNotSet)
 		return;
 
 	if (typeof(val) !== "number" || val % 1 !== 0)
-		throw new Error("Value '" + val + "' is not a valid integer");
+		Fit.Validation.ThrowError("Value '" + val + "' is not a valid integer");
 }
 
 /// <function container="Fit.Validation" name="ExpectString" access="public" static="true">
@@ -42,7 +51,19 @@ Fit.Validation.ExpectString = function(val, allowNotSet)
 		return;
 
 	if (typeof(val) !== "string")
-		throw new Error("Value '" + val + "' is not a valid string");
+		Fit.Validation.ThrowError("Value '" + val + "' is not a valid string");
+}
+
+/// <function container="Fit.Validation" name="ExpectStringValue" access="public" static="true">
+/// 	<description> Same as Fit.Validation.ExpectString(..), but string must contain an actual value (not be empty) </description>
+/// 	<param name="val" type="object"> Object to validate </param>
+/// </function>
+Fit.Validation.ExpectStringValue = function(val)
+{
+	Fit.Validation.ExpectString(val);
+
+	if (val === "")
+		Fit.Validation.ThrowError("String cannot be empty");
 }
 
 /// <function container="Fit.Validation" name="ExpectBoolean" access="public" static="true">
@@ -56,7 +77,7 @@ Fit.Validation.ExpectBoolean = function(val, allowNotSet)
 		return;
 
 	if (typeof(val) !== "boolean")
-		throw new Error("Value '" + val + "' is not a valid boolean");
+		Fit.Validation.ThrowError("Value '" + val + "' is not a valid boolean");
 }
 
 /// <function container="Fit.Validation" name="ExpectDate" access="public" static="true">
@@ -70,5 +91,29 @@ Fit.Validation.ExpectDate = function(val, allowNotSet)
 		return;
 
 	if (val instanceof Date === false)
-		throw new Error("Value '" + val + "' is not an instance of Date");
+		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of Date");
+}
+
+Fit.Validation.ExpectInstance = function(obj, instanceType, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((obj instanceof instanceType) === false)
+		Fit.Validation.ThrowError("Unsupported object type passed");
+}
+
+// ==========================================================
+// Misc.
+// ==========================================================
+
+Fit.Validation.IsSet = function(obj)
+{
+	return (obj !== null && obj !== undefined);
+}
+
+Fit.Validation.ThrowError = function(msg)
+{
+	//alert(msg); // Enable this during testing to make sure type related bugs are found
+	throw new Error(msg);
 }
