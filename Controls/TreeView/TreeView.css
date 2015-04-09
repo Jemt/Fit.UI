@@ -1,0 +1,140 @@
+div.FitUiControlTreeView
+{
+	font-family: FontAwesome;
+
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Reset bullet list */
+div.FitUiControlTreeView li
+{
+	list-style-type: none;
+	display: block; /* Prevent inline-block from FontAwesome */
+}
+div.FitUiControlTreeView ul
+{
+	padding: 0px;
+	margin: 0px;
+}
+
+div.FitUiControlTreeView li ul li ul
+{
+	padding-left: 15px;
+}
+
+
+/* Style nodes */
+
+div.FitUiControlTreeView li ul li
+{
+	position: relative;
+	white-space: nowrap;
+	line-height: 1.4em;
+}
+div.FitUiControlTreeView li ul li:before
+{
+	content: attr(data-title);
+	padding-left: 1em;
+}
+
+/* Style toggle button */
+
+div.FitUiControlTreeView li ul li div:before
+{
+	display: inline-block;
+	position: absolute;
+	line-height: 1.4em;
+	cursor: pointer;
+}
+
+div.FitUiControlTreeView li[data-state="static"] > div:before
+{
+	/*content: "-";
+	left: 0.1em;
+	top: 0em;*/
+}
+
+div.FitUiControlTreeView li ul li[data-state="expanded"] > div:before
+{
+	content: "\f0d7";
+	left: -0.1em;
+	top: 0em;
+}
+div.FitUiControlTreeView li ul li[data-state="expanded"] > ul
+{
+	display: block;
+	zoom: 1;
+}
+
+div.FitUiControlTreeView li ul li[data-state="collapsed"] > div:before
+{
+	content: "\f0da";
+	left: 0.15em;
+	top: 0em;
+}
+div.FitUiControlTreeView li ul li[data-state="collapsed"] > ul
+{
+	display: none;
+	zoom: 1;
+}
+
+
+/* Helper lines */
+/* NOTICE: This doesn't scale well with huge fonts!
+   line-height and images will require adjustments! */
+
+div.FitUiControlTreeViewLines ul
+{
+	background: url("Controls/TreeView/vline.png") repeat-y;
+}
+
+div.FitUiControlTreeViewLines ul li
+{
+	line-height: 20px !important;
+	background: url("Controls/TreeView/node.png") no-repeat;
+}
+
+div.FitUiControlTreeViewLines li[data-last="true"]
+{
+	background: #fff url("Controls/TreeView/lastnode.png") no-repeat;
+}
+
+div.FitUiControlTreeViewLines ul li[data-last='true'] ul
+{
+	background: none;
+}
+
+/*div.FitUiControlTreeViewLines li > div:before
+{
+	left: 0.8em !important;
+}
+
+div.FitUiControlTreeViewLines li:before
+{
+	padding-left: 1.8em !important;
+}*/
+
+div.FitUiControlTreeViewLines li ul li[data-state="expanded"] > div:before,
+div.FitUiControlTreeViewLines li ul li[data-state="collapsed"] > div:before
+{
+	left: 0.8em;
+}
+
+div.FitUiControlTreeViewLines li ul li:before
+{
+	padding-left: 1.8em;
+}
+
+
+/* Additional info (show values) */
+div.FitUiControlTreeViewAdditionalInfo li ul li:after
+{
+	content: "(" attr(data-value) ")";
+	position: absolute;
+	right: -50px;
+	top: 0px;
+}

@@ -87,6 +87,32 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 // DOM
 // ==========================================================
 
+Fit.Dom.Attribute = function(elm, name, value)
+{
+	if (Fit.Validation.IsSet(value) === true)
+	{
+		Fit.Validation.ExpectString(value);
+		elm.setAttribute(name, value);
+	}
+
+	return elm.getAttribute(name);
+}
+
+Fit.Dom.Data = function(elm, name, value)
+{
+	// Modern browsers can read data-attributes from elm.dataset.ATTRIBUTE.
+	// Notice that data-title-value="XYZ" becomes elm.dataset.titleValue.
+
+	// Performance:
+	// If performance becomes vital, consider alternative storage:
+	// http://jsperf.com/data-dataset
+	// Perhaps something as simple as this will do: elm["_data" + name] = value;
+	// However, be aware that it won't allow the use of data attributes in CSS,
+	// e.g. content: attr(data-xyz).
+
+	return Fit.Dom.Attribute(elm, "data-" + name, value);
+}
+
 /// <function container="Fit.Dom" name="GetDepth" access="public" static="true" returns="integer">
 /// 	<description>
 /// 		Get number of levels specified element is nested in DOM.

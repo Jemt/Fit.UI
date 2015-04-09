@@ -5,8 +5,21 @@
 	<script type="text/javascript" src="Fit.UI.js"></script>
 	<title>Welcome</title>
 
+	<style type="text/css">
+		body
+		{
+			font-family: verdana;
+			font-size: 14px;
+		}
+
+		span.xxx[data-title="hej"]
+		{
+			background: red;
+		}
+	</style>
 </head>
 <body>
+<form action="index.html" method="POST">
 
 <div id="draggable1" style="border: 2px solid black; background-color: orange; width: 100px; height: 100px;">
 	Hello world, I am draggable!
@@ -24,6 +37,17 @@
 
 <br><br>
 
+<ul>
+	<li>Single line input</li>
+	<li>Multi line input</li>
+	<li>WYSIWYG/Rich/HTML/RTF Editor</li>
+	<li>Maximizable</li>
+	<li>Truely dirty aware</li>
+	<li>API</li>
+</ul>
+
+<br><br>
+
 <input type="button" value="Toggle: MultiLine" onclick="Fit.Controls.Find('MyInput').SetMultiLine(!Fit.Controls.Find('MyInput').GetMultiLine());">
 <input type="button" value="SetHeight (px)" onclick="Fit.Controls.Find('MyInput').SetHeight(parseInt(prompt('Indtast højde i pixels', 100)));">
 <input type="button" value="SetWidth (px)" onclick="Fit.Controls.Find('MyInput').SetWidth(parseInt(prompt('Indtast bredde i pixels', 500)));">
@@ -33,10 +57,48 @@
 <input type="button" value="IsDirty" onclick="alert('Is dirty (different from initial value): ' + Fit.Controls.Find('MyInput').IsDirty())">
 <input type="button" value="GetValue" onclick="alert('Value: ' + Fit.Controls.Find('MyInput').GetValue())">
 <input type="button" value="SetValue" onclick="Fit.Controls.Find('MyInput').SetValue(prompt('Indtast værdi', 'Hello world'));">
+<input type="button" value="Enable A-Z 0-9 RegExp" onclick="Fit.Controls.Find('MyInput').SetValidationExpression(new RegExp('^[a-z0-9 ]+$', 'i'), 'Only A-Z, 0-9 and space is allowed!', 'MyValidationScope');">
+<input type="submit" value="Submit page">
 
 <br><br>
 
+<div id="Input"></div>
+
+<br><br><br>
+
+<b>TreeView</b>
+
+<br><br>
+
+<ul>
+	<li>Performance state of the art (fast node lookup, few event handlers)</li>
+	<li>Small DOM, delegated to CSSOM => RenderTree</li>
+	<li>Strong CSS interface (e.g. helper lines and display values (HTML5 data-* attr))</li>
+	<li>Helper lines supported</li>
+	<li>API</li>
+	<li>Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDrop.Draggable(l); });</li>
+</ul>
+
+<br><br>
+
+<input type="button" value="Show lines" onclick="window.ShowLines(true);">
+<input type="button" value="Hide lines" onclick="window.ShowLines(false);">
+
+<br><br>
+
+<div id="TreeView"></div>
+
+<br><br><br><br><br><br>
+
+
+
 <script type="text/javascript">
+	window.ShowLines = function(val)
+	{
+		var tree = Fit.Controls.Find('MyTreeView');
+		tree.ShowLines(val);
+	}
+
 	Fit.Events.OnReady(function()
 	{
 		new Fit.DragDrop.Draggable(document.getElementById("draggable1"));
@@ -44,10 +106,11 @@
 		new Fit.DragDrop.Draggable(document.getElementById("dropzone1"));
 
 		var input = new Fit.Controls.Input("MyInput");
-		input.Render(document.body);
+		//input.Render(document.body);
+		input.Render(document.getElementById("Input"));
 		input.OnChange(function(sender, value) { console.log(sender, value); });
 		input.SetWidth(300);
-		input.SetValue("Hello world!");
+		input.SetValue("Hello world");
 		input.Focus();
 		//input.SetMaximizable(true, 100, 300, "px");
 		//input.SetMaximizable(true, 300, 900, "px");
@@ -55,8 +118,102 @@
 		//input.EnableMaximize(200);
 
 		//new Fit.DragDrop.Draggable(input.GetDomElement());
+
+
+		// TREE
+
+		var tree = new Fit.Controls.TreeView("MyTreeView");
+		//tree.ShowLines(true);
+
+		var n1 = new Fit.Controls.TreeView.Node("Salg & administration", "001");
+		n1.AddChild(new Fit.Controls.TreeView.Node("Karsten", "001-1"));
+		n1.AddChild(new Fit.Controls.TreeView.Node("Andreas", "001-2"));
+		n1.AddChild(new Fit.Controls.TreeView.Node("Eva", "001-3"));
+		n1.AddChild(new Fit.Controls.TreeView.Node("Hanne", "001-4"));
+		n1.AddChild(new Fit.Controls.TreeView.Node("Anne", "001-5"));
+		n1.AddChild(new Fit.Controls.TreeView.Node("Telemarketing", "001-10"));
+
+		var n2 = new Fit.Controls.TreeView.Node("Markedsføring", "002");
+		n2.AddChild(new Fit.Controls.TreeView.Node("Jens", "002-1"));
+		n2.AddChild(new Fit.Controls.TreeView.Node("Louise", "002-2"));
+		n2.AddChild(new Fit.Controls.TreeView.Node("Jimmy", "002-3"));
+
+
+		var n3 = new Fit.Controls.TreeView.Node("Produktudvikling", "003");
+		n3.AddChild(new Fit.Controls.TreeView.Node("Lars", "003-1"));
+		n3.AddChild(new Fit.Controls.TreeView.Node("Hans", "003-2"));
+		n3.AddChild(new Fit.Controls.TreeView.Node("Jimmy", "003-3"));
+		n3.AddChild(new Fit.Controls.TreeView.Node("Michael", "003-4"));
+		n3.AddChild(new Fit.Controls.TreeView.Node("Ilda", "003-5"));
+		n3.AddChild(new Fit.Controls.TreeView.Node("Ole", "003-5"));
+
+		var n4 = new Fit.Controls.TreeView.Node("Deployment & Support", "004");
+		n4.AddChild(new Fit.Controls.TreeView.Node("Martin", "004-1"));
+		n4.AddChild(new Fit.Controls.TreeView.Node("John", "004-2"));
+		n4.AddChild(new Fit.Controls.TreeView.Node("Jacob", "004-3"));
+		n4.AddChild(new Fit.Controls.TreeView.Node("Anders", "004-4"));
+		n4.AddChild(new Fit.Controls.TreeView.Node("Jan", "004-5"));
+		n4.AddChild(new Fit.Controls.TreeView.Node("Thomas", "004-6"));
+		var n4b = new Fit.Controls.TreeView.Node("IT Administration", "004b");
+		n4b.AddChild(new Fit.Controls.TreeView.Node("Christian", "004b-1"));
+		n4b.AddChild(new Fit.Controls.TreeView.Node("John", "004b-2"));
+		n4.AddChild(n4b);
+		var n4b2 = new Fit.Controls.TreeView.Node("IT Support", "004b2");
+		n4b2.AddChild(new Fit.Controls.TreeView.Node("Hovednummer", "004b2-1"));
+		n4b2.AddChild(new Fit.Controls.TreeView.Node("Christian", "004b2-2"));
+		n4b.AddChild(n4b2);
+		n4.AddChild(new Fit.Controls.TreeView.Node("Place holder A", "004-7"));
+		n4.AddChild(new Fit.Controls.TreeView.Node("Place holder B", "004-8"));
+
+		var n5 = new Fit.Controls.TreeView.Node("Solution Center", "005");
+		n5.AddChild(new Fit.Controls.TreeView.Node("Ida", "005-1"));
+
+		tree.AddChild(n1);
+		tree.AddChild(n2);
+		tree.AddChild(n3);
+		tree.AddChild(n4);
+		tree.AddChild(n5);
+
+		//document.body.innerHTML = "";
+		//document.body.appendChild(tree.GetDomElement());
+		//document.getElementById("TreeView").appendChild(tree.GetDomElement());
+		tree.Render(document.getElementById("TreeView"));
+
+		//n1.GetChild("1798234").Dispose()
+
+
 	});
 </script>
 
+
+<br><br>
+
+In-place render:<br>
+
+<script type="text/javascript">
+		var input = new Fit.Controls.Input("MyRenderInPlaceInput");
+		input.SetWidth(300);
+		input.SetValue("Hello world!");
+		input.Render();
+</script>
+
+<br>Two more:<br>
+
+<script type="text/javascript">
+		var input = new Fit.Controls.Input("MyRenderInPlaceInput2");
+		input.SetWidth(300);
+		input.SetValue("Hello 1");
+		input.Render();
+
+		var input = new Fit.Controls.Input("MyRenderInPlaceInput3");
+		input.SetWidth(300);
+		input.SetValue("Hello 2");
+		input.Render();
+</script>
+
+<br>In-place render DONE!<br>
+
+
+</form>
 </body>
 </html>
