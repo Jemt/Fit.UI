@@ -6,6 +6,7 @@ div.FitUiControlInput textarea
 	padding: 1px;
 	margin: 0px;
 	line-height: 100%;
+	text-align: inherit;
 }
 
 /*.FitUiInput + span:before

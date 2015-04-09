@@ -267,6 +267,18 @@ Fit.Controls.Input = function(ctlId)
 
 	function createEditor()
 	{
+		// Prevent the following error: Uncaught TypeError: Cannot read property 'getEditor' of undefined
+		// It seems CKEDITOR is not happy about initializing multiple instances at once.
+		if (CKEDITOR._loading === true)
+		{
+			setTimeout(createEditor, 100);
+			return;
+		}
+		CKEDITOR._loading = true;
+		CKEDITOR.on("instanceLoaded", function () { CKEDITOR._loading = false; });
+
+		// Create editor
+
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules
