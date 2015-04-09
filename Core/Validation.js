@@ -108,7 +108,7 @@ Fit.Validation.ExpectDomElement = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if (val.tagName && val.appendChild && val.nodeType === 1) // 1 = Element, 2 = Attribute, 3 = TextNode, Comment = 8
+	if (!val.tagName || !val.appendChild || val.nodeType !== 1) // 1 = Element, 2 = Attribute, 3 = TextNode, Comment = 8
 		Fit.Validation.ThrowError("Value '" + val + "' is not a DOMElement");
 }
 

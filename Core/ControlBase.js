@@ -194,7 +194,6 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		FireOnChange: function()
 		{
-			//if (validationExpr !== null)
 			me._internal.Validate();
 
 			Fit.Array.ForEach(onChangeHandlers, function(cb)
@@ -226,16 +225,26 @@ Fit.Controls.ControlBase = function(controlId)
 				// Add error indicator
 
 				lblValidationError = document.createElement("div");
-				lblValidationError.title = ((validationError !== null) ? validationError : "");
+				lblValidationError.title = (validationError ? validationError : "");
 				lblValidationError.onclick = function() { alert(lblValidationError.title); };
 				Fit.Dom.AddClass(lblValidationError, "fa");
 				Fit.Dom.AddClass(lblValidationError, "fa-exclamation-circle");
 				Fit.Dom.AddClass(lblValidationError, "FitUiControlError");
 
-				if (required === true && !me.GetValue()) // Validation failed because no value is set for required field
+				//if (required === true && !me.GetValue()) // Validation failed because no value is set for required field
+				if (validationErrorType === 0)
 					lblValidationError.title = Fit.Language.Translations.Required;
 
 				container.insertBefore(lblValidationError, container.firstChild);
+			}
+			else if (valid === false && lblValidationError !== null)
+			{
+				// Update error indicator - make sure error indicator contains correct description
+
+				if (validationErrorType === 0)
+					lblValidationError.title = Fit.Language.Translations.Required;
+				else
+					lblValidationError.title = ((validationError !== null) ? validationError : "");
 			}
 			else if (valid === true && lblValidationError !== null)
 			{
@@ -254,15 +263,6 @@ Fit.Controls.ControlBase = function(controlId)
 				{
 					container.removeChild(lblValidationErrorClosure);
 				}, 1000);
-			}
-			else if (valid === false && lblValidationError !== null)
-			{
-				// Update error indicator - make sure error indicator contains correct description
-
-				if (validationErrorType === 0)
-					lblValidationError.title = Fit.Language.Translations.Required;
-				else
-					lblValidationError.title = ((validationError !== null) ? validationError : "");
 			}
 		}
 	}

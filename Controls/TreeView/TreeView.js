@@ -50,9 +50,15 @@ Fit.Controls.TreeView = function(ctlId)
 	this.ShowLines = function(val)
 	{
 		if (val === true)
+		{
 			me.AddCssClass("FitUiControlTreeViewLines");
+			me.AddCssClass("FitUiControlTreeViewDotLines");
+		}
 		else
+		{
 			me.RemoveCssClass("FitUiControlTreeViewLines");
+			me.RemoveCssClass("FitUiControlTreeViewDotLines");
+		}
 
 		if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() === 8)
 		{

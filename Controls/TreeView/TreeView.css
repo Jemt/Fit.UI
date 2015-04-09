@@ -39,6 +39,7 @@ div.FitUiControlTreeView li ul li:before
 {
 	content: attr(data-title);
 	padding-left: 1em;
+	font-family: verdana;
 }
 
 /* Style toggle button */
@@ -89,23 +90,37 @@ div.FitUiControlTreeView li ul li[data-state="collapsed"] > ul
 
 div.FitUiControlTreeViewLines ul
 {
-	background: url("Controls/TreeView/vline.png") repeat-y;
+	background: url("Controls/TreeView/gfxLine.png") repeat-y;
 }
 
 div.FitUiControlTreeViewLines ul li
 {
 	line-height: 20px !important;
-	background: url("Controls/TreeView/node.png") no-repeat;
+	background: url("Controls/TreeView/gfxNode.png") no-repeat;
 }
 
 div.FitUiControlTreeViewLines li[data-last="true"]
 {
-	background: #fff url("Controls/TreeView/lastnode.png") no-repeat;
+	background: url("Controls/TreeView/gfxLastNode.png") no-repeat;
 }
 
 div.FitUiControlTreeViewLines ul li[data-last='true'] ul
 {
 	background: none;
+}
+
+/* Dotted lines instead */
+div.FitUiControlTreeViewDotLines ul
+{
+	background: url("Controls/TreeView/gfxDotLine.png") repeat-y;
+}
+div.FitUiControlTreeViewDotLines ul li
+{
+	background: url("Controls/TreeView/gfxDotNode.png") no-repeat;
+}
+div.FitUiControlTreeViewDotLines li[data-last="true"]
+{
+	background: url("Controls/TreeView/gfxDotLastNode.png") no-repeat;
 }
 
 /*div.FitUiControlTreeViewLines li > div:before
