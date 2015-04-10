@@ -1,36 +1,21 @@
 
-// TODO: Tilfoej expand/collapse ikoner foran noderne.
-//       Hvis ikonet bliver foerste element i <li> elementet, saa
-//       soerg for at opdatere de steder hvor der staar:
-//       elm.firstElementChild - pt. antages at <ul> elementet i
-//       <li> elementet er foerste element!
+// TODO: Make it WS capable !
 
-
-//Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDrop.Draggable(l); });
+// Options:
+//  - PreOpened levels
+//  - Single selection
+//  - Multi selection
 
 
 Fit.Controls.TreeView = function(ctlId)
 {
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
-	// WS capable !
-
 	var me = this;
-	var rootNode = new Fit.Controls.TreeView.Node(" ", "HIDDEN_ROOT_NODE");
+	var rootContainer = document.createElement("ul");
+	var rootNode = new Fit.Controls.TreeView.Node(" ", "TREEVIEW_ROOT_NODE");
 
-	rootNode.GetDomElement().ondblclick = function(e)
-	{
-		var ev = e || window.event;
-		var nodeElm = (ev.srcElement || ev.target);
-
-		if (nodeElm.tagName === "LI")
-		{
-			var node = nodeElm._internal.Node;
-
-			var newTitle = prompt("Enter new title", node.Title());
-			node.Title(newTitle);
-		}
-	}
+	// Init
 
 	rootNode.GetDomElement().onclick = function(e)
 	{
@@ -45,14 +30,17 @@ Fit.Controls.TreeView = function(ctlId)
 	}
 
 	me.AddCssClass("FitUiControlTreeView");
-	me._internal.AddDomElement(rootNode.GetDomElement());
+	rootContainer.appendChild(rootNode.GetDomElement());
+	me._internal.AddDomElement(rootContainer);
+
+	// Public
 
 	this.ShowLines = function(val)
 	{
 		if (val === true)
 		{
 			me.AddCssClass("FitUiControlTreeViewLines");
-			me.AddCssClass("FitUiControlTreeViewDotLines");
+			me.AddCssClass("FitUiControlTreeViewDotLines"); // Optional, render dotted lines instead of solid lines
 		}
 		else
 		{
@@ -95,45 +83,7 @@ Fit.Controls.TreeView = function(ctlId)
 		rootNode.Dispose();
 		baseDispose();
 	}
-
-	/*var baseGetDomElement = me.GetDomElement;
-	this.GetDomElement = function()
-	{
-		var container = baseGetDomElement();
-		container.innerHTML = "";
-
-		if (me.GetChildren().length > 0)
-			//container.appendChild(rootNode.GetDomElement().firstElementChild.nextSibling.nextSibling); // Node is a list item - add it's <ul> children container
-			container.appendChild(rootNode.GetDomElement());
-
-		return container;
-	}*/
 }
-
-
-/*<li data-value="1471" data-title="Title here">
-	<div data-state="expanded"></div>
-	<input type="checkbox">
-	<ul>
-		<li>Children here..</li>
-	</ul>
-</li>*/
-
-/*<li data-value="1471" data-title="Title here" data-state="collapsed">
-	<div></div>
-	<ul>
-		<li>Children here..</li>
-	</ul>
-</li>*/
-
-
-/*<li data-value="1471" data-title="Title here" data-state="collapsed">
-	<div>
-	<input type="checkbox">
-	<ul>
-		<li>Children here..</li>
-	</ul>
-</li>*/
 
 Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 {
@@ -143,31 +93,17 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	var me = this;
 	var elmLi = document.createElement("li");
 	var elmUl = null;
+	var cmdToggle = document.createElement("div");
+	var lblTitle = document.createElement("span");
 	var childrenIndexed = {}; // Performance - super fast node lookup using GetChild("value") - indexed
 	var lastChild = null;
 
-	// Register title and value as data-* attributes which makes
-	// them available to CSS engine, e.g. content: attr(data-value);
-	Fit.Dom.Data(elmLi, "title", displayTitle);
+	lblTitle.innerHTML = displayTitle;
 	Fit.Dom.Data(elmLi, "value", nodeValue);
 	Fit.Dom.Data(elmLi, "state", "static");
 
-	var cmdToggle = document.createElement("div");
-	/*cmdToggle.onclick = function()
-	{
-		// TODO: MOVE EVENT HANDLER TO TREE!! NO NEED TO REGISTER A MILLION HANDLERS !!!
-
-		var state = Fit.Dom.Data(elmLi, "state");
-
-		if (state === "static")
-			return;
-
-		Fit.Dom.Data(elmLi, "state", ((state === "collapsed") ? "expanded" : "collapsed"));
-
-		// Force IE8 to repaint - user must move mouse around to get expand/collapse to work if omitted!
-		elmLi.className = elmLi.className;
-	}*/
 	elmLi.appendChild(cmdToggle);
+	elmLi.appendChild(lblTitle);
 
 	elmLi._internal = { Node: me }; // Performance - super fast access to TreeView.Node instance when DOM node is clicked
 
@@ -190,19 +126,15 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	{
 		Fit.Validation.ExpectString(newValue, true);
 
-		if (newValue)
-			Fit.Dom.Data(elmLi, "title", newValue);
-
-		return Fit.Dom.Data(elmLi, "title");
+		elmLi.innerHTML = newValue;
+		return elmLi.innerHTML;
 	}
 
 	this.Value = function(newValue)
 	{
 		Fit.Validation.ExpectString(newValue, true);
 
-		if (newValue)
-			Fit.Dom.Data(elmLi, "value", newValue);
-
+		Fit.Dom.Data(elmLi, "value", newValue);
 		return Fit.Dom.Data(elmLi, "value");
 	}
 
@@ -216,9 +148,10 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 
+		// Make sure two nodes with identical values are not added
 		var existing = me.GetChild(node.Value()); // No worries, this is super fast!
 		if (existing !== null)
-			me.RemoveChild(existing); // TODO: Throw exception instead ???
+			Fit.Validation.ThrowError("Node with value '" + node.Value() + "' already added"); //me.RemoveChild(existing);
 
 		// Create child container (<ul>) if not already added
 		if (elmUl === null)
@@ -230,7 +163,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		}
 
 		if (lastChild !== null)
-			Fit.Dom.Data(lastChild.GetDomElement(), "last", ""); // TODO: Adds empty attribute to all nodes!!!!!
+			Fit.Dom.Data(lastChild.GetDomElement(), "last", "false");
 		Fit.Dom.Data(node.GetDomElement(), "last", "true");
 		lastChild = node;
 

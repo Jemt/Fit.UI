@@ -132,6 +132,6 @@ Fit.Validation.IsSet = function(obj)
 
 Fit.Validation.ThrowError = function(msg)
 {
-	//alert(msg); // Enable this during testing to make sure type related bugs are found
+	alert(msg); // Enable this during testing to make sure type related bugs are found
 	throw new Error(msg);
 }

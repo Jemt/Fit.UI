@@ -86,7 +86,7 @@
 
 <br><br>
 
-<div id="TreeView"></div>
+<div id="TreeView" style="font-size: 12px; color: #3D9CCF;"></div>
 
 <br><br><br><br><br><br>
 
@@ -145,7 +145,7 @@
 		n3.AddChild(new Fit.Controls.TreeView.Node("Jimmy", "003-3"));
 		n3.AddChild(new Fit.Controls.TreeView.Node("Michael", "003-4"));
 		n3.AddChild(new Fit.Controls.TreeView.Node("Ilda", "003-5"));
-		n3.AddChild(new Fit.Controls.TreeView.Node("Ole", "003-5"));
+		n3.AddChild(new Fit.Controls.TreeView.Node("Ole", "003-6"));
 
 		var n4 = new Fit.Controls.TreeView.Node("Deployment & Support", "004");
 		n4.AddChild(new Fit.Controls.TreeView.Node("Martin", "004-1"));
@@ -158,12 +158,16 @@
 		n4b.AddChild(new Fit.Controls.TreeView.Node("Christian", "004b-1"));
 		n4b.AddChild(new Fit.Controls.TreeView.Node("John", "004b-2"));
 		n4.AddChild(n4b);
+		var fcd = new Fit.Controls.TreeView.Node("Final count down", "004-6123");
+		fcd.AddChild(new Fit.Controls.TreeView.Node("ABC", "00864-12345"));
+		fcd.AddChild(new Fit.Controls.TreeView.Node("DEF", "00864-123456"));
+		n4.AddChild(fcd);
 		var n4b2 = new Fit.Controls.TreeView.Node("IT Support", "004b2");
 		n4b2.AddChild(new Fit.Controls.TreeView.Node("Hovednummer", "004b2-1"));
 		n4b2.AddChild(new Fit.Controls.TreeView.Node("Christian", "004b2-2"));
 		n4b.AddChild(n4b2);
-		n4.AddChild(new Fit.Controls.TreeView.Node("Place holder A", "004-7"));
-		n4.AddChild(new Fit.Controls.TreeView.Node("Place holder B", "004-8"));
+		//n4.AddChild(new Fit.Controls.TreeView.Node("Place holder A", "004-7"));
+		//n4.AddChild(new Fit.Controls.TreeView.Node("Place holder B", "004-8"));
 
 		var n5 = new Fit.Controls.TreeView.Node("Solution Center", "005");
 		n5.AddChild(new Fit.Controls.TreeView.Node("Ida", "005-1"));
