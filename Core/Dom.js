@@ -87,6 +87,31 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 // DOM
 // ==========================================================
 
+Fit.Dom.InsertBefore = function(target, newElm)
+{
+	Fit.Validation.ExpectDomElement(target);
+	Fit.Validation.ExpectDomElement(newElm);
+
+	target.parentElement.insertBefore(newElm, target);
+}
+
+Fit.Dom.InsertAfter = function(target, newElm)
+{
+	Fit.Validation.ExpectDomElement(target);
+	Fit.Validation.ExpectDomElement(newElm);
+
+	if (target.nextElementSibling)
+		target.parentElement.insertBefore(newElm, target.nextElementSibling);
+	else
+		target.parentElement.appendChild(newElm);
+}
+
+Fit.Dom.Remove = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+	elm.parentElement.removeChild(elm);
+}
+
 Fit.Dom.Attribute = function(elm, name, value)
 {
 	if (Fit.Validation.IsSet(value) === true)

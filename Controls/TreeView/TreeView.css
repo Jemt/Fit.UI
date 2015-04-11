@@ -53,31 +53,24 @@ div.FitUiControlTreeView li ul li div
 div.FitUiControlTreeView li ul li div:before
 {
 	content: "";
-	xxleft: -1.2em;
 }
 
 div.FitUiControlTreeView li ul li[data-state="expanded"] > div:before
 {
 	content: "\f0d7";
-	xxxxxxxxleft: 0em;
-	xxxxxxxxtop: 0em;
 }
 div.FitUiControlTreeView li ul li[data-state="expanded"] > ul
 {
 	display: block;
-	zoom: 1;
 }
 
 div.FitUiControlTreeView li ul li[data-state="collapsed"] > div:before
 {
 	content: "\f0da";
-	xxxxxxxxleft: 0.15em;
-	xxxxxxxxtop: 0em;
 }
 div.FitUiControlTreeView li ul li[data-state="collapsed"] > ul
 {
 	display: none;
-	zoom: 1;
 }
 
 /* Helper lines */
@@ -173,4 +166,21 @@ div.FitUiControlTreeViewAdditionalInfo li ul li:after
 	position: absolute;
 	right: -50px;
 	top: 0px;
+}
+
+/* Selection */
+
+div.FitUiControlTreeView li[data-selectable="true"] > span
+{
+	cursor: pointer;
+}
+
+div.FitUiControlTreeView li[data-selected="true"] > span
+{
+	background: gray; /* Fallback */
+	background: rgba(0, 0, 0, 0.10);
+	padding: 2px;
+	border: 1px solid silver; /* Fallback */
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 3px;
 }

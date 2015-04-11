@@ -4,7 +4,8 @@
 // Options:
 //  - PreOpened levels
 //  - Single selection
-//  - Multi selection
+//  - Multi selection (+ SelectAll)
+//  - Navigable (navigate on click)
 
 
 Fit.Controls.TreeView = function(ctlId)
@@ -14,18 +15,60 @@ Fit.Controls.TreeView = function(ctlId)
 	var me = this;
 	var rootContainer = document.createElement("ul");
 	var rootNode = new Fit.Controls.TreeView.Node(" ", "TREEVIEW_ROOT_NODE");
+	//rootNode.Selectable(false);
+
+	var lastSelection = null;
+	var multiSelect = true;
+	var selected = [];
 
 	// Init
 
 	rootNode.GetDomElement().onclick = function(e)
 	{
 		var ev = e || window.event;
-		var cmdToggleElm = (ev.srcElement || ev.target);
+		var elm = (ev.srcElement || ev.target);
 
-		if (cmdToggleElm.tagName === "DIV")
+		if (elm.tagName === "DIV") // Expand/collapse toggle button
 		{
-			var node = cmdToggleElm.parentNode._internal.Node;
+			var node = elm.parentNode._internal.Node;
 			node.Toggle();
+
+			repaint();
+		}
+		else if (elm.tagName === "SPAN" || elm.tagName === "INPUT") // Node title or checkbox
+		{
+			var node = elm.parentNode._internal.Node;
+
+			node.Selected(!node.Selected());
+
+			if (node.Selected() === true)
+			{
+				if (multiSelect === false)
+				{
+					if (lastSelection !== null && node !== lastSelection)
+						lastSelection.Selected(false);
+					lastSelection = node;
+				}
+				else
+				{
+					Fit.Array.Add(selected, node);
+				}
+			}
+			else
+			{
+				if (multiSelect === false)
+				{
+					if (node === lastSelection)
+						lastSelection = null;
+				}
+				else
+				{
+					Fit.Array.Remove(selected, node);
+				}
+			}
+
+			console.log(selected);
+			console.log(lastSelection);
 		}
 	}
 
@@ -34,6 +77,11 @@ Fit.Controls.TreeView = function(ctlId)
 	me._internal.AddDomElement(rootContainer);
 
 	// Public
+
+	this.Selectable = function(enable, multi, showSelectAll)
+	{
+		return rootNode.Selectable(enable, multi, showSelectAll); // TODO: RECURSIVELY!!!
+	}
 
 	this.ShowLines = function(val)
 	{
@@ -48,13 +96,7 @@ Fit.Controls.TreeView = function(ctlId)
 			me.RemoveCssClass("FitUiControlTreeViewDotLines");
 		}
 
-		if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() === 8)
-		{
-			// IE8 doesn't re-paint tree properly when switching lines
-			// on and off on-the-fly. Removing and re-adding to DOM resolves the problem.
-			me._internal.RemoveDomElement(rootNode.GetDomElement());
-			me._internal.AddDomElement(rootNode.GetDomElement());
-		}
+		repaint();
 	}
 
 	this.AddChild = function(node)
@@ -83,12 +125,27 @@ Fit.Controls.TreeView = function(ctlId)
 		rootNode.Dispose();
 		baseDispose();
 	}
+
+	// Private
+
+	var isIe8 = (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() === 8);
+	function repaint()
+	{
+		if (isIe8 === true)
+		{
+			// Force re-paint on IE8
+			rootContainer.style.zoom = 1;
+			rootContainer.style.zoom = 0;
+		}
+	}
 }
 
 Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 {
 	Fit.Validation.ExpectStringValue(displayTitle);
 	Fit.Validation.ExpectStringValue(nodeValue);
+
+	// Init
 
 	var me = this;
 	var elmLi = document.createElement("li");
@@ -98,16 +155,22 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	var childrenIndexed = {}; // Performance - super fast node lookup using GetChild("value") - indexed
 	var lastChild = null;
 
+	var selectable = false;
+	var chkSelect = null;
+	var chkSelectAll = null;
+
 	lblTitle.innerHTML = displayTitle;
 	Fit.Dom.Data(elmLi, "value", nodeValue);
 	Fit.Dom.Data(elmLi, "state", "static");
+	Fit.Dom.Data(elmLi, "selectable", "false");
+	Fit.Dom.Data(elmLi, "selected", "false");
 
 	elmLi.appendChild(cmdToggle);
 	elmLi.appendChild(lblTitle);
 
 	elmLi._internal = { Node: me }; // Performance - super fast access to TreeView.Node instance when DOM node is clicked
 
-	// Functions
+	// Public
 
 	this.Toggle = function()
 	{
@@ -126,16 +189,62 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	{
 		Fit.Validation.ExpectString(newValue, true);
 
-		elmLi.innerHTML = newValue;
-		return elmLi.innerHTML;
+		if (Fit.Validation.IsSet(newValue) === true)
+			lblTitle.innerHTML = newValue;
+
+		return lblTitle.innerHTML;
 	}
 
 	this.Value = function(newValue)
 	{
 		Fit.Validation.ExpectString(newValue, true);
 
-		Fit.Dom.Data(elmLi, "value", newValue);
+		if (Fit.Validation.IsSet(newValue) === true)
+			Fit.Dom.Data(elmLi, "value", newValue);
+
 		return Fit.Dom.Data(elmLi, "value");
+	}
+
+	this.Selectable = function(enable, showCheckbox, showSelectAll)
+	{
+		Fit.Validation.ExpectBoolean(enable, true);
+
+		if (Fit.Validation.IsSet(enable) === true)
+		{
+			Fit.Dom.Data(elmLi, "selectable", enable.toString());
+
+			if (enable === true && chkSelect === null)
+			{
+				chkSelect = document.createElement("input");
+				chkSelect.type = "checkbox";
+				Fit.Dom.InsertBefore(lblTitle, chkSelect);
+			}
+			else if (enable === false && chkSelect !== null)
+			{
+				if (chkSelect !== null)
+				{
+					Fit.Dom.Remove(chkSelect);
+					chkSelect = null;
+				}
+			}
+		}
+
+		return (Fit.Dom.Data(elmLi, "selectable") === "true");
+	}
+
+	this.Selected = function(select)
+	{
+		Fit.Validation.ExpectBoolean(select, true);
+
+		if (Fit.Validation.IsSet(select) === true)
+		{
+			Fit.Dom.Data(elmLi, "selected", select.toString());
+
+			if (chkSelect !== null)
+				chkSelect.checked = select;
+		}
+
+		return (Fit.Dom.Data(elmLi, "selected") === "true");
 	}
 
 	this.GetParent = function()
@@ -225,4 +334,6 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	{
 		return elmLi;
 	}
+
+	me.Selectable(true, true, true);
 }
