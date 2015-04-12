@@ -12,12 +12,12 @@ Fit.Controls.ControlBase = function(controlId)
 	// Interface - must be overridden
 	// ============================================
 
-	this.SetValue = function(val)
+	this.SetValue = function(val) // TODO: val type ???
 	{
 		throw new Error("Not implemented");
 	}
 
-	this.GetValue = function()
+	this.GetValue = function() // TODO: val type ???
 	{
 		throw new Error("Not implemented");
 	}
@@ -116,6 +116,17 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Dom.RemoveClass(container, val);
 	}
 
+	this.Data = function(key, val)
+	{
+		Fit.Validation.ExpectString(key);
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+			Fit.Dom.Data(container, key, val);
+
+		return Fit.Dom.Data(container, key);
+	}
+
 	this.SetVisible = function(val) // show/hide
 	{
 		Fit.Validation.ExpectBoolean(val);
@@ -185,10 +196,11 @@ Fit.Controls.ControlBase = function(controlId)
 
 	this.OnChange = function(cb)
 	{
+		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onChangeHandlers, cb);
 	}
 
-	// Private members
+	// Private members (must be public in order to be controls inheriting from ControlBase)
 
 	this._internal =
 	{

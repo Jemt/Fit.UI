@@ -36,6 +36,33 @@ Fit.Events.RemoveHandler = function(element, event, eventFunction)
 		element.detachEvent("on" + event, eventFunction);
 }
 
+Fit.Events.PreventDefault = function(e)
+{
+	var ev = e || window.event;
+
+	if (ev.preventDefault)
+		ev.preventDefault();
+	ev.returnValue = false;
+	return false;
+}
+
+Fit.Events.StopPropagation = function(e)
+{
+	var ev = e || window.event;
+
+	if (ev.StopPropagation)
+		ev.StopPropagation();
+	ev.cancelBubble = true;
+	return false;
+}
+
+Fit.Events.Stop = function(e)
+{
+	Fit.Events.PreventDefault(e);
+	Fit.Events.StopPropagation(e);
+	return false;
+}
+
 // **********************************************************************
 // OnReady handling
 // **********************************************************************

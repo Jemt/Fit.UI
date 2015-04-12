@@ -114,7 +114,8 @@ div.FitUiControlTreeViewLines li ul li
 {
 	padding-left: 1.25em;
 }
-div.FitUiControlTreeViewLines li ul li span
+div.FitUiControlTreeViewLines[data-multiselect="true"] li ul li input,
+div.FitUiControlTreeViewLines[data-multiselect="false"] li ul li span
 {
 	margin-left: 0.75em;
 }
@@ -170,17 +171,44 @@ div.FitUiControlTreeViewAdditionalInfo li ul li:after
 
 /* Selection */
 
-div.FitUiControlTreeView li[data-selectable="true"] > span
+/*div.FitUiControlTreeView li[data-selectable="true"] > span*/
+div.FitUiControlTreeView li > span
 {
 	cursor: pointer;
 }
 
+/*div.FitUiControlTreeView[data-multiselect="false"] li[data-selected="true"] > span*/
 div.FitUiControlTreeView li[data-selected="true"] > span
 {
-	background: gray; /* Fallback */
+	background: #EAEAEA; /* Fallback */
 	background: rgba(0, 0, 0, 0.10);
-	padding: 2px;
+	padding: 0px 2px 0px 2px;
 	border: 1px solid silver; /* Fallback */
 	border: 1px solid rgba(0, 0, 0, 0.15);
 	border-radius: 3px;
+}
+
+/* Focus */
+
+div.FitUiControlTreeView li[data-focused="true"] > span, /* TODO: Get rid of this? Seems .focus() on element is sufficient ?!?! */
+div.FitUiControlTreeView li:focus > span
+{
+	padding: 0px 2px 0px 2px;
+	border: 1px solid #419DE1;
+	border-radius: 3px;
+}
+
+div.FitUiControlTreeView li:focus
+{
+	outline: none;
+}
+
+/* Hide fake root node */
+div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > *
+{
+	display: none;
+}
+div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > ul
+{
+	display: block;
 }

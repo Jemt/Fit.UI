@@ -166,6 +166,19 @@ Fit.Browser.GetPageHeight = function()
 	return h;
 }
 
+Fit.Browser.GetViewportDimensions = function()
+{
+	return { Width: Fit.Browser.GetPageWidth(), Height: Fit.Browser.GetPageHeight() };
+}
+
+Fit.Browser.GetScrollPosition = function()
+{
+	var x = document.body.scrollLeft || document.documentElement.scrollLeft || window.pageXOffset || 0;
+	var y = document.body.scrollTop || document.documentElement.scrollTop || window.pageYOffset || 0;
+
+	return { X: x, Y: y };
+}
+
 /// <function container="Fit.Browser" name="GetScreenWidth" access="public" static="true" returns="integer">
 /// 	<description> Get screen width </description>
 /// 	<param name="onlyAvailable" type="boolean" default="false"> Set True to return only available space </param>
@@ -194,4 +207,19 @@ Fit.Browser.Log = function(msg)
 {
 	if (window.console)
 		console.log(msg);
+}
+
+Fit._internal.Browser = {};
+Fit.Browser.GetInfo = function()
+{
+	if (!Fit._internal.Browser.Info)
+	{
+		Fit._internal.Browser.Info = {};
+
+		Fit._internal.Browser.Info.Name = Fit.Browser.GetBrowser();
+		Fit._internal.Browser.Info.Version = Fit.Browser.GetVersion();
+		Fit._internal.Browser.Info.Language = Fit.Browser.GetLanguage();
+	}
+
+	return Fit._internal.Browser.Info;
 }

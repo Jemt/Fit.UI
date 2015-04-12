@@ -83,6 +83,15 @@
 
 <input type="button" value="Show lines" onclick="window.ShowLines(true);">
 <input type="button" value="Hide lines" onclick="window.ShowLines(false);">
+<input type="button" value="Enable Single-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true);">
+<input type="button" value="Enable Multi-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true, true);">
+<input type="button" value="Disable selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(false);">
+<input type="button" value="Get value" onclick="var t = Fit.Controls.Find('MyTreeView'); var s = t.Selected(); var v = 'Selected:\n'; Fit.Array.ForEach(s, function(n) { v += '\n' + n.Title() }); alert(v);">
+
+<br><br>
+
+Keyboard navigation: arrow down/up or Tab/Shift+Tab = down/up, arrow left/right = collapse/expand, spacebar = select/deselect.<br>
+Mouse: Double click = expand/collapse
 
 <br><br>
 
@@ -123,10 +132,49 @@
 		// TREE
 
 		var tree = new Fit.Controls.TreeView("MyTreeView");
-		tree.Selectable(true, true, true)
 		//tree.ShowLines(true);
 
-		var n1 = new Fit.Controls.TreeView.Node("Salg & administration", "001");
+		tree.OnChange(function(sender, value)
+		{
+			var vals = "";
+
+			Fit.Array.ForEach(sender.Selected(), function(node)
+			{
+				vals += (vals !== "" ? ", " : "") + node.Title();
+			});
+
+			console.log("OnChange: " + vals);
+		});
+		tree.OnSelect(function(sender, value)
+		{
+			console.log("OnSelect", value.Title() + " (" + value.Value() + ") [" + value.Selected() + "]");
+
+			if (value.Value() === "001")
+			{
+				console.log("Canceling!");
+				return false;
+			}
+		});
+		tree.OnSelected(function(sender, value)
+		{
+			console.log("OnSelected", value.Title() + " (" + value.Value() + ") [" + value.Selected() + "]");
+		});
+		tree.OnToggle(function(sender, value)
+		{
+			console.log("OnToggle", value.Title() + " (" + value.Value() + ") [" + value.Selected() + "]");
+
+			if (value.Value() === "005")
+			{
+				console.log("Canceling!");
+				return false;
+			}
+		});
+		tree.OnToggled(function(sender, value)
+		{
+			console.log("OnToggled", value.Title() + " (" + value.Value() + ") [" + value.Selected() + "]");
+		});
+
+		var n1 = new Fit.Controls.TreeView.Node("<i>Salg & administration (disabled)</i>", "001");
 		n1.AddChild(new Fit.Controls.TreeView.Node("Karsten", "001-1"));
 		n1.AddChild(new Fit.Controls.TreeView.Node("Andreas", "001-2"));
 		n1.AddChild(new Fit.Controls.TreeView.Node("Eva", "001-3"));
@@ -170,7 +218,7 @@
 		//n4.AddChild(new Fit.Controls.TreeView.Node("Place holder A", "004-7"));
 		//n4.AddChild(new Fit.Controls.TreeView.Node("Place holder B", "004-8"));
 
-		var n5 = new Fit.Controls.TreeView.Node("Solution Center", "005");
+		var n5 = new Fit.Controls.TreeView.Node("Solution Center (expand/collapse canceled)", "005");
 		n5.AddChild(new Fit.Controls.TreeView.Node("Ida", "005-1"));
 
 		tree.AddChild(n1);
@@ -182,6 +230,7 @@
 		//document.body.innerHTML = "";
 		//document.body.appendChild(tree.GetDomElement());
 		//document.getElementById("TreeView").appendChild(tree.GetDomElement());
+		tree.Selectable(true, true, true);
 		tree.Render(document.getElementById("TreeView"));
 
 		//n1.GetChild("1798234").Dispose()

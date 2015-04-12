@@ -94,6 +94,24 @@ Fit.Validation.ExpectDate = function(val, allowNotSet)
 		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of Date");
 }
 
+Fit.Validation.ExpectArray = function(val, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof Array) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of Array");
+}
+
+Fit.Validation.ExpectCollection = function(val, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof NodeList) === false && (val instanceof Array) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not a valid collection");
+}
+
 Fit.Validation.ExpectRegExp = function(val, allowNotSet)
 {
 	if (allowNotSet === true && (val === undefined || val === null))
@@ -112,12 +130,30 @@ Fit.Validation.ExpectDomElement = function(val, allowNotSet)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a DOMElement");
 }
 
-Fit.Validation.ExpectInstance = function(obj, instanceType, allowNotSet)
+Fit.Validation.ExpectDomNodeList = function(val, allowNotSet)
 {
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((obj instanceof instanceType) === false)
+	if ((val instanceof NodeList) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of NodeList");
+}
+
+Fit.Validation.ExpectFunction = function(val, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if (typeof(val) !== "function")
+		Fit.Validation.ThrowError("Value '" + val + "' is not a valid function");
+}
+
+Fit.Validation.ExpectInstance = function(val, instanceType, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof instanceType) === false)
 		Fit.Validation.ThrowError("Unsupported object type passed");
 }
 
