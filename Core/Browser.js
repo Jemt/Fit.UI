@@ -221,5 +221,5 @@ Fit.Browser.GetInfo = function()
 		Fit._internal.Browser.Info.Language = Fit.Browser.GetLanguage();
 	}
 
-	return Fit._internal.Browser.Info;
+	return Fit.Core.Clone(Fit._internal.Browser.Info); // Clone to ensure values are not shared and potentially changed
 }
