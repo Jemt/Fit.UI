@@ -103,6 +103,11 @@ Fit.Array.GetIndex = function(arr, obj)
     return -1;
 }
 
+Fit.Array.Contains = function(arr, obj)
+{
+    return (Fit.Array.GetIndex(arr, obj) > -1);
+}
+
 /*
 // Difference between using ordinary for loop and Fit.Array.ForEach
 // can be easily demonstrated with the code below.

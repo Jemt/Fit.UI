@@ -190,7 +190,14 @@ div.FitUiControlTreeView li[data-selected="true"] > span
 
 /* Focus */
 
-div.FitUiControlTreeView li[data-focused="true"] > span, /* TODO: Get rid of this? Seems .focus() on element is sufficient ?!?! */
+div.FitUiControlTreeView li
+{
+	/* Make list item as narrow as possible to prevent item from being focused if user
+	   clicks their mouse next to item. Does not cause incorrect rendering of contained elements. */
+	width: 0px;
+	xxxxxxwidth: auto\9; /* IE8 bug: Focus using keyboard causes incorrect rendering of right outline border - revent change */
+}
+
 div.FitUiControlTreeView li:focus > span
 {
 	padding: 0px 2px 0px 2px;
@@ -211,4 +218,12 @@ div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > *
 div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > ul
 {
 	display: block;
+}
+
+/* Navigation */
+
+div.FitUiControlTreeView li a
+{
+	text-decoration: inherit;
+	color: inherit;
 }

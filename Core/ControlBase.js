@@ -263,7 +263,6 @@ Fit.Controls.ControlBase = function(controlId)
 				// Update error indicator - temporarily show success indicator when invalid value is corrected
 
 				Fit.Dom.RemoveClass(lblValidationError, "fa-exclamation-circle");
-				Fit.Dom.RemoveClass(lblValidationError, "FitUiControlError");
 				Fit.Dom.AddClass(lblValidationError, "fa-thumbs-up");
 				lblValidationError.style.backgroundColor = "green";
 				lblValidationError.onclick = null;

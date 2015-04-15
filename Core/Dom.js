@@ -160,6 +160,21 @@ Fit.Dom.GetDepth = function(elm)
     return i;
 }
 
+Fit.Dom.GetParentOfType = function(element, parentType)
+{
+    var parent = element.parentElement;
+
+    while (parent !== null)
+    {
+        if (parent.tagName.toLowerCase() === parentType.toLowerCase())
+			return parent;
+
+        parent = parent.parentElement;
+    }
+
+    return null;
+}
+
 /// <function container="Fit.Dom" name="Wrap" access="public" static="true">
 /// 	<description> Wraps element in container element while preserving position in DOM </description>
 /// 	<param name="elementToWrap" type="DOMElement"> Element to wrap </param>

@@ -13,6 +13,7 @@ Fit.Controls.Input = function(ctlId)
 
 	var input = document.createElement("input");
 	input.name = me.GetId();
+	input.autocomplete = "off";
 	input.onkeyup = function()
 	{
 		if (me.GetValue()/*input.value*/ !== preVal)
@@ -47,9 +48,7 @@ Fit.Controls.Input = function(ctlId)
 		preVal = val;
 
 		if (designEditor !== null)
-		{
 			CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(((val !== undefined && val !== null) ? val : ""));
-		}
 		else
 			input.value = ((val !== undefined && val !== null) ? val : "");
 	}

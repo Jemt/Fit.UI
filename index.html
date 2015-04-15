@@ -64,6 +64,7 @@
 
 <div id="Input"></div>
 
+<a name="SectionTreeView"></a>
 <br><br><br>
 
 <b>TreeView</b>
@@ -71,31 +72,52 @@
 <br><br>
 
 <ul>
-	<li>Performance state of the art (fast node lookup, few event handlers)</li>
-	<li>Small DOM, delegated to CSSOM => RenderTree</li>
-	<li>Strong CSS interface (e.g. helper lines and display values (HTML5 data-* attr))</li>
-	<li>Helper lines supported</li>
-	<li>API</li>
-	<li>Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDrop.Draggable(l); });</li>
+	<li>Implemented:
+		<ul>
+			<li>Performance: Indexed node lookup, Utilizing event propagation for reduced amount of event handlers</li>
+			<li>Strong CSS interface</li>
+			<li>Helper lines supported</li>
+			<li>Truely dirty aware</li>
+			<li>HTML compatible (nodes may contain rich content; HTML/CSS/JS)</li>
+			<li>Selection modes: Single / Multi / None (e.g. for navigation)</li>
+			<li>Part of standard control flow (gains focus)</li>
+			<li>Full keyboard navigation:
+				<ul>
+					<li>Arrow down/up = select down/up</li>
+					<li>Tab/Shift+Tab = select down/up</li>
+					<li>arrow left/right = collapse/expand (also possible using Double-Click on nodes)</li>
+					<li>arrow left on non-expandable node = jump to parent</li>
+					<li>Spacebar = select/deselect</li>
+				</ul>
+			</li>
+			<li>API and Event model (OnSelect, OnSelecting, OnToggle, OnToggling, OnChange)</li>
+		</ul>
+	</li>
+	<li>TODO:
+		<ul>
+			<li>WebService support (consume Fit.UI standard data structures through WebService) </li>
+			<li>Navigable nodes (allow URL navigation)</li>
+			<li>AllowNull = False (use Required - see BaseClass!)</li>
+		</ul>
+	</li>
 </ul>
+
+
+Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDrop.Draggable(l); });
 
 <br><br>
 
-<input type="button" value="Show lines" onclick="window.ShowLines(true);">
+<input type="button" value="Show dotted lines" onclick="window.ShowLines(true);">
+<input type="button" value="Show solid lines" onclick="window.ShowLines(true); var t = Fit.Controls.Find('MyTreeView'); t.RemoveCssClass('FitUiControlTreeViewDotLines'); ">
 <input type="button" value="Hide lines" onclick="window.ShowLines(false);">
 <input type="button" value="Enable Single-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true);">
 <input type="button" value="Enable Multi-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true, true);">
 <input type="button" value="Disable selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(false);">
 <input type="button" value="Get value" onclick="var t = Fit.Controls.Find('MyTreeView'); var s = t.Selected(); var v = 'Selected:\n'; Fit.Array.ForEach(s, function(n) { v += '\n' + n.Title() }); alert(v);">
-
+<input type="button" value="Clear" onclick="Fit.Controls.Find('MyTreeView').Clear()">
 <br><br>
 
-Keyboard navigation: arrow down/up or Tab/Shift+Tab = down/up, arrow left/right = collapse/expand, spacebar = select/deselect.<br>
-Mouse: Double click = expand/collapse
-
-<br><br>
-
-<div id="TreeView" style="font-size: 12px; color: #3D9CCF;"></div>
+<div id="TreeView" style="font-size: 12px; color: #3D9CCF; position: relative; left: 100px;"></div>
 
 <br><br><br><br><br><br>
 
@@ -132,6 +154,8 @@ Mouse: Double click = expand/collapse
 		// TREE
 
 		var tree = new Fit.Controls.TreeView("MyTreeView");
+		tree.Selectable(true, true, true);
+		tree.SetRequired(true);
 		//tree.ShowLines(true);
 
 		tree.OnChange(function(sender, value)
@@ -144,6 +168,7 @@ Mouse: Double click = expand/collapse
 			});
 
 			console.log("OnChange: " + vals);
+			console.log("OnChange - IsDirty: " + sender.IsDirty());
 		});
 		tree.OnSelect(function(sender, value)
 		{
@@ -187,6 +212,7 @@ Mouse: Double click = expand/collapse
 		n2.AddChild(new Fit.Controls.TreeView.Node("Louise", "002-2"));
 		n2.AddChild(new Fit.Controls.TreeView.Node("Jimmy", "002-3"));
 
+		n2.Selected(true);
 
 		var n3 = new Fit.Controls.TreeView.Node("Produktudvikling", "003");
 		n3.AddChild(new Fit.Controls.TreeView.Node("Lars", "003-1"));
@@ -203,6 +229,8 @@ Mouse: Double click = expand/collapse
 		n4.AddChild(new Fit.Controls.TreeView.Node("Anders", "004-4"));
 		n4.AddChild(new Fit.Controls.TreeView.Node("Jan", "004-5"));
 		n4.AddChild(new Fit.Controls.TreeView.Node("Thomas", "004-6"));
+		//n4.AddChild(new Fit.Controls.TreeView.Node("<span onclick=\"location.href='http://flowit.dk'\">Navigate to FlowIT.dk</span>", "004-7"));
+		n4.AddChild(new Fit.Controls.TreeView.Node("<a href=\"http://flowit.dk\">Navigate to FlowIT.dk</a>", "004-7"));
 		var n4b = new Fit.Controls.TreeView.Node("IT Administration", "004b");
 		n4b.AddChild(new Fit.Controls.TreeView.Node("Christian", "004b-1"));
 		n4b.AddChild(new Fit.Controls.TreeView.Node("John", "004b-2"));
@@ -230,8 +258,28 @@ Mouse: Double click = expand/collapse
 		//document.body.innerHTML = "";
 		//document.body.appendChild(tree.GetDomElement());
 		//document.getElementById("TreeView").appendChild(tree.GetDomElement());
-		tree.Selectable(true, true, true);
 		tree.Render(document.getElementById("TreeView"));
+
+		setTimeout(function()
+		{
+			Fit.Controls.Find("MyTreeView").Clear();
+		}, 750);
+		setTimeout(function()
+		{
+			Fit.Controls.Find("MyTreeView").Selected([Fit.Controls.Find("MyTreeView").GetChildByValue("004"), Fit.Controls.Find("MyTreeView").GetChildByValue("005")]);
+		}, 1000);
+		setTimeout(function()
+		{
+			var ds = Fit.Controls.Find("MyTreeView").GetChildByValue("004");
+			ds.Expanded(true);
+		}, 1500);
+		setTimeout(function()
+		{
+			var ds = Fit.Controls.Find("MyTreeView").GetChildByValue("004");
+
+			ds.GetChildren()[0].Selected(true);
+			ds.GetChildren()[3].Selected(true);
+		}, 2000);
 
 		//n1.GetChild("1798234").Dispose()
 
