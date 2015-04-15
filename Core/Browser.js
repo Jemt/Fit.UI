@@ -16,6 +16,7 @@
 /// 	}
 /// </container>
 Fit.Browser = {};
+Fit._internal.Browser = {};
 
 /// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns="string">
 /// 	<description> Returns browser name. Possible values are: Chrome, Safari, MSIE, Firefox, Opera, Unknown </description>
@@ -166,25 +167,35 @@ Fit.Browser.GetPageHeight = function()
 	return h;
 }
 
-Fit.Browser.GetViewportDimensions = function()
+/// <function container="Fit.Browser" name="GetViewPortDimensions" access="public" static="true" returns="object">
+/// 	<description> Returns object with Width and Height properties specifying dimensions of viewport </description>
+/// </function>
+Fit.Browser.GetViewPortDimensions = function()
 {
 	return { Width: Fit.Browser.GetPageWidth(), Height: Fit.Browser.GetPageHeight() };
 }
 
+/// <function container="Fit.Browser" name="GetScrollPosition" access="public" static="true" returns="object">
+/// 	<description> Returns object with X and Y properties specifying scroll position </description>
+/// </function>
 Fit.Browser.GetScrollPosition = function()
 {
-	var x = document.body.scrollLeft || document.documentElement.scrollLeft || window.pageXOffset || 0;
-	var y = document.body.scrollTop || document.documentElement.scrollTop || window.pageYOffset || 0;
+	var x = document.body.scrollLeft || document.documentElement.scrollLeft || window.pageXOffset || -1;
+	var y = document.body.scrollTop || document.documentElement.scrollTop || window.pageYOffset || -1;
 
 	return { X: x, Y: y };
 }
 
 /// <function container="Fit.Browser" name="GetScreenWidth" access="public" static="true" returns="integer">
 /// 	<description> Get screen width </description>
-/// 	<param name="onlyAvailable" type="boolean" default="false"> Set True to return only available space </param>
+/// 	<param name="onlyAvailable" type="boolean" default="false">
+/// 		Set True to return only available space (may be reduced by e.g. start menu (Windows) or Dock (Linux/OSX)
+/// 	</param>
 /// </function>
 Fit.Browser.GetScreenWidth = function(onlyAvailable)
 {
+	Fit.Validation.ExpectBoolean(onlyAvailable, true);
+
 	if (onlyAvailable === true)
 		return window.screen.availWidth;
 
@@ -193,23 +204,45 @@ Fit.Browser.GetScreenWidth = function(onlyAvailable)
 
 /// <function container="Fit.Browser" name="GetScreenHeight" access="public" static="true" returns="integer">
 /// 	<description> Get screen height </description>
-/// 	<param name="onlyAvailable" type="boolean" default="false"> Set True to return only available space </param>
+/// 	<param name="onlyAvailable" type="boolean" default="false">
+/// 		Set True to return only available space (may be reduced by e.g. start menu (Windows) or Dock (Linux/OSX)
+/// 	</param>
 /// </function>
 Fit.Browser.GetScreenHeight = function(onlyAvailable)
 {
+	Fit.Validation.ExpectBoolean(onlyAvailable, true);
+
 	if (onlyAvailable === true)
 		return window.screen.availHeight;
 
 	return window.screen.height;
 }
 
-Fit.Browser.Log = function(msg)
+/// <function container="Fit.Browser" name="GetScreenDimensions" access="public" static="true" returns="object">
+/// 	<description> Returns object with Width and Height properties specifying screen dimensions </description>
+/// 	<param name="onlyAvailable" type="boolean" default="false">
+/// 		Set True to return only available space (may be reduced by e.g. Start menu (Windows) or Dock (Linux/OSX)
+/// 	</param>
+/// </function>
+Fit.Browser.GetScreenDimensions = function(onlyAvailable)
+{
+	Fit.Validation.ExpectBoolean(onlyAvailable, true);
+	return { Width: Fit.Browser.GetScreenWidth(onlyAvailable), Height: Fit.Browser.GetScreenHeight(onlyAvailable) };
+}
+
+/// <function container="Fit.Browser" name="Log" access="public" static="true">
+/// 	<description> Log message or object </description>
+/// 	<param name="msg" type="object"> Message or object to log </param>
+/// </function>
+Fit.Browser.Log = function(msg) // msg not validated - any object or value (as null/undefined) can be logged
 {
 	if (window.console)
 		console.log(msg);
 }
 
-Fit._internal.Browser = {};
+/// <function container="Fit.Browser" name="GetInfo" access="public" static="true" returns="object">
+/// 	<description> Returns cached object with browser information available through Name, Version, and Language properties </description>
+/// </function>
 Fit.Browser.GetInfo = function()
 {
 	if (!Fit._internal.Browser.Info)

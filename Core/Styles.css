@@ -4,6 +4,8 @@
 {
 	display: inline-block;
 	width: 200px;
+
+	position: relative; /* Allow absolute positioning of children, relative to control container rather than document */
 }
 
 .FitUiControl * /* A bit aggressive, but makes sure sizing is done properly */

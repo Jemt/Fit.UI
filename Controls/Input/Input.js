@@ -16,9 +16,9 @@ Fit.Controls.Input = function(ctlId)
 	input.autocomplete = "off";
 	input.onkeyup = function()
 	{
-		if (me.GetValue()/*input.value*/ !== preVal)
+		if (me.Value()/*input.value*/ !== preVal)
 		{
-			preVal = me.GetValue(); //input.value;
+			preVal = me.Value(); //input.value;
 			me._internal.FireOnChange();
 		}
 	}
@@ -40,21 +40,21 @@ Fit.Controls.Input = function(ctlId)
 			input.focus();
 	}
 
-	this.SetValue = function(val)
+	this.Value = function(val)
 	{
 		Fit.Validation.ExpectString(val, true);
 
-		orgVal = val;
-		preVal = val;
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			orgVal = val;
+			preVal = val;
 
-		if (designEditor !== null)
-			CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(((val !== undefined && val !== null) ? val : ""));
-		else
-			input.value = ((val !== undefined && val !== null) ? val : "");
-	}
+			if (designEditor !== null)
+				CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(((val !== undefined && val !== null) ? val : ""));
+			else
+				input.value = ((val !== undefined && val !== null) ? val : "");
+		}
 
-	this.GetValue = function()
-	{
 		if (designEditor !== null)
 			return CKEDITOR.instances[me.GetId() + "_DesignMode"].getData();
 
@@ -63,12 +63,12 @@ Fit.Controls.Input = function(ctlId)
 
 	this.IsDirty = function()
 	{
-		return (orgVal !== me.GetValue());
+		return (orgVal !== me.Value());
 	}
 
 	this.Clear = function()
 	{
-		me.SetValue("");
+		me.Value("");
 	}
 
 	var baseDispose = me.Dispose;

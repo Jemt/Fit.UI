@@ -108,7 +108,7 @@ Fit.Validation.ExpectCollection = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((val instanceof NodeList) === false && (val instanceof Array) === false)
+	if ((val instanceof NodeList) === false && (val instanceof HTMLCollection) === false && (val instanceof Array) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a valid collection");
 }
 
@@ -130,15 +130,6 @@ Fit.Validation.ExpectDomElement = function(val, allowNotSet)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a DOMElement");
 }
 
-Fit.Validation.ExpectDomNodeList = function(val, allowNotSet)
-{
-	if (allowNotSet === true && (val === undefined || val === null))
-		return;
-
-	if ((val instanceof NodeList) === false)
-		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of NodeList");
-}
-
 Fit.Validation.ExpectFunction = function(val, allowNotSet)
 {
 	if (allowNotSet === true && (val === undefined || val === null))
@@ -157,6 +148,12 @@ Fit.Validation.ExpectInstance = function(val, instanceType, allowNotSet)
 		Fit.Validation.ThrowError("Unsupported object type passed");
 }
 
+Fit.Validation.ExpectIsSet = function(val)
+{
+	if (Fit.Validation.IsSet(val) === false)
+		Fit.Validation.ThrowError("Value not set");
+}
+
 // ==========================================================
 // Misc.
 // ==========================================================
@@ -168,6 +165,10 @@ Fit.Validation.IsSet = function(obj)
 
 Fit.Validation.ThrowError = function(msg)
 {
-	alert(msg); // Enable this during testing to make sure type related bugs are found
-	throw new Error(msg);
+	alert("ThrowError: " + msg); // Enable this during testing to make sure type related bugs are found
+
+	if (window.console)
+		console.trace();
+
+	throw new Error(msg); // Never change this behaviour - we should always re-throw the error to terminate execution
 }

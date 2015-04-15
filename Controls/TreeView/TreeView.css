@@ -118,6 +118,7 @@ div.FitUiControlTreeViewLines[data-multiselect="true"] li ul li input,
 div.FitUiControlTreeViewLines[data-multiselect="false"] li ul li span
 {
 	margin-left: 0.75em;
+	margin-right: 0.50em;
 }
 
 /* Dotted helper lines */
@@ -170,6 +171,11 @@ div.FitUiControlTreeViewAdditionalInfo li ul li:after
 }
 
 /* Selection */
+
+div.FitUiControlTreeView li input
+{
+	padding: 0px;
+}
 
 /*div.FitUiControlTreeView li[data-selectable="true"] > span*/
 div.FitUiControlTreeView li > span

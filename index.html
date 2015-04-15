@@ -56,7 +56,7 @@
 <input type="button" value="Make Draggable" onclick="new Fit.DragDrop.Draggable(Fit.Controls.Find('MyInput').GetDomElement());">
 <input type="button" value="IsDirty" onclick="alert('Is dirty (different from initial value): ' + Fit.Controls.Find('MyInput').IsDirty())">
 <input type="button" value="GetValue" onclick="alert('Value: ' + Fit.Controls.Find('MyInput').GetValue())">
-<input type="button" value="SetValue" onclick="Fit.Controls.Find('MyInput').SetValue(prompt('Indtast værdi', 'Hello world'));">
+<input type="button" value="SetValue" onclick="Fit.Controls.Find('MyInput').Value(prompt('Indtast værdi', 'Hello world'));">
 <input type="button" value="Enable A-Z 0-9 RegExp" onclick="Fit.Controls.Find('MyInput').SetValidationExpression(new RegExp('^[a-z0-9 ]+$', 'i'), 'Only A-Z, 0-9 and space is allowed!', 'MyValidationScope');">
 <input type="submit" value="Submit page">
 
@@ -117,7 +117,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 <input type="button" value="Clear" onclick="Fit.Controls.Find('MyTreeView').Clear()">
 <br><br>
 
-<div id="TreeView" style="font-size: 12px; color: #3D9CCF; position: relative; left: 100px;"></div>
+<div id="TreeView" style="font-size: 12px; color: #3D9CCF; padding-left: 100px;"></div>
 
 <br><br><br><br><br><br>
 
@@ -141,7 +141,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		input.Render(document.getElementById("Input"));
 		input.OnChange(function(sender, value) { console.log(sender, value); });
 		input.SetWidth(300);
-		input.SetValue("Hello world");
+		input.Value("Hello world");
 		input.Focus();
 		//input.SetMaximizable(true, 100, 300, "px");
 		//input.SetMaximizable(true, 300, 900, "px");
@@ -156,7 +156,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		var tree = new Fit.Controls.TreeView("MyTreeView");
 		tree.Selectable(true, true, true);
 		tree.SetRequired(true);
-		//tree.ShowLines(true);
+		tree.ShowLines(true);
 
 		tree.OnChange(function(sender, value)
 		{
@@ -168,7 +168,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 			});
 
 			console.log("OnChange: " + vals);
-			console.log("OnChange - IsDirty: " + sender.IsDirty());
+			//console.log("OnChange - IsDirty: " + sender.IsDirty());
 		});
 		tree.OnSelect(function(sender, value)
 		{
@@ -176,7 +176,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 
 			if (value.Value() === "001")
 			{
-				console.log("Canceling!");
+				console.log(" -- Canceling!");
 				return false;
 			}
 		});
@@ -190,7 +190,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 
 			if (value.Value() === "005")
 			{
-				console.log("Canceling!");
+				console.log(" -- Canceling!");
 				return false;
 			}
 		});
@@ -275,8 +275,11 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		}, 1500);
 		setTimeout(function()
 		{
-			var ds = Fit.Controls.Find("MyTreeView").GetChildByValue("004");
+			Fit.Controls.Find("MyTreeView").GetChildByValue("001-4").Selected(false);
+			Fit.Controls.Find("MyTreeView").GetChildByValue("001-4").Selected(false);
+			Fit.Controls.Find("MyTreeView").GetChildByValue("001-4").Selected(true);
 
+			var ds = Fit.Controls.Find("MyTreeView").GetChildByValue("004");
 			ds.GetChildren()[0].Selected(true);
 			ds.GetChildren()[3].Selected(true);
 		}, 2000);
@@ -295,7 +298,7 @@ In-place render:<br>
 <script type="text/javascript">
 		var input = new Fit.Controls.Input("MyRenderInPlaceInput");
 		input.SetWidth(300);
-		input.SetValue("Hello world!");
+		input.Value("Hello world!");
 		input.Render();
 </script>
 
@@ -304,12 +307,12 @@ In-place render:<br>
 <script type="text/javascript">
 		var input = new Fit.Controls.Input("MyRenderInPlaceInput2");
 		input.SetWidth(300);
-		input.SetValue("Hello 1");
+		input.Value("Hello 1");
 		input.Render();
 
 		var input = new Fit.Controls.Input("MyRenderInPlaceInput3");
 		input.SetWidth(300);
-		input.SetValue("Hello 2");
+		input.Value("Hello 2");
 		input.Render();
 </script>
 

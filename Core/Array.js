@@ -20,15 +20,17 @@ Fit.Array = {};
 /// 		Return False from callback to break loop.
 /// 	</param>
 /// </function>
-Fit.Array.ForEach = function(obj, callback)
+Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/undefined is allowed - no iteration is performed in this case
 {
-	if (obj instanceof Array || typeof(obj.length) === "number") // Array or DOMNodeList
+	Fit.Validation.ExpectFunction(callback);
+
+	if (obj instanceof Array || obj instanceof NodeList || obj instanceof HTMLCollection)
 	{
 		for (var i = 0 ; i < obj.length ; i++)
 			if (callback(obj[i]) === false)
 				break;
 	}
-	else // Object
+	else if (typeof(obj) === "object")
 	{
 		for (var i in obj)
 			if (callback(i) === false)
@@ -41,8 +43,9 @@ Fit.Array.ForEach = function(obj, callback)
 /// 	<param name="arr" type="array"> Array to which object is added </param>
 /// 	<param name="obj" type="object"> Object to add to array </param>
 /// </function>
-Fit.Array.Add = function(arr, obj)
+Fit.Array.Add = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
 {
+	Fit.Validation.ExpectArray(arr);
     arr.push(obj);
 }
 
@@ -52,8 +55,10 @@ Fit.Array.Add = function(arr, obj)
 /// 	<param name="idx" type="integer"> Index to insert object at </param>
 /// 	<param name="obj" type="object"> Object to insert into array </param>
 /// </function>
-Fit.Array.Insert = function(arr, idx, obj)
+Fit.Array.Insert = function(arr, idx, obj) // obj not validated - passing any object or undefined/null is allowed
 {
+	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectInteger(idx);
     arr.splice(idx, 0, obj);
 }
 
@@ -62,10 +67,11 @@ Fit.Array.Insert = function(arr, idx, obj)
 /// 	<param name="arr" type="array"> Array from which object is remove </param>
 /// 	<param name="obj" type="object"> Object to remove from array </param>
 /// </function>
-Fit.Array.Remove = function(arr, obj)
+Fit.Array.Remove = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
 {
-    var idx = Fit.Array.GetIndex(arr, obj);
+	Fit.Validation.ExpectArray(arr);
 
+    var idx = Fit.Array.GetIndex(arr, obj);
     if (idx !== -1)
         arr.splice(idx, 1);
 }
@@ -77,6 +83,8 @@ Fit.Array.Remove = function(arr, obj)
 /// </function>
 Fit.Array.RemoveAt = function(arr, idx)
 {
+	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectInteger(arr);
     arr.splice(idx, 1);
 }
 
@@ -86,16 +94,19 @@ Fit.Array.RemoveAt = function(arr, idx)
 /// </function>
 Fit.Array.Clear = function(arr)
 {
+	Fit.Validation.ExpectArray(arr);
     arr = [];
 }
 
-/// <function container="Fit.Array" name="GetIndex" access="public" static="true">
-/// 	<description> Get index of object in array </description>
-/// 	<param name="arr" type="array"> Array containing object </param>
+/// <function container="Fit.Array" name="GetIndex" access="public" static="true" returns="integer">
+/// 	<description> Returns index of object in array if found, otherwise a value of -1 is returned </description>
+/// 	<param name="arr" type="array"> Array to search through </param>
 /// 	<param name="obj" type="object"> Object to obtain index for </param>
 /// </function>
-Fit.Array.GetIndex = function(arr, obj)
+Fit.Array.GetIndex = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
 {
+	Fit.Validation.ExpectArray(arr);
+
     for (var i = 0 ; i < arr.length ; i++)
         if (arr[i] === obj)
             return i;
@@ -103,8 +114,14 @@ Fit.Array.GetIndex = function(arr, obj)
     return -1;
 }
 
-Fit.Array.Contains = function(arr, obj)
+/// <function container="Fit.Array" name="Contains" access="public" static="true" returns="boolean">
+/// 	<description> Returns True if given object is contained in array, otherwise False </description>
+/// 	<param name="arr" type="array"> Array to search through </param>
+/// 	<param name="obj" type="object"> Object to look for </param>
+/// </function>
+Fit.Array.Contains = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
 {
+	Fit.Validation.ExpectArray(arr);
     return (Fit.Array.GetIndex(arr, obj) > -1);
 }
 

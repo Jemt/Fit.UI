@@ -3,8 +3,10 @@ Fit.Controls.ControlBase = {};
 
 Fit.Controls.ControlBase = function(controlId)
 {
+	Fit.Validation.ExpectStringValue(controlId);
+
 	if (Fit._internal.ControlBase.Controls[controlId] !== undefined)
-		throw new Error("Control with ID '" + controlId + "' has already been defined - Control IDs must be unique!");
+		Fit.Validation.ThrowError("Control with ID '" + controlId + "' has already been defined - Control IDs must be unique!");
 
 	Fit._internal.ControlBase.Controls[controlId] = this;
 
@@ -12,13 +14,15 @@ Fit.Controls.ControlBase = function(controlId)
 	// Interface - must be overridden
 	// ============================================
 
-	this.SetValue = function(val) // TODO: val type ???
+	this.Value = function(val) // Set/Get
 	{
-		throw new Error("Not implemented");
-	}
+		// Object type (return value and accepted parameter):
+		//  - String (best)
+		//  - Array for collections (e.g. nodes from TreeView - MUST override toString())
+		//  - Object (MUST override toString())
+		// Overriding toString() for Array and Object is important,
+		// and the string representation is used in the RegEx validation logic!
 
-	this.GetValue = function() // TODO: val type ???
-	{
 		throw new Error("Not implemented");
 	}
 
@@ -177,7 +181,7 @@ Fit.Controls.ControlBase = function(controlId)
 		if (!validationExpr && required === false)
 			return true;
 
-		var val = me.GetValue();
+		var val = me.Value();
 
 		if (required === true && !val)
 		{
@@ -210,7 +214,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 			Fit.Array.ForEach(onChangeHandlers, function(cb)
 			{
-				cb(me, me.GetValue());
+				cb(me, me.Value());
 			});
 		},
 
@@ -243,7 +247,7 @@ Fit.Controls.ControlBase = function(controlId)
 				Fit.Dom.AddClass(lblValidationError, "fa-exclamation-circle");
 				Fit.Dom.AddClass(lblValidationError, "FitUiControlError");
 
-				//if (required === true && !me.GetValue()) // Validation failed because no value is set for required field
+				//if (required === true && !me.Value()) // Validation failed because no value is set for required field
 				if (validationErrorType === 0)
 					lblValidationError.title = Fit.Language.Translations.Required;
 
