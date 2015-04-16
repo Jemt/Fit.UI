@@ -17,7 +17,7 @@
 //  - DONE: OnToggled		(after)
 //  - OnChildAdd	(WS - before)
 //  - OnChildAdded	(WS - after)
-//  - Fire events when nodes are set programmatically ???
+//  - NO: Fire events when nodes are set programmatically ??? NO!! Only OnChange to prevent massive overload on recursive operations!
 //  - HandleEvent(ev) - allow keyboard events to be passed and handled.
 //    Required by Outlook Picker, but also useful in conjunction with client based Unit test.
 
@@ -539,7 +539,7 @@ Fit.Controls.TreeView = function(ctlId)
 		}
 		catch (err)
 		{
-			Fit.Validation.ThrowError(err);
+			Fit.Validation.ThrowError(err.message);
 		}
 
 		me._internal.FireOnChange = onChangeHandler;

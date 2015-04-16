@@ -29,20 +29,54 @@ r.Start();
 /// <function container="Fit.Http.Request" name="Request" access="public">
 /// 	<description> Constructor - creates instance of Request class </description>
 /// 	<param name="url" type="string"> URL to request </param>
-/// 	<param name="async" type="boolean"> Value indicating whether to perform request asynchronous or not </param>
 /// </function>
-Fit.Http.Request = function(url, async) // url, true|false
+Fit.Http.Request = function(url)
 {
-	// TODO: Don't use 'this' to reference class itself!
-	// Save 'this' to a local 'me' variable instead to make
-	// sure 'this' is not suddenly a window instance or similar.
+	/*
+	// Test case
+	req = new Fit.Http.Request("./post.php");
+	req.AddData("Name", "Jimmy");
+	req.AddData("Age", "31");
+	req.AddData("Gender", "Male");
+	req.SetStateListener(function(r) { console.log("State listener", r, r.GetCurrentState(), r.GetHttpStatus()); });
+	req.OnStateChange(function(r) { console.log("OnStateChange ", r, r.GetCurrentState(), r.GetHttpStatus()); });
+	req.OnSuccess(function(r) { console.log("OnSuccess ", r, r.GetResponseText()); });
+	req.OnSuccess(function(r) { console.log("Finally done!"); });
+	req.OnFailure(function(r) { console.log("OnFailure ", r, r.GetHttpStatus()); });
+	req.Start();*/
 
-	this.url = url;
-	this.async = async;
+	Fit.Validation.ExpectStringValue(url);
 
-	this.httpRequest = getHttpRequestObject();
-	this.customHeaders = {};
-	this.data = null;
+	var me = this;
+	var httpRequest = getHttpRequestObject();
+	var customHeaders = {};
+	var data = "";
+
+	var onStateChange = [];
+	var onSuccessHandlers = [];
+	var onFailureHandlers = [];
+
+	// Init
+
+	httpRequest.onreadystatechange = function()
+	{
+		Fit.Array.ForEach(onStateChange, function(handler)
+		{
+			handler(me);
+		});
+
+		if (httpRequest.readyState === 4 && httpRequest.status === 200)
+		{
+			Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
+		}
+
+		if (httpRequest.readyState === 4 && httpRequest.status !== 200)
+		{
+			Fit.Array.ForEach(onFailureHandlers, function(handler) { handler(me); });
+		}
+	}
+
+	// Public
 
 	/// <function container="Fit.Http.Request" name="AddHeader" access="public">
 	/// 	<description>
@@ -57,37 +91,63 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.AddHeader = function(key, value)
 	{
-		this.customHeaders[key] = value;
+		Fit.Validation.ExpectStringValue(key);
+		Fit.Validation.ExpectStringValue(value);
+		customHeaders[key] = value;
 	}
 
 	/// <function container="Fit.Http.Request" name="SetData" access="public">
 	/// 	<description> Set data to post - this will change the request method from GET to POST </description>
-	/// 	<param name="data" type="string"> Data to send </param>
+	/// 	<param name="dataStr" type="string"> Data to send </param>
 	/// </function>
-	this.SetData = function(data)
+	this.SetData = function(dataStr)
 	{
-		this.data = data;
+		Fit.Validation.ExpectStringValue(dataStr, true);
+		data = dataStr;
+	}
+
+	/// <function container="Fit.Http.Request" name="AddData" access="public">
+	/// 	<description> Add data to post - this will change the request method from GET to POST </description>
+	/// 	<param name="key" type="string"> Data key </param>
+	/// 	<param name="value" type="string"> Data value </param>
+	/// 	<param name="uriEncode" type="boolean" default="true">
+	/// 		Set False to prevent value from being URI encoded to preserve special characters
+	/// 	</param>
+	/// </function>
+	this.AddData = function(key, value, uriEncode)
+	{
+		Fit.Validation.ExpectStringValue(key);
+		Fit.Validation.ExpectStringValue(value);
+		Fit.Validation.ExpectBoolean(uriEncode, true);
+
+		data += ((data !== "") ? "&" : "") + key + "=" + ((uriEncode === false) ? value : encodeURIComponent(value).replace(/%20/g, "+"));
 	}
 
 	/// <function container="Fit.Http.Request" name="Start" access="public">
-	/// 	<description> Invoke request </description>
+	/// 	<description>
+	/// 		Invoke request. An asynchroneus request is performed if an
+	/// 		OnStateChange, OnSuccess, or OnFailure event handler has been set.
+	/// 		If no event handlers have been set, a synchronous request will be performed,
+	/// 		causing the client to wait (and freeze) until data is received.
+	/// 	</description>
 	/// </function>
 	this.Start = function()
 	{
-		var method = ((this.data === null || this.data === "") ? "GET" : "POST");
-		this.httpRequest.open(method, this.url, this.async);
+		var method = (data ? "POST" : "GET");
+		var async = (onStateChange.length > 0 || onSuccessHandlers.length > 0 || onFailureHandlers.length > 0);
+		httpRequest.open(method, url, async);
 
 		var usingCustomHeaders = false;
-		for (var header in this.customHeaders)
+		for (var header in customHeaders)
 		{
-			this.httpRequest.setRequestHeader(header, this.customHeaders[header]);
+			httpRequest.setRequestHeader(header, customHeaders[header]);
 			usingCustomHeaders = true;
 		}
 
 		if (method === "POST" && usingCustomHeaders === false)
-			this.httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
-		this.httpRequest.send(this.data);
+		httpRequest.send(data);
 	}
 
 	/// <function container="Fit.Http.Request" name="GetResponseXml" access="public" returns="Document">
@@ -99,7 +159,7 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.GetResponseXml = function()
 	{
-		return this.httpRequest.responseXML;
+		return httpRequest.responseXML;
 	}
 
 	/// <function container="Fit.Http.Request" name="GetResponseText" access="public" returns="string">
@@ -111,7 +171,7 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.GetResponseText = function()
 	{
-		return this.httpRequest.responseText;
+		return httpRequest.responseText;
 	}
 
 	/// <function container="Fit.Http.Request" name="GetResponseJson" access="public" returns="object">
@@ -123,19 +183,7 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.GetResponseJson = function()
 	{
-		return ((this.httpRequest.responseText !== "") ? JSON.parse(this.httpRequest.responseText) : null);
-	}
-
-	/// <function container="Fit.Http.Request" name="SetStateListener" access="public">
-	/// 	<description>
-	/// 		Set function to invoke when request state is changed.
-	/// 		Use GetCurrentState() to read the state at the given time.
-	/// 	</description>
-	/// 	<param name="func" type="function"> JavaScript function invoked when state changes </param>
-	/// </function>
-	this.SetStateListener = function(func)
-	{
-		this.httpRequest.onreadystatechange = func;
+		return ((httpRequest.responseText !== "") ? JSON.parse(httpRequest.responseText) : null);
 	}
 
 	/// <function container="Fit.Http.Request" name="GetCurrentState" access="public" returns="integer">
@@ -150,7 +198,7 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.GetCurrentState = function() // 0 = unsent, 1 = opened, 2 = headers received, 3 = loading, 4 = done
 	{
-		return this.httpRequest.readyState;
+		return httpRequest.readyState;
 	}
 
 	/// <function container="Fit.Http.Request" name="GetHttpStatus" access="public" returns="integer">
@@ -166,8 +214,56 @@ Fit.Http.Request = function(url, async) // url, true|false
 	/// </function>
 	this.GetHttpStatus = function()
 	{
-		return this.httpRequest.status;
+		return httpRequest.status;
 	}
+
+	// Events
+
+	/// <function container="Fit.Http.Request" name="OnStateChange" access="public">
+	/// 	<description>
+	/// 		Add function to invoke when request state is changed.
+	/// 		Use GetCurrentState() to read the state at the given time.
+	/// 	</description>
+	/// 	<param name="func" type="function">
+	/// 		JavaScript function invoked when state changes.
+	/// 		Fit.Http.Request instance is passed to function.
+	/// 	</param>
+	/// </function>
+	this.OnStateChange = function(func)
+	{
+		Fit.Validation.ExpectFunction(func);
+		Fit.Array.Add(onStateChange, func);
+	}
+
+	this.SetStateListener = this.OnStateChange; // Backward compatibility
+
+	/// <function container="Fit.Http.Request" name="OnSuccess" access="public">
+	/// 	<description> Add function to invoke when request is successful </description>
+	/// 	<param name="func" type="function">
+	/// 		JavaScript function invoked when request finished successfully.
+	/// 		Fit.Http.Request instance is passed to function.
+	/// 	</param>
+	/// </function>
+	this.OnSuccess = function(func)
+	{
+		Fit.Validation.ExpectFunction(func);
+		Fit.Array.Add(onSuccessHandlers, func);
+	}
+
+	/// <function container="Fit.Http.Request" name="OnFailure" access="public">
+	/// 	<description> Add function to invoke when request is unsuccessful </description>
+	/// 	<param name="func" type="function">
+	/// 		JavaScript function invoked when request finished, but not successfully.
+	/// 		Fit.Http.Request instance is passed to function.
+	/// 	</param>
+	/// </function>
+	this.OnFailure = function(func)
+	{
+		Fit.Validation.ExpectFunction(func);
+		Fit.Array.Add(onFailureHandlers, func);
+	}
+
+	// Private
 
 	function getHttpRequestObject()
 	{

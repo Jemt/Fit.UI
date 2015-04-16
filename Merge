@@ -4,11 +4,12 @@
 # Compile Core
 
 cat Core/Core.js > Fit.UI.js
+cat Core/Validation.js >> Fit.UI.js
 cat Core/Styles.css > Fit.UI.css
 #cat Resources/FontAwesome/css/font-awesome.min.css >> Fit.UI.css
 cat Resources/FontAwesome/css/font-awesome.css >> Fit.UI.css
 
-for file in `ls Core/*js | grep -v Core/Core.js`
+for file in `ls Core/*js | grep -v Core/Core.js | grep -v Core/Validation.js | grep -v Core/json2.js`
 do
 	cat $file >> Fit.UI.js
 done

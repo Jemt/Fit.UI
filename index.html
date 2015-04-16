@@ -318,6 +318,21 @@ In-place render:<br>
 
 <br>In-place render DONE!<br>
 
+<br><br>
+
+	req = new Fit.Http.Request("http://domain.com/post.php");<br>
+	req.AddData("Name", "Jimmy");<br>
+	req.AddData("Age", "31");<br>
+	req.AddData("Gender", "Male");<br>
+	req.SetStateListener(function(r) { console.log("State listener", r, r.GetCurrentState(), r.GetHttpStatus()); });<br>
+	req.OnStateChange(function(r) { console.log("OnStateChange ", r, r.GetCurrentState(), r.GetHttpStatus()); });<br>
+	req.OnSuccess(function(r) { console.log("OnSuccess ", r, r.GetResponseText()); });<br>
+	req.OnSuccess(function(r) { console.log("Finally done!"); });<br>
+	req.OnFailure(function(r) { console.log("OnFailure ", r, r.GetHttpStatus()); });<br>
+	req.Start();<br>
+
+<br><br>
+
 
 </form>
 </body>

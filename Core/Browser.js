@@ -234,7 +234,7 @@ Fit.Browser.GetScreenDimensions = function(onlyAvailable)
 /// 	<description> Log message or object </description>
 /// 	<param name="msg" type="object"> Message or object to log </param>
 /// </function>
-Fit.Browser.Log = function(msg) // msg not validated - any object or value (as null/undefined) can be logged
+Fit.Browser.Log = function(msg) // msg not validated - any object or value (including null/undefined) can be logged
 {
 	if (window.console)
 		console.log(msg);

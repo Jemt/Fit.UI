@@ -36,6 +36,11 @@ Fit.Controls.ControlBase = function(controlId)
 		throw new Error("Not implemented");
 	}
 
+	this.Focused = function(val)
+	{
+		throw new Error("Not implemented");
+	}
+
 	// ============================================
 	// Inherited
 	// ============================================
@@ -181,9 +186,10 @@ Fit.Controls.ControlBase = function(controlId)
 		if (!validationExpr && required === false)
 			return true;
 
-		var val = me.Value();
+		var obj = me.Value();
+		var val = ((Fit.Validation.IsSet(obj) === true) ? obj.toString() : "");
 
-		if (required === true && !val)
+		if (required === true && val === "")
 		{
 			validationErrorType = 0;
 			return false;
@@ -204,7 +210,7 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Array.Add(onChangeHandlers, cb);
 	}
 
-	// Private members (must be public in order to be controls inheriting from ControlBase)
+	// Private members (must be public in order to be accessible to controls inheriting from ControlBase)
 
 	this._internal =
 	{

@@ -62,7 +62,8 @@ Fit.Dom.HasClass = function(elm, cls)
 /// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string">
 /// 	<description>
 /// 		Get style value applied after stylesheets have been loaded.
-/// 		An empty string may be returned if style has not been defined, or Null if style does not exist. </description>
+/// 		An empty string may be returned if style has not been defined, or Null if style does not exist.
+/// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element which contains desired CSS style value </param>
 /// 	<param name="style" type="string"> CSS style property name </param>
 /// </function>
@@ -87,6 +88,11 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 // DOM
 // ==========================================================
 
+/// <function container="Fit.Dom" name="InsertBefore" access="public" static="true">
+/// 	<description> Insert DOMElement before another DOMElement </description>
+/// 	<param name="target" type="DOMElement"> Element to insert new element before </param>
+/// 	<param name="newElm" type="DOMElement"> Element to insert before target element </param>
+/// </function>
 Fit.Dom.InsertBefore = function(target, newElm)
 {
 	Fit.Validation.ExpectDomElement(target);
@@ -95,6 +101,11 @@ Fit.Dom.InsertBefore = function(target, newElm)
 	target.parentElement.insertBefore(newElm, target);
 }
 
+/// <function container="Fit.Dom" name="InsertAfter" access="public" static="true">
+/// 	<description> Insert DOMElement after another DOMElement </description>
+/// 	<param name="target" type="DOMElement"> Element to insert new element after </param>
+/// 	<param name="newElm" type="DOMElement"> Element to insert after target element </param>
+/// </function>
 Fit.Dom.InsertAfter = function(target, newElm)
 {
 	Fit.Validation.ExpectDomElement(target);
@@ -106,14 +117,27 @@ Fit.Dom.InsertAfter = function(target, newElm)
 		target.parentElement.appendChild(newElm);
 }
 
+/// <function container="Fit.Dom" name="Remove" access="public" static="true">
+/// 	<description> Insert DOMElement after another DOMElement </description>
+/// 	<param name="elm" type="DOMElement"> Remove DOMElement from its parent element </param>
+/// </function>
 Fit.Dom.Remove = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
 	elm.parentElement.removeChild(elm);
 }
 
+/// <function container="Fit.Dom" name="Attribute" access="public" static="true" returns="string">
+/// 	<description> Get/set attribute on DOMElement </description>
+/// 	<param name="elm" type="DOMElement"> DOMElement to which attribute is set or returned from </param>
+/// 	<param name="name" type="string"> Name of attribute to set or retrieve </param>
+/// 	<param name="value" type="string" default="undefined"> If defined, attribute is updated with specified value </param>
+/// </function>
 Fit.Dom.Attribute = function(elm, name, value)
 {
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectStringValue(name);
+
 	if (Fit.Validation.IsSet(value) === true)
 	{
 		Fit.Validation.ExpectString(value);
@@ -123,19 +147,18 @@ Fit.Dom.Attribute = function(elm, name, value)
 	return elm.getAttribute(name);
 }
 
+/// <function container="Fit.Dom" name="Data" access="public" static="true" returns="string">
+/// 	<description> Get/set data attribute on DOMElement </description>
+/// 	<param name="elm" type="DOMElement"> DOMElement to which data attribute is set or returned from </param>
+/// 	<param name="name" type="string"> Name of data attribute to set or retrieve </param>
+/// 	<param name="value" type="string" default="undefined"> If defined, data attribute is updated with specified value </param>
+/// </function>
 Fit.Dom.Data = function(elm, name, value)
 {
 	// Modern browsers can read data-attributes from elm.dataset.ATTRIBUTE.
 	// Notice that data-title-value="XYZ" becomes elm.dataset.titleValue.
 
-	// Performance:
-	// If performance becomes vital, consider alternative storage:
-	// http://jsperf.com/data-dataset
-	// Perhaps something as simple as this will do: elm["_data" + name] = value;
-	// However, be aware that it won't allow the use of data attributes in CSS,
-	// e.g. content: attr(data-xyz).
-
-	return Fit.Dom.Attribute(elm, "data-" + name, value);
+	return Fit.Dom.Attribute(elm, "data-" + name, value); // Arguments validated in Attribute(..) function
 }
 
 /// <function container="Fit.Dom" name="GetDepth" access="public" static="true" returns="integer">
@@ -148,6 +171,8 @@ Fit.Dom.Data = function(elm, name, value)
 /// </function>
 Fit.Dom.GetDepth = function(elm)
 {
+	Fit.Validation.ExpectDomElement(elm);
+
     var i = 0;
     var parent = elm.parentElement;
 
@@ -160,8 +185,16 @@ Fit.Dom.GetDepth = function(elm)
     return i;
 }
 
+/// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">
+/// 	<description> Returns first parent of specified type for a given DOMElement if found, otherwise Null </description>
+/// 	<param name="element" type="DOMElement"> DOMElement to find parent for </param>
+/// 	<param name="parentType" type="string"> Tagname of parent element to look for </param>
+/// </function>
 Fit.Dom.GetParentOfType = function(element, parentType)
 {
+	Fit.Validation.ExpectDomElement(element);
+	Fit.Validation.ExpectStringValue(parentType);
+
     var parent = element.parentElement;
 
     while (parent !== null)
@@ -182,6 +215,9 @@ Fit.Dom.GetParentOfType = function(element, parentType)
 /// </function>
 Fit.Dom.Wrap = function(elementToWrap, container)
 {
+	Fit.Validation.ExpectDomElement(elementToWrap);
+	Fit.Validation.ExpectDomElement(container);
+
 	var parent = elementToWrap.parentNode;
 	var nextSibling = elementToWrap.nextSibling;
 
@@ -200,8 +236,8 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
 /// 	<description>
-/// 	Get element position.
-/// 	Object returned contains an X and Y property with the desired integer values (pixels).
+/// 		Get element position.
+/// 		Object returned contains an X and Y property with the desired integer values (pixels).
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get position for </param>
 /// 	<param name="relativeToViewport" type="boolean" default="false">
@@ -210,6 +246,9 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 /// </function>
 Fit.Dom.GetPosition = function(elm, relativeToViewport)
 {
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectBoolean(relativeToViewport, true);
+
     // Return position within viewport
 
     if (relativeToViewport === true)
@@ -243,6 +282,8 @@ Fit.Dom.GetPosition = function(elm, relativeToViewport)
 /// </function>
 Fit.Dom.GetScrollPosition = function(elm)
 {
+	Fit.Validation.ExpectDomElement(elm);
+
     // Get number of pixels specified element's container(s)
     // have been scrolled. This gives us the total scroll value
     // for nested scrollable elements which in combination with
