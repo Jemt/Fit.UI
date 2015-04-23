@@ -117,13 +117,30 @@ Fit.Dom.InsertAfter = function(target, newElm)
 		target.parentElement.appendChild(newElm);
 }
 
+/// <function container="Fit.Dom" name="Add" access="public" static="true">
+/// 	<description> Add DOMElement to container </description>
+/// 	<param name="container" type="DOMElement"> Add element to this container </param>
+/// 	<param name="elm" type="DOMElement"> Element to add to container </param>
+/// </function>
+Fit.Dom.Add = function(container, elm)
+{
+	Fit.Validation.ExpectDomElement(container);
+	Fit.Validation.ExpectDomElement(elm);
+
+	container.appendChild(elm);
+}
+
 /// <function container="Fit.Dom" name="Remove" access="public" static="true">
-/// 	<description> Insert DOMElement after another DOMElement </description>
-/// 	<param name="elm" type="DOMElement"> Remove DOMElement from its parent element </param>
+/// 	<description> Remove DOMElement from its container element </description>
+/// 	<param name="elm" type="DOMElement"> DOMElement to remove </param>
 /// </function>
 Fit.Dom.Remove = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
+
+	if (elm.parentElement === null)
+		return; // Element not rooted
+
 	elm.parentElement.removeChild(elm);
 }
 
@@ -137,12 +154,10 @@ Fit.Dom.Attribute = function(elm, name, value)
 {
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectStringValue(name);
+	Fit.Validation.ExpectString(value, true);
 
 	if (Fit.Validation.IsSet(value) === true)
-	{
-		Fit.Validation.ExpectString(value);
 		elm.setAttribute(name, value);
-	}
 
 	return elm.getAttribute(name);
 }
@@ -155,10 +170,14 @@ Fit.Dom.Attribute = function(elm, name, value)
 /// </function>
 Fit.Dom.Data = function(elm, name, value)
 {
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectStringValue(name);
+	Fit.Validation.ExpectString(value, true);
+
 	// Modern browsers can read data-attributes from elm.dataset.ATTRIBUTE.
 	// Notice that data-title-value="XYZ" becomes elm.dataset.titleValue.
 
-	return Fit.Dom.Attribute(elm, "data-" + name, value); // Arguments validated in Attribute(..) function
+	return Fit.Dom.Attribute(elm, "data-" + name, value);
 }
 
 /// <function container="Fit.Dom" name="GetDepth" access="public" static="true" returns="integer">

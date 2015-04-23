@@ -1,6 +1,11 @@
 Fit.Controls = {};
 Fit.Controls.ControlBase = {};
+Fit._internal.ControlBase = {};
+Fit._internal.ControlBase.Controls = {};
 
+/// <container name="Fit.Controls.ControlBase">
+/// 	Class from which all GUI Controls inherit
+/// </container>
 Fit.Controls.ControlBase = function(controlId)
 {
 	Fit.Validation.ExpectStringValue(controlId);
@@ -14,35 +19,60 @@ Fit.Controls.ControlBase = function(controlId)
 	// Interface - must be overridden
 	// ============================================
 
-	this.Value = function(val) // Set/Get
+	/// <function container="Fit.Controls.ControlBase" name="Value" access="public" returns="object">
+	/// 	<description>
+	/// 		Get/set control value.
+	/// 		Object type accepted and returned is determined by individual controls, but
+	/// 		toString() may be called on returned object to obtain a string representation.
+	/// 	</description>
+	/// 	<param name="value" type="string" default="undefined"> If defined, control value is updated with specified value </param>
+	/// </function>
+	this.Value = function(val)
 	{
 		// Object type (return value and accepted parameter):
 		//  - String (best)
-		//  - Array for collections (e.g. nodes from TreeView - MUST override toString())
-		//  - Object (MUST override toString())
+		//  - Array/object (MUST override toString())
 		// Overriding toString() for Array and Object is important,
-		// and the string representation is used in the RegEx validation logic!
+		// since the string representation is used in the RegEx validation logic!
+		// ToString function should accept an alternative separator. If not set,
+		// semicolon (;) should be used.
 
-		throw new Error("Not implemented");
+		// Function MUST remember to fire OnChange event when
+		// value is changed, both programmatically and by user.
+
+		Fit.Validation.ThrowError("Not implemented");
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="IsDirty" access="public" returns="boolean">
+	/// 	<description> Get value indicating whether user has changed control value </description>
+	/// </function>
 	this.IsDirty = function()
 	{
-		throw new Error("Not implemented");
+		Fit.Validation.ThrowError("Not implemented");
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="Clear" access="public">
+	/// 	<description> Clear control value </description>
+	/// </function>
 	this.Clear = function()
 	{
-		throw new Error("Not implemented");
+		// Function MUST remember to fire OnChange event when
+		// value is clear, both programmatically and by user.
+
+		Fit.Validation.ThrowError("Not implemented");
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="Focused" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control has focus </description>
+	/// 	<param name="value" type="boolean" default="undefined"> If defined, True assigns focus, False removes focus (blur) </param>
+	/// </function>
 	this.Focused = function(val)
 	{
-		throw new Error("Not implemented");
+		Fit.Validation.ThrowError("Not implemented");
 	}
 
 	// ============================================
-	// Inherited
+	// Init
 	// ============================================
 
 	var me = this;
@@ -50,6 +80,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var container = null;
 	var width = { Value: 200, Unit: "px" };
 	var height = { Value: -1, Unit: "px" };
+	var scope = null;
 	var required = false;
 	var validationExpr = null;
 	var validationError = null;
@@ -57,133 +88,227 @@ Fit.Controls.ControlBase = function(controlId)
 	var lblValidationError = null;
 	var onChangeHandlers = [];
 
-	container = document.createElement("div");
-	container.id = id;
-	container.style.width = "200px";
-	Fit.Dom.AddClass(container, "FitUiControl");
+	function init()
+	{
+		container = document.createElement("div");
+		container.id = id;
+		container.style.width = width.Value + width.Unit;
+		Fit.Dom.AddClass(container, "FitUiControl");
+	}
 
+	// ============================================
+	// Public - inherited
+	// ============================================
+
+	/// <function container="Fit.Controls.ControlBase" name="GetId" access="public" returns="string">
+	/// 	<description> Get unique Control ID </description>
+	/// </function>
 	this.GetId = function()
 	{
 		return id;
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="GetDomElement" access="public" returns="DOMElement">
+	/// 	<description> Get DOMElement representing control </description>
+	/// </function>
 	this.GetDomElement = function()
 	{
 		return container;
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="Dispose" access="public">
+	/// 	<description> Destroys control to free up memory </description>
+	/// </function>
 	this.Dispose = function()
 	{
-		if (container.parentNode !== null)
-			container.parentNode.removeChild(container);
+		// This will destroy control - it will no longer work!
+
+		Fit.Dom.Remove(container);
+		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = lblValidationError = onChangeHandlers = null;
+		Fit._internal.ControlBase.Controls[controlId] = null;
 	}
 
-	this.SetWidth = function(val, unit)
+	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="object">
+	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// </function>
+	this.Width = function(val, unit)
 	{
 		Fit.Validation.ExpectNumber(val, true);
-		Fit.Validation.ExpectString(unit, true);
+		Fit.Validation.ExpectStringValue(unit, true);
 
-		width = { Value: ((val !== undefined && val !== null) ? val : 200), Unit: ((unit !== undefined && unit !== null) ? unit : "px") };
-		container.style.width = width.Value + width.Unit;
-	}
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
 
-	this.GetWidth = function()
-	{
+			if (width.Value > -1)
+				container.style.width = width.Value + width.Unit;
+			else
+				container.style.width = "";
+		}
+
 		return width;
 	}
 
-	this.SetHeight = function(val, unit)
+	/// <function container="Fit.Controls.ControlBase" name="Height" access="public" returns="object">
+	/// 	<description> Get/set control height - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, control height is updated to specified value </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, control height is updated to specified CSS unit </param>
+	/// </function>
+	this.Height = function(val, unit)
 	{
 		Fit.Validation.ExpectNumber(val, true);
-		Fit.Validation.ExpectString(unit, true);
+		Fit.Validation.ExpectStringValue(unit, true);
 
-		height = { Value: ((val !== undefined && val !== null) ? val : -1), Unit: ((unit !== undefined && unit !== null) ? unit : "px") };
-
-		if (height.Value === -1)
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			container.style.height = "";
-			return;
+			height = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true && val !== -1) ? unit : "px") };
+
+			if (height.Value > -1)
+				container.style.height = height.Value + height.Unit;
+			else
+				container.style.height = "";
 		}
 
-		container.style.height = height.Value + height.Unit;
-	}
-
-	this.GetHeight = function()
-	{
 		return height;
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="AddCssClass" access="public">
+	/// 	<description> Add CSS class to DOMElement representing control </description>
+	/// 	<param name="val" type="string"> CSS class to add </param>
+	/// </function>
 	this.AddCssClass = function(val)
 	{
-		Fit.Validation.ExpectString(val);
+		Fit.Validation.ExpectStringValue(val);
 		Fit.Dom.AddClass(container, val);
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="RemoveCssClass" access="public">
+	/// 	<description> Remove CSS class from DOMElement representing control </description>
+	/// 	<param name="val" type="string"> CSS class to remove </param>
+	/// </function>
 	this.RemoveCssClass = function(val)
 	{
-		Fit.Validation.ExpectString(val);
+		Fit.Validation.ExpectStringValue(val);
 		Fit.Dom.RemoveClass(container, val);
 	}
 
-	this.Data = function(key, val)
+	/// <function container="Fit.Controls.ControlBase" name="HasCssClass" access="public" returns="boolean">
+	/// 	<description> Check whether CSS class is found on DOMElement representing control </description>
+	/// 	<param name="val" type="string"> CSS class to check for </param>
+	/// </function>
+	this.HasCssClass = function(val)
 	{
-		Fit.Validation.ExpectString(key);
-		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectStringValue(val);
+		return Fit.Dom.HasClass(container, val);
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="Visible" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control is visible </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, control visibility is updated </param>
+	/// </function>
+	this.Visible = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
 
 		if (Fit.Validation.IsSet(val) === true)
-			Fit.Dom.Data(container, key, val);
+			container.style.display = ((val === true) ? "" : "none");
 
-		return Fit.Dom.Data(container, key);
+		return (container.style.display !== "none");
 	}
 
-	this.SetVisible = function(val) // show/hide
+	/// <function container="Fit.Controls.ControlBase" name="Required" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control is required to be set </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, control required feature is enabled/disabled </param>
+	/// </function>
+	this.Required = function(val)
 	{
-		Fit.Validation.ExpectBoolean(val);
-		container.style.display = ((val === true) ? "" : "none");
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			required = val;
+
+			if (val === true)
+			{
+				me._internal.Validate();
+			}
+			else if (lblValidationError !== null)
+			{
+				Fit.Dom.Remove(lblValidationError);
+				lblValidationError = null;
+			}
+		}
+
+		return required;
 	}
 
-	this.SetRequired = function(val, scope)
+	/// <function container="Fit.Controls.ControlBase" name="Scope" access="public" returns="string">
+	/// 	<description> Get/set scope to which control belongs - this is used to validate multiple controls at once using Fit.Controls.ValidateAll(scope) </description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, control scope is updated </param>
+	/// </function>
+	this.Scope = function(val)
 	{
-		Fit.Validation.ExpectBoolean(val);
-		Fit.Validation.ExpectString(scope, true);
+		Fit.Validation.ExpectStringValue(val, true);
 
-		required = val;
-		me._internal.ValidationScope = scope; // Used by Fit.Controls.ValidateAll
+		if (Fit.Validation.IsSet(val) === true)
+			scope = val;
+
+		return scope;
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="Render" access="public">
+	/// 	<description> Render control, either inline or to element specified </description>
+	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
+	/// </function>
 	this.Render = function(toElement)
 	{
 		Fit.Validation.ExpectDomElement(toElement, true);
 
-		if (toElement)
+		if (Fit.Validation.IsSet(toElement) === true)
 		{
-			toElement.appendChild(me.GetDomElement()); // Using GetDomElement() to get container - may have been overridden on derivative
+			Fit.Dom.Add(toElement, container);
 		}
 		else
 		{
 			var script = document.scripts[document.scripts.length - 1];
-			script.parentNode.insertBefore(me.GetDomElement(), script);
+			Fit.Dom.InsertBefore(script, container);
 		}
 
 		me._internal.Validate();
 	}
 
-	this.SetValidationExpression = function(regEx, errorMsg, scope)
+	/// <function container="Fit.Controls.ControlBase" name="SetValidationExpression" access="public">
+	/// 	<description> Set regular expression used to perform on-the-fly validation against control value </description>
+	/// 	<param name="regEx" type="RegExp"> Regular expression to validate against </param>
+	/// 	<param name="errorMsg" type="string" default="undefined">
+	/// 		If defined, specified error message is displayed when user clicks our hovers validation error indicator
+	/// 	</param>
+	/// </function>
+	this.SetValidationExpression = function(regEx, errorMsg)
 	{
-		Fit.Validation.ExpectRegExp(regEx, true); // Allow Null which disables validation
+		Fit.Validation.ExpectRegExp(regEx, true); // Allow Null/undefined which disables validation
 		Fit.Validation.ExpectString(errorMsg, true);
-		Fit.Validation.ExpectString(scope, true);
 
-		validationExpr = regEx;
-		validationError = errorMsg;
-		me._internal.ValidationScope = scope; // Used by Fit.Controls.ValidateAll
+		validationExpr = (regEx ? regEx : null);
+		validationError = (errorMsg ? errorMsg : null);
+
+		me._internal.Validate();
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="IsValid" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get value indicating whether control value is valid.
+	/// 		Control value is considered invalid if control is required, but no value is set,
+	/// 		or if control value does not match regular expression set using SetValidationExpression(..).
+	/// 	</description>
+	/// </function>
 	this.IsValid = function()
 	{
 		validationErrorType = -1;
 
-		if (!validationExpr && required === false)
+		if (validationExpr === null && required === false)
 			return true;
 
 		var obj = me.Value();
@@ -195,7 +320,7 @@ Fit.Controls.ControlBase = function(controlId)
 			return false;
 		}
 
-		if (validationExpr && validationExpr.test(val) === false)
+		if (validationExpr !== null && validationExpr.test(val) === false)
 		{
 			validationErrorType = 1;
 			return false;
@@ -204,11 +329,23 @@ Fit.Controls.ControlBase = function(controlId)
 		return true;
 	}
 
+	// ============================================
+	// Events
+	// ============================================
+
+	/// <function container="Fit.Controls.ControlBase" name="OnChange" access="public">
+	/// 	<description> Register OnChange event handler which is invoked when control value is changed either programmatically or by user </description>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) and new control value (object) </param>
+	/// </function>
 	this.OnChange = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onChangeHandlers, cb);
 	}
+
+	// ============================================
+	// Private
+	// ============================================
 
 	// Private members (must be public in order to be accessible to controls inheriting from ControlBase)
 
@@ -224,20 +361,32 @@ Fit.Controls.ControlBase = function(controlId)
 			});
 		},
 
+		Data: function(key, val)
+		{
+			Fit.Validation.ExpectStringValue(key);
+			Fit.Validation.ExpectString(val, true);
+
+			if (Fit.Validation.IsSet(val) === true)
+				Fit.Dom.Data(container, key, val);
+
+			return Fit.Dom.Data(container, key);
+		},
+
 		AddDomElement: function(elm)
 		{
-			container.appendChild(elm);
+			Fit.Validation.ExpectDomElement(elm);
+			Fit.Dom.Add(container, elm);
 		},
 
 		RemoveDomElement: function(elm)
 		{
-			if (elm.parentNode === container)
-				container.removeChild(elm);
+			Fit.Validation.ExpectDomElement(elm);
+			Fit.Dom.Remove(elm);
 		},
 
 		Validate: function()
 		{
-			if (container.parentNode === null)
+			if (container.parentElement === null)
 				return; // Not rendered yet!
 
 			var valid = me.IsValid();
@@ -247,17 +396,16 @@ Fit.Controls.ControlBase = function(controlId)
 				// Add error indicator
 
 				lblValidationError = document.createElement("div");
-				lblValidationError.title = (validationError ? validationError : "");
-				lblValidationError.onclick = function() { alert(lblValidationError.title); };
+				lblValidationError.title = ((validationError !== null) ? validationError : "");
+				lblValidationError.onclick = function() { if (lblValidationError.title !== "") alert(lblValidationError.title); };
 				Fit.Dom.AddClass(lblValidationError, "fa");
 				Fit.Dom.AddClass(lblValidationError, "fa-exclamation-circle");
 				Fit.Dom.AddClass(lblValidationError, "FitUiControlError");
 
-				//if (required === true && !me.Value()) // Validation failed because no value is set for required field
 				if (validationErrorType === 0)
 					lblValidationError.title = Fit.Language.Translations.Required;
 
-				container.insertBefore(lblValidationError, container.firstChild);
+				Fit.Dom.InsertBefore(container.firstChild, lblValidationError);
 			}
 			else if (valid === false && lblValidationError !== null)
 			{
@@ -274,7 +422,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 				Fit.Dom.RemoveClass(lblValidationError, "fa-exclamation-circle");
 				Fit.Dom.AddClass(lblValidationError, "fa-thumbs-up");
-				lblValidationError.style.backgroundColor = "green";
+				Fit.Dom.AddClass(lblValidationError, "FitUiControlErrorCorrected");
 				lblValidationError.onclick = null;
 
 				var lblValidationErrorClosure = lblValidationError;
@@ -282,30 +430,50 @@ Fit.Controls.ControlBase = function(controlId)
 
 				setTimeout(function()
 				{
-					container.removeChild(lblValidationErrorClosure);
+					Fit.Dom.Remove(lblValidationErrorClosure);
 				}, 1000);
 			}
 		}
 	}
+
+	init();
 }
 
-Fit._internal.ControlBase = {};
-Fit._internal.ControlBase.Controls = {};
+// ============================================
+// Public static
+// ============================================
+
+/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="Fit.Controls.ControlBase">
+/// 	<description> Get control by unique Control ID - returns Null if not found </description>
+/// 	<param name="id" type="string"> Unique Control ID </param>
+/// </function>
 Fit.Controls.Find = function(id)
 {
+	Fit.Validation.ExpectStringValue(id);
 	return ((Fit._internal.ControlBase.Controls[id] !== undefined) ? Fit._internal.ControlBase.Controls[id] : null);
 }
 
+/// <function container="Fit.Controls" name="ValidateAll" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Validate all controls - either all controls on page, or within specified scope.
+/// 		Returns True if all controls contain valid values, otherwise False.
+/// 	</description>
+/// 	<param name="id" type="scope" default="undefined">
+/// 		If specified, validate controls only within this scope.
+/// 		See Fit.Controls.ControlBase.Scope(..)
+/// 		for details on configurering scoped validation.
+/// 	</param>
+/// </function>
 Fit.Controls.ValidateAll = function(scope)
 {
-	Fit.Validation.ExpectString(scope, true);
+	Fit.Validation.ExpectStringValue(scope, true);
 
 	var result = true;
 	Fit.Array.ForEach(Fit._internal.ControlBase.Controls, function(controlId)
 	{
 		var control = Fit._internal.ControlBase.Controls[controlId];
 
-		if (scope && control._internal.ValidationScope !== scope)
+		if (Fit.Validation.IsSet(scope) === true && control.Scope() !== scope)
 			return;
 
 		if (control.IsValid() === false)

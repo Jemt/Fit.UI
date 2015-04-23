@@ -54,11 +54,15 @@ Fit.Validation.ExpectString = function(val, allowNotSet)
 }
 
 /// <function container="Fit.Validation" name="ExpectStringValue" access="public" static="true">
-/// 	<description> Same as Fit.Validation.ExpectString(..), but string must contain an actual value (not be empty) </description>
+/// 	<description> Same as Fit.Validation.ExpectString(..), but string must contain an actual value if set (not be empty) </description>
 /// 	<param name="val" type="object"> Object to validate </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
 /// </function>
-Fit.Validation.ExpectStringValue = function(val)
+Fit.Validation.ExpectStringValue = function(val, allowNotSet)
 {
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
 	Fit.Validation.ExpectString(val);
 
 	if (val === "")

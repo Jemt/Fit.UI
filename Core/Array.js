@@ -1,3 +1,6 @@
+/// <container name="Fit.Array">
+/// 	Functionality extending the capabilities of native JS arrays
+/// </container>
 Fit.Array = {};
 
 /// <function container="Fit.Array" name="ForEach" access="public" static="true">
@@ -60,6 +63,18 @@ Fit.Array.Insert = function(arr, idx, obj) // obj not validated - passing any ob
 	Fit.Validation.ExpectArray(arr);
 	Fit.Validation.ExpectInteger(idx);
     arr.splice(idx, 0, obj);
+}
+
+/// <function container="Fit.Array" name="Merge" access="public" static="true">
+/// 	<description> Merge/join two arrays </description>
+/// 	<param name="arr1" type="array"> Array 1 to merge with array 2 </param>
+/// 	<param name="arr1" type="array"> Array 2 to merge with array 1 </param>
+/// </function>
+Fit.Array.Merge = function(arr1, arr2)
+{
+	Fit.Validation.ExpectArray(arr1);
+	Fit.Validation.ExpectArray(arr2);
+    return arr1.concat(arr2);
 }
 
 /// <function container="Fit.Array" name="Remove" access="public" static="true">

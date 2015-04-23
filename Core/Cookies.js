@@ -6,11 +6,15 @@ Fit.Cookies = {};
 /// <function container="Fit.Cookies" name="Set" access="public" static="true" returns="boolean">
 /// 	<description> Create or update cookie - returns True on success, otherwise False </description>
 /// 	<param name="name" type="string"> Unique cookie name </param>
-/// 	<param name="value" type="string"> Cookie value (cannot contain semi colon!) </param>
+/// 	<param name="value" type="string"> Cookie value (cannot contain semicolon!) </param>
 /// 	<param name="seconds" type="integer"> Expiration time in seconds </param>
 /// </function>
 Fit.Cookies.Set = function(name, value, seconds)
 {
+	Fit.Validation.ExpectStringValue(name);
+	Fit.Validation.ExpectString(name);
+	Fit.Validation.ExpectInteger(seconds);
+
 	if (value.indexOf(';') > -1)
 	{
 		throw new Error("Unable to set cookie - value contains illegal character: ';'");
@@ -30,6 +34,8 @@ Fit.Cookies.Set = function(name, value, seconds)
 /// </function>
 Fit.Cookies.Get = function(name)
 {
+	Fit.Validation.ExpectStringValue(name);
+
 	var name = name + "=";
 	var cookies = document.cookie.split(";");
 	var cookie = null;
@@ -54,5 +60,6 @@ Fit.Cookies.Get = function(name)
 /// </function>
 Fit.Cookies.Remove = function(name)
 {
+	Fit.Validation.ExpectStringValue(name);
 	return this.Set(name, "", -1);
 }

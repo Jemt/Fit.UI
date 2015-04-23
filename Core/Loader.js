@@ -27,10 +27,13 @@ Fit.Loader = {};
 /// </function>
 Fit.Loader.LoadScript = function(src, callback)
 {
+	Fit.Validation.ExpectStringValue(src);
+	Fit.Validation.ExpectFunction(callback, true);
+
 	var script = document.createElement("script");
 	script.type = "text/javascript";
 
-	if (callback !== undefined && (Fit.Browser.GetBrowser() !== "MSIE" || (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() >= 9)))
+	if (Fit.Validation.IsSet(callback) === true && (Fit.Browser.GetBrowser() !== "MSIE" || (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() >= 9)))
 	{
 		script.onload = function() { callback(src); };
 
@@ -39,7 +42,7 @@ Fit.Loader.LoadScript = function(src, callback)
 		// doesn't halt execution on 404 or syntax errors.
 		script.onerror = function() { callback(src); };
 	}
-	else if (callback !== undefined && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() <= 8)
+	else if (Fit.Validation.IsSet(callback) === true && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() <= 8)
 	{
 		script.onreadystatechange = function()
 		{
@@ -90,13 +93,19 @@ Fit.Loader.LoadScript = function(src, callback)
 /// </function>
 Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 {
+	Fit.Validation.ExpectArray(cfg);
+	Fit.Validation.ExpectFunction(callback, true);
+	Fit.Validation.ExpectBoolean(skipValidation, true);
+
 	// Verify configuration
 
 	if (skipValidation !== true)
 	{
 		for (var i = 0 ; i < cfg.length ; i++)
-			if (cfg[i].source === undefined)
-				throw new Error("Unable to load script with source property undefined");
+		{
+			Fit.Validation.ExpectStringValue(cfg[i].source);
+			Fit.Validation.ExpectFunction(cfg[i].loaded, true);
+		}
 	}
 
 	// Find next unhandled script to load
@@ -116,7 +125,7 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 
 	if (toLoad === null)
 	{
-		if (callback !== undefined)
+		if (Fit.Validation.IsSet(callback) === true)
 			callback(cfg);
 
 		return;
@@ -128,7 +137,7 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 
 	Fit.Loader.LoadScript(toLoad.source, function()
 	{
-		if (toLoad.loaded !== undefined)
+		if (Fit.Validation.IsSet(toLoad.loaded) === true)
 		{
 			try // Use try/catch to prevent buggy code from stopping the chain
 			{
@@ -172,6 +181,9 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 /// </function>
 Fit.Loader.LoadStyleSheet = function(src, callback)
 {
+	Fit.Validation.ExpectStringValue(src);
+	Fit.Validation.ExpectFunction(callback, true);
+
 	// OnError event could likely be supported using the following
 	// lines of code which allows us to check the number of loaded CSS rules:
 	// W3C browsers: var success = (cssLinkNode.sheet.cssRules.length > 0);
@@ -183,12 +195,12 @@ Fit.Loader.LoadStyleSheet = function(src, callback)
 	link.type = "text/css";
 	link.rel = "stylesheet";
 
-	if (callback !== undefined && (Fit.Browser.GetBrowser() !== "MSIE" || (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() >= 9)))
+	if (Fit.Validation.IsSet(callback) === true && (Fit.Browser.GetBrowser() !== "MSIE" || (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() >= 9)))
 	{
 		link.onload = function() { callback(src); };
 		link.onerror = function() { callback(src); }; // Same behaviour as LoadScript(..)
 	}
-	else if (callback !== undefined && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() <= 8)
+	else if (Fit.Validation.IsSet(callback) === true && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() <= 8)
 	{
 		link.onreadystatechange = function()
 		{
@@ -236,17 +248,22 @@ Fit.Loader.LoadStyleSheet = function(src, callback)
 /// </function>
 Fit.Loader.LoadStyleSheets = function(cfg, callback)
 {
+	Fit.Validation.ExpectArray(cfg);
+	Fit.Validation.ExpectFunction(callback, true);
+
 	// Verify configuration
 
 	for (var i = 0 ; i < cfg.length ; i++)
-		if (cfg[i].source === undefined)
-			throw new Error("Unable to load stylesheet with source property undefined");
+	{
+		Fit.Validation.ExpectStringValue(cfg[i].source);
+		Fit.Validation.ExpectFunction(cfg[i].loaded);
+	}
 
 	// Invoke callback if nothing to load
 
 	if (cfg.length === 0)
 	{
-		if (callback !== undefined)
+		if (Fit.Validation.IsSet(callback) === true)
 			callback(cfg);
 
 		return;
@@ -268,7 +285,7 @@ Fit.Loader.LoadStyleSheets = function(cfg, callback)
 				{
 					cfg[j].handled = true;
 
-					if (cfg[j].loaded !== undefined)
+					if (Fit.Validation.IsSet(cfg[j].loaded) === true)
 					{
 						try // Use try/catch to make sure a buggy callback function does not prevent "all completed" callback to be reached
 						{
@@ -297,7 +314,7 @@ Fit.Loader.LoadStyleSheets = function(cfg, callback)
 					return;
 			}
 
-			if (callback !== undefined)
+			if (Fit.Validation.IsSet(callback) === true)
 				callback(cfg);
 		});
 	}

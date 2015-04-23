@@ -5,14 +5,11 @@ div.FitUiControlInput textarea
 	height: 100%;
 	padding: 1px;
 	margin: 0px;
-	line-height: 100%;
 	text-align: inherit;
+	border: 1px solid #909090;
 }
 
-/*.FitUiInput + span:before
-{
-	content: "V";
-}*/
+/* Maximize button */
 div.FitUiControlInput
 {
 	position: relative;
@@ -24,12 +21,14 @@ div.FitUiControlInput span.fa
 	right: -20px;
 }
 
+/* Remove outline when input has focus */
 div.FitUiControlInput input:focus,
 div.FitUiControlInput textarea:focus
 {
 	outline: none;
 }
 
+/* Disable textarea resizing */
 div.FitUiControlInput textarea
 {
 	resize: none;

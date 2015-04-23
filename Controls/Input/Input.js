@@ -1,45 +1,78 @@
+/// <container name="Fit.Controls.Input">
+/// 	Input control which allows for one or multiple lines of
+/// 	text, and features a Design Mode for rich HTML content.
+/// 	Inheriting from Fit.Controls.ControlBase.
+/// </container>
+
+/// <function container="Fit.Controls.Input" name="Input" access="public">
+/// 	<description> Create instance of Input control </description>
+/// 	<param name="ctlId" type="string"> Unique control ID </param>
+/// </function>
 Fit.Controls.Input = function(ctlId)
 {
+	Fit.Validation.ExpectStringValue(ctlId);
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
 	var orgVal = "";
 	var preVal = "";
+	var input = null;
 	var cmdResize = null;
 	var designEditor = null;
 	var wasMultiLineBefore = false;
+	var minimizeHeight = -1;
+	var maximizeHeight = -1;
+	var minMaxUnit = null;
 
+	// ============================================
 	// Init
+	// ============================================
 
-	var input = document.createElement("input");
-	input.name = me.GetId();
-	input.autocomplete = "off";
-	input.onkeyup = function()
+	function init()
 	{
-		if (me.Value()/*input.value*/ !== preVal)
+		input = document.createElement("input");
+		input.name = me.GetId();
+		input.autocomplete = "off";
+		input.onkeyup = function()
 		{
-			preVal = me.Value(); //input.value;
-			me._internal.FireOnChange();
+			if (me.Value() !== preVal)
+			{
+				preVal = me.Value();
+				me._internal.FireOnChange();
+			}
 		}
+		input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
+		{
+			input.onkeyup();
+		}
+		me._internal.AddDomElement(input);
+
+		me.AddCssClass("FitUiControlInput");
 	}
-	input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
+
+	// ============================================
+	// Public - overrides
+	// ============================================
+
+	// See documentation on ControlBase
+	this.Focused = function(focus)
 	{
-		input.onkeyup();
+		Fit.Validation.ExpectBoolean(focus, true);
+
+		var elm = ((designEditor !== null) ? designEditor : input);
+
+		if (Fit.Validation.IsSet(focus) === true)
+		{
+			if (focus === true)
+				elm.focus();
+			else if (elm !== designEditor) // Blur doesn't work for CKEditor!
+				elm.blur();
+		}
+
+		return (document.activeElement === elm);
 	}
-	me._internal.AddDomElement(input);
 
-	me.AddCssClass("FitUiControlInput");
-
-	// Public
-
-	this.Focus = function()
-	{
-		if (designEditor !== null)
-			designEditor.focus();
-		else
-			input.focus();
-	}
-
+	// See documentation on ControlBase
 	this.Value = function(val)
 	{
 		Fit.Validation.ExpectString(val, true);
@@ -50,9 +83,9 @@ Fit.Controls.Input = function(ctlId)
 			preVal = val;
 
 			if (designEditor !== null)
-				CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(((val !== undefined && val !== null) ? val : ""));
+				CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(val);
 			else
-				input.value = ((val !== undefined && val !== null) ? val : "");
+				input.value = val;
 		}
 
 		if (designEditor !== null)
@@ -61,208 +94,278 @@ Fit.Controls.Input = function(ctlId)
 		return input.value;
 	}
 
+	// See documentation on ControlBase
 	this.IsDirty = function()
 	{
 		return (orgVal !== me.Value());
 	}
 
+	// See documentation on ControlBase
 	this.Clear = function()
 	{
 		me.Value("");
 	}
 
+	// See documentation on ControlBase
 	var baseDispose = me.Dispose;
 	this.Dispose = function()
 	{
-		if (designEditor !== null)
-		{
-			designEditor.destroy();
-			designEditor = null;
-		}
+		// This will destroy control - it will no longer work!
 
-		// TODO: Dispose all private objects and DOMElements!!
+		if (designEditor !== null)
+			designEditor.destroy();
+
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = null;
 
 		baseDispose();
 	}
 
-	var baseSetWidth = me.SetWidth;
-	this.SetWidth = function(val, unit)
+	// See documentation on ControlBase
+	var baseWidth = me.Width;
+	this.Width = function(val, unit)
 	{
 		Fit.Validation.ExpectNumber(val, true);
-		Fit.Validation.ExpectString(unit, true);
+		Fit.Validation.ExpectStringValue(unit, true);
 
-		baseSetWidth(val, unit);
-		updateDesignEditorSize();
-	}
-
-	var baseSetHeight = me.SetHeight;
-	this.SetHeight = function(val, unit, callerIsSetMaximize)
-	{
-		Fit.Validation.ExpectNumber(val, true);
-		Fit.Validation.ExpectString(unit, true);
-
-		baseSetHeight(val, unit);
-		updateDesignEditorSize();
-
-		// Maximizable must be configured again if height is changed, since its Min/Max Height is based on the old height.
-		// Maximized may have been configured with Min/Max set to 200/400, but if SetHeight is called with a size of 800,
-		// it would be really odd to have it "maximize" to 400, and "minimize" to 800.
-		if (me.GetMaximizable() === true && callerIsSetMaximize === undefined)
-			me.SetMaximizable(true);
-	}
-
-	this.SetMultiLine = function(enable)
-	{
-		if (me.GetDesignMode() === true)
-			me.SetDesignMode(false);
-
-		if (enable === true && input.tagName === "INPUT")
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			var oldInput = input;
-			me._internal.RemoveDomElement(oldInput);
-
-			input = document.createElement("textarea");
-			input.name = me.GetId();
-			input.value = oldInput.value;
-			input.onkeyup = oldInput.onkeyup;
-			me._internal.AddDomElement(input);
-
-			if (me.GetHeight().Value === -1)
-				me.SetHeight(150);
+			baseWidth(val, unit);
+			updateDesignEditorSize();
 		}
-		else if (enable === false && input.tagName === "TEXTAREA")
-		{
-			var oldInput = input;
-			me._internal.RemoveDomElement(oldInput);
 
-			if (cmdResize !== null)
+		return baseWidth();
+	}
+
+	// See documentation on ControlBase
+	var baseHeight = me.Height;
+	this.Height = function(val, unit, suppressMinMax)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+		Fit.Validation.ExpectBoolean(suppressMinMax, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			var h = baseHeight(val, unit);
+			updateDesignEditorSize(); // Throws error if in DesignMode and unit is not px
+
+			if (me.Maximizable() === true && suppressMinMax !== true)
 			{
-				me._internal.RemoveDomElement(cmdResize);
-				cmdResize = null;
+				minimizeHeight = h.Value;
+				maximizeHeight = ((maximizeHeight > h.Value && h.Unit === minMaxUnit) ? maximizeHeight : h.Value * 2)
+				minMaxUnit = h.Unit;
+
+				me.Maximized(false);
 			}
-
-			input = document.createElement("input");
-			input.value = oldInput.value;
-			input.onkeyup = oldInput.onkeyup;
-			me._internal.AddDomElement(input);
-
-			me.SetHeight(null);
-
-			wasMultiLineBefore = false;
 		}
+
+		return baseHeight();
 	}
 
-	this.GetMultiLine = function()
+	// ============================================
+	// Public
+	// ============================================
+
+	/// <function container="Fit.Controls.Input" name="MultiLine" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control is in Multi Line mode (textarea) </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables Multi Line mode, False disables it </param>
+	/// </function>
+	this.MultiLine = function(val)
 	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (me.DesignMode() === true)
+				me.DesignMode(false);
+
+			if (val === true && input.tagName === "INPUT")
+			{
+				var oldInput = input;
+				me._internal.RemoveDomElement(oldInput);
+
+				input = document.createElement("textarea");
+				input.name = me.GetId();
+				input.value = oldInput.value;
+				input.onkeyup = oldInput.onkeyup;
+				input.onchange = oldInput.onchange;
+				me._internal.AddDomElement(input);
+
+				if (me.Height().Value === -1)
+					me.Height(150);
+			}
+			else if (val === false && input.tagName === "TEXTAREA")
+			{
+				var oldInput = input;
+				me._internal.RemoveDomElement(oldInput);
+
+				if (cmdResize !== null)
+				{
+					me._internal.RemoveDomElement(cmdResize);
+					cmdResize = null;
+				}
+
+				input = document.createElement("input");
+				input.autocomplete = "off";
+				input.name = me.GetId();
+				input.value = oldInput.value;
+				input.onkeyup = oldInput.onkeyup;
+				input.onchange = oldInput.onchange;
+				me._internal.AddDomElement(input);
+
+				me.Height(-1);
+
+				wasMultiLineBefore = false;
+			}
+		}
+
 		return (input.tagName === "TEXTAREA" && designEditor === null);
 	}
 
-	var minimizeHeight = -1;
-	var maximizeHeight = -1;
-	var minMaxUnit = null;
-	this.SetMaximizable = function(enable, heightMax) // maxHeight is considered same unit as specified with SetHeight(..)
+	/// <function container="Fit.Controls.Input" name="Maximizable" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control is maximizable </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables maximize button, False disables it </param>
+	/// 	<param name="heightMax" type="number" default="undefined">
+	/// 		If defined, this becomes the height of the input control when maximized.
+	/// 		The value is considered the same unit set using Height(..) which defaults to px.
+	/// 		However, if DesignMode is enabled, the value unit is considered to be px.
+	/// 	</param>
+	/// </function>
+	this.Maximizable = function(val, heightMax)
 	{
-		if (enable === true)
+		Fit.Validation.ExpectBoolean(val, true);
+		Fit.Validation.ExpectNumber(heightMax, true);
+
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (me.GetMultiLine() === true)
-				wasMultiLineBefore = true;
-
-			if (me.GetMultiLine() === false && designEditor === null)
-				me.SetMultiLine(true);
-
-			// Create maximize/minimize button
-
-			if (cmdResize !== null) // Already maximizable, avoid multiple buttons
-				me._internal.RemoveDomElement(cmdResize);
-
-			var h = me.GetHeight();
-			var unit = ((h.Value !== -1) ? h.Unit : "px");
-			var minHeight = ((h.Value !== -1) ? h.Value : 150);
-			var maxHeight = ((heightMax !== undefined) ? heightMax : minHeight * 2);
-
-			minimizeHeight = minHeight;
-			maximizeHeight = maxHeight;
-			minMaxUnit = unit;
-
-			cmdResize = document.createElement("span");
-			cmdResize.onclick = function()
+			if (val === true && cmdResize === null)
 			{
-				if (Fit.Dom.HasClass(cmdResize, "fa-chevron-up") === true) // Minimize
+				if (me.MultiLine() === true)
+					wasMultiLineBefore = true;
+
+				if (me.MultiLine() === false && designEditor === null)
+					me.MultiLine(true);
+
+				// Determine height to use when maximizing and minimizing
+
+				var h = me.Height();
+
+				if (designEditor === null)
 				{
-					//me.SetHeight(((minHeight !== undefined) ? minHeight : 100), unit);
-					me.SetHeight(minHeight, unit, true);
-					Fit.Dom.RemoveClass(cmdResize, "fa-chevron-up");
-					Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
+					minimizeHeight = h.Value;
+					maximizeHeight = ((Fit.Validation.IsSet(heightMax) === true) ? heightMax : ((minimizeHeight !== -1) ? minimizeHeight * 2 : 150));
+					minMaxUnit = h.Unit;
 				}
-				else // Maximize
+				else
 				{
-					//me.SetHeight(((maxHeight !== undefined) ? maxHeight : 300), unit);
-					me.SetHeight(maxHeight, unit, true);
-					Fit.Dom.RemoveClass(cmdResize, "fa-chevron-down");
-					Fit.Dom.AddClass(cmdResize, "fa-chevron-up");
+					minimizeHeight = h.Value;
+					maximizeHeight = ((Fit.Validation.IsSet(heightMax) === true) ? heightMax : ((minimizeHeight !== -1) ? minimizeHeight * 2 : 300));
+					minMaxUnit = "px";
 				}
+
+				// Create maximize/minimize button
+
+				cmdResize = document.createElement("span");
+				cmdResize.onclick = function()
+				{
+					me.Maximized(!me.Maximized());
+				}
+				Fit.Dom.AddClass(cmdResize, "fa");
+				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
+				me._internal.AddDomElement(cmdResize);
 			}
-			Fit.Dom.AddClass(cmdResize, "fa");
-			Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
-			me._internal.AddDomElement(cmdResize);
+			else if (val === false && cmdResize !== null)
+			{
+				me._internal.RemoveDomElement(cmdResize);
+				cmdResize = null;
 
-			// Set initial height
-			me.SetHeight(minHeight, unit, true);
+				if (wasMultiLineBefore === true)
+					me.Height(minimizeHeight, minMaxUnit);
+				else
+					me.MultiLine(false);
+			}
 		}
-		else if (enable === false && cmdResize !== null)
-		{
-			me._internal.RemoveDomElement(cmdResize);
-			cmdResize = null;
 
-			if (wasMultiLineBefore === true)
-				me.SetHeight(minimizeHeight, minMaxUnit);
-			else
-				me.SetMultiLine(false);
-		}
-	}
-
-	this.GetMaximizable = function()
-	{
 		return (cmdResize !== null);
 	}
 
-	this.SetDesignMode = function(enable) // NOTICE: IE7 is NOT supported by CKEditor 4.4.6 !
+	/// <function container="Fit.Controls.Input" name="Maximized" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control is maximized </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True maximizes control, False minimizes it </param>
+	/// </function>
+	this.Maximized = function(val)
 	{
-		if (enable === true && designEditor === null)
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && cmdResize !== null)
 		{
-			if (me.GetMultiLine() === true)
-				wasMultiLineBefore = true;
-
-			me.SetMultiLine(true);
-
-			input.id = me.GetId() + "_DesignMode";
-
-			if (window.CKEDITOR !== undefined)
+			if (val === true && Fit.Dom.HasClass(cmdResize, "fa-chevron-up") === false)
 			{
-				createEditor();
+				me.Height(maximizeHeight, minMaxUnit, true);
+				Fit.Dom.RemoveClass(cmdResize, "fa-chevron-down");
+				Fit.Dom.AddClass(cmdResize, "fa-chevron-up");
 			}
-			else
+			else if (val === false && Fit.Dom.HasClass(cmdResize, "fa-chevron-down") === false)
 			{
-				Fit.Loader.LoadScript(Fit._internal.BasePath + "/Resources/CKEditor/ckeditor.js", function(src)
+				me.Height(minimizeHeight, minMaxUnit, true);
+				Fit.Dom.RemoveClass(cmdResize, "fa-chevron-up");
+				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
+			}
+		}
+
+		return (cmdResize !== null && Fit.Dom.HasClass(cmdResize, "fa-chevron-up") === true);
+	}
+
+	/// <function container="Fit.Controls.Input" name="DesignMode" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
+	/// 		Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables Design Mode, False disables it </param>
+	/// </function>
+	this.DesignMode = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && designEditor === null)
+			{
+				if (me.MultiLine() === true)
+					wasMultiLineBefore = true;
+				else
+					me.MultiLine(true);
+
+				input.id = me.GetId() + "_DesignMode";
+
+				if (window.CKEDITOR !== undefined)
 				{
 					createEditor();
-				});
+				}
+				else
+				{
+					Fit.Loader.LoadScript(Fit._internal.BasePath + "/Resources/CKEditor/ckeditor.js", function(src)
+					{
+						createEditor();
+					});
+				}
+			}
+			else if (val === false && designEditor !== null)
+			{
+				designEditor.destroy(); // Editor content automatically synchronized to input control when destroyed
+				designEditor = null;
+
+				if (wasMultiLineBefore === false)
+					me.MultiLine(false);
 			}
 		}
-		else if (enable === false && designEditor !== null)
-		{
-			designEditor.destroy(); // Editor content automatically moved to textarea field when destroyed
-			designEditor = null;
 
-			if (wasMultiLineBefore === false)
-				me.SetMultiLine(false);
-		}
-	}
-
-	this.GetDesignMode = function()
-	{
 		return (designEditor !== null);
 	}
+
+	// ============================================
+	// Private
+	// ============================================
 
 	function createEditor()
 	{
@@ -306,12 +409,8 @@ Fit.Controls.Input = function(ctlId)
 			{
 				instanceReady: function()
 				{
-					// Start with a usuable height
-					var h = me.GetHeight();
-					me.SetHeight(((h.Value >= 150) ? h.Value : 150));
-
-					if (me.GetMaximizable() === true)
-						me.SetMaximizable(true, ((maximizeHeight >= 300) ? maximizeHeight : 300));
+					var h = me.Height();
+					me.Height(((h.Value >= 150 && h.Unit === "px") ? h.Value : 150));
 				},
 				change: function()
 				{
@@ -325,8 +424,8 @@ Fit.Controls.Input = function(ctlId)
 	{
 		if (designEditor !== null)
 		{
-			var w = me.GetWidth();
-			var h = me.GetHeight();
+			var w = me.Width();
+			var h = me.Height();
 
 			// CKEditor contains a bug that prevents us from resizing
 			// with a CSS unit, so currently only pixels are supported.
@@ -334,14 +433,9 @@ Fit.Controls.Input = function(ctlId)
 			if (w.Unit !== "px" || h.Unit !== "px")
 				throw new Error("DesignMode does not support resizing in units different from px");
 
-			/*if (h.Value < 150)
-			{
-				me.SetHeight(150); // Causes updateDesignEditorSize() to be called again
-				return;
-			}*/
-
-			//designEditor.resize(w.Value + w.Unit, h.Value + h.Unit);
-			designEditor.resize(w.Value, ((h.Value !== -1) ? h.Value : 200));
+			designEditor.resize(((w.Value > -1) ? w.Value : 200), ((h.Value > -1) ? h.Value : 150)); // Default control width is 200px (defined in Styles.css)
 		}
 	}
+
+	init();
 }

@@ -1,41 +1,51 @@
+/// <container name="Fit.Controls.TreeView">
+/// 	TreeView control allowing data to be listed in a structured manner.
+/// 	Inheriting from Fit.Controls.ControlBase.
+///
+/// 	Performance considerations (for huge amounts of data):
+///
+/// 	1) Selectable(..) is used to transform how nodes allow selections
+/// 	   (disabled/single select/multi select/select all). This requires the function to
+/// 	   recursively modify all nodes contained to make sure they are configured identically.
+/// 	   However, this also happens when AddChild(node) is called, to make sure
+/// 	   nodes added at any time is configured in accordance with TreeView configuration.
+/// 	   Selectable(..) should therefore be called before adding nodes to prevent
+/// 	   an extra recursive operation on all nodes contained.
+///
+/// 	2) Selected(nodes) performs better than Value("val1;val2;val3")
+///
+/// 	3) RemoveChild(node) performance is non-linear, relative to the amount of children contained.
+/// 	   The function recursively iterates children to find selected nodes to deselect them, to
+/// 	   make sure TreeView is updated accordingly.
+///
+/// 	4) GetChild("val1", true) is faster at finding one specific node, compared to recursively
+/// 	   iterating the result from GetChildren(), since internal children collections are indexed.
+///
+/// 	5) Be aware that some operations (e.g. AddChild, Expand/Collapse, Select/Deselect) forces
+/// 	   Internet Explorer 8 to repaint tree to work around render bugs. Repainting can be minimized
+/// 	   greately by populating root nodes before adding them to the TreeView instance.
+/// 	   However, be aware that this comes with the performance penalty mentioned in article 1 (AddChild).
+/// 	   It is likely that repainting does not pose a major performance problem, though.
+/// </container>
 
-// Features:
-//  - WS capable
-//  - DONE: Dirty aware
-//  - DONE: Keyboard navigation: up/down (up/down keys), expand/collapse (left(expand)/right(collapse) keys), spacebar (select)
-// Options:
-//  - Focus()
-//  - SelectAll checkbox
-//  - DONE: Single selection
-//  - DONE: Multi selection
-//  - DONE: AllowNull (using Required!)
-//  - DONE: Navigable (as links)
-// Events:
-//  - DONE: OnSelect		(before - cancellable)
-//  - DONE: OnSelected		(after)
-//  - DONE: OnToggle		(before - cancellable)
-//  - DONE: OnToggled		(after)
-//  - OnChildAdd	(WS - before)
-//  - OnChildAdded	(WS - after)
-//  - NO: Fire events when nodes are set programmatically ??? NO!! Only OnChange to prevent massive overload on recursive operations!
-//  - HandleEvent(ev) - allow keyboard events to be passed and handled.
-//    Required by Outlook Picker, but also useful in conjunction with client based Unit test.
-
-// CoreFlow: Replace FlowITTree to incorporate globally in CoreFlow!
-
-
+/// <function container="Fit.Controls.TreeView" name="TreeView" access="public">
+/// 	<description> Create instance of TreeView control </description>
+/// 	<param name="ctlId" type="string"> Unique control ID </param>
+/// </function>
 Fit.Controls.TreeView = function(ctlId)
 {
+	Fit.Validation.ExpectStringValue(ctlId);
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
-	var rootContainer = document.createElement("ul");
-	var rootNode = new Fit.Controls.TreeView.Node(" ", "TREEVIEW_ROOT_NODE");
+	var rootContainer = null;		// UL element
+	var rootNode = null;			// Fit.Controls.TreeView.Node instance
 
 	var selectable = false;
 	var multiSelect = false;
 	var showSelectAll = false;
-	var selected = [];
+
+	var selected = createInternalCollection();
 	var selectedOrg = [];
 
 	// These events fire when user interacts with the tree,
@@ -50,371 +60,419 @@ Fit.Controls.TreeView = function(ctlId)
 
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
+	// ============================================
 	// Init
+	// ============================================
 
-	me.AddCssClass("FitUiControlTreeView");
-	me.Data("multiselect", "false");
-
-	rootNode.GetDomElement().tabIndex = -1;
-	rootContainer.appendChild(rootNode.GetDomElement());
-	me._internal.AddDomElement(rootContainer);
-
-	// TreeView Node Interface:
-	// This allow nodes to sync. their selected state to tree.
-	// It also ensures that nodes added are automatically configured
-	// like the existing nodes in the TreeView (Selectable, Multi/Single, ShowSelectAll).
-
-	var treeViewNodeInterface =
+	function init()
 	{
-		Select: function(node)
+		// Initial settings
+
+		me.AddCssClass("FitUiControlTreeView");
+		me._internal.Data("selectable", "false");
+		me._internal.Data("multiselect", "false");
+		me._internal.Data("wordwrap", "false")
+
+		// Create internal root node to hold children
+
+		rootContainer = document.createElement("ul");
+		me._internal.AddDomElement(rootContainer);
+
+		rootNode = new Fit.Controls.TreeView.Node(" ", "TREEVIEW_ROOT_NODE");
+		rootNode.GetDomElement().tabIndex = -1;
+		rootContainer.appendChild(rootNode.GetDomElement());
+
+		// TreeView Node Interface:
+		// The Tree View Node Interface allow nodes to synchronize their selected state to the TreeView.
+		// That way the TreeView never has to recursively iterate a potentially huge tree to determine
+		// which nodes are selected, to clear all nodes, etc.
+		// One might wonder why the TreeView does not maintain the internal selected collection itself
+		//  - after all, all event handling is performed by the TreeView, so it knows when a node is
+		//    selected. The reason for this, of course, is that nodes can be selected programmatically as well.
+		// The TreeView Node Interface also ensures that once a node is attached to the TreeView, any children added to that
+		// particular node is configured accordingly with the existing nodes in the TreeView (Selectable, Checkbox, ShowSelectAll).
+
+		var treeViewNodeInterface =
 		{
-			// Skip if already selected - we trust node to reveal current state
-			// (this function must be execute before node updates Selected state)
-			if (node.Selected() === true)
+			Select: function(node)
+			{
+				// Unselect selected node if Multi Selection is not enabled
+				if (multiSelect === false && selected.length > 0)
+					executeWithNoOnChange(function() { selected[0].Selected(false) });
+
+				// Add node to internal selection and fire OnChange
+				Fit.Array.Add(selected, node);
+				me._internal.FireOnChange();
+			},
+			Deselect: function(node)
+			{
+				// Remove node from internal selection and fire OnChange
+				Fit.Array.Remove(selected, node);
+				me._internal.FireOnChange();
+			},
+			Selected: function(val)
+			{
+				return me.Selected(val);
+			},
+			IsSelectable: function()
+			{
+				return selectable;
+			},
+			IsMultiSelect: function()
+			{
+				return multiSelect;
+			},
+			ShowSelectAll: function()
+			{
+				return showSelectAll;
+			},
+			Repaint: function()
+			{
+				repaint();
+			}
+		}
+
+		rootNode.GetDomElement()._internal.TreeView = treeViewNodeInterface;
+
+		// Event handling
+
+		rootNode.GetDomElement().onkeydown = function(e)
+		{
+			var ev = Fit.Events.GetEvent(e);
+			var elm = Fit.Events.GetTarget(e);
+
+			// Variable elm above is almost always a <li> node element since we make sure only these elements are focused.
+			// when node is clicked or keyboard navigation occure. However, IF the node title for some strange reason contains an element
+			// that gains focus (e.g. an input control), that element could be contained in the elm variable when onkeydown is fired.
+			// We already make sure that <a> link elements do not gain focus which is more likely to be used as node title, so there
+			// is almost no chance the elm variable will ever contain anything else but the <li> node element. But better safe than sorry.
+			if (elm.tagName !== "LI")
 				return;
 
-			if (multiSelect === false && selected.length > 0)
-				executeWithNoOnChange(function() { selected[0].Selected(false) });
+			var node = elm._internal.Node;
 
-			Fit.Array.Add(selected, node);
-			me._internal.FireOnChange();
-		},
-		Deselect: function(node)
-		{
-			var length = selected.length;
+			// Handle navigation links
 
-			Fit.Array.Remove(selected, node);
-
-			if (selected.length !== length)
-				me._internal.FireOnChange();
-		},
-		IsSelectable: function()
-		{
-			return selectable;
-		},
-		IsMultiSelect: function()
-		{
-			return multiSelect;
-		},
-		ShowSelectAll: function()
-		{
-			return showSelectAll;
-		}
-	}
-
-	rootNode.GetDomElement()._internal.TreeView = treeViewNodeInterface;
-
-	// Event handling
-
-	rootNode.GetDomElement().onkeydown = function(e)
-	{
-		var ev = e || window.event;
-		var elm = (ev.srcElement || ev.target);
-		var node = null;
-
-		if (elm.tagName === "LI")
-			node = elm._internal.Node;
-
-		if (node === null)
-		{
-			alert("Node was null on Keyboard Navigation! - Event target element:");
-			console.log(elm);
-			return;
-		}
-
-		var focused = getNodeFocused();
-		var next = null;
-
-		if (node.Value() === "TREEVIEW_ROOT_NODE")
-		{
-			alert("Canceling out, fake root node!");
-			return;
-		}
-
-		if (ev.keyCode === 32) // Spacebar (toggle selection)
-		{
-			if (node !== null && node.Selectable() === true)
+			if (ev.keyCode === 13) // Enter
 			{
-				toggleNodeSelection(node);
+				// Navigate link contained in item
+
+				var links = node.GetDomElement().getElementsByTagName("a");
+
+				if (links.length === 1)
+					links[0].click();
+
+				Fit.Events.PreventDefault(ev);
+				return;
 			}
 
-			Fit.Events.PreventDefault(ev);
-		}
-		else if (ev.keyCode === 37) // Left (collapse or move to parent)
-		{
-			if (focused.Expanded() === false)
-			{
-				next = focused.GetParent();
+			// Toggle selection
 
-				if (next.Value() === "TREEVIEW_ROOT_NODE")
-					next = null;
-			}
-			else
+			if (ev.keyCode === 32) // Spacebar (toggle selection)
 			{
-				if (node !== null && node.Expanded() === true)
-					setNodeExpandedState(node, false);
+				if (node.Selectable() === true)
+					toggleNodeSelection(node);
+
+				Fit.Events.PreventDefault(ev);
+				return;
 			}
 
-			Fit.Events.PreventDefault(ev);
-		}
-		else if (ev.keyCode === 39) // Right (expand)
-		{
-			if (node !== null && node.Expanded() === false && node.GetChildren().length > 0)
-				setNodeExpandedState(node, true);
+			// Determine which node to focus next on keyboard navigation (arrow keys)
 
-			Fit.Events.PreventDefault(ev);
-		}
-		else if (ev.keyCode === 38) // Up
-		{
-			if (focused === null || focused.Value() === "TREEVIEW_ROOT_NODE")
-			{
-				var children = rootNode.GetChildren();
-				next = ((children.length > 0) ? children[children.length-1] : null);
-			}
-			else
-			{
-				var children = focused.GetParent().GetChildren();
-				var idx = Fit.Array.GetIndex(children, focused);
-				next = ((idx > 0) ? children[idx-1] : null);
+			var next = null;
 
-				if (next === null) // && focused.GetParent().GetParent() !== null)
+			if (ev.keyCode === 37) // Left (collapse or move to parent)
+			{
+				// Collapse node if expanded - if not expanded, jump to parent node
+
+				if (node.Expanded() === true)
 				{
-					next = focused.GetParent();
-
-					if (next.Value() === "TREEVIEW_ROOT_NODE")
-						next = null;
-				}
-				else if (next.Expanded() === true)
-				{
-					children = next.GetChildren();
-					next = ((children.length > 0) ? children[children.length-1] : next);
-
-					while (next.Expanded() === true)
-					{
-						children = next.GetChildren();
-						next = ((children.length > 0) ? children[children.length-1] : next);
-					}
-				}
-			}
-
-			Fit.Events.PreventDefault(ev);
-		}
-		else if (ev.keyCode === 40) // Down
-		{
-			if (focused === null)
-			{
-				var children = rootNode.GetChildren();
-				next = ((children.length > 0) ? children[0] : null);
-			}
-			else
-			{
-				if (focused.Expanded() === true)
-				{
-					var children = focused.GetChildren();
-					next = ((children.length >= 0) ? children[0] : null);
+					if (node.Expanded() === true)
+						setNodeExpandedState(node, false);
 				}
 				else
 				{
-					var children = focused.GetParent().GetChildren();
-					var idx = Fit.Array.GetIndex(children, focused);
-					next = ((children.length - 1 >= idx + 1) ? children[idx+1] : null);
+					next = node.GetParent();
 
-					var parent = focused.GetParent();
-					while (next === null && parent !== null && parent.GetParent() !== null)
+					if (next === rootNode)
+						next = null;
+				}
+
+				Fit.Events.PreventDefault(ev);
+			}
+			else if (ev.keyCode === 39) // Right (expand)
+			{
+				// Expand node if not already expanded, and children are contained
+
+				if (node.Expanded() === false && node.GetChildren().length > 0)
+					setNodeExpandedState(node, true);
+
+				Fit.Events.PreventDefault(ev);
+			}
+			else if (ev.keyCode === 38) // Up
+			{
+				// Move selection up
+
+				// Find current node's position in parent node
+				var children = node.GetParent().GetChildren();
+				var idx = Fit.Array.GetIndex(children, node);
+
+				// Select node above current node, within same parent
+				next = ((idx > 0) ? children[idx-1] : null);
+
+				if (next !== null)
+				{
+					// Now make sure the last node in a hierarchy
+					// of expanded nodes gets selected.
+					while (next.Expanded() === true)
 					{
-						children = parent.GetParent().GetChildren();
-						idx = Fit.Array.GetIndex(children, parent);
-						next = ((idx > -1 && children.length - 1 >= idx + 1) ? children[idx+1] : null);
-
-						parent = parent.GetParent();
+						children = next.GetChildren();
+						next = children[children.length - 1];
 					}
 				}
+				else
+				{
+					// Current node is top node within parent.
+					// Move selection to parent, unless this is the hidden root node.
+
+					next = node.GetParent();
+
+					if (next === rootNode)
+						next = null;
+
+				}
+
+				Fit.Events.PreventDefault(ev);
 			}
-
-			Fit.Events.PreventDefault(ev);
-		}
-		else if (ev.keyCode === 13) // Enter
-		{
-			// Navigate link contained in item
-
-			var links = ((focused !== null) ? focused.GetDomElement().getElementsByTagName("a") : []);
-
-			if (links.length === 1 && Fit.Dom.GetParentOfType(links[0], "li") === focused.GetDomElement())
-				links[0].click();
-
-			Fit.Events.PreventDefault(ev);
-		}
-
-		if (next !== null)
-		{
-			if (false && isIe8 === true && (ev.keyCode === 38 || ev.keyCode === 40)) // Prevent major performance problems when focusing elements not within viewport
+			else if (ev.keyCode === 40) // Down
 			{
-				var scrollPos = Fit.Browser.GetScrollPosition();
-				var pos = Fit.Dom.GetPosition(next.GetDomElement(), true);
-				var vpDim = Fit.Browser.GetViewPortDimensions();
+				// Move selection down
 
-				if (ev.keyCode === 38 && pos.Y - 50 <= 0) // Up
-					document.body.scrollTop = scrollPos.Y-400;
-				else if (ev.keyCode === 40 && pos.Y + 50 >= vpDim.Height) // Down
-					document.body.scrollTop = scrollPos.Y+400;
+				if (node.Expanded() === true)
+				{
+					// Select first child if current node is expanded
+					var children = node.GetChildren();
+					next = children[0];
+				}
+				else
+				{
+					// Get node below current bide within same level (parent)
+
+					// Find current node's position in parent node
+					var children = node.GetParent().GetChildren();
+					var idx = Fit.Array.GetIndex(children, node);
+
+					// Select node below current node, within same parent
+					next = ((children.length - 1 >= idx + 1) ? children[idx+1] : null);
+
+					// If no node within same level was found, traverse tree
+					// bottom-up until a parent is found that has a node below current node.
+
+					var parent = node.GetParent();
+					var grandParent = parent.GetParent();
+
+					while (next === null && parent !== null && grandParent !== null)
+					{
+						// Find parent's position within grandparent
+						children = grandParent.GetChildren();
+						idx = Fit.Array.GetIndex(children, parent);
+
+						// Select node below parent if this is not the last node,
+						// or set Null to continue traversing tree bottom-up.
+						next = ((idx+1 <= children.length-1) ? children[idx+1] : null);
+
+						parent = parent.GetParent();
+						grandParent = parent.GetParent();
+					}
+				}
+
+				Fit.Events.PreventDefault(ev);
 			}
 
-			next.Focused(true);
+			// Focus next node
 
-			if (focused !== null)
-				focused.Focused(false);
-
-			focused = next;
+			if (next !== null)
+				next.Focused(true);
 		}
 
-		repaint();
-	}
+		rootNode.GetDomElement().onclick = function(e)
+		{
+			var elm = Fit.Events.GetTarget(e);
+			var nodeElm = ((elm.tagName === "LI") ? elm : Fit.Dom.GetParentOfType(elm, "LI"));
+			var node = nodeElm._internal.Node;
 
-	rootNode.GetDomElement().onclick = function(e)
-	{
-		var ev = e || window.event;
-		var elm = (ev.srcElement || ev.target);
-		var nodeElm = elm;
+			// Focus node
+			node.Focused(true);
 
-		if (nodeElm.tagName !== "LI")
-			nodeElm = Fit.Dom.GetParentOfType(nodeElm, "LI");
+			// Toggle node if expand button was clicked
+			if (elm.tagName === "DIV")
+				setNodeExpandedState(node, !node.Expanded());
 
-		var node = nodeElm._internal.Node;
+			// Toggle selection if selectable
+			if (elm.tagName !== "DIV" && node.Selectable() === true)
+				toggleNodeSelection(node);
+		}
 
-		var focused = getNodeFocused();
-		if (focused !== null)
-			focused.Focused(false);
-		focused = node;
-		node.Focused(true);
+		rootNode.GetDomElement().ondblclick = function(e)
+		{
+			var elm = Fit.Events.GetTarget(e);
+			var nodeElm = ((elm.tagName === "LI") ? elm : Fit.Dom.GetParentOfType(elm, "LI"));
+			var node = nodeElm._internal.Node;
 
-		if (elm.tagName === "DIV")
-			setNodeExpandedState(node, !node.Expanded()); // Toggle expanded
-		else if (node.Selectable() === true)
-			toggleNodeSelection(node);
-
-		repaint();
-	}
-
-	rootNode.GetDomElement().ondblclick = function(e)
-	{
-		var ev = e || window.event;
-		var elm = (ev.srcElement || ev.target);
-
-		if (elm.tagName !== "LI")
-			elm = Fit.Dom.GetParentOfType(elm, "LI");
-
-		var node = elm._internal.Node;
-
-		if (node.GetChildren().length === 0)
-			return;
-
-		setNodeExpandedState(node, !node.Expanded()); // Toggle expanded
-
-		repaint();
+			// Toggle node on double click
+			if (node.GetChildren().length > 0)
+				setNodeExpandedState(node, !node.Expanded());
+		}
 	}
 
 	// Public
 
-	this.Selectable = function(enable, multi, showSelAll)
+	/// <function container="Fit.Controls.TreeView" name="WordWrap" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether Word Wrapping is enabled </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables Word Wrapping, False disables it </param>
+	/// </function>
+	this.WordWrap = function(val)
 	{
-		Fit.Validation.ExpectBoolean(enable, true);
-		Fit.Validation.ExpectBoolean(multi, true);
-		Fit.Validation.ExpectBoolean(showSelectAll, true);
+		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(enable) === true)
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			selected = [];
+			me._internal.Data("wordwrap", val.toString()); // Actual word-wrapping is achieved using CSS
+			repaint();
+		}
 
-			selectable = enable;
-			multiSelect = ((multi === true) ? true : false);;
-			showSelectAll = showSelAll;
+		return (me._internal.Data("wordwrap") === "true");
+	}
 
-			me.Data("selectable", selectable.toString());
-			me.Data("multiselect", multiSelect.toString());
+	/// <function container="Fit.Controls.TreeView" name="Selectable" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether nodes are selectable.
+	/// 		This affects all contained nodes. To configure nodes
+	/// 		individually, use Selectable(..) function on node instances.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables node selection, False disables it </param>
+	/// 	<param name="multi" type="boolean" default="false"> If defined, True enables node multi selection, False disables it </param>
+	/// 	<param name="showSelAll" type="boolean" default="false"> If defined, True enables Select All checkbox, False disables it </param>
+	/// </function>
+	this.Selectable = function(val, multi, showSelAll)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+		Fit.Validation.ExpectBoolean(multi, true);
+		Fit.Validation.ExpectBoolean(showSelAll, true);
 
-			// Clear any selections previously set
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			selectable = val;
+			multiSelect = ((multi === true) ? true : false);
+			showSelectAll = ((showSelAll === true) ? true : false);
+
+			me._internal.Data("selectable", selectable.toString());
+			me._internal.Data("multiselect", multiSelect.toString());
+
+			selected = createInternalCollection();
+
+			// Deselect all children and make sure they are configured identically
 			executeWithNoOnChange(function() // Prevent n.Selected(false) from firering OnChange event
 			{
 				executeRecursively(rootNode, function(n)
 				{
-					if (n.Value() === "TREEVIEW_ROOT_NODE")
+					if (n === rootNode)
 						return; // Skip root node itself
 
-					n.Selectable(enable, multiSelect, showSelectAll)
+					n.Selectable(selectable, multiSelect, showSelectAll)
 					n.Selected(false);
 				});
 			});
+
+			repaint();
 		}
 
 		return selectable;
 	}
 
-	this.Selected = function(nodes)
+	/// <function container="Fit.Controls.TreeView" name="Selected" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// 	<description> Get/set selected nodes </description>
+	/// 	<param name="val" type="Fit.Controls.TreeView.Node[]" default="undefined"> If defined, provided nodes are selected </param>
+	/// </function>
+	this.Selected = function(val)
 	{
-		Fit.Validation.ExpectArray(nodes, true);
+		Fit.Validation.ExpectArray(val, true);
 
-		if (Fit.Validation.IsSet(nodes) === true)
+		if (Fit.Validation.IsSet(val) === true)
 		{
 			selectedOrg = [];
-			executeWithNoOnChange(me.Clear);
-
-			Fit.Array.ForEach(nodes, function(node)
+			executeWithNoOnChange(function() // Prevent node.Selected(true) from firering OnChange event
 			{
-				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
-				Fit.Array.Add(selectedOrg, node);
+				me.Clear();
 
-				node.Selected(true);
+				Fit.Array.ForEach(val, function(node)
+				{
+					Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+
+					Fit.Array.Add(selectedOrg, node);
+					node.Selected(true); // Adds node to internal selected collection through TreeViewNodeInterface
+				});
 			});
+
+			me._internal.FireOnChange();
 		}
 
 		return selected;
 	}
 
-	this.GetChildByValue = function(val)
-	{
-		var found = null;
-		executeRecursively(rootNode, function(node)
-		{
-			if (node.Value() === val)
-			{
-				found = node;
-				return false; // break loop
-			}
-		});
-		return found;
-	}
-
+	/// <function container="Fit.Controls.TreeView" name="Value" access="public" returns="object">
+	/// 	<description>
+	/// 		Fit.Controls.ControlBase.Value override:
+	/// 		Get/set selected nodes.
+	/// 		Updating selection can be done by either providing a collection of
+	/// 		Fit.Controls.TreeView.Node instances, or a string with a semicolon
+	/// 		separated list of node values.
+	/// 	</description>
+	/// 	<param name="val" type="object" default="undefined"> If defined, provided nodes are selected </param>
+	/// </function>
 	this.Value = function(val)
 	{
-		//Fit.Validation.ExpectString(val, true);
-
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			if (val instanceof Array)
 			{
 				me.Selected(val);
 			}
+			else if (typeof(val) === "string")
+			{
+				selectedOrg = [];
+				executeWithNoOnChange(function()
+				{
+					me.Clear();
+
+					var values = val.toString().split(";");
+
+					Fit.Array.ForEach(values, function(nodeVal)
+					{
+						var child = me.GetChild(nodeVal, true);
+
+						if (child !== null)
+							child.Selected(true);
+					});
+
+					/*executeRecursively(rootNode, function(node)
+					{
+						node.Selected(Fit.Array.Contains(values, node.Value()));
+					});*/
+				});
+
+				me._internal.FireOnChange();
+			}
 			else
 			{
-				selected = [];
-				var values = val.toString().split(";");
-
-				executeRecursively(rootNode, function(node)
-				{
-					node.Selected(Fit.Array.Contains(values, node.Value()));
-				});
+				Fit.Validation.ThrowError("Unsupported value type");
 			}
 		}
 
-		var val = "";
-		Fit.Array.ForEach(selected, function(n)
-		{
-			val += ((val !== "") ? ", ": "") + n.Title();
-		});
-
-		return val;
+		return selected;
 	}
 
+	// See documentation on ControlBase
 	this.IsDirty = function()
 	{
 		if (selected.length !== selectedOrg.length)
@@ -432,28 +490,65 @@ Fit.Controls.TreeView = function(ctlId)
 		return dirty;
 	}
 
-	this.ShowLines = function(val)
+	// See documentation on ControlBase
+	this.Focused = function(focus)
 	{
-		if (val === true)
+		Fit.Validation.ExpectBoolean(focus, true);
+
+		if (Fit.Validation.IsSet(focus) === true)
 		{
-			me.AddCssClass("FitUiControlTreeViewLines");
-			me.AddCssClass("FitUiControlTreeViewDotLines"); // Optional, render dotted lines instead of solid lines
-		}
-		else
-		{
-			me.RemoveCssClass("FitUiControlTreeViewLines");
-			me.RemoveCssClass("FitUiControlTreeViewDotLines");
+			var focused = getNodeFocused();
+
+			if (focus === true && focused === null)
+			{
+				var nodes = rootNode.GetChildren();
+
+				if (nodes.length > 0)
+					nodes[0].Focused(true);
+			}
+			else if (focus === false && focused !== null)
+			{
+				focused.Focused(false);
+			}
 		}
 
-		repaint();
+		return (getNodeFocused() !== null);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="Lines" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether helper lines are shown </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables helper lines, False disables them </param>
+	/// </function>
+	this.Lines = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true)
+			{
+				me.AddCssClass("FitUiControlTreeViewLines");
+				me.AddCssClass("FitUiControlTreeViewDotLines"); // Optional, render dotted lines instead of solid lines
+			}
+			else
+			{
+				me.RemoveCssClass("FitUiControlTreeViewLines");
+				me.RemoveCssClass("FitUiControlTreeViewDotLines");
+			}
+
+			repaint();
+		}
+
+		return me.HasCssClass("FitUiControlTreeViewLines");
+	}
+
+	// See documentation on ControlBase
 	this.Clear = function()
 	{
 		if (selected.length === 0)
 			return;
 
-		// Deselecting items causing them to be removed from internal selected collection.
+		// Deselecting items causes them to be removed from internal selected collection.
 		// Cloning to avoid breaking ForEach which doesn't like collection being modified while iterated.
 		var sel = Fit.Core.Clone(selected);
 
@@ -468,57 +563,114 @@ Fit.Controls.TreeView = function(ctlId)
 		me._internal.FireOnChange();
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="AddChild" access="public">
+	/// 	<description> Add node to TreeView </description>
+	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to add </param>
+	/// </function>
 	this.AddChild = function(node)
 	{
-		if (node.Selected() === true)
-			Fit.Array.Add(selected, node);
-
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 		rootNode.AddChild(node);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="RemoveChild" access="public">
+	/// 	<description> Remove node from TreeView </description>
+	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to remove </param>
+	/// </function>
 	this.RemoveChild = function(node)
 	{
-		node.GetDomElement()._internal.TreeView = null;
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 		rootNode.RemoveChild(node);
 	}
 
-	this.GetChild = function(value)
+	/// <function container="Fit.Controls.TreeView" name="GetChild" access="public" returns="Fit.Controls.TreeView.Node">
+	/// 	<description> Get node by value - returns Null if not found </description>
+	/// 	<param name="val" type="string"> Node value </param>
+	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
+	/// </function>
+	this.GetChild = function(val, recursive)
 	{
-		return rootNode.GetChild(value);
+		Fit.Validation.ExpectStringValue(val);
+		Fit.Validation.ExpectBoolean(recursive, true);
+
+		return rootNode.GetChild(val, recursive);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="GetChildren" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// 	<description> Get all children </description>
+	/// </function>
 	this.GetChildren = function()
 	{
 		return rootNode.GetChildren();
 	}
 
+	// See documentation on ControlBase
 	var baseDispose = me.Dispose;
 	this.Dispose = function()
 	{
+		// This will destroy control - it will no longer work!
+
 		rootNode.Dispose();
+		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isIe8 = null;
 		baseDispose();
 	}
 
-	// Events (OnChange defined on BaseControl class)
+	// ============================================
+	// Events (OnChange defined on BaseControl)
+	// ============================================
 
+	/// <function container="Fit.Controls.TreeView" name="OnSelect" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when node is being selected.
+	/// 		Selection can be canceled by returning False.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
 	this.OnSelect = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onSelectHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="OnSelected" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when node is selected.
+	/// 		Selection can not be canceled. Function receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
 	this.OnSelected = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onSelectedHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="OnToggle" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when node is being expanded or collapsed.
+	/// 		Toggle can be canceled by returning False.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
 	this.OnToggle = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onToggleHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="OnToggled" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when node is expanded or collapsed.
+	/// 		Toggle can not be canceled. Function receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
 	this.OnToggled = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb);
@@ -529,41 +681,72 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function executeWithNoOnChange(cb)
 	{
+		Fit.Validation.ExpectFunction(cb);
+
 		var onChangeHandler = me._internal.FireOnChange;
 		me._internal.FireOnChange = function() {};
 
-		// Try/catch to make absolutely sure OnChange handler is restored!
-		try
+		var error = null;
+
+		try // Try/catch to make absolutely sure OnChange handler is restored!
 		{
 			cb();
 		}
 		catch (err)
 		{
-			Fit.Validation.ThrowError(err.message);
+			error = err.message;
 		}
 
 		me._internal.FireOnChange = onChangeHandler;
+
+		if (error !== null)
+			Fit.Validation.ThrowError(error);
 	}
 
 	function executeRecursively(node, cb)
 	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectFunction(cb);
+
 		if (cb(node) === false)
 			return false;
 
 		Fit.Array.ForEach(node.GetChildren(), function(child)
 		{
-			if (executeRecursively(child, cb) ===false)
+			if (executeRecursively(child, cb) === false)
 				return false;
 		});
 	}
 
+	function createInternalCollection()
+	{
+		var selected = [];
+
+		selected.toString = function(alternativeSeparator)
+		{
+			Fit.Validation.ExpectStringValue(alternativeSeparator, true);
+
+			var val = "";
+			Fit.Array.ForEach(this, function(n)
+			{
+				val += ((val !== "") ? (alternativeSeparator ? alternativeSeparator : ";") : "") + n.Value();
+			});
+			return val;
+		}
+
+		return selected;
+	}
+
 	function repaint()
 	{
+		// In some cases, IE8 does not repaint Treeview properly.
+		// This often happens when modifying the TreeView programmatically.
+		// Calling this function resolves the problem.
+
 		if (isIe8 === true)
 		{
-			// Force re-paint on IE8
-			rootContainer.style.zoom = 1;
-			rootContainer.style.zoom = 0;
+			me.AddCssClass("FitUi_Non_Existing_TreeView_Class");
+			me.RemoveCssClass("FitUi_Non_Existing_TreeView_Class");
 		}
 	}
 
@@ -592,15 +775,8 @@ Fit.Controls.TreeView = function(ctlId)
 	{
 		if (fireEventHandlers(onToggleHandlers, node) === true)
 		{
-			if (isIe8 === true && node.GetChildren().length > 0)
-			{
-				// Must be set when using Keyboard Navigation, otherwise expand/collapse breaks, causes IE to fall into CompatMode, and causes page to scroll up.
-				node.GetDomElement().getElementsByTagName("ul")[0].style.display = (expanded === true ? "block" : "none");
-			}
-
 			node.Expanded(expanded);
 			fireEventHandlers(onToggledHandlers, node);
-			repaint();
 		}
 	}
 
@@ -621,84 +797,93 @@ Fit.Controls.TreeView = function(ctlId)
 
 		return !cancel;
 	}
+
+	init();
 }
 
+/// <function container="Fit.Controls.TreeView.Node" name="Node" access="public">
+/// 	<description> Create instance of TreeView Node </description>
+/// 	<param name="displayTitle" type="string"> Node title </param>
+/// 	<param name="nodeValue" type="string"> Node value </param>
+/// </function>
 Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 {
 	Fit.Validation.ExpectStringValue(displayTitle);
 	Fit.Validation.ExpectStringValue(nodeValue);
 
-	// Init
-
 	var me = this;
-	var elmLi = document.createElement("li");
+	var elmLi = null;
 	var elmUl = null;
-	var cmdToggle = document.createElement("div");
-	var lblTitle = document.createElement("span");
-	var childrenIndexed = {}; // Performance - super fast node lookup using GetChild("value") - indexed
-	var lastChild = null;
-
-	var selectable = false;
-	var chkSelect = null;
+	var cmdToggle = null;
 	var chkSelectAll = null;
+	var chkSelect = null;
+	var lblTitle = null;
+	var childrenIndexed = {};
+	var childrenArray = [];
+	var lastChild = null;
+	var selectable = false;
+
+	// ============================================
+	// Init
+	// ============================================
 
 	function init()
 	{
+		elmLi = document.createElement("li");
+		cmdToggle = document.createElement("div");
+		lblTitle = document.createElement("span");
+
 		me.Title(displayTitle);
-		me.Value(nodeValue);
+		Fit.Dom.Data(elmLi, "value", nodeValue);
+
+		Fit.Dom.Data(elmLi, "state", "static");
+		Fit.Dom.Data(elmLi, "selectable", "false");
+		Fit.Dom.Data(elmLi, "selected", "false");
+		Fit.Dom.Data(elmLi, "last", "false");
+
+		elmLi.tabIndex = 0; // Make focusable
+
+		elmLi.appendChild(cmdToggle);
+		elmLi.appendChild(lblTitle);
+
+		elmLi._internal = { Node: me, TreeView: null };
 	}
 
-	Fit.Dom.Data(elmLi, "state", "static");
-	Fit.Dom.Data(elmLi, "selectable", "false");
-	Fit.Dom.Data(elmLi, "selected", "false");
-
-	elmLi.tabIndex = 0; // Make selectable to allow keyboard navigation
-
-	elmLi.appendChild(cmdToggle);
-	elmLi.appendChild(lblTitle);
-
-	elmLi._internal = { Node: me, TreeView: null }; // Performance - super fast access to TreeView.Node instance when DOM node is clicked
-
+	// ============================================
 	// Public
+	// ============================================
 
-	/*this.Toggle = function()
+	/// <function container="Fit.Controls.TreeView.Node" name="Title" access="public" returns="string">
+	/// 	<description> Get/set node title </description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, node title is updated </param>
+	/// </function>
+	this.Title = function(val)
 	{
-		var state = Fit.Dom.Data(elmLi, "state");
+		Fit.Validation.ExpectStringValue(val, true);
 
-		if (state === "static")
-			return;
-
-		Fit.Dom.Data(elmLi, "state", ((state === "collapsed") ? "expanded" : "collapsed"));
-
-		// Force IE8 to repaint - user must move mouse around to get expand/collapse to work if omitted!
-		elmLi.className = elmLi.className;
-	}*/
-
-	this.Title = function(newValue)
-	{
-		Fit.Validation.ExpectString(newValue, true);
-
-		if (Fit.Validation.IsSet(newValue) === true)
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			lblTitle.innerHTML = newValue;
+			lblTitle.innerHTML = val;
 
 			// Make sure any contained links do not receive focus when navigating TreeView with Tab/Shift+Tab
 			Fit.Array.ForEach(lblTitle.getElementsByTagName("a"), function(link) { link.tabIndex = -1; });
 		}
 
-		return lblTitle.innerText; // Using innerText to get rid of any HTML - TODO: Good idea returning value different from value originally set ??? innerHTML is not much better since e.g. & is encoded into &amp;
+		return lblTitle.innerText; // Using innerText to get rid of HTML formatting
 	}
 
-	this.Value = function(newValue)
+	/// <function container="Fit.Controls.TreeView.Node" name="Value" access="public" returns="string">
+	/// 	<description> Get node value </description>
+	/// </function>
+	this.Value = function()
 	{
-		Fit.Validation.ExpectString(newValue, true);
-
-		if (Fit.Validation.IsSet(newValue) === true)
-			Fit.Dom.Data(elmLi, "value", newValue);
-
-		return Fit.Dom.Data(elmLi, "value");
+		return Fit.Dom.Data(elmLi, "value"); // Read only - value has been used on parent node as index (childrenIndexed)
 	}
 
+	/// <function container="Fit.Controls.TreeView.Node" name="Expanded" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether node is expanded </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True expands node, False collapses it </param>
+	/// </function>
 	this.Expanded = function(expand)
 	{
 		Fit.Validation.ExpectBoolean(expand, true);
@@ -707,37 +892,42 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		{
 			Fit.Dom.Data(elmLi, "state", ((expand === true) ? "expanded" : "collapsed"));
 
-			// Force IE8 to repaint - user must move mouse around to get expand/collapse to work if omitted!
-			elmLi.className = elmLi.className;
+			if (elmLi._internal.TreeView !== null)
+				elmLi._internal.TreeView.Repaint();
 		}
 
 		return (Fit.Dom.Data(elmLi, "state") === "expanded");
 	}
 
-	this.Selectable = function(enable, showCheckbox, showSelectAll)
+	/// <function container="Fit.Controls.TreeView.Node" name="Selectable" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether node is selectable </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables node selection, False disables it </param>
+	/// 	<param name="showCheckbox" type="boolean" default="false"> If defined, True adds a selection checkbox, False removes it </param>
+	/// 	<param name="showSelectAll" type="boolean" default="false"> If defined, True adds a Select All checkbox useful for selecting all children, False removes it </param>
+	/// </function>
+	this.Selectable = function(val, showCheckbox, showSelectAll)
 	{
-		Fit.Validation.ExpectBoolean(enable, true);
+		Fit.Validation.ExpectBoolean(val, true);
 		Fit.Validation.ExpectBoolean(showCheckbox, true);
 		Fit.Validation.ExpectBoolean(showSelectAll, true);
 
-		if (Fit.Validation.IsSet(enable) === true)
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			Fit.Dom.Data(elmLi, "selectable", enable.toString());
+			Fit.Dom.Data(elmLi, "selectable", val.toString());
 
-			if (enable === false)
+			if (val === false)
 				Fit.Dom.Data(elmLi, "selected", "false");
 
-			if (enable === true && showCheckbox === true && chkSelect === null)
+			if (val === true && showCheckbox === true && chkSelect === null)
 			{
-				chkSelect = document.createElement("input"); // TODO: Use Fit.Controls.Checkbox once ready !
+				chkSelect = document.createElement("input");
 				chkSelect.type = "checkbox";
 				chkSelect.tabIndex = "-1";
 				chkSelect.checked = me.Selected();
 
 				Fit.Dom.InsertBefore(lblTitle, chkSelect);
 			}
-			//else if (enable === true && showCheckbox === false && chkSelect !== null)
-			else if ((enable === false || showCheckbox === false) && chkSelect !== null)
+			else if ((val === false || showCheckbox === false) && chkSelect !== null)
 			{
 				Fit.Dom.Remove(chkSelect);
 				chkSelect = null;
@@ -747,104 +937,124 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return (Fit.Dom.Data(elmLi, "selectable") === "true");
 	}
 
-	this.Selected = function(select) // NOTICE: Only TreeView should use this, as manually setting node's Selected state doesn't cause it to be internally selected in TreeView, nor does it fire events
+	/// <function container="Fit.Controls.TreeView.Node" name="Selected" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether node is selected.
+	/// 		If node is selected, it will automatically be made
+	/// 		selectable, if not already done so.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True selects node, False deselects it </param>
+	/// </function>
+	this.Selected = function(select)
 	{
 		Fit.Validation.ExpectBoolean(select, true);
 
+		// Notice:
+		// Nodes are responsible for keeping the TreeView current
+		// in regards to selected nodes, through the TreeViewNodeInterface.
+		// If this approach was not used, TreeView would have to
+		// iterate recursively over all nodes to determine which
+		// nodes are selected, which would be too expensive for
+		// huge tree views containing thousands of nodes.
+
 		if (Fit.Validation.IsSet(select) === true)
 		{
-			// Select or deselect node in TreeView.
-			// This MUST be done before selecting/deselecting it below,
-			// since its current Selected state is used to determine
-			// whether the node is already selected in TreeView or not.
-
-			if (elmLi._internal.TreeView !== null)
-			{
-				if (select === true)
-					elmLi._internal.TreeView.Select(me);
-				else
-					elmLi._internal.TreeView.Deselect(me);
-			}
+			var wasSelected = me.Selected();
 
 			// Update state
+
+			if (select === true && me.Selectable() === false)
+				me.Selectable(true);
 
 			Fit.Dom.Data(elmLi, "selected", select.toString());
 
 			if (chkSelect !== null)
 				chkSelect.checked = select;
 
-			// Force IE8 to repaint - user must move mouse around to get expand/collapse to work if omitted!
-			elmLi.className = elmLi.className;
+			if (elmLi._internal.TreeView !== null)
+				elmLi._internal.TreeView.Repaint();
+
+			// Synchronize selection to TreeView
+
+			if (elmLi._internal.TreeView !== null)
+			{
+				if (select === true && wasSelected === false)
+				{
+					elmLi._internal.TreeView.Select(me);
+				}
+				else if (select === false && wasSelected === true)
+				{
+					elmLi._internal.TreeView.Deselect(me);
+				}
+			}
 		}
 
 		return (Fit.Dom.Data(elmLi, "selected") === "true");
 	}
 
-	this.Focused = function(focus)
+	/// <function container="Fit.Controls.TreeView.Node" name="Focused" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether node has focus </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True assigns focus, False removes it (blur) </param>
+	/// </function>
+	this.Focused = function(val)
 	{
-		Fit.Validation.ExpectBoolean(focus, true);
+		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(focus) === true)
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			//////Fit.Dom.Data(elmLi, "focused", focus.toString());
-
-			if (focus === true)
-			{
+			if (val === true)
 				elmLi.focus();
-			}
-			else
-			{
+			else if (document.activeElement === elmLi)
 				elmLi.blur();
-
-				if (chkSelect !== null)
-					chkSelect.blur();
-			}
-
-			/*if (chkSelect !== null)
-			{
-				if (focus === true)
-					chkSelect.focus();
-				else
-					chkSelect.blur();
-			}*/
-
-
 		}
-
-		//////return (Fit.Dom.Data(elmLi, "focused") === "true");
 
 		return (document.activeElement === elmLi);
 	}
 
+	/// <function container="Fit.Controls.TreeView.Node" name="GetParent" access="public" returns="Fit.Controls.TreeView.Node">
+	/// 	<description> Get parent node - returns Null if node has no parent </description>
+	/// </function>
 	this.GetParent = function()
 	{
 		var parentDomNode = elmLi.parentNode.parentNode;
-		return ((parentDomNode._internal) ? parentDomNode._internal.Node : null);
+		return (parentDomNode._internal ? parentDomNode._internal.Node : null);
 	}
 
+	/// <function container="Fit.Controls.TreeView.Node" name="AddChild" access="public">
+	/// 	<description> Add child node </description>
+	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to add </param>
+	/// </function>
 	this.AddChild = function(node)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 
-		// Make sure two nodes with identical values are not added
-		var existing = me.GetChild(node.Value()); // No worries, this is super fast!
-		if (existing !== null)
-			Fit.Validation.ThrowError("Node with value '" + node.Value() + "' already added"); //me.RemoveChild(existing);
+		if (me.GetChild(node.Value()) !== null) // Internal children collection is indexed using value - make sure it is unique
+			Fit.Validation.ThrowError("A child with value '" + node.Value() + "' has already been added");
 
-		// Configure TreeView association
+		// Configure TreeView association and synchronize selection state
 
-		if (elmLi._internal.TreeView !== null)
+		var tv = elmLi._internal.TreeView;
+
+		if (tv !== null) // node.GetDomElement()._internal.TreeView !== tv)
 		{
-			var tv = elmLi._internal.TreeView;
+			var selected = [];
 
-			if (node.GetDomElement()._internal.TreeView !== tv)
+			executeRecursively(node, function(n)
 			{
-				executeRecursively(node, function(n)
+				if (n.Selected() === true)
 				{
-					n.GetDomElement()._internal.TreeView = elmLi._internal.TreeView;
-					n.Selectable(tv.IsSelectable(), tv.IsMultiSelect(), tv.ShowSelectAll());
-				});
-			}
+					Fit.Array.Add(selected, n);
+					n.Selected(false);
+				}
+
+				n.GetDomElement()._internal.TreeView = tv;
+				n.Selectable(tv.IsSelectable(), tv.IsMultiSelect(), tv.ShowSelectAll());
+			});
+
+			// Nodes previously selected is re-selected through TreeViewNodeInterface,
+			// causing TreeView's internal selected collection to be updated appropriately.
+			if (selected.length > 0)
+				tv.Selected(Fit.Array.Merge(tv.Selected(), selected));
 		}
 
 		// Register child node
@@ -858,84 +1068,189 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 			Fit.Dom.Data(elmLi, "state", "collapsed");
 		}
 
+		// Make sure last node is marked as such, allowing for specialized CSS behaviour
 		if (lastChild !== null)
 			Fit.Dom.Data(lastChild.GetDomElement(), "last", "false");
 		Fit.Dom.Data(node.GetDomElement(), "last", "true");
 		lastChild = node;
 
+		// Add child to DOM and internal collections
 		elmUl.appendChild(node.GetDomElement());
 		childrenIndexed[node.Value()] = node;
+		Fit.Array.Add(childrenArray, node);
+
+		// Changing data attribute above requires repaint in IE8
+		// for dynamically added nodes to render helper lines properly.
+		if (elmLi._internal.TreeView !== null)
+			elmLi._internal.TreeView.Repaint();
 	}
 
+	/// <function container="Fit.Controls.TreeView.Node" name="RemoveChild" access="public">
+	/// 	<description> Remove child node </description>
+	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to remove </param>
+	/// </function>
 	this.RemoveChild = function(node)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 
-		if (node.Selected() === true)
-			node.Selected(false); // Make sure node does not stay in TreeView's internal selection
-
 		var parentNode = node.GetParent();
-
 		if (parentNode === me)
 		{
+			// Deconfigure TreeView association and synchronize selection state
+
+			var tv = node.GetDomElement()._internal.TreeView;
+
+			if (tv !== null)
+			{
+				// Deselecting selected nodes in TreeView
+
+				var treeSelection = tv.Selected();
+				if (treeSelection.length > 0)
+				{
+					var selected = [];
+					executeRecursively(node, function(n)
+					{
+						if (n.Selected() === true)
+							Fit.Array.Add(selected, n);
+					});
+
+					if (selected.length > 0)
+					{
+						var newTreeSelection = [];
+						Fit.Array.ForEach(treeSelection, function(n)
+						{
+							if (Fit.Array.Contains(selected, n) === false)
+								Fit.Array.Add(newTreeSelection, n);
+						});
+
+						tv.Selected(newTreeSelection);
+					}
+				}
+
+				// Remove reference to TreeView.
+				// This cannot be done in recursive loop above since it
+				// will break tv.Selected(..) - it depends on nodes being
+				// able to synchronize their selected state.
+
+				executeRecursively(node, function(n)
+				{
+					// Make sure removed node cannot update TreeView anymore
+					n.GetDomElement()._internal.TreeView = null;
+				});
+			}
+
+			// Remove from DOM
+
 			elmUl.removeChild(node.GetDomElement());
 			delete childrenIndexed[node.Value()];
+			Fit.Array.Remove(childrenArray, node);
 
-			if (childrenIndexed.length === 0)
+			if (childrenArray.length === 0)
 			{
 				elmLi.removeChild(elmUl);
 				Fit.Dom.Data(elmLi, "state", "static");
 			}
+
+			// Update last node
+
+			if (node === lastChild)
+			{
+				Fit.Dom.Data(node.GetDomElement(), "last", "false");
+
+				if (childrenArray.length > 0)
+				{
+					lastChild = childrenArray[childrenArray.length - 1];
+					Fit.Dom.Data(lastChild.GetDomElement(), "last", "true");
+				}
+			}
+
+			// Make sure helper lines are repainted on IE8
+			if (elmLi._internal.TreeView !== null)
+				elmLi._internal.TreeView.Repaint();
 		}
 	}
 
-	this.GetChild = function(value)
+	/// <function container="Fit.Controls.TreeView.Node" name="GetChild" access="public" returns="Fit.Controls.TreeView.Node">
+	/// 	<description> Get node by value - returns Null if not found </description>
+	/// 	<param name="val" type="string"> Node value </param>
+	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
+	/// </function>
+	this.GetChild = function(val, recursive)
 	{
-		var node = childrenIndexed[value];
-		return node || null;
+		Fit.Validation.ExpectStringValue(val);
+		Fit.Validation.ExpectBoolean(recursive, true);
+
+		var node = childrenIndexed[val];
+
+		if (node === undefined && recursive === true)
+		{
+			var found = null;
+			Fit.Array.ForEach(childrenArray, function(child)
+			{
+				found = child.GetChild(val, recursive);
+
+				if (found !== null)
+					return false;
+			});
+			return found;
+		}
+
+		return ((node !== undefined) ? node : null);
 	}
 
+	/// <function container="Fit.Controls.TreeView.Node" name="GetChildren" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// 	<description> Get all children </description>
+	/// </function>
 	this.GetChildren = function()
 	{
-		var arr = [];
-		Fit.Array.ForEach(childrenIndexed, function(key)
-		{
-			Fit.Array.Add(arr, childrenIndexed[key]);
-		});
-
-		return arr;
+		return childrenArray;
 	}
 
+	/// <function container="Fit.Controls.TreeView.Node" name="Dispose" access="public">
+	/// 	<description> Destroys object to free up memory </description>
+	/// </function>
 	this.Dispose = function()
 	{
+		// This will destroy node - it will no longer work!
+
+		// Dispose children
+		Fit.Array.ForEach(childrenArray, function(child) { child.Dispose(); });
+
+		// Remove from DOM
+
 		var parentNode = me.GetParent();
 
 		if (parentNode !== null)
-		{
 			parentNode.RemoveChild(me);
-		}
 		else
-		{
-			elmLi.parentNode.removeChild(elmLi);
-		}
+			Fit.Dom.Remove(elmLi);
+
+		// Dispose private members
+		elmLi = elmUl = cmdToggle = lblTitle = childrenIndexed = childrenArray = lastChild = selectable = chkSelect = chkSelectAll = null;
 	}
 
+	/// <function container="Fit.Controls.TreeView.Node" name="GetDomElement" access="public" returns="DOMElement">
+	/// 	<description> Get DOMElement representing node </description>
+	/// </function>
 	this.GetDomElement = function()
 	{
 		return elmLi;
 	}
 
-
 	// Private
 
 	function executeRecursively(node, cb)
 	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectFunction(cb);
+
 		if (cb(node) === false)
-			return;
+			return false;
 
 		Fit.Array.ForEach(node.GetChildren(), function(child)
 		{
-			executeRecursively(child, cb);
+			if (executeRecursively(child, cb) === false)
+				return false;
 		});
 	}
 

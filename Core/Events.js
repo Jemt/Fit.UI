@@ -91,6 +91,28 @@ Fit.Events.Stop = function(e) // e not validated, done by PreventDefault(..) and
 	return false;
 }
 
+/// <function container="Fit.Events" name="GetTarget" access="public" static="true" returns="DOMElement">
+/// 	<description> Get a reference to the object that dispatched an event </description>
+/// 	<param name="e" type="Event" default="undefined"> Event argument </param>
+/// </function>
+Fit.Events.GetTarget = function(e)
+{
+	Fit.Validation.ExpectEvent(e, true);
+
+	var ev = e || window.event;
+	return ev.srcElement || ev.target;
+}
+
+/// <function container="Fit.Events" name="GetEvent" access="public" static="true" returns="Event">
+/// 	<description> Get event argument related to event just fired in a cross browser compatible manner </description>
+/// 	<param name="e" type="Event" default="undefined"> Event argument </param>
+/// </function>
+Fit.Events.GetEvent = function(e)
+{
+	Fit.Validation.ExpectEvent(e, true);
+	return e || window.event;
+}
+
 // **********************************************************************
 // OnReady handling
 // **********************************************************************

@@ -102,8 +102,8 @@ Fit.Http.Request = function(url)
 	/// </function>
 	this.SetData = function(dataStr)
 	{
-		Fit.Validation.ExpectStringValue(dataStr, true);
-		data = dataStr;
+		Fit.Validation.ExpectString(dataStr, true);
+		data = ((Fit.Validation.IsSet(dataStr) === true) ? data : "");
 	}
 
 	/// <function container="Fit.Http.Request" name="AddData" access="public">

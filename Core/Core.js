@@ -5,13 +5,16 @@
 //     - parentNode vs parentElement
 //     - firstChild vs firstElementChild
 //     - previousSibling vs previousElementSibling
+//     - nextSibling vs nextElementSibling
 //     - elm.insertBefore vs Fit.Dom.InsertBefore(..)
 //  - Type check arguments in all public functions
 //  - Add XML docs to all public functions
 //  - Clean up code/CSS
 //  - Review all changes
 
-
+/// <container name="Fit.Core">
+/// 	Core features extending the capabilities of native JS
+/// </container>
 Fit = {};
 Fit.Core = {};
 

@@ -1,5 +1,6 @@
 /* General */
 
+/* Prevent text selection */
 div.FitUiControlTreeView
 {
 	-webkit-user-select: none;
@@ -232,4 +233,19 @@ div.FitUiControlTreeView li a
 {
 	text-decoration: inherit;
 	color: inherit;
+}
+
+/* Make nodes word-wrap gracefully */
+div.FitUiControlTreeView[data-wordwrap="true"] li
+{
+	width: inherit; /* disables width:0px */
+}
+div.FitUiControlTreeView[data-wordwrap="true"] li > span
+{
+	/*display: inline-block;*/
+	white-space: normal;
+}
+div.FitUiControlTreeView[data-wordwrap="true"] li > input
+{
+	/*vertical-align: top;*/
 }

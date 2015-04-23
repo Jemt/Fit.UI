@@ -48,16 +48,18 @@
 
 <br><br>
 
-<input type="button" value="Toggle: MultiLine" onclick="Fit.Controls.Find('MyInput').SetMultiLine(!Fit.Controls.Find('MyInput').GetMultiLine());">
-<input type="button" value="SetHeight (px)" onclick="Fit.Controls.Find('MyInput').SetHeight(parseInt(prompt('Indtast højde i pixels', 100)));">
-<input type="button" value="SetWidth (px)" onclick="Fit.Controls.Find('MyInput').SetWidth(parseInt(prompt('Indtast bredde i pixels', 500)));">
-<input type="button" value="Toggle: Maximizable" onclick="Fit.Controls.Find('MyInput').SetMaximizable(!Fit.Controls.Find('MyInput').GetMaximizable());">
-<input type="button" value="Toggle: Design Mode" onclick="Fit.Controls.Find('MyInput').SetDesignMode(!Fit.Controls.Find('MyInput').GetDesignMode());">
+<input type="button" value="Toggle: MultiLine" onclick="Fit.Controls.Find('MyInput').MultiLine(!Fit.Controls.Find('MyInput').MultiLine());">
+<input type="button" value="Set Height (px)" onclick="Fit.Controls.Find('MyInput').Height(parseInt(prompt('Indtast højde i pixels', 100)));">
+<input type="button" value="Set Height (em)" onclick="Fit.Controls.Find('MyInput').Height(parseInt(prompt('Indtast højde i em unit', 3)), 'em');">
+<input type="button" value="Set Width (px)" onclick="Fit.Controls.Find('MyInput').Width(parseInt(prompt('Indtast bredde i pixels', 500)));">
+<input type="button" value="Toggle: Maximizable" onclick="Fit.Controls.Find('MyInput').Maximizable(!Fit.Controls.Find('MyInput').Maximizable());">
+<input type="button" value="Toggle: Design Mode" onclick="Fit.Controls.Find('MyInput').DesignMode(!Fit.Controls.Find('MyInput').DesignMode());">
 <input type="button" value="Make Draggable" onclick="new Fit.DragDrop.Draggable(Fit.Controls.Find('MyInput').GetDomElement());">
 <input type="button" value="IsDirty" onclick="alert('Is dirty (different from initial value): ' + Fit.Controls.Find('MyInput').IsDirty())">
-<input type="button" value="GetValue" onclick="alert('Value: ' + Fit.Controls.Find('MyInput').GetValue())">
+<input type="button" value="GetValue" onclick="alert('Value: ' + Fit.Controls.Find('MyInput').Value())">
 <input type="button" value="SetValue" onclick="Fit.Controls.Find('MyInput').Value(prompt('Indtast værdi', 'Hello world'));">
-<input type="button" value="Enable A-Z 0-9 RegExp" onclick="Fit.Controls.Find('MyInput').SetValidationExpression(new RegExp('^[a-z0-9 ]+$', 'i'), 'Only A-Z, 0-9 and space is allowed!', 'MyValidationScope');">
+<input type="button" value="Enable A-Z 0-9 RegExp" onclick="Fit.Controls.Find('MyInput').SetValidationExpression(new RegExp('^[a-z0-9 ]*$', 'i'), 'Only A-Z, 0-9 and space is allowed!');">
+<input type="button" value="Focus" onclick="setTimeout(function() { Fit.Controls.Find('MyInput').Focused(true); }, 300);">
 <input type="submit" value="Submit page">
 
 <br><br>
@@ -81,6 +83,9 @@
 			<li>HTML compatible (nodes may contain rich content; HTML/CSS/JS)</li>
 			<li>Selection modes: Single / Multi / None (e.g. for navigation)</li>
 			<li>Part of standard control flow (gains focus)</li>
+			<li>Navigation nodes supported through standard HTMLLink object</li>
+			<li>AllowNull = False (Required on BaseClass)</li>
+			<li>Word wrap support</li>
 			<li>Full keyboard navigation:
 				<ul>
 					<li>Arrow down/up = select down/up</li>
@@ -88,6 +93,7 @@
 					<li>arrow left/right = collapse/expand (also possible using Double-Click on nodes)</li>
 					<li>arrow left on non-expandable node = jump to parent</li>
 					<li>Spacebar = select/deselect</li>
+					<li>Enter = Open navigation node (URL)</li>
 				</ul>
 			</li>
 			<li>API and Event model (OnSelect, OnSelecting, OnToggle, OnToggling, OnChange)</li>
@@ -95,9 +101,8 @@
 	</li>
 	<li>TODO:
 		<ul>
-			<li>WebService support (consume Fit.UI standard data structures through WebService) </li>
-			<li>Navigable nodes (allow URL navigation)</li>
-			<li>AllowNull = False (use Required - see BaseClass!)</li>
+			<li>Select All checkboxes</li>
+			<li>WebService support (consume Fit.UI standard data structures through WebService)</li>
 		</ul>
 	</li>
 </ul>
@@ -113,13 +118,20 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 <input type="button" value="Enable Single-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true);">
 <input type="button" value="Enable Multi-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true, true);">
 <input type="button" value="Disable selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(false);">
-<input type="button" value="Get value" onclick="var t = Fit.Controls.Find('MyTreeView'); var s = t.Selected(); var v = 'Selected:\n'; Fit.Array.ForEach(s, function(n) { v += '\n' + n.Title() }); alert(v);">
+<input type="button" value="Get value" onclick="var t = Fit.Controls.Find('MyTreeView'); var s = t.Selected(); var v = 'Selected:\n'; Fit.Array.ForEach(s, function(n) { v += '\n -- ' + n.Title() }); alert(v);">
 <input type="button" value="Clear" onclick="Fit.Controls.Find('MyTreeView').Clear()">
+<input type="button" value="Focus" onclick="setTimeout(function() { Fit.Controls.Find('MyTreeView').Focused(true); }, 300);">
+<input type="button" value="Toggle word wrap" onclick="Fit.Controls.Find('MyTreeView').WordWrap(!Fit.Controls.Find('MyTreeView').WordWrap());">
 <br><br>
 
-<div id="TreeView" style="font-size: 12px; color: #3D9CCF; padding-left: 100px;"></div>
+<div id="TreeView" style="font-size: 12px; color: #3D9CCF; padding-left: 100px; float: left;"></div>
+<div style="float: left; padding: 150px; border: 2px solid orange; background-color: #E3EFF9;" ondblclick="Fit.DragDrop.Draggable(this);">
+	Content area - tree is not allowed to overflow this area! Word wrap!
+</div>
+<div style="clear:both"></div>
 
-<br><br><br><br><br><br>
+<br><br>
+<br><br><br><br>
 
 
 
@@ -127,7 +139,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 	window.ShowLines = function(val)
 	{
 		var tree = Fit.Controls.Find('MyTreeView');
-		tree.ShowLines(val);
+		tree.Lines(val);
 	}
 
 	Fit.Events.OnReady(function()
@@ -137,15 +149,16 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		new Fit.DragDrop.Draggable(document.getElementById("dropzone1"));
 
 		var input = new Fit.Controls.Input("MyInput");
+		input.IsValid();
 		//input.Render(document.body);
 		input.Render(document.getElementById("Input"));
 		input.OnChange(function(sender, value) { console.log(sender, value); });
-		input.SetWidth(300);
+		input.Width(300);
 		input.Value("Hello world");
-		input.Focus();
+		input.Focused(true);
 		//input.SetMaximizable(true, 100, 300, "px");
 		//input.SetMaximizable(true, 300, 900, "px");
-		//input.SetHeight(40);
+		//input.Height(40);
 		//input.EnableMaximize(200);
 
 		//new Fit.DragDrop.Draggable(input.GetDomElement());
@@ -155,8 +168,10 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 
 		var tree = new Fit.Controls.TreeView("MyTreeView");
 		tree.Selectable(true, true, true);
-		tree.SetRequired(true);
-		tree.ShowLines(true);
+		tree.Required(true);
+		tree.Scope("MyScope");
+		tree.WordWrap(true);
+		tree.Lines(true);
 
 		tree.OnChange(function(sender, value)
 		{
@@ -213,6 +228,9 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		n2.AddChild(new Fit.Controls.TreeView.Node("Jimmy", "002-3"));
 
 		n2.Selected(true);
+		n2.Expanded(true);
+		n2.GetChildren()[0].Selected(true);
+		n2.GetChildren()[2].Selected(true);
 
 		var n3 = new Fit.Controls.TreeView.Node("Produktudvikling", "003");
 		n3.AddChild(new Fit.Controls.TreeView.Node("Lars", "003-1"));
@@ -221,6 +239,8 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		n3.AddChild(new Fit.Controls.TreeView.Node("Michael", "003-4"));
 		n3.AddChild(new Fit.Controls.TreeView.Node("Ilda", "003-5"));
 		n3.AddChild(new Fit.Controls.TreeView.Node("Ole", "003-6"));
+
+		n3.Selected(true);
 
 		var n4 = new Fit.Controls.TreeView.Node("Deployment & Support", "004");
 		n4.AddChild(new Fit.Controls.TreeView.Node("Martin", "004-1"));
@@ -260,29 +280,41 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		//document.getElementById("TreeView").appendChild(tree.GetDomElement());
 		tree.Render(document.getElementById("TreeView"));
 
+
+
 		setTimeout(function()
 		{
 			Fit.Controls.Find("MyTreeView").Clear();
 		}, 750);
 		setTimeout(function()
 		{
-			Fit.Controls.Find("MyTreeView").Selected([Fit.Controls.Find("MyTreeView").GetChildByValue("004"), Fit.Controls.Find("MyTreeView").GetChildByValue("005")]);
+			Fit.Controls.Find("MyTreeView").Selected([Fit.Controls.Find("MyTreeView").GetChild("004", true), Fit.Controls.Find("MyTreeView").GetChild("005", true)]);
 		}, 1000);
 		setTimeout(function()
 		{
-			var ds = Fit.Controls.Find("MyTreeView").GetChildByValue("004");
+			var ds = Fit.Controls.Find("MyTreeView").GetChild("004", true);
 			ds.Expanded(true);
 		}, 1500);
 		setTimeout(function()
 		{
-			Fit.Controls.Find("MyTreeView").GetChildByValue("001-4").Selected(false);
-			Fit.Controls.Find("MyTreeView").GetChildByValue("001-4").Selected(false);
-			Fit.Controls.Find("MyTreeView").GetChildByValue("001-4").Selected(true);
+			Fit.Controls.Find("MyTreeView").GetChild("001-4", true).Selected(false);
+			Fit.Controls.Find("MyTreeView").GetChild("001-4", true).Selected(false);
+			Fit.Controls.Find("MyTreeView").GetChild("001-4", true).Selected(true);
 
-			var ds = Fit.Controls.Find("MyTreeView").GetChildByValue("004");
+			Fit.Controls.Find("MyTreeView").GetChild("004-6123", true).Selected(true);
+			Fit.Controls.Find("MyTreeView").GetChild("004-6123", true).GetChildren()[0].Selected(true);
+
+			var ds = Fit.Controls.Find("MyTreeView").GetChild("004", true);
 			ds.GetChildren()[0].Selected(true);
 			ds.GetChildren()[3].Selected(true);
 		}, 2000);
+		setTimeout(function() { Fit.Controls.Find("MyTreeView").Focused(false); }, 2200);
+		setTimeout(function() { Fit.Controls.Find("MyTreeView").Focused(true); }, 2400);
+		setTimeout(function() { Fit.Controls.Find("MyTreeView").Focused(false); }, 2600);
+		setTimeout(function() { Fit.Controls.Find("MyTreeView").Focused(true); }, 2800);
+		setTimeout(function() { Fit.Controls.Find("MyTreeView").Focused(false); }, 3000);
+
+		setTimeout(function() { var n = Fit.Controls.Find("MyTreeView").GetChild("004-6123", true); n.Expanded(true); setTimeout(function() { n.GetParent().RemoveChild(n); }, 1000); }, 3200);
 
 		//n1.GetChild("1798234").Dispose()
 
@@ -297,7 +329,7 @@ In-place render:<br>
 
 <script type="text/javascript">
 		var input = new Fit.Controls.Input("MyRenderInPlaceInput");
-		input.SetWidth(300);
+		input.Width(300);
 		input.Value("Hello world!");
 		input.Render();
 </script>
@@ -306,12 +338,12 @@ In-place render:<br>
 
 <script type="text/javascript">
 		var input = new Fit.Controls.Input("MyRenderInPlaceInput2");
-		input.SetWidth(300);
+		input.Width(300);
 		input.Value("Hello 1");
 		input.Render();
 
 		var input = new Fit.Controls.Input("MyRenderInPlaceInput3");
-		input.SetWidth(300);
+		input.Width(300);
 		input.Value("Hello 2");
 		input.Render();
 </script>

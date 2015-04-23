@@ -3,7 +3,7 @@
 .FitUiControl
 {
 	display: inline-block;
-	width: 200px;
+	width: 200px; /* Important: Update default width for Input control in DesignMode if this is changed! */
 
 	position: relative; /* Allow absolute positioning of children, relative to control container rather than document */
 }
@@ -11,26 +11,6 @@
 .FitUiControl * /* A bit aggressive, but makes sure sizing is done properly */
 {
 	box-sizing: border-box;
-}
-
-xxxxxxxxxxxdiv.FitUiControlError
-{
-	/* Used in conjunction with fa and fa-exclamation-circle classes to produce a warning
-	   indicator that floats to the left of input fields exceeding their max length */
-	xxxposition: absolute;
-	xxxleft: -20px;
-
-	display: inline-block;
-	margin-left: 5px;
-
-	width: 12px;
-	height: 14px;
-	font-size: 14px;
-	padding: 2px;
-	background-color: #F0481B;
-	color: #FFFFFF;
-	border-radius: 8px; /* IE7/IE8: Rounded corners not supported - too bad! */
-	cursor: pointer;
 }
 
 div.FitUiControlError
@@ -52,6 +32,10 @@ div.FitUiControlError
 	text-align: center;
 	border-radius: 8px; /* IE7/IE8: Rounded corners not supported - too bad! */
 	cursor: pointer;
+}
+div.FitUiControlErrorCorrected
+{
+	background-color: green;
 }
 
 /* Drag and Drop */
