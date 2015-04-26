@@ -115,11 +115,13 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 <input type="button" value="Show dotted lines" onclick="window.ShowLines(true);">
 <input type="button" value="Show solid lines" onclick="window.ShowLines(true); var t = Fit.Controls.Find('MyTreeView'); t.RemoveCssClass('FitUiControlTreeViewDotLines'); ">
 <input type="button" value="Hide lines" onclick="window.ShowLines(false);">
-<input type="button" value="Enable Single-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true);">
-<input type="button" value="Enable Multi-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true, true);">
+<input type="button" value="Single-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true);">
+<input type="button" value="Single-selections with checkboxes" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true); Fit.Array.ForEach(t.GetAllNodes(), function(n) { n.Selectable(true, true, false); });">
+<input type="button" value="Multi-selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(true, true);">
 <input type="button" value="Disable selections" onclick="var t = Fit.Controls.Find('MyTreeView'); t.Selectable(false);">
 <input type="button" value="Get value" onclick="var t = Fit.Controls.Find('MyTreeView'); var s = t.Selected(); var v = 'Selected:\n'; Fit.Array.ForEach(s, function(n) { v += '\n -- ' + n.Title() }); alert(v);">
 <input type="button" value="Clear" onclick="Fit.Controls.Find('MyTreeView').Clear()">
+<input type="button" value="Clear but keep pre-selections" onclick="Fit.Controls.Find('MyTreeView').Clear(true)">
 <input type="button" value="Focus" onclick="setTimeout(function() { Fit.Controls.Find('MyTreeView').Focused(true); }, 300);">
 <input type="button" value="Toggle word wrap" onclick="Fit.Controls.Find('MyTreeView').WordWrap(!Fit.Controls.Find('MyTreeView').WordWrap());">
 <br><br>
@@ -225,12 +227,20 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		var n2 = new Fit.Controls.TreeView.Node("Markedsføring", "002");
 		n2.AddChild(new Fit.Controls.TreeView.Node("Jens", "002-1"));
 		n2.AddChild(new Fit.Controls.TreeView.Node("Louise", "002-2"));
-		n2.AddChild(new Fit.Controls.TreeView.Node("Jimmy", "002-3"));
+		n2.AddChild(new Fit.Controls.TreeView.Node("Jimmy (non-selectable, preselected)", "002-3"));
 
 		n2.Selected(true);
 		n2.Expanded(true);
 		n2.GetChildren()[0].Selected(true);
 		n2.GetChildren()[2].Selected(true);
+		n2.GetChildren()[2].Selectable(false);
+		n2.GetChildren()[2].Selected(true);
+		n2.GetChildren()[2].AddChild(new Fit.Controls.TreeView.Node("Node uden checkbox", "4957889"));
+		n2.GetChildren()[2].AddChild(new Fit.Controls.TreeView.Node("Non-selectable node, unselected", "97626"));
+		n2.GetChildren()[2].GetChildren()[0].Selectable(false, false, false);
+		n2.GetChildren()[2].GetChildren()[0].Selected(true);
+		n2.GetChildren()[2].GetChildren()[1].Selectable(false);
+
 
 		var n3 = new Fit.Controls.TreeView.Node("Produktudvikling", "003");
 		n3.AddChild(new Fit.Controls.TreeView.Node("Lars", "003-1"));
@@ -304,6 +314,13 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 			Fit.Controls.Find("MyTreeView").GetChild("004-6123", true).Selected(true);
 			Fit.Controls.Find("MyTreeView").GetChild("004-6123", true).GetChildren()[0].Selected(true);
 
+			Fit.Controls.Find("MyTreeView").GetChild("002-3", true).Selected(true); // Select non-selectable node
+
+			// Remove checkboxes while still allowing selections
+			Fit.Controls.Find("MyTreeView").GetChild("004-4", true).Selectable(true, false);
+			Fit.Controls.Find("MyTreeView").GetChild("004-5", true).Selectable(true, false);
+			Fit.Controls.Find("MyTreeView").GetChild("004-6", true).Selectable(true, false);
+
 			var ds = Fit.Controls.Find("MyTreeView").GetChild("004", true);
 			ds.GetChildren()[0].Selected(true);
 			ds.GetChildren()[3].Selected(true);
@@ -315,6 +332,8 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		setTimeout(function() { Fit.Controls.Find("MyTreeView").Focused(false); }, 3000);
 
 		setTimeout(function() { var n = Fit.Controls.Find("MyTreeView").GetChild("004-6123", true); n.Expanded(true); setTimeout(function() { n.GetParent().RemoveChild(n); }, 1000); }, 3200);
+
+		//setTimeout(function() { Fit.Array.ForEach(Fit.Controls.Find("MyTreeView").GetAllNodes(), function(n) { n.Selectable((n.Title().toLowerCase().indexOf("non-selectable") === -1), true); }); }, 3500);
 
 		//n1.GetChild("1798234").Dispose()
 

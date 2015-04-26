@@ -15,13 +15,11 @@
 
 div.FitUiControlError
 {
-	/* Used in conjunction with fa and fa-exclamation-circle classes to produce a warning
-	   indicator that floats to the left of input fields exceeding their max length */
-	position: absolute;
-	left: -30px;
+	/* Used in conjunction with fa and fa-exclamation-circle classes
+	   to produce a warning indicator that floats to the left of controls  */
 
-	display: inline-block;
-	margin-left: 5px;
+	position: absolute;
+	left: -25px;
 
 	width: 18px;
 	height: 18px;
@@ -57,29 +55,6 @@ div.FitUiControlErrorCorrected
 {
     opacity: 0.6;
     z-index: 99999;
-}
-
-/*.draggable.dragging
-{
-    z-index: 999999;
-}
-.draggable.dropzone
-{
-    z-index: 1000;
-}*/
-
-.FitDragDropDropzone
-{
-    /* Set position:relative to give
-       same stacking context behaviour
-       as draggable parts, which causes
-       draggable and dropzones to be
-       positioned on the z-axis
-       identically (last element in DOM
-       is on top) */
-    xxxxxposition: relative;
-    xborder-width: 5px;
-    xborder-style: dashed;
 }
 
 .FitDragDropDropzoneActive

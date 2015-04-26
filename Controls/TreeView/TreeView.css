@@ -21,41 +21,34 @@ div.FitUiControlTreeView ul
 	margin: 0px;
 }
 
-/* Style nodes */
-
+/* Advanced */
 div.FitUiControlTreeView li ul li
 {
-	position: relative;
-	white-space: nowrap;
-	line-height: 1.5em;
+	position: relative;		/* Allow absolute positioning within node */
+	white-space: nowrap;	/* Disable word wrap */
+	line-height: 1.5em;		/* Ensure horizontal spacing between nodes */
+	padding-left: 1.5em;	/* Indent content to make room for expand/collapse button */
 }
 
-div.FitUiControlTreeView li ul li
-{
-	padding-left: 1.5em; /* Indent content, leaving room for toggle button positioned to the left */
-}
+/* Expand/collapse button */
 
-/* Style toggle button */
-
-div.FitUiControlTreeView li ul li div
+div.FitUiControlTreeView li ul li > div
 {
-	display: inline-block;
-	font-family: FontAwesome;
+	position: absolute;
+	left: 0px;
+
+	/***display: inline-block;***/
 	cursor: pointer;
+	font-family: FontAwesome;
 
 	/* Increase hit zone */
 	width: 1.5em;
 	text-align: center;
-
-	position: absolute;
-	left: 0px;
 }
-
-div.FitUiControlTreeView li ul li div:before
+div.FitUiControlTreeView li ul li > div:before
 {
 	content: "";
 }
-
 div.FitUiControlTreeView li ul li[data-state="expanded"] > div:before
 {
 	content: "\f0d7";
@@ -64,7 +57,6 @@ div.FitUiControlTreeView li ul li[data-state="expanded"] > ul
 {
 	display: block;
 }
-
 div.FitUiControlTreeView li ul li[data-state="collapsed"] > div:before
 {
 	content: "\f0da";
@@ -74,9 +66,41 @@ div.FitUiControlTreeView li ul li[data-state="collapsed"] > ul
 	display: none;
 }
 
+/* Checkbox */
+
+div.FitUiControlTreeView li ul li > input
+{
+	/* Take checkbox out of flow - should not affect node title indentation since it would
+	   cause nodes with checkboxes to be indented X pixels while nodes without checkboxes
+	   to be indented less pixels (in a mixed configuration). It would prevent nodes from
+	   aligning vertically.
+	   NOTICE: Unfortunately this prevents us from centering the checkbox vertically,
+	   resulting in checkbox sticking at the top of the node if a big font is being used.*/
+	position: absolute;
+}
+
+/* Node title */
+
+div.FitUiControlTreeView li ul li > span
+{
+	cursor: pointer;
+}
+
+/* Indent node title if checkboxes are enabled.
+   This is done in px rather than em since the checkbox does not scale in size relative to font-size.
+   Notice: Node title is ALWAYS indented if TreeView is in Multi Selection mode, to make sure node titles are always vertically aligned
+           if some nodes have checkboxes, and some do not. It looks odd If all checkboxes are disabled, though, since it leaves a big gap.
+           Node title is ALWAYS indented if TreeView is in Single Selection mode, and a checkbox is injected in front of node title to prevent
+           title from being hidden underneath checkbox, but primarily to allow all nodes to have a checkbox in Single Selection mode. */
+div.FitUiControlTreeView[data-multiselect="true"] li ul li > span,
+div.FitUiControlTreeView[data-multiselect="false"] li ul li > input + span
+{
+	margin-left: 22px;
+}
+
 /* Helper lines */
-/* NOTICE: This doesn't scale well with huge fonts!
-   line-height and images will require adjustments! */
+/* NOTICE: This doesn't scale well with big fonts!
+   Line-height and images will require adjustments! */
 
 div.FitUiControlTreeViewLines li ul li
 {
@@ -97,29 +121,23 @@ div.FitUiControlTreeViewLines li ul li:before
 	top: 10px; /* line-height/2 */
 	width: 10px; /* BG width */
 	height: 1px; /* BG height */
-	display: inline-block;
 }
 
-div.FitUiControlTreeViewLines li ul li div
-{
-	display: inline-block;
-}
-
-/* Push toggle button and item content to the right to make room for helper lines */
+/* Push expand/collapse button, checkboxes, and node title to the right to make room for helper lines */
 div.FitUiControlTreeViewLines li ul li[data-state="expanded"] > div,
 div.FitUiControlTreeViewLines li ul li[data-state="collapsed"] > div
 {
 	left: 0.6em;
 }
-div.FitUiControlTreeViewLines li ul li
+div.FitUiControlTreeViewLines li ul li > input, /* Checkboxes */
+div.FitUiControlTreeViewLines li ul li > span   /* Node title when checkboxes are not enabled (see below) */
 {
-	padding-left: 1.25em;
+	margin-left: 10px; /* gfxNode.png width */
 }
-div.FitUiControlTreeViewLines[data-multiselect="true"] li ul li input,
-div.FitUiControlTreeViewLines[data-multiselect="false"] li ul li span
+div.FitUiControlTreeViewLines[data-multiselect="true"] li ul li > span,
+div.FitUiControlTreeViewLines[data-multiselect="false"] li ul li > input + span
 {
-	margin-left: 0.75em;
-	margin-right: 0.50em;
+	margin-left: 28px; /* Changed from 22px, see code further up */
 }
 
 /* Dotted helper lines */
@@ -132,60 +150,9 @@ div.FitUiControlTreeViewDotLines li ul li:before
 	background: url("Controls/TreeView/gfxDotNode.png") no-repeat;
 }
 
-/* Alternative sizes */
-div.FitUiControlTreeView
-{
-	font-size: 12px;
-}
-div.FitUiControlTreeViewLarge
-{
-	font-size: 14px;
-}
-
-div.FitUiControlTreeViewLarger
-{
-	font-size: 20px;
-}
-div.FitUiControlTreeViewLarger li ul li
-{
-	line-height: 30px;
-	width: 20px;
-}
-div.FitUiControlTreeViewLarger li ul li[data-last="false"]:before
-{
-	top: 15px;
-}
-
-div.FitUiControlTreeViewLarger
-{
-
-}
-
-/* Additional info (show values) */
-
-div.FitUiControlTreeViewAdditionalInfo li ul li:after
-{
-	content: "(" attr(data-value) ")";
-	position: absolute;
-	right: -50px;
-	top: 0px;
-}
-
 /* Selection */
 
-div.FitUiControlTreeView li input
-{
-	padding: 0px;
-}
-
-/*div.FitUiControlTreeView li[data-selectable="true"] > span*/
-div.FitUiControlTreeView li > span
-{
-	cursor: pointer;
-}
-
-/*div.FitUiControlTreeView[data-multiselect="false"] li[data-selected="true"] > span*/
-div.FitUiControlTreeView li[data-selected="true"] > span
+div.FitUiControlTreeView li ul li[data-selected="true"] > span
 {
 	background: #EAEAEA; /* Fallback */
 	background: rgba(0, 0, 0, 0.10);
@@ -197,37 +164,24 @@ div.FitUiControlTreeView li[data-selected="true"] > span
 
 /* Focus */
 
-div.FitUiControlTreeView li
+div.FitUiControlTreeView li ul li
 {
 	/* Make list item as narrow as possible to prevent item from being focused if user
 	   clicks their mouse next to item. Does not cause incorrect rendering of contained elements. */
 	width: 0px;
-	xxxxxxwidth: auto\9; /* IE8 bug: Focus using keyboard causes incorrect rendering of right outline border - revent change */
 }
-
-div.FitUiControlTreeView li:focus > span
+div.FitUiControlTreeView li:focus
+{
+	outline: none;
+}
+div.FitUiControlTreeView li ul li:focus > span
 {
 	padding: 0px 2px 0px 2px;
 	border: 1px solid #419DE1;
 	border-radius: 3px;
 }
 
-div.FitUiControlTreeView li:focus
-{
-	outline: none;
-}
-
-/* Hide fake root node */
-div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > *
-{
-	display: none;
-}
-div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > ul
-{
-	display: block;
-}
-
-/* Navigation */
+/* Navigation nodes */
 
 div.FitUiControlTreeView li a
 {
@@ -235,17 +189,25 @@ div.FitUiControlTreeView li a
 	color: inherit;
 }
 
-/* Make nodes word-wrap gracefully */
-div.FitUiControlTreeView[data-wordwrap="true"] li
+/* Word wrap */
+
+div.FitUiControlTreeView[data-wordwrap="true"] li ul li
 {
 	width: inherit; /* disables width:0px */
 }
-div.FitUiControlTreeView[data-wordwrap="true"] li > span
+div.FitUiControlTreeView[data-wordwrap="true"] li ul li > span
 {
 	/*display: inline-block;*/
 	white-space: normal;
 }
-div.FitUiControlTreeView[data-wordwrap="true"] li > input
+
+/* Hide fake root node */
+
+div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > *
 {
-	/*vertical-align: top;*/
+	display: none;
+}
+div.FitUiControlTreeView li[data-value="TREEVIEW_ROOT_NODE"] > ul
+{
+	display: block;
 }

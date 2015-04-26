@@ -346,7 +346,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeView" name="Selectable" access="public" returns="boolean">
 	/// 	<description>
-	/// 		Get/set value indicating whether nodes are selectable.
+	/// 		Get/set value indicating whether user can change selection state of nodes.
 	/// 		This affects all contained nodes. To configure nodes
 	/// 		individually, use Selectable(..) function on node instances.
 	/// 	</description>
@@ -516,7 +516,11 @@ Fit.Controls.TreeView = function(ctlId)
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="Lines" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether helper lines are shown </description>
+	/// 	<description>
+	/// 		Get/set value indicating whether helper lines are shown.
+	/// 		Notice that helper lines cause node items to obtain a fixed
+	/// 		line height of 20px, making it unsuitable for large fonts.
+	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables helper lines, False disables them </param>
 	/// </function>
 	this.Lines = function(val)
@@ -542,8 +546,20 @@ Fit.Controls.TreeView = function(ctlId)
 		return me.HasCssClass("FitUiControlTreeViewLines");
 	}
 
-	// See documentation on ControlBase
-	this.Clear = function()
+	/// <function container="Fit.Controls.TreeView" name="Clear" access="public">
+	/// 	<description>
+	/// 		Fit.Controls.ControlBase.Clear override:
+	/// 		Clear control value.
+	/// 		Override allows for non-selectable nodes to keep their selected state.
+	/// 		This is useful if TreeView has been configured to preselect some non-selectable
+	/// 		nodes, hence preventing the user from removing these selections. In that case the
+	/// 		desired functionality of the Clear function could be to preserve these preselections.
+	/// 	</description>
+	/// 	<param name="preserveNonSelectable" type="boolean" default="false">
+	/// 		True causes selected state of non-selectable nodes to be preserved, False do not
+	/// 	</param>
+	/// </function>
+	this.Clear = function(preserveNonSelectable)
 	{
 		if (selected.length === 0)
 			return;
@@ -556,7 +572,8 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			Fit.Array.ForEach(sel, function(node)
 			{
-				 node.Selected(false); // Removes node from internal selected collection through TreeViewNodeInterface
+				if (preserveNonSelectable !== true || node.Selectable() === true)
+					node.Selected(false); // Removes node from internal selected collection through TreeViewNodeInterface
 			});
 		});
 
@@ -602,6 +619,22 @@ Fit.Controls.TreeView = function(ctlId)
 	this.GetChildren = function()
 	{
 		return rootNode.GetChildren();
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="GetAllNodes" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// 	<description> Return all nodes across all children and their children, in a flat structure </description>
+	/// </function>
+	this.GetAllNodes = function()
+	{
+		var nodes = [];
+		executeRecursively(rootNode, function(n)
+		{
+			if (n === rootNode)
+				return;
+
+			Fit.Array.Add(nodes, n);
+		});
+		return nodes;
 	}
 
 	// See documentation on ControlBase
@@ -821,7 +854,6 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	var childrenIndexed = {};
 	var childrenArray = [];
 	var lastChild = null;
-	var selectable = false;
 
 	// ============================================
 	// Init
@@ -846,7 +878,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		elmLi.appendChild(cmdToggle);
 		elmLi.appendChild(lblTitle);
 
-		elmLi._internal = { Node: me, TreeView: null };
+		elmLi._internal = { Node: me, TreeView: null, TreeViewConfigOverrides: { Selectable: undefined, ShowCheckbox: undefined, ShowSelectAll: undefined } };
 	}
 
 	// ============================================
@@ -900,7 +932,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="Selectable" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether node is selectable </description>
+	/// 	<description> Get/set value indicating whether user can change node selection state </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables node selection, False disables it </param>
 	/// 	<param name="showCheckbox" type="boolean" default="false"> If defined, True adds a selection checkbox, False removes it </param>
 	/// 	<param name="showSelectAll" type="boolean" default="false"> If defined, True adds a Select All checkbox useful for selecting all children, False removes it </param>
@@ -913,12 +945,15 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
+			// Prevent node from obtaining configuration from TreeView if explicitly set
+			// before adding node to TreeView. See AddChild(..) for TreeViewConfigOverrides usage.
+			elmLi._internal.TreeViewConfigOverrides.Selectable = val;
+			elmLi._internal.TreeViewConfigOverrides.ShowCheckbox = showCheckbox;
+			elmLi._internal.TreeViewConfigOverrides.ShowSelectAll = showSelectAll;
+
 			Fit.Dom.Data(elmLi, "selectable", val.toString());
 
-			if (val === false)
-				Fit.Dom.Data(elmLi, "selected", "false");
-
-			if (val === true && showCheckbox === true && chkSelect === null)
+			if (showCheckbox === true && chkSelect === null)
 			{
 				chkSelect = document.createElement("input");
 				chkSelect.type = "checkbox";
@@ -927,11 +962,14 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 
 				Fit.Dom.InsertBefore(lblTitle, chkSelect);
 			}
-			else if ((val === false || showCheckbox === false) && chkSelect !== null)
+			else if (showCheckbox === false && chkSelect !== null)
 			{
 				Fit.Dom.Remove(chkSelect);
 				chkSelect = null;
 			}
+
+			if (chkSelect !== null)
+				chkSelect.disabled = ((val === false) ? true : false);
 		}
 
 		return (Fit.Dom.Data(elmLi, "selectable") === "true");
@@ -962,9 +1000,6 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 			var wasSelected = me.Selected();
 
 			// Update state
-
-			if (select === true && me.Selectable() === false)
-				me.Selectable(true);
 
 			Fit.Dom.Data(elmLi, "selected", select.toString());
 
@@ -1048,7 +1083,10 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 				}
 
 				n.GetDomElement()._internal.TreeView = tv;
-				n.Selectable(tv.IsSelectable(), tv.IsMultiSelect(), tv.ShowSelectAll());
+				var ovr = n.GetDomElement()._internal.TreeViewConfigOverrides;
+
+				// Configure node like TreeView, unless node has been explicitly configured (see TreeViewConfigOverrides)
+				n.Selectable(((Fit.Validation.IsSet(ovr.Selectable) === true) ? ovr.Selectable : tv.IsSelectable()), ((Fit.Validation.IsSet(ovr.ShowCheckbox) === true) ? ovr.ShowCheckbox : tv.IsMultiSelect()), ((Fit.Validation.IsSet(ovr.ShowSelectAll) === true) ? ovr.ShowSelectAll : tv.ShowSelectAll()));
 			});
 
 			// Nodes previously selected is re-selected through TreeViewNodeInterface,
