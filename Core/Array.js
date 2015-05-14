@@ -47,8 +47,7 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 /// 	</description>
 /// 	<param name="arr" type="array"> Array containing objects to iterate through </param>
 /// 	<param name="childrenProperty" type="string">
-/// 		Name of property containing children (e.g. "Children"),
-/// 		or argumentless getter function followed by parentheses (e.g. "GetChildren()").
+/// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
 /// 	</param>
 /// 	<param name="callback" type="function">
 /// 		Callback function accepting objects from the array, passed in turn.

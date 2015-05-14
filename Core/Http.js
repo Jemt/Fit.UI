@@ -106,6 +106,14 @@ Fit.Http.Request = function(url)
 		data = ((Fit.Validation.IsSet(dataStr) === true) ? dataStr : "");
 	}
 
+	/// <function container="Fit.Http.Request" name="GetData" access="public" returns="string">
+	/// 	<description> Get data set to be posted </description>
+	/// </function>
+	this.GetData = function(dataStr)
+	{
+		return data;
+	}
+
 	/// <function container="Fit.Http.Request" name="AddData" access="public">
 	/// 	<description> Add data to post - this will change the request method from GET to POST </description>
 	/// 	<param name="key" type="string"> Data key </param>
@@ -311,6 +319,14 @@ Fit.Http.DotNetJsonRequest = function(url)
 	{
 		Fit.Validation.ExpectIsSet(json);
 		data = json;
+	}
+
+	/// <function container="Fit.Http.DotNetJsonRequest" name="GetData" access="public" returns="object">
+	/// 	<description> Get JSON data set to be posted </description>
+	/// </function>
+	this.GetData = function(dataStr)
+	{
+		return data;
 	}
 
 	var baseStart = me.Start;
