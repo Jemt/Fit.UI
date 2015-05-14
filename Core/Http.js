@@ -92,7 +92,7 @@ Fit.Http.Request = function(url)
 	this.AddHeader = function(key, value)
 	{
 		Fit.Validation.ExpectStringValue(key);
-		Fit.Validation.ExpectStringValue(value);
+		Fit.Validation.ExpectString(value);
 		customHeaders[key] = value;
 	}
 
@@ -103,7 +103,7 @@ Fit.Http.Request = function(url)
 	this.SetData = function(dataStr)
 	{
 		Fit.Validation.ExpectString(dataStr, true);
-		data = ((Fit.Validation.IsSet(dataStr) === true) ? data : "");
+		data = ((Fit.Validation.IsSet(dataStr) === true) ? dataStr : "");
 	}
 
 	/// <function container="Fit.Http.Request" name="AddData" access="public">
@@ -117,7 +117,7 @@ Fit.Http.Request = function(url)
 	this.AddData = function(key, value, uriEncode)
 	{
 		Fit.Validation.ExpectStringValue(key);
-		Fit.Validation.ExpectStringValue(value);
+		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(uriEncode, true);
 
 		data += ((data !== "") ? "&" : "") + key + "=" + ((uriEncode === false) ? value : encodeURIComponent(value).replace(/%20/g, "+"));
@@ -274,4 +274,76 @@ Fit.Http.Request = function(url)
 
 		throw new Error("Http Request object not supported");
 	}
+}
+
+/// <function container="Fit.Http.DotNetRequest" name="DotNetJsonRequest" access="public">
+/// 	<description>
+/// 		Constructor - creates instance of .NET JSON Request class
+/// 		Preconfigured with required HTTP headers enabling
+/// 		support for .NET WebServices communicating using JSON.
+/// 		Inheriting from Fit.Http.Request.
+/// 	</description>
+/// 	<param name="url" type="string">
+/// 		URL to request, e.g.
+/// 		http://server/_layouts/15/Company/MyWebService.asmx/MyMethod
+/// 	</param>
+/// </function>
+Fit.Http.DotNetJsonRequest = function(url)
+{
+	Fit.Validation.ExpectStringValue(url);
+	Fit.Core.Extend(this, Fit.Http.Request).Apply(url);
+
+	var me = this;
+	var data = null;
+
+	function init()
+	{
+		me.AddHeader("Content-Type", "application/json; charset=UTF-8");
+		me.AddHeader("X-Requested-With", "XMLHttpRequest");
+	}
+
+	/// <function container="Fit.Http.DotNetJsonRequest" name="SetData" access="public">
+	/// 	<description> Set JSON data to post - this will change the request method from GET to POST </description>
+	/// 	<param name="json" type="object"> Data to send </param>
+	/// </function>
+	var baseSetData = me.SetData;
+	this.SetData = function(json) // JSON
+	{
+		Fit.Validation.ExpectIsSet(json);
+		data = json;
+	}
+
+	var baseStart = me.Start;
+	this.Start = function()
+	{
+		baseSetData(JSON.stringify(data));
+		baseStart();
+	}
+
+	this.AddData = function(key, value, uriEncode)
+	{
+		Fit.Validation.ThrowError("Use SetData(..) to set JSON request data for .NET JSON WebService");
+	}
+
+	/// <function container="Fit.Http.DotNetJsonRequest" name="GetResponseJson" access="public" returns="object">
+	/// 	<description>
+	/// 		Returns result from request as JSON object, Null if no response was returned.
+	/// 		Return value will only be as expected if GetCurrentState() returns a value of 4
+	/// 		(request done) and GetHttpStatus() returns a value of 200 (request successful).
+	/// 		Notice: .NET usually wraps data in a .d property. Data is automatically extracted
+	/// 		from this property, hence contained data is returned as the root object.
+	/// 	</description>
+	/// </function>
+	var baseGetResponseJson = me.GetResponseJson;
+	this.GetResponseJson = function()
+	{
+		var resp = baseGetResponseJson();
+
+		if (resp && resp.d)
+			resp = resp.d;
+
+		return resp;
+	}
+
+	init();
 }

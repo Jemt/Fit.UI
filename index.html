@@ -382,7 +382,132 @@ In-place render:<br>
 	req.OnFailure(function(r) { console.log("OnFailure ", r, r.GetHttpStatus()); });<br>
 	req.Start();<br>
 
+<br><br><br><br>
+
+
+<h1>WS TreeView</h1>
+
 <br><br>
+
+<input type="button" value="Lines" onclick="Fit.Controls.Find('MyWSTreeView').Lines(!Fit.Controls.Find('MyWSTreeView').Lines());">
+<input type="button" value="Focus" onclick="setTimeout(function() { Fit.Controls.Find('MyWSTreeView').Focused(true); }, 300);">
+<input type="button" value="Word wrap" onclick="Fit.Controls.Find('MyWSTreeView').WordWrap(!Fit.Controls.Find('MyWSTreeView').WordWrap());">
+<input type="button" value="Selectable" onclick="Fit.Controls.Find('MyWSTreeView').Selectable(!Fit.Controls.Find('MyWSTreeView').Selectable());">
+<input type="button" value="Single" onclick="Fit.Controls.Find('MyWSTreeView').Selectable(Fit.Controls.Find('MyWSTreeView').Selectable(), false);">
+<input type="button" value="Multiple" onclick="Fit.Controls.Find('MyWSTreeView').Selectable(Fit.Controls.Find('MyWSTreeView').Selectable(), true);">
+<input type="button" value="Battle test" onclick="if (confirm('Auto-load data from 500 nodes (a total of 7000 nodes will be loaded)') === true) { Fit.Controls.Find('MyWSTreeView').BattleTest = true;Fit.Controls.Find('MyWSTreeView').Reload(); }">
+
+<br><br>
+
+<script>
+	var nodes = [];
+	var requests = 0;
+	var start = null;
+
+	var t = new Fit.Controls.WSTreeView("MyWSTreeView");
+	t.Url("getdata.php");
+	t.Lines(true);
+
+	/*t.OnChange(function(sender, value)
+	{
+		console.log("OnChange - value: " + value);
+	});*/
+
+	t.OnRequest(function(sender, eventArgs)
+	{
+		var node = eventArgs.Node;
+		//var requestContext = eventArgs.Context;
+
+		console.log("OnRequest fired (" + (node !== null ? node.Title() : "null") + ")", sender, node);
+
+		if (node !== null && node.Title() === "Test: OnRequest canceled")
+		{
+			console.log(" -- Request canceled !");
+			return false;
+		}
+
+		if (node !== null && node.GetLevel() >= 3 && sender.BattleTest === true)
+		{
+			//sender.BattleTest = false;
+			return false;
+		}
+
+		if (start === null && sender.BattleTest === true)
+		{
+			start = new Date().getTime();
+		}
+
+		requests++;
+
+		if (node !== null)
+			nodes.push(node);
+
+		if (node !== null && node.Title().indexOf("Child 2 (HasChildren)") !== -1)
+		{
+			eventArgs.Request.AddData("DynamicNodeTitle", "Node title came from RequestContext");
+			//requestContext.DynamicNodeTitle = "Node title came from RequestContext";
+		}
+
+		eventArgs.Request.AddData("NodeLevel", (node !== null ? node.GetLevel()+1 : 0).toString());
+		eventArgs.Request.AddData("NodeId", (node !== null ? node.Value() : ""));
+		//requestContext.NodeLevel = (node !== null ? node.GetLevel()+1 : 0);
+	});
+
+	t.OnPopulated(function(sender, eventArgs)
+	{
+		var node = eventArgs.Node;
+		var requestContext = eventArgs.Context;
+
+		//nodeCount++;
+		//console.log("Node loaded from WS: " + (node !== null ? node.Title() : "Root Node") );
+
+		if (sender.BattleTest)
+		{
+			var children = (node === null ? sender.GetChildren() : node.GetChildren());
+
+			//setTimeout(function()
+			//{
+			Fit.Array.ForEach(children, function(c)
+			{
+				c.Expanded(true)
+			});
+			//}, 10);
+		}
+	});
+
+	t.OnToggled(function(sender, n)
+	{
+		Fit.Array.Remove(nodes, n);
+
+		if (nodes.length === 0)
+		{
+			var seconds = (new Date().getTime() - start) / 1000;
+			console.log("Done - nodes loaded: " + sender.GetAllNodes().length + " over " + requests + " WS requests, " + seconds + " seconds");
+		}
+
+		//window.to = setTimeout(function()
+		//{
+			var seconds = (new Date().getTime() - start) / 1000;
+			console.log("Done - nodes loaded: " + sender.GetAllNodes().length + " over " + requests + " WS requests, " + seconds + " seconds");
+		//}, 1000);
+
+		/*nodeCount--;
+
+		if (sender.BattleTest === true && nodesExpanded === 5)
+		{
+			sender.BattleTest = false;
+			alert("Done, nodes loaded: " + sender.GetAllNodes().length + " on " + nodesRequested + " requests");
+
+			nodesExpanded = 0;
+			nodesRequested = 0;
+		}*/
+	})
+
+	t.Render();
+	Fit.Dom.Attribute(t.GetDomElement(), "style", "font-size: 12px;");
+</script>
+
+<br><br><br><br><br><br><br> Yiihaaaa ! <br><br><br>
 
 
 </form>

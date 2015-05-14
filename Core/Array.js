@@ -41,6 +41,44 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 	}
 }
 
+/// <function container="Fit.Array" name="Recurse" access="public" static="true">
+/// 	<description>
+/// 		Recursively iterates through objects in array and passes each object to the provided callback function.
+/// 	</description>
+/// 	<param name="arr" type="array"> Array containing objects to iterate through </param>
+/// 	<param name="childrenProperty" type="string">
+/// 		Name of property containing children (e.g. "Children"),
+/// 		or argumentless getter function followed by parentheses (e.g. "GetChildren()").
+/// 	</param>
+/// 	<param name="callback" type="function">
+/// 		Callback function accepting objects from the array, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+Fit.Array.Recurse = function(arr, childrenProperty, callback)
+{
+	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectStringValue(childrenProperty);
+	Fit.Validation.ExpectFunction(callback);
+
+	for (var i = 0 ; i < arr.length ; i++)
+	{
+		if (callback(arr[i]) === false)
+			break;
+
+		if (arr[i][childrenProperty] instanceof Array)
+		{
+			if (Fit.Array.Recurse(arr[i][childrenProperty], childrenProperty, callback) === false)
+				break;
+		}
+		else if (arr[i][childrenProperty] instanceof Function)
+		{
+			if (Fit.Array.Recurse(arr[i][childrenProperty](), childrenProperty, callback) === false)
+				break;
+		}
+	}
+}
+
 /// <function container="Fit.Array" name="Add" access="public" static="true">
 /// 	<description> Add object to array </description>
 /// 	<param name="arr" type="array"> Array to which object is added </param>
@@ -138,6 +176,24 @@ Fit.Array.Contains = function(arr, obj) // obj not validated - passing any objec
 {
 	Fit.Validation.ExpectArray(arr);
     return (Fit.Array.GetIndex(arr, obj) > -1);
+}
+
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="array">
+/// 	<description>
+/// 		Returns a shallow copy of the array - for a deep copy see Fit.Core.Clone(..)
+/// 	</description>
+/// 	<param name="arr" type="array"> Array to copy </param>
+/// </function>
+Fit.Array.Copy = function(arr)
+{
+	Fit.Validation.ExpectArray(arr);
+
+	var newArr = [];
+	Fit.Array.ForEach(arr, function(item)
+	{
+		newArr.push(item);
+	});
+	return newArr;
 }
 
 /*
