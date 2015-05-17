@@ -146,7 +146,7 @@ Fit.Dom.Remove = function(elm)
 
 /// <function container="Fit.Dom" name="Attribute" access="public" static="true" returns="string">
 /// 	<description> Get/set attribute on DOMElement </description>
-/// 	<param name="elm" type="DOMElement"> DOMElement to which attribute is set or returned from </param>
+/// 	<param name="elm" type="DOMElement"> DOMElement to which attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of attribute to set or retrieve </param>
 /// 	<param name="value" type="string" default="undefined"> If defined, attribute is updated with specified value </param>
 /// </function>
@@ -164,7 +164,7 @@ Fit.Dom.Attribute = function(elm, name, value)
 
 /// <function container="Fit.Dom" name="Data" access="public" static="true" returns="string">
 /// 	<description> Get/set data attribute on DOMElement </description>
-/// 	<param name="elm" type="DOMElement"> DOMElement to which data attribute is set or returned from </param>
+/// 	<param name="elm" type="DOMElement"> DOMElement to which data attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of data attribute to set or retrieve </param>
 /// 	<param name="value" type="string" default="undefined"> If defined, data attribute is updated with specified value </param>
 /// </function>
@@ -178,6 +178,45 @@ Fit.Dom.Data = function(elm, name, value)
 	// Notice that data-title-value="XYZ" becomes elm.dataset.titleValue.
 
 	return Fit.Dom.Attribute(elm, "data-" + name, value);
+}
+
+/// <function container="Fit.Dom" name="Text" access="public" static="true" returns="string">
+/// 	<description> Get/set inner text of DOMElement </description>
+/// 	<param name="elm" type="DOMElement"> DOMElement to which text is added and/or returned from </param>
+/// 	<param name="value" type="string" default="undefined"> If defined, inner text is updated with specified value </param>
+/// </function>
+Fit.Dom.Text = function(elm, value)
+{
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectString(value, true);
+
+	if (Fit.Validation.IsSet(value) === true)
+	{
+		if (elm.textContent)
+			elm.textContent = value;
+		else
+			elm.innerText = value;
+	}
+
+	return (elm.textContent ? elm.textContent : elm.innerText);
+}
+
+/// <function container="Fit.Dom" name="GetIndex" access="public" static="true" returns="integer">
+/// 	<description> Get element position within parent element </description>
+/// 	<param name="elm" type="DOMElement"> DOMElement to get index for </param>
+/// </function>
+Fit.Dom.GetIndex = function(elm)
+{
+	if (!elm.parentElement)
+		return -1;
+
+	var parent = elm.parentElement;
+
+	for (var i = 0 ; i < parent.children.length ; i++)
+		if (parent.children[i] === elm)
+			return i;
+
+	return -1; // Should not happen
 }
 
 /// <function container="Fit.Dom" name="GetDepth" access="public" static="true" returns="integer">

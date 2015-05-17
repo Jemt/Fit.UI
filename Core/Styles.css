@@ -36,6 +36,28 @@ div.FitUiControlErrorCorrected
 	background-color: green;
 }
 
+.FitUiControlLoadingIndicator
+{
+	/* From FontAwesome fa-spin class */
+	-webkit-animation: fa-spin 1.25s infinite linear;
+	animation: fa-spin 1.25s infinite linear;
+
+	/* From FontAwesome fa class */
+	display: inline-block;
+	font: normal normal normal 14px/1 FontAwesome;
+	font-size: inherit;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+	padding: 0em 0.75em 0em 0.75em;
+}
+.FitUiControlLoadingIndicator:before
+{
+	/* From FontAwesome fa-refresh class */
+	content: "\f021";
+}
+
 /* Drag and Drop */
 
 .FitDragDropDraggable

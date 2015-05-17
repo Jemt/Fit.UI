@@ -475,6 +475,11 @@ In-place render:<br>
 		}
 	});
 
+	t.OnToggle(function(sender, n)
+	{
+		console.log("OnToggle", n);
+	});
+
 	t.OnToggled(function(sender, n)
 	{
 		Fit.Array.Remove(nodes, n);
@@ -508,6 +513,44 @@ In-place render:<br>
 </script>
 
 <br><br><br><br><br><br><br> Yiihaaaa ! <br><br><br>
+
+<script type="text/javascript">
+/*x = new FlowITOutlookPicker("sdf");
+x.AddDropDownEntry("More", Math.random());
+x.AddDropDownEntry("Cool", Math.random());
+x.AddDropDownEntry("Muuh", Math.random());
+x.Render();*/
+
+var inp = new Fit.Controls.Input("MyListViewInput");
+inp.GetDomElement().firstChild.onkeydown = function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	lv.HandleEvent(ev);
+}
+inp.Render();
+
+var lv = new Fit.Controls.ListView("MyListView");
+lv.AddItem(new Fit.Controls.ListView.Item("Hapsen", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Bedutten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Skrutten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Prutten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Sutten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Krudten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Futten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Mutten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Lutten", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("<b>Nutten</b> <span style='color:red'><3</span>", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("<i>Natten</i>", Math.random().toString()));
+lv.AddItem(new Fit.Controls.ListView.Item("Katten", Math.random().toString()));
+lv.MaxHeight(100, "px");
+lv.OnSelected(function(title, value) { console.log(title, value); });
+Fit.Dom.InsertBefore(inp.GetDomElement(), lv.GetDomElement());
+
+
+</script>
+
+<br><br><br><br><br><br><br>
 
 
 </form>

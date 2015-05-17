@@ -92,7 +92,7 @@ Fit.Events.Stop = function(e) // e not validated, done by PreventDefault(..) and
 }
 
 /// <function container="Fit.Events" name="GetTarget" access="public" static="true" returns="DOMElement">
-/// 	<description> Get a reference to the object that dispatched an event </description>
+/// 	<description> Get a reference to the object that is affected by an event </description>
 /// 	<param name="e" type="Event" default="undefined"> Event argument </param>
 /// </function>
 Fit.Events.GetTarget = function(e)
@@ -100,7 +100,8 @@ Fit.Events.GetTarget = function(e)
 	Fit.Validation.ExpectEvent(e, true);
 
 	var ev = e || window.event;
-	return ev.srcElement || ev.target;
+	target = ev.srcElement || ev.target;
+	return (target ? target : null);
 }
 
 /// <function container="Fit.Events" name="GetEvent" access="public" static="true" returns="Event">
@@ -113,12 +114,105 @@ Fit.Events.GetEvent = function(e)
 	return e || window.event;
 }
 
-// **********************************************************************
-// OnReady handling
-// **********************************************************************
+/// <function container="Fit.Events" name="GetModifierKeys" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Get object containing information about modifier keys currently being active.
+/// 		Object contains the following properties which are True if the given key is being held down:
+/// 		Shift, Ctrl, Alt, Meta (Cmd key on Mac OSX, Win key on Windows).
+/// 	</description>
+/// </function>
+Fit.Events.GetModifierKeys = function()
+{
+	// Cloning to prevent external code from manipulating the object
+	return Fit.Core.Clone(Fit._internal.Events.KeysDown);
+}
+
+/// <function container="Fit.Events" name="GetPointerState" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Get object containing information about pointer.
+/// 		Object contains the following properties:
+/// 		Buttons.Primary/Secondary: Is True if given button is being held down
+/// 		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport
+/// 		Coordinates.Document.X/Y: Mouse coordinates within document which may have been scrolled
+/// 	</description>
+/// </function>
+Fit.Events.GetPointerState = function()
+{
+	// Cloning to prevent external code from manipulating the object
+	return Fit.Core.Clone(Fit._internal.Events.Mouse);
+}
+
+// ==============================================
+// Internals
+// ==============================================
 
 Fit._internal.Events = {};
+Fit._internal.Events.KeysDown = { Shift: false, Ctrl: false, Alt: false, Meta: false };
+Fit._internal.Events.Mouse = { Buttons: { Primary: false, Secondary: false }, Coordinates: { ViewPort: { X: -1, Y: -1 }, Document: { X: -1, Y: -1 } } };
 Fit._internal.Events.OnReadyHandlers = [];
+
+// ==============================================
+// Keyboard tracking
+// ==============================================
+
+Fit.Events.AddHandler(document, "keydown", function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	Fit._internal.Events.KeysDown.Shift = ev.shiftKey;
+	Fit._internal.Events.KeysDown.Ctrl = ev.ctrlKey;
+	Fit._internal.Events.KeysDown.Alt = ev.altKey;
+	Fit._internal.Events.KeysDown.Meta = ev.metaKey;
+});
+Fit.Events.AddHandler(document, "keyup", function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	Fit._internal.Events.KeysDown.Shift = ev.shiftKey;
+	Fit._internal.Events.KeysDown.Ctrl = ev.ctrlKey;
+	Fit._internal.Events.KeysDown.Alt = ev.altKey;
+	Fit._internal.Events.KeysDown.Meta = ev.metaKey;
+});
+
+// ==============================================
+// Mouse tracking
+// ==============================================
+
+Fit.Events.AddHandler(document, "mousedown", function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	if (ev.which === 1)
+		Fit._internal.Events.Mouse.Buttons.Primary = true;
+	if (ev.which === 3)
+		Fit._internal.Events.Mouse.Buttons.Secondary = true;
+});
+Fit.Events.AddHandler(document, "mouseup", function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	if (ev.which === 1)
+		Fit._internal.Events.Mouse.Buttons.Primary = false;
+	if (ev.which === 3)
+		Fit._internal.Events.Mouse.Buttons.Secondary = false;
+});
+Fit.Events.AddHandler(document, "mousemove", function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	// Mouse position in viewport
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = (ev.clientX || ev.pageX);
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = (ev.clientY || ev.pageY);
+
+	// Mouse position in document which may have been scrolled
+	var scrollPos = Fit.Dom.GetScrollPosition(document.body);
+	Fit._internal.Events.Mouse.Coordinates.Document.X = Fit._internal.Events.Mouse.Coordinates.ViewPort.X + scrollPos.X;
+	Fit._internal.Events.Mouse.Coordinates.Document.Y = Fit._internal.Events.Mouse.Coordinates.ViewPort.Y + scrollPos.Y;
+});
+
+// ==============================================
+// OnReady handling
+// ==============================================
 
 /// <function container="Fit.Events" name="OnReady" access="public" static="true">
 /// 	<description> Registers OnReady handler which gets fired when document is ready, or if it is already ready </description>

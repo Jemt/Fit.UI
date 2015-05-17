@@ -1,0 +1,27 @@
+div.FitUiControlListView
+{
+	min-height: 20px;
+	max-height: 100px;
+	overflow: auto;
+}
+
+div.FitUiControlListView > div /* List item */
+{
+	padding: 3px;
+}
+
+div.FitUiControlListView > div:hover
+{
+	background-color: #C3D9E0;
+	cursor: pointer;
+}
+
+div.FitUiControlListView > div[data-active="true"]
+{
+	background-color: #A9D8E8;
+}
+
+div.FitUiControlListView:focus
+{
+	outline: none;
+}
