@@ -1,5 +1,4 @@
 Fit.Controls = {};
-Fit.Controls.ControlBase = {};
 Fit._internal.ControlBase = {};
 Fit._internal.ControlBase.Controls = {};
 

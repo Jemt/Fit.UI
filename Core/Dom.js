@@ -148,7 +148,10 @@ Fit.Dom.Remove = function(elm)
 /// 	<description> Get/set attribute on DOMElement </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to which attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of attribute to set or retrieve </param>
-/// 	<param name="value" type="string" default="undefined"> If defined, attribute is updated with specified value </param>
+/// 	<param name="value" type="string" default="undefined">
+/// 		If defined, attribute is updated with specified value.
+/// 		Passing Null results in attribute being removed.
+/// 	</param>
 /// </function>
 Fit.Dom.Attribute = function(elm, name, value)
 {
@@ -158,6 +161,8 @@ Fit.Dom.Attribute = function(elm, name, value)
 
 	if (Fit.Validation.IsSet(value) === true)
 		elm.setAttribute(name, value);
+	else if (value === null)
+		elm.removeAttribute(name);
 
 	return elm.getAttribute(name);
 }
@@ -166,7 +171,10 @@ Fit.Dom.Attribute = function(elm, name, value)
 /// 	<description> Get/set data attribute on DOMElement </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to which data attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of data attribute to set or retrieve </param>
-/// 	<param name="value" type="string" default="undefined"> If defined, data attribute is updated with specified value </param>
+/// 	<param name="value" type="string" default="undefined">
+/// 		If defined, data attribute is updated with specified value.
+/// 		Passing Null results in data attribute being removed.
+/// 	</param>
 /// </function>
 Fit.Dom.Data = function(elm, name, value)
 {
@@ -327,6 +335,31 @@ Fit.Dom.GetPosition = function(elm, relativeToViewport)
 	}
 
     return pos;
+}
+
+/// <function container="Fit.Dom" name="GetInnerPosition" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Get element position relative to a parent or ancestor.
+/// 		Object returned contains an X and Y property with the desired integer values (pixels).
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get position for </param>
+/// 	<param name="parent" type="DOMElement"> Parent or ancestor element to measure distance within </param>
+/// </function>
+Fit.Dom.GetInnerPosition = function(elm, parent)
+{
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectDomElement(parent);
+
+	var x = elm.offsetLeft;
+	var y = elm.offsetTop;
+
+	while ((elm = elm.offsetParent) !== parent && elm !== null)
+	{
+		x += elm.offsetLeft;
+		y += elm.offsetTop;
+	}
+
+	return { X: x, Y: y };
 }
 
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
