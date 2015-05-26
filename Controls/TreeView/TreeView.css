@@ -8,6 +8,8 @@ div.FitUiControlTreeView
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+
+	overflow: auto; /* Picker Control */
 }
 
 /* Reset bullet list */
@@ -179,7 +181,8 @@ div.FitUiControlTreeView li:focus
 {
 	outline: none;
 }
-div.FitUiControlTreeView li ul li:focus > span
+div.FitUiControlTreeView li ul li:focus > span,
+div.FitUiControlTreeView li ul li[data-active="true"] > span
 {
 	padding: 0px 2px 0px 2px;
 	border: 1px solid #419DE1;
