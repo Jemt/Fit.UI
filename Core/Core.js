@@ -53,6 +53,55 @@ Fit.Core.Extend = function(subInstance, superType)
 	return binder;
 }
 
+/// <function container="Fit.Core" name="CreateOverride" access="public" static="true" returns="function">
+/// 	<description>
+/// 		Create a function override for any given function using the approach below.
+///
+/// 		this.SayHello = function(name) { alert("Hello " + name); }
+/// 		this.SayHello = Fit.Core.CreateOverride(this.SayHello, function(name)
+/// 		{
+/// 			console.log(name + " logged in");
+/// 			console.log(name + " is using the following browser: " + navigator.userAgent);
+///
+/// 			base(name); // Call original SayHello function
+/// 		});
+///
+/// 		Notice how base(..) allows us to call the original function.
+/// 	</description>
+/// 	<param name="originalFunction" type="function"> Reference to function to override </param>
+/// 	<param name="newFunction" type="function"> Reference to replacement function </param>
+/// </function>
+Fit.Core.CreateOverride = function(originalFunction, newFunction)
+{
+	Fit.Validation.ExpectFunction(originalFunction);
+	Fit.Validation.ExpectFunction(newFunction);
+
+	return function()
+	{
+		var orgBase = window.base; // May already exist
+		window.base = originalFunction; // Globally accessible base function
+
+		var error = null;
+
+		try // Make sure we can clean up globally accessible base function in case of errors
+		{
+			newFunction.apply(this, arguments);
+		}
+		catch (err)
+		{
+			error = err;
+		}
+
+		if (orgBase)
+			window.base = orgBase;
+		else
+			delete window.base;
+
+		if (error !== null)
+			throw error;
+	}
+}
+
 /// <function container="Fit.Core" name="IsEqual" access="public" static="true" returns="boolean">
 /// 	<description>
 /// 		Compare two JavaScript objects to determine whether they are identical.

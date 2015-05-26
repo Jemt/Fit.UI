@@ -96,7 +96,7 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	// ============================================
-	// Public - inherited
+	// Public
 	// ============================================
 
 	/// <function container="Fit.Controls.ControlBase" name="GetId" access="public" returns="string">
@@ -348,9 +348,9 @@ Fit.Controls.ControlBase = function(controlId)
 
 	// Private members (must be public in order to be accessible to controls inheriting from ControlBase)
 
-	this._internal =
-	{
-		FireOnChange: function()
+	this._internal = (this._internal ? this._internal : {});
+
+		this._internal.FireOnChange = function()
 		{
 			me._internal.Validate();
 
@@ -360,7 +360,7 @@ Fit.Controls.ControlBase = function(controlId)
 			});
 		},
 
-		Data: function(key, val)
+		this._internal.Data = function(key, val)
 		{
 			Fit.Validation.ExpectStringValue(key);
 			Fit.Validation.ExpectString(val, true);
@@ -371,19 +371,19 @@ Fit.Controls.ControlBase = function(controlId)
 			return Fit.Dom.Data(container, key);
 		},
 
-		AddDomElement: function(elm)
+		this._internal.AddDomElement = function(elm)
 		{
 			Fit.Validation.ExpectDomElement(elm);
 			Fit.Dom.Add(container, elm);
 		},
 
-		RemoveDomElement: function(elm)
+		this._internal.RemoveDomElement = function(elm)
 		{
 			Fit.Validation.ExpectDomElement(elm);
 			Fit.Dom.Remove(elm);
 		},
 
-		Validate: function()
+		this._internal.Validate = function()
 		{
 			if (container.parentElement === null)
 				return; // Not rendered yet!
@@ -433,7 +433,6 @@ Fit.Controls.ControlBase = function(controlId)
 				}, 1000);
 			}
 		}
-	}
 
 	init();
 }
