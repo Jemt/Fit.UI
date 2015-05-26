@@ -5,15 +5,20 @@
 
 /// <function container="Fit.Controls.ListView" name="ListView" access="public">
 /// 	<description> Create instance of ListView control </description>
+/// 	<param name="controlId" type="string" default="undefined">
+/// 		Unique control ID. if specified, control will be
+/// 		accessible using the Fit.Controls.Find(..) function.
+/// 	</param>
 /// </function>
-Fit.Controls.ListView = function()
+Fit.Controls.ListView = function(controlId)
 {
-	Fit.Core.Extend(this, Fit.Controls.PickerBase).Apply();
+	Fit.Validation.ExpectStringValue(controlId, true);
+
+	Fit.Core.Extend(this, Fit.Controls.PickerBase).Apply(controlId);
 
 	var me = this;
 	var list = null;
 	var active = null;
-    var onSelectedHandlers = [];
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	function init()
@@ -23,6 +28,12 @@ Fit.Controls.ListView = function()
 		Fit.Dom.AddClass(list, "FitUiControlListView");
 
 		me.MaxHeight(150, "px");
+
+		me.OnShow(function()
+		{
+			list.scrollTop = 0;
+			setActive(null);
+		});
 
 		list.onclick = function(e)
 		{
@@ -42,8 +53,11 @@ Fit.Controls.ListView = function()
 		{
 			var ev = Fit.Events.GetEvent(e);
 
+			// Skip if this was a mouse click, leave handling to OnClick which fires after OnFocus.
+			// Notice that Fit.Events.GetPointerState() is used to determine whether mouse button
+			// is active since this information is not accessible through Event instance passed in OnFocus.
 			if (Fit.Events.GetPointerState().Buttons.Primary === true)
-				return; // This was a mouse click, leave handling to OnClick which fires after OnFocus
+				return;
 
 			// Implemented Tab and Shift+Tab support below rather than using built-in support to prevent
 			// the need for an OnFocus event handler on every single item contained, which would otherwise
@@ -86,7 +100,7 @@ Fit.Controls.ListView = function()
 				{
 					moveUp();
 
-					// Prevent native tab navigation from moving focus to previous focusable element
+					// Prevent native tab navigation from moving focus to any focusable element above
 					Fit.Events.PreventDefault(ev);
 					return false;
 				}
@@ -104,21 +118,46 @@ Fit.Controls.ListView = function()
 
 	/// <function container="Fit.Controls.ListView" name="AddItem" access="public">
 	/// 	<description> Add item to ListView </description>
-	/// 	<param name="node" type="Fit.Controls.ListView.Item"> Item to add </param>
+	/// 	<param name="title" type="string"> Item title </param>
+	/// 	<param name="value" type="string"> Item value </param>
 	/// </function>
-	this.AddItem = function(item)
+	this.AddItem = function(title, value)
 	{
-		Fit.Validation.ExpectInstance(item, Fit.Controls.ListView.Item);
+		Fit.Validation.ExpectStringValue(title);
+		Fit.Validation.ExpectStringValue(value);
 
 		var entry = document.createElement("div");
-		entry.innerHTML = item.Title();
-		Fit.Dom.Data(entry, "value", item.Value());
+		entry.innerHTML = title;
+		Fit.Dom.Data(entry, "value", value);
 		Fit.Dom.Data(entry, "active", "false");
 
-		if (item.Selected() === true)
-			fireOnSelected(Fit.Dom.Text(entry), Fit.Dom.Data(entry, "value"));
-
 		list.appendChild(entry);
+	}
+
+	/// <function container="Fit.Controls.ListView" name="RemoveItem" access="public">
+	/// 	<description> Remove item from ListView </description>
+	/// 	<param name="value" type="string"> Value of item to remove </param>
+	/// </function>
+	this.RemoveItem = function(value)
+	{
+		Fit.Validation.ExpectStringValue(value);
+
+		Fit.Array.ForEach(list.children, function(child)
+		{
+			if (Fit.Dom.Data(child, "value") === value)
+			{
+				Fit.Dom.Remove(child);
+				return false;
+			}
+		});
+	}
+
+	/// <function container="Fit.Controls.ListView" name="RemoveItems" access="public">
+	/// 	<description> Remove all items from ListView </description>
+	/// </function>
+	this.RemoveItems = function()
+	{
+		list.innerHTML = "";
 	}
 
 	// ============================================
@@ -130,31 +169,9 @@ Fit.Controls.ListView = function()
 		return list;
 	}
 
-	this.MaxHeight = function (height, unit)
-    {
-		Fit.Validation.ExpectNumber(height, true);
-		Fit.Validation.ExpectStringValue(unit, true);
-
-		if (Fit.Validation.IsSet(height) === true)
-		{
-			list.style.maxHeight = height + ((Fit.Validation.IsSet(unit) === true) ? unit : "px");
-		}
-
-		var res = { Value: parseInt(list.style.maxHeight), Unit: "px" };
-		res.Unit = list.style.maxHeight.replace(res.Value);
-
-		return res;
-    }
-
-	this.OnSelected = function(cb)
-    {
-		Fit.Validation.ExpectFunction(cb);
-        Fit.Array.Add(onSelectedHandlers, cb);
-    }
-
     this.HandleEvent = function(e)
     {
-		Fit.Validation.ExpectEvent(e);
+		Fit.Validation.ExpectEvent(e, true);
 
         var ev = Fit.Events.GetEvent(e);
 
@@ -179,10 +196,10 @@ Fit.Controls.ListView = function()
             else if (ev.keyCode === 13) // enter
             {
                 if (active === null && list.children.length === 1)
-					moveDown();
+					moveDown(); // Select first item if no item is selected
 
 				if (active !== null)
-					fireOnSelected(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"));
+					me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), true);
 
 				// Prevent form submit
 				Fit.Events.PreventDefault(ev);
@@ -190,6 +207,14 @@ Fit.Controls.ListView = function()
             }
         }
     }
+
+	this.Dispose = function()
+	{
+		// This will destroy control - it will no longer work!
+
+		Fit.Dom.Remove(list);
+		me = list = active = isIe8 = null;
+	}
 
     // ============================================
 	// Private
@@ -213,7 +238,7 @@ Fit.Controls.ListView = function()
 			repaint();
 
 			if (commitToHostControl === true)
-				fireOnSelected(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"));
+				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), true);
 		}
 	}
 
@@ -251,14 +276,6 @@ Fit.Controls.ListView = function()
         }
     }
 
-	function fireOnSelected(title, value)
-	{
-		Fit.Array.ForEach(onSelectedHandlers, function(cb)
-		{
-			cb(title, value);
-		});
-	}
-
 	function repaint()
 	{
 		if (isIe8 === true)
@@ -269,66 +286,4 @@ Fit.Controls.ListView = function()
 	}
 
 	init();
-}
-
-/// <function container="Fit.Controls.ListView.Item" name="Item" access="public">
-/// 	<description> Create instance of ListView Item </description>
-/// 	<param name="itemTitle" type="string"> Node title </param>
-/// 	<param name="itemValue" type="string"> Node value </param>
-/// 	<param name="itemSelected" type="boolean" default="false">
-/// 		Flag indicating whether item is initially selected in host control
-/// 	</param>
-/// </function>
-Fit.Controls.ListView.Item = function(itemTitle, itemValue, itemSelected)
-{
-	Fit.Validation.ExpectStringValue(itemTitle);
-	Fit.Validation.ExpectStringValue(itemValue);
-	Fit.Validation.ExpectBoolean(itemSelected, true);
-
-	var me = this;
-	var title = itemTitle;
-	var value = itemValue;
-	var selected = (itemSelected === true);
-
-	/// <function container="Fit.Controls.ListView.Item" name="Title" access="public" returns="string">
-	/// 	<description> Get/Set item title </description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, item title is updated </param>
-	/// </function>
-	this.Title = function(val)
-	{
-		Fit.Validation.ExpectStringValue(val, true);
-
-		if (Fit.Validation.IsSet(val) === true)
-			title = val;
-
-		return title;
-	}
-
-	/// <function container="Fit.Controls.ListView.Item" name="Value" access="public" returns="string">
-	/// 	<description> Get/Set item value </description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, item value is updated </param>
-	/// </function>
-	this.Value = function(val)
-	{
-		Fit.Validation.ExpectStringValue(val, true);
-
-		if (Fit.Validation.IsSet(val) === true)
-			value = val;
-
-		return value;
-	}
-
-	/// <function container="Fit.Controls.ListView.Item" name="Selected" access="public" returns="boolean">
-	/// 	<description> Get/Set flag indicating whether item is initially selected in host control </description>
-	/// 	<param name="val" type="boolean" default="undefined"> If defined, selected state is updated </param>
-	/// </function>
-	this.Selected = function(val)
-	{
-		Fit.Validation.ExpectBoolean(val, true);
-
-		if (Fit.Validation.IsSet(val) === true)
-			selected = val;
-
-		return selected;
-	}
 }
