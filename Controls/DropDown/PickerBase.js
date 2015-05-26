@@ -141,13 +141,11 @@ Fit.Controls.PickerBase = function(controlId)
 	/// 		e.g. when pasting items which may turn out not to be valid selections.
 	/// 		In this case OnItemSelectionChanged should not be fired.
 	/// 	</description>
-	/// 	<param name="title" type="string"> Item title </param>
 	/// 	<param name="value" type="string"> Item value </param>
 	/// 	<param name="selected" type="boolean"> True if item was selected, False if item was deselected </param>
 	/// </function>
-	this.UpdateItemSelection = function(title, value, selected)
+	this.UpdateItemSelection = function(value, selected)
 	{
-		Fit.Validation.ExpectString(title);
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(selected);
 	}

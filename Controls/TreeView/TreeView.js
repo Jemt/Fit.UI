@@ -35,6 +35,7 @@
 Fit.Controls.TreeView = function(ctlId)
 {
 	Fit.Validation.ExpectStringValue(ctlId);
+	Fit.Core.Extend(this, Fit.Controls.PickerBase).Apply();
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
@@ -57,6 +58,10 @@ Fit.Controls.TreeView = function(ctlId)
 	var onSelectedHandlers = [];
 	var onToggleHandlers = [];
 	var onToggledHandlers = [];
+
+	// Picker Control Mode
+	var hostControl = null;
+	var activeNode = null;
 
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
@@ -157,7 +162,24 @@ Fit.Controls.TreeView = function(ctlId)
 			var ev = Fit.Events.GetEvent(e);
 			var elm = Fit.Events.GetTarget(e);
 
-			// Variable elm above is almost always a <li> node element since we make sure only these elements are focused.
+			//{ PickerControl support - START
+
+			// If used as picker control, make sure first node is selected on initial key press
+			if (hostControl !== null && activeNode === null && rootNode.GetChildren().length > 0)
+			{
+				focusNode(rootNode.GetChildren()[0]); // Sets activeNode to first child
+				return;
+			}
+
+			// If onkeydown was not firered from a list item (which usually has focus),
+			// it was most likely fired from a host control through HandleEvent(..).
+			// In this case activeNode will be set.
+			if (elm.tagName !== "LI" && hostControl !== null && activeNode !== null)
+				elm = activeNode.GetDomElement();
+
+			//} // PickerControl support - END
+
+			// Variable elm above is almost always a <li> node element since we make sure only these elements are focused
 			// when node is clicked or keyboard navigation occure. However, IF the node title for some strange reason contains an element
 			// that gains focus (e.g. an input control), that element could be contained in the elm variable when onkeydown is fired.
 			// We already make sure that <a> link elements do not gain focus which is more likely to be used as node title, so there
@@ -318,7 +340,7 @@ Fit.Controls.TreeView = function(ctlId)
 			// Focus next node
 
 			if (next !== null)
-				next.Focused(true);
+				focusNode(next);
 		}
 
 		rootNode.GetDomElement().onclick = function(e)
@@ -373,7 +395,9 @@ Fit.Controls.TreeView = function(ctlId)
 		});
 	}
 
+	// ============================================
 	// Public
+	// ============================================
 
 	/// <function container="Fit.Controls.TreeView" name="WordWrap" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether Word Wrapping is enabled </description>
@@ -737,7 +761,7 @@ Fit.Controls.TreeView = function(ctlId)
 		// This will destroy control - it will no longer work!
 
 		rootNode.Dispose();
-		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isIe8 = null;
+		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = hostControl = activeNode = isIe8 = null;
 		baseDispose();
 	}
 
@@ -747,7 +771,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeView" name="OnSelect" access="public">
 	/// 	<description>
-	/// 		Add event handler fired when node is being selected.
+	/// 		Add event handler fired when node is being selected or deselected.
 	/// 		Selection can be canceled by returning False.
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
@@ -762,7 +786,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeView" name="OnSelected" access="public">
 	/// 	<description>
-	/// 		Add event handler fired when node is selected.
+	/// 		Add event handler fired when node is selected or deselected.
 	/// 		Selection can not be canceled. Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
 	/// 	</description>
@@ -803,7 +827,97 @@ Fit.Controls.TreeView = function(ctlId)
 		Fit.Array.Add(onToggledHandlers, cb);
 	}
 
+	// ============================================
+	// PickerBase interface
+	// ============================================
+
+	this.OnSelected(function(sender, node)
+	{
+		Fit.Validation.ExpectIsSet(sender);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+
+		me._internal.FireOnItemSelectionChanged(node.Title(), node.Value(), node.Selected());
+	});
+
+	this.UpdateItemSelection = function(itemValue, selected)
+	{
+		Fit.Validation.ExpectString(itemValue);
+		Fit.Validation.ExpectBoolean(selected);
+
+		var node = me.GetChild(itemValue, true);
+
+		if (node !== null)
+			node.Selected(selected);
+	}
+
+	this.SetEventDispatcher = function(control)
+	{
+		Fit.Validation.ExpectDomElement(control);
+
+		// This is not pretty. SetEventDispatcher was implemented to support the TreeView
+		// picker control which uses this function to register an OnBlur handler on the
+		// input controls, which in turn is used to change how nodes are selected.
+		// The TreeView was originally design so that nodes were highlighted when gaining
+		// focus, but since we need to be able to navigate the TreeView while keeping
+		// focus in the host control, this approach did not work.
+		// Therefore, when this control is used as a picker control and navigation occure
+		// through the host control and HandleEvent(..), nodes are selected using a CSS
+		// data attribute (data-active=true), and when host control looses focus, we
+		// revert to using the normal selection mode based on focus.
+
+		if (Fit.Validation.IsSet(control) === true)
+		{
+			hostControl = control;
+
+			// Make sure OnBlur handler is only registered once
+
+			if (!hostControl._internal)
+				hostControl._internal = {};
+
+			if (hostControl._internal.TreeViewPickerControl)
+				return;
+
+			hostControl._internal.TreeViewPickerControl = me;
+
+			// Register OnBlur handler
+
+			Fit.Events.AddHandler(hostControl, "blur", function(e)
+			{
+				hostControl = null;
+
+				// Host control may temporarily loose focus and regain it
+				// shortly after (host control consists of multiple input controls).
+				// Stay in Picker Control Mode for a short amount of time, allowing
+				// the host control to regain focus, and keep item selection (activeNode).
+				setTimeout(function()
+				{
+					if (hostControl !== null)
+						return; // Host control regained focus - do not remove selection made using host control
+
+					// Remove highlighting
+					if (activeNode !== null)
+						Fit.Dom.Data(activeNode.GetDomElement(), "active", null);
+
+					// Make sure first child is selected, next time host control is used to navigate items
+					activeNode = null;
+				}, 100);
+			});
+		}
+	}
+
+    this.HandleEvent = function(e)
+    {
+		Fit.Validation.ExpectEvent(e, true);
+
+		var ev = Fit.Events.GetEvent(e);
+
+		if (ev.type === "keydown")
+			rootNode.GetDomElement().onkeydown(e);
+    }
+
+	// ============================================
 	// Private
+	// ============================================
 
 	function executeWithNoOnChange(cb)
 	{
@@ -888,6 +1002,59 @@ Fit.Controls.TreeView = function(ctlId)
 		});
 
 		me._internal.FireOnChange();
+	}
+
+	function focusNode(node)
+	{
+		if (hostControl !== null)
+		{
+			// Since host control has focus, we use the "active" data attribute
+			// to indicate that the node has focus, even though it has not,
+			// and keep a reference to the "pseudo focused" node in activeNode.
+
+			if (activeNode !== null)
+				Fit.Dom.Data(activeNode.GetDomElement(), "active", null);
+
+			activeNode = node;
+			Fit.Dom.Data(activeNode.GetDomElement(), "active", "true");
+
+			// Scroll active node into view if necessary.
+			// This is a bit expensive, especially if we navigate up the
+			// tree from 5+ nested levels, and holds down the arrow key.
+
+			// Get node position and height
+
+			var nodePositionWithinControl = Fit.Dom.GetInnerPosition(activeNode.GetDomElement(), me.GetDomElement());
+			var nodeHeightWithoutChildren = -1;
+
+			var childrenContainer = ((activeNode.GetChildren().length > 0) ? activeNode.GetChildren()[0].GetDomElement().parentElement : null);
+
+			if (childrenContainer !== null)
+				childrenContainer.style.display = "none";
+
+			nodeHeightWithoutChildren = activeNode.GetDomElement().offsetHeight;
+
+			if (childrenContainer !== null)
+				childrenContainer.style.display = "";
+
+			// Scroll item into view
+
+			// Vertical scroll
+			if (nodePositionWithinControl.Y > (me.GetDomElement().scrollTop + me.GetDomElement().clientHeight - nodeHeightWithoutChildren) || nodePositionWithinControl.Y < me.GetDomElement().scrollTop)
+				me.GetDomElement().scrollTop = nodePositionWithinControl.Y - (me.GetDomElement().clientHeight / 2); // Horizontal center
+
+			// Horizontal scroll
+			if (activeNode.GetLevel() > 2)
+				me.GetDomElement().scrollLeft = nodePositionWithinControl.X;
+			else
+				me.GetDomElement().scrollLeft = 0;
+
+			repaint();
+		}
+		else
+		{
+			node.Focused(true);
+		}
 	}
 
 	function getNodeFocused()
@@ -978,7 +1145,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 			Fit.Array.ForEach(lblTitle.getElementsByTagName("a"), function(link) { link.tabIndex = -1; });
 		}
 
-		return lblTitle.innerText; // Using innerText to get rid of HTML formatting
+		return Fit.Dom.Text(lblTitle); // Using inner text to get rid of HTML formatting
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="Value" access="public" returns="string">
