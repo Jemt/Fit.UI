@@ -116,8 +116,8 @@ Fit.DragDrop.Draggable = function(domElm)
                 Fit.Array.Add(Fit.DragDrop.Dropzone._internal.dropzones, draggableDropzone);
             }
 
-            if (state.OnDragStart)
-                state.OnDragStart(elm);
+            if (state.Events.OnDragStart)
+                state.Events.OnDragStart(elm);
 
             // NECESSARY?
             if (ev.preventDefault)
@@ -149,8 +149,8 @@ Fit.DragDrop.Draggable = function(domElm)
                 Fit.Dom.RemoveClass(draggable.GetElement(), "FitDragDropDragging");
                 Fit.DragDrop.Draggable._internal.active = null;
 
-                if (draggableState.OnDragStop)
-                    draggableState.OnDragStop(draggable);
+                if (draggableState.Events.OnDragStop)
+                    draggableState.Events.OnDragStop(draggable);
 
                 // Handle active dropzone
 
@@ -225,8 +225,8 @@ Fit.DragDrop.Draggable = function(domElm)
                     elm.style.top = elementTop + mouseYmoved + "px";
                 }
 
-                if (state.OnDragging)
-                    state.OnDragging(elm);
+                if (state.Events.OnDragging)
+                    state.Events.OnDragging(elm);
 
                 // Handle dropzones
 

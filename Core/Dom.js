@@ -2,6 +2,7 @@
 /// 	DOM (Document Object Model) manipulation and helper functionality
 /// </container>
 Fit.Dom = {};
+Fit.Dom._internal = {};
 
 // ==========================================================
 // CSS

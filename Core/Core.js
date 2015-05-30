@@ -1,16 +1,14 @@
-
 // TODO (entire framework):
-//  - Ensure consistency
-//     - SetX/GetX, or simply X(set) ?
-//     - parentNode vs parentElement
-//     - firstChild vs firstElementChild
-//     - previousSibling vs previousElementSibling
-//     - nextSibling vs nextElementSibling
-//     - elm.insertBefore vs Fit.Dom.InsertBefore(..)
-//  - Type check arguments in all public functions
-//  - Add XML docs to all public functions
-//  - Clean up code/CSS
-//  - Review all changes
+//  - Get rid of Fit.Validation.ExpectStringValue(..) - do not mix type checking and value validation!
+//  - Perhaps Fit.Core.Extend should be replaced by inheritance using prototyping.
+//  - Fit.Validation.ExpectDomElement(..) is sometimes too vague, e.g. when expecting HTMLInputElement
+//    Use Fit.Validation.ExpectInstance(elm, HTMLInputElement) instead !
+//  - ControlBase.Value should always "communicate" using strings.
+//    Individual controls could simply implement their own value getter/setter.
+//    Using specialized return values would require the programmer to know about
+//    the design of the Control anyways, so a specialized function is alright.
+//  - Consistency in event handlers - always pass Sender and EventArgs.
+//    EventArgs allows us to add more information later.
 
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS
@@ -27,7 +25,7 @@ Fit.Core = {};
 /// 			&#160;&#160;&#160;&#160; Fit.Core.Extend(this, MySuperClass).Apply();
 /// 		}
 ///
-/// 		The code above defines a class called MyClass which inherits from MySuperClass.
+/// 		The code above defines a class called MyClass which extends from MySuperClass.
 /// 		Use Apply() to pass variables to the super class constructor as shown below:
 ///
 /// 		Male = function(name, age)
@@ -36,21 +34,63 @@ Fit.Core = {};
 /// 		}
 ///
 /// 		Notice that calling just Extend(..) without calling Apply() on the object returned,
-/// 		will not cause inheritance. Apply() must be called, with or without parameters.
+/// 		will not cause extension to occure. Apply() must be called, with or without parameters.
 /// 	</description>
-/// 	<param name="subInstance" type="object"> Instance of sub class </param>
-/// 	<param name="superType" type="function"> Class (function) to inherit from </param>
+/// 	<param name="subInstance" type="object"> Instance of sub class to extend </param>
+/// 	<param name="superType" type="function"> Class (function) to extend from </param>
 /// </function>
 Fit.Core.Extend = function(subInstance, superType)
 {
+	Fit.Validation.ExpectIsSet(subInstance);
+	Fit.Validation.ExpectFunction(superType);
+
 	var binder =
 	{
 		Apply: function()
 		{
 			superType.apply(subInstance, arguments);
+
+			// Support for Fit.Core.Extends(..)
+
+			if (!subInstance._internal)
+				subInstance._internal = {};
+
+			if (!subInstance._internal.Extends)
+				subInstance._internal.Extends = [];
+
+			Fit.Array.Add(subInstance._internal.Extends, superType);
 		}
 	}
 	return binder;
+}
+
+/// <function container="Fit.Core" name="Extends" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Returns boolean indicating whether given object is an extension of a given super type - see Fit.Core.Extend(..).
+/// 		Also look into Fit.Core.InstanceOf(..) which may provide the desired behaviour.
+/// 	</description>
+/// 	<param name="instance" type="object"> Object instance </param>
+/// 	<param name="superType" type="function"> Reference to super class (function) </param>
+/// </function>
+Fit.Core.Extends = function(instance, superType)
+{
+	Fit.Validation.ExpectIsSet(instance);
+	Fit.Validation.ExpectFunction(superType);
+
+	return (instance._internal && instance._internal.Extends && Fit.Array.Contains(instance._internal.Extends, superType) === true);
+}
+
+/// <function container="Fit.Core" name="InstanceOf" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Returns boolean indicating whether given object is an instance or extension of a given class type - see Fit.Core.Extend(..).
+/// 		This is equivalent of: var result = (obj instanceof MyType || Fit.Core.Extends(obj, MyType));
+/// 	</description>
+/// 	<param name="instance" type="object"> Object instance </param>
+/// 	<param name="type" type="function"> Reference to class (function) </param>
+/// </function>
+Fit.Core.InstanceOf = function(instance, type)
+{
+	return (instance instanceof type || Fit.Core.Extends(instance, type) === true);
 }
 
 /// <function container="Fit.Core" name="CreateOverride" access="public" static="true" returns="function">
@@ -82,10 +122,11 @@ Fit.Core.CreateOverride = function(originalFunction, newFunction)
 		window.base = originalFunction; // Globally accessible base function
 
 		var error = null;
+		var result = undefined;
 
 		try // Make sure we can clean up globally accessible base function in case of errors
 		{
-			newFunction.apply(this, arguments);
+			result = newFunction.apply(this, arguments);
 		}
 		catch (err)
 		{
@@ -93,12 +134,26 @@ Fit.Core.CreateOverride = function(originalFunction, newFunction)
 		}
 
 		if (orgBase)
+		{
 			window.base = orgBase;
+		}
 		else
-			delete window.base;
+		{
+			try
+			{
+				delete window.base; // Fails in IE8 with "Object doesn't support this action"
+			}
+			catch (err)
+			{
+				window.base = undefined;
+			}
+		}
 
 		if (error !== null)
-			throw error;
+			Fit.Validation.Throw(error);
+
+		if (result !== undefined)
+			return result;
 	}
 }
 
