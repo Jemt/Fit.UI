@@ -147,6 +147,7 @@ Fit.Events.GetPointerState = function()
 // ==============================================
 
 Fit._internal.Events = {};
+Fit._internal.Events.Browser = Fit.Browser.GetInfo();
 Fit._internal.Events.KeysDown = { Shift: false, Ctrl: false, Alt: false, Meta: false };
 Fit._internal.Events.Mouse = { Buttons: { Primary: false, Secondary: false }, Coordinates: { ViewPort: { X: -1, Y: -1 }, Document: { X: -1, Y: -1 } } };
 Fit._internal.Events.OnReadyHandlers = [];
@@ -178,22 +179,24 @@ Fit.Events.AddHandler(document, "keyup", function(e)
 // Mouse tracking
 // ==============================================
 
+// http://www.quirksmode.org/js/events_properties.html
+
 Fit.Events.AddHandler(document, "mousedown", function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
-	if (ev.which === 1)
+	if ((Fit._internal.Events.Browser.Name === "MSIE" && Fit._internal.Events.Browser.Version === 8 && ev.button === 1) || ev.button === 0)
 		Fit._internal.Events.Mouse.Buttons.Primary = true;
-	if (ev.which === 3)
+	if (ev.button === 2)
 		Fit._internal.Events.Mouse.Buttons.Secondary = true;
 });
 Fit.Events.AddHandler(document, "mouseup", function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
-	if (ev.which === 1)
+	if ((Fit._internal.Events.Browser.Name === "MSIE" && Fit._internal.Events.Browser.Version === 8 && ev.button === 1) || ev.button === 0)
 		Fit._internal.Events.Mouse.Buttons.Primary = false;
-	if (ev.which === 3)
+	if (ev.button === 2)
 		Fit._internal.Events.Mouse.Buttons.Secondary = false;
 });
 Fit.Events.AddHandler(document, "mousemove", function(e)

@@ -22,9 +22,11 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 	<description>
 	/// 		Get/set control value.
 	/// 		Object type accepted and returned is determined by individual controls, but
-	/// 		toString() may be called on returned object to obtain a string representation.
+	/// 		toString() may be called on returned object to obtain a string representation
+	/// 		with the following format: val1[;val2[;val3]].
+	/// 		The same format may be used to set control value.
 	/// 	</description>
-	/// 	<param name="value" type="string" default="undefined"> If defined, control value is updated with specified value </param>
+	/// 	<param name="value" type="object" default="undefined"> If defined, control value is updated with specified value </param>
 	/// </function>
 	this.Value = function(val)
 	{
@@ -359,6 +361,30 @@ Fit.Controls.ControlBase = function(controlId)
 				cb(me, me.Value());
 			});
 		},
+
+		this._internal.ExecuteWithNoOnChange = function(cb)
+		{
+			Fit.Validation.ExpectFunction(cb);
+
+			var onChangeHandler = me._internal.FireOnChange;
+			me._internal.FireOnChange = function() {};
+
+			var error = null;
+
+			try // Try/catch to make absolutely sure OnChange handler is restored!
+			{
+				cb();
+			}
+			catch (err)
+			{
+				error = err.message;
+			}
+
+			me._internal.FireOnChange = onChangeHandler;
+
+			if (error !== null)
+				Fit.Validation.ThrowError(error);
+		}
 
 		this._internal.Data = function(key, val)
 		{

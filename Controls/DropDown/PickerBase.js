@@ -3,9 +3,13 @@
 /// 	Control developers must override: GetDomElement, Dispose.
 /// 	Overriding the following functions is optional:
 /// 	UpdateItemSelectionState, SetEventDispatcher, HandleEvent.
-/// 	Picker Control must fire OnItemSelectionChanged when an item's
-/// 	selection state is update, which is done by invoking
-/// 	this._internal.FireOnItemSelectionChanged(title:string, value:string, selected:boolean)
+/// 	Picker Control must fire OnItemSelectionChanging and OnItemSelectionChanged when an item's
+/// 	selection state is being changed, which is done by invoking
+/// 	this._internal.FireOnItemSelectionChanging(title:string, value:string, currentSelectionState:boolean)
+/// 	and
+/// 	this._internal.FireOnItemSelectionChanged(title:string, value:string, newSelectionState:boolean).
+/// 	Notice that FireOnItemSelectionChanging may return False, which must prevent item from being
+/// 	selected, and at the same time prevent FireOnItemSelectionChanged from being called.
 /// </container>
 Fit.Controls.PickerBase = function(controlId)
 {
@@ -29,6 +33,7 @@ Fit.Controls.PickerBase = function(controlId)
 	var onShowHandlers = [];
 	var onHideHandlers = [];
 	var onChangeHandlers = [];
+	var onChangingHandlers = [];
 
 	// ============================================
 	// Public
@@ -71,7 +76,7 @@ Fit.Controls.PickerBase = function(controlId)
 
 	/// <function container="Fit.Controls.PickerBase" name="OnShow" access="public">
 	/// 	<description>
-	/// 		Register event handler firered when picker control is shown in host control.
+	/// 		Register event handler fired when picker control is shown in host control.
 	/// 		The following argument is passed to event handler function: Sender (PickerBase).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -84,7 +89,7 @@ Fit.Controls.PickerBase = function(controlId)
 
 	/// <function container="Fit.Controls.PickerBase" name="OnHide" access="public">
 	/// 	<description>
-	/// 		Register event handler firered when picker control is hidden in host control.
+	/// 		Register event handler fired when picker control is hidden in host control.
 	/// 		The following argument is passed to event handler function: Sender (PickerBase).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -99,9 +104,24 @@ Fit.Controls.PickerBase = function(controlId)
 	// Events fired by picker control itself
 	// ============================================
 
+	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionChanging" access="public">
+	/// 	<description>
+	/// 		Register event handler fired when item selection is changing.
+	/// 		Selection can be canceled by returning False.
+	/// 		The following arguments are passed to event handler function:
+	/// 		Sender (PickerBase), EventArgs (containing Title (string), Value (string), and Selected (boolean) properties).
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+    this.OnItemSelectionChanging = function(cb)
+    {
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onChangingHandlers, cb);
+    }
+
 	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionChanged" access="public">
 	/// 	<description>
-	/// 		Register event handler firered when item selection is changed.
+	/// 		Register event handler fired when item selection is changed.
 	/// 		The following arguments are passed to event handler function:
 	/// 		Sender (PickerBase), EventArgs (containing Title (string), Value (string), and Selected (boolean) properties).
 	/// 	</description>
@@ -148,6 +168,27 @@ Fit.Controls.PickerBase = function(controlId)
 	{
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(selected);
+
+		// It's safe to assume that current selection state is equal to !selected since host control will
+		// never call UpdateItemSelection with the current value of the given item, only the desired value.
+		if (me._internal.FireOnItemSelectionChanging("", value, !selected) === false)
+			return false;
+
+		me._internal.FireOnItemSelectionChanged("", value, selected);
+	}
+
+	/// <function container="Fit.Controls.PickerBase" name="SetSelections" access="public">
+	/// 	<description>
+	/// 		Overridden by control developers (optional).
+	/// 		Host control invokes this function when picker is assigned to host control, providing a semicolon
+	/// 		separated string of values already selected. If picker defines preselected items, firering
+	/// 		OnItemSelectionChanged for these items, will update the host control appropriately.
+	/// 	</description>
+	/// 	<param name="values" type="string"> Item values separated by semicolon </param>
+	/// </function>
+	this.SetSelections = function(values)
+	{
+		Fit.Validation.ExpectString(values);
 	}
 
 	/// <function container="Fit.Controls.PickerBase" name="SetEventDispatcher" access="public" returns="DOMElement">
@@ -212,6 +253,23 @@ Fit.Controls.PickerBase = function(controlId)
 			handler(me);
 		});
 	},
+
+	this._internal.FireOnItemSelectionChanging = function(title, value, selected) // Called by Picker Control
+	{
+		Fit.Validation.ExpectString(title);
+		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectBoolean(selected);
+
+		var cancel = false;
+
+		Fit.Array.ForEach(onChangingHandlers, function(handler)
+		{
+			if (handler(me, { Title: title, Value: value, Selected: selected }) === false)
+				cancel = true;
+		});
+
+		return !cancel;
+	}
 
 	this._internal.FireOnItemSelectionChanged = function(title, value, selected) // Called by Picker Control
 	{

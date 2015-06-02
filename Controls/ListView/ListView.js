@@ -46,7 +46,15 @@ Fit.Controls.ListView = function(controlId)
 			while (elm.parentElement !== list)
 				elm = elm.parentElement;
 
-			setActive(elm, true);
+			setActive(elm);
+
+			// Fire OnChanging and OnChange events
+
+			// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
+			// not keep track of selection state. In theory item could very well already be selected in host control.
+			// Event handlers should not trust boolean to reveal selection in host control, only in picker.
+			if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(elm), Fit.Dom.Data(elm, "value"), false) === true)
+				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(elm), Fit.Dom.Data(elm, "value"), true);
 		}
 
 		list.onfocus = function(e)
@@ -199,7 +207,13 @@ Fit.Controls.ListView = function(controlId)
 					moveDown(); // Select first item if no item is selected
 
 				if (active !== null)
-					me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), true);
+				{
+					// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
+					// not keep track of selection state. In theory item could very well already be selected in host control.
+					// Event handlers should not trust boolean to reveal selection in host control, only in picker.
+					if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), false) === true)
+						me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), true);
+				}
 
 				// Prevent form submit
 				Fit.Events.PreventDefault(ev);
@@ -220,10 +234,9 @@ Fit.Controls.ListView = function(controlId)
 	// Private
 	// ============================================
 
-	function setActive(elm, commitToHostControl)
+	function setActive(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm, true);
-		Fit.Validation.ExpectBoolean(commitToHostControl, true);
 
 		if (active !== null)
 			Fit.Dom.Data(active, "active", "false");
@@ -236,9 +249,6 @@ Fit.Controls.ListView = function(controlId)
 
 			list.scrollTop = active.offsetHeight * Fit.Dom.GetIndex(active); // Alternative to active.scrollIntoView(true) which unfortunately also scrolls main view
 			repaint();
-
-			if (commitToHostControl === true)
-				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), true);
 		}
 	}
 
