@@ -207,7 +207,9 @@ Fit.Validation.ExpectEvent = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((val instanceof Event) === false)
+	// IE9 and above: window.event is now of type MSEventObj (legacy),
+	// while an actual Event instance is passed to handlers as specified by W3C.
+	if ((val instanceof Event) === false && (val instanceof MSEventObj) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of Event");
 }
 
@@ -258,7 +260,7 @@ Fit.Validation.ThrowError = function(msg)
 	if (Fit._internal.Validation.DebugMode === true)
 		alert("ThrowError: " + msg);
 
-	if (window.console)
+	if (window.console && console.trace)
 		console.trace();
 
 	throw new Error(msg); // Never change this behaviour - we should always re-throw the error to terminate execution

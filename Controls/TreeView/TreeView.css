@@ -164,7 +164,7 @@ div.FitUiControlTreeView li ul li[data-selected="true"] > span
 	border-radius: 3px;
 }
 
-div.FitUiControlTreeView[data-selectable="true"] li ul li[data-selectable="false"] span
+div.FitUiControlTreeView[data-selectable="true"] li ul li[data-selectable="false"] > span
 {
 	font-style: italic;
 }

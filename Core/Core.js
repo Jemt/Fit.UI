@@ -9,6 +9,8 @@
 //    the design of the Control anyways, so a specialized function is alright.
 //  - Consistency in event handlers - always pass Sender and EventArgs.
 //    EventArgs allows us to add more information later.
+//  - Search and replace elm.appendChild(c) and elm.removeChild(c)
+//    with Fit.Dom.Add(elm, c) and Fit.dom.Remove(c) for consistency
 
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS

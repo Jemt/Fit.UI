@@ -15,6 +15,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 	var me = this;
 	var url = null;
+	var loadDataOnInit = true;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
 	var onPopulatedHandlers = [];
@@ -82,7 +83,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 			child.Selectable((jsonNode.Selectable === true)); // Node will obtain Selectable state from TreeView unless explicitly set here
 
 		if (jsonNode.Selected !== undefined)
-			child.Selected((jsonNode.Selected === true));
+			child.Selected((jsonNode.Selected === true)); // Notice, will not cause various events to fire since TreeViewNodeInterface is not assigned at this point
 
 		if (jsonNode.Children instanceof Array)
 		{
@@ -122,7 +123,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 	var baseRender = me.Render;
 	this.Render = function(elm)
 	{
-		me.Reload();
+		if (loadDataOnInit === true)
+		{
+			me.Reload();
+			loadDataOnInit = false;
+		}
+
 		baseRender(elm);
 	}
 
@@ -178,8 +184,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 	}
 
 	/// <function container="Fit.Controls.WSTreeView" name="PreSelected" access="public">
-	/// 	<description> Set nodes to automatically select when loaded. Nodes already loaded when be immediately selected. </description>
-	/// 	<param name="val" type="string"> Semi colon separated list of node values </param>
+	/// 	<description> Set nodes to select automatically when loaded. Nodes already loaded will be immediately selected. </description>
+	/// 	<param name="val" type="string"> Semicolon separated list of node values </param>
 	/// </function>
 	var preSelected = [];
 	this.PreSelected = function(val)
@@ -201,6 +207,71 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		return preSelected.join(";");
 	}
+
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+	{
+		me = url = loadDataOnInit = onRequestHandlers = onResponseHandlers = onPopulatedHandlers = null;
+
+		base();
+	});
+
+	// ============================================
+	// PickerBase interface
+	// ============================================
+
+	this.OnShow(function(sender) // Event defined on PickerBase
+	{
+		if (loadDataOnInit === true)
+		{
+			me.Reload();
+			loadDataOnInit = false;
+		}
+	});
+
+	this.SetSelections = Fit.Core.CreateOverride(this.SetSelections, function(values)
+	{
+		Fit.Validation.ExpectString(values);
+
+		// Make sure calls to Value() or Selected() does not return old preselections
+
+		preSelected = [];
+
+		// Call SetSelections(..) on base class to make sure nodes already loaded is immediately selected.
+
+		base(values);
+
+		// Set preselections for nodes not loaded yet
+
+		if (values !== "")
+		{
+			preSelected = values.split(";");
+
+			// Remove nodes already selected
+			Fit.Array.ForEach(baseSelected(), function(selected)
+			{
+				Fit.Array.Remove(preSelected, selected.Value());
+			});
+		}
+	});
+
+	this.UpdateItemSelection = Fit.Core.CreateOverride(this.UpdateItemSelection, function(itemValue, selected)
+	{
+		Fit.Validation.ExpectString(itemValue);
+		Fit.Validation.ExpectBoolean(selected);
+
+		if (me.GetChild(itemValue, true) === null) // Node not loaded yet, update preselections
+		{
+			if (selected === true && Fit.Array.Contains(preSelected, itemValue) === false)
+				Fit.Array.Add(preSelected, itemValue);
+			else if (selected === false)
+				Fit.Array.Remove(preSelected, itemValue);
+		}
+		else // Update nodes already loaded
+		{
+			if (base(itemValue, selected) === false)
+				return false;
+		}
+	});
 
 	// ============================================
 	// Events
