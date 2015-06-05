@@ -121,12 +121,12 @@ Fit.Dom.InsertAfter = function(target, newElm)
 /// <function container="Fit.Dom" name="Add" access="public" static="true">
 /// 	<description> Add DOMElement to container </description>
 /// 	<param name="container" type="DOMElement"> Add element to this container </param>
-/// 	<param name="elm" type="DOMElement"> Element to add to container </param>
+/// 	<param name="elm" type="object"> Element or Text node to add to container </param>
 /// </function>
 Fit.Dom.Add = function(container, elm)
 {
 	Fit.Validation.ExpectDomElement(container);
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectContentNode(elm);
 
 	container.appendChild(elm);
 }

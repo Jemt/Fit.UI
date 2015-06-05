@@ -136,7 +136,7 @@ Fit.Array.Remove = function(arr, obj) // obj not validated - passing any object 
 Fit.Array.RemoveAt = function(arr, idx)
 {
 	Fit.Validation.ExpectArray(arr);
-	Fit.Validation.ExpectInteger(arr);
+	Fit.Validation.ExpectInteger(idx);
     arr.splice(idx, 1);
 }
 
@@ -193,6 +193,22 @@ Fit.Array.Copy = function(arr)
 		newArr.push(item);
 	});
 	return newArr;
+}
+
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="array">
+/// 	<description> Convert collection (NodeList or HTMLCollection) to JS array </description>
+/// 	<param name="coll" type="object"> Collection to convert to array </param>
+/// </function>
+Fit.Array.ToArray = function(coll)
+{
+	Fit.Validation.ExpectCollection(coll);
+
+	var arr = [];
+
+	for (var i = 0 ; i < coll.length ; i++)
+		arr.push(coll[i]);
+
+	return arr;
 }
 
 /*

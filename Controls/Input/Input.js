@@ -344,7 +344,7 @@ Fit.Controls.Input = function(ctlId)
 				}
 				else
 				{
-					Fit.Loader.LoadScript(Fit._internal.BasePath + "/Resources/CKEditor/ckeditor.js", function(src)
+					Fit.Loader.LoadScript(Fit.GetPath() + "/Resources/CKEditor/ckeditor.js", function(src)
 					{
 						createEditor();
 					});

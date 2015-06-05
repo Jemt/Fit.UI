@@ -153,6 +153,20 @@ Fit.Validation.ExpectDomElement = function(val, allowNotSet)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a DOMElement");
 }
 
+/// <function container="Fit.Validation" name="ExpectContentNode" access="public" static="true">
+/// 	<description> Throws error if passed object is not an instance of Element or Text </description>
+/// 	<param name="val" type="object"> Object to validate </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectContentNode = function(val, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof Element) === false && (val instanceof Text) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not a Content Node (Element or Text)");
+}
+
 /// <function container="Fit.Validation" name="ExpectWindow" access="public" static="true">
 /// 	<description> Throws error if passed object is not an instance of Window </description>
 /// 	<param name="val" type="object"> Object to validate </param>

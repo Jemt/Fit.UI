@@ -11,6 +11,9 @@
 //    EventArgs allows us to add more information later.
 //  - Search and replace elm.appendChild(c) and elm.removeChild(c)
 //    with Fit.Dom.Add(elm, c) and Fit.dom.Remove(c) for consistency
+//  - Replace "inherit" and "inherting" with "extend" and "extending"
+//    since its closer to extending/mixins rather than inheritance/prototyping.
+//  - Replace "firering" with correct word; "firing"
 
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS
@@ -359,6 +362,27 @@ Fit._internal = {};
 
 (function()
 {
+	// Find Base URL - e.g. http://server.com/libs/fitui
 	var src = document.scripts[document.scripts.length - 1].src;
-	Fit._internal.BasePath = src.substring(0, src.lastIndexOf("/"));
+	Fit._internal.BaseUrl = src.substring(0, src.lastIndexOf("/"));
+
+	// Calculate Base Path - e.g. /libs/fitui
+	var path = Fit._internal.BaseUrl.replace("http://", "").replace("https://", "");
+	Fit._internal.BasePath = path.substring(path.indexOf("/"));
 })();
+
+/// <function container="Fit" name="GetUrl" access="public" static="true" returns="string">
+/// 	<description> Get fully qualified URL to Fit.UI on server - e.g. http://server.com/libs/fitui </description>
+/// </function>
+Fit.GetUrl = function()
+{
+	return Fit._internal.BaseUrl;
+}
+
+/// <function container="Fit" name="GetPath" access="public" static="true" returns="string">
+/// 	<description> Get absolute path to Fit.UI on server - e.g. /libs/fitui </description>
+/// </function>
+Fit.GetPath = function()
+{
+	return Fit._internal.BasePath;
+}
