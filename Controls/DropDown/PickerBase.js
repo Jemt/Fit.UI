@@ -156,8 +156,11 @@ Fit.Controls.PickerBase = function(controlId)
 	/// 		as demonstrated below, if the picker control contains the given item.
 	///
 	/// 		var item = getItem(value);
-	/// 		if (item !== null && this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) !== false)
+	/// 		if (item !== null)
 	/// 		{
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp; if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return false;
+	///
 	/// 		&nbsp;&nbsp;&nbsp;&nbsp; item.SetSelected(selected);
 	/// 		&nbsp;&nbsp;&nbsp;&nbsp; this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
 	/// 		}
@@ -165,6 +168,7 @@ Fit.Controls.PickerBase = function(controlId)
 	/// 		Both events are fired by passing the given item's title, value, and current selection state.
 	/// 		Be aware that host control may pass information about items not found in picker, e.g. when pasting
 	/// 		items which may turn out not to be valid selections.
+	/// 		Returning False from UpdateItemSelection will cancel the change.
 	/// 	</description>
 	/// 	<param name="value" type="string"> Item value </param>
 	/// 	<param name="selected" type="boolean"> True if item was selected, False if item was deselected </param>
