@@ -27,8 +27,6 @@ Fit.Controls.ListView = function(controlId)
 		list.tabIndex = "0";
 		Fit.Dom.AddClass(list, "FitUiControlListView");
 
-		me.MaxHeight(150, "px");
-
 		me.OnShow(function()
 		{
 			list.scrollTop = 0;

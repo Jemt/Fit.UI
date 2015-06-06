@@ -151,15 +151,20 @@ Fit.Controls.PickerBase = function(controlId)
 	/// <function container="Fit.Controls.PickerBase" name="UpdateItemSelection" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (optional).
-	/// 		Host control invokes this function when an item's selection state is changed from host
-	/// 		control. Function must result in OnItemSelectionChanged event being fired if overridden,
-	/// 		which can be done using the following approach.
+	/// 		Host control invokes this function when an item's selection state is changed from host control.
+	/// 		Picker control is responsible for firing FireOnItemSelectionChanging and FireOnItemSelectionChanged,
+	/// 		as demonstrated below, if the picker control contains the given item.
 	///
-	/// 		this._internal.FireOnItemSelectionChanged(title:string, value:string, selected:boolean);
+	/// 		var item = getItem(value);
+	/// 		if (item !== null && this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) !== false)
+	/// 		{
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp; item.SetSelected(selected);
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp; this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+	/// 		}
 	///
-	/// 		Be aware that host control may pass information about items not found in picker,
-	/// 		e.g. when pasting items which may turn out not to be valid selections.
-	/// 		In this case OnItemSelectionChanged should not be fired.
+	/// 		Both events are fired by passing the given item's title, value, and current selection state.
+	/// 		Be aware that host control may pass information about items not found in picker, e.g. when pasting
+	/// 		items which may turn out not to be valid selections.
 	/// 	</description>
 	/// 	<param name="value" type="string"> Item value </param>
 	/// 	<param name="selected" type="boolean"> True if item was selected, False if item was deselected </param>
@@ -168,6 +173,10 @@ Fit.Controls.PickerBase = function(controlId)
 	{
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(selected);
+
+		// Default implementation fires both events, even though specialized control may not know
+		// anything about the given item selected/deselected. This is necessary in order to support
+		// events out of the box without requiring developer to override function.
 
 		// It's safe to assume that current selection state is equal to !selected since host control will
 		// never call UpdateItemSelection with the current value of the given item, only the desired value.
@@ -211,6 +220,7 @@ Fit.Controls.PickerBase = function(controlId)
 	/// 		Host control dispatches keyboard events to this function to allow
 	/// 		picker control to handle keyboard navigation with keys such as
 	/// 		arrow up/down/left/right, enter, space, etc.
+	/// 		Picker may return False to prevent host control from reacting to given event.
 	/// 	</description>
 	/// 	<param name="e" type="Event" default="undefined"> Keyboard event to process </param>
 	/// </function>

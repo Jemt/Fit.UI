@@ -166,6 +166,10 @@ Fit.Controls.TreeView = function(ctlId)
 			FireOnChange: function()
 			{
 				me._internal.FireOnChange();
+			},
+			GetTreeView: function()
+			{
+				return me;
 			}
 		}
 
@@ -202,6 +206,16 @@ Fit.Controls.TreeView = function(ctlId)
 			// is almost no chance the elm variable will ever contain anything else but the <li> node element. But better safe than sorry.
 			if (elm.tagName !== "LI")
 				return;
+
+			// Element is root node if user clicked next to a child node within root node element
+			if (elm === rootNode.GetDomElement())
+			{
+				if (rootNode.GetChildren().length > 0)
+					focusNode(rootNode.GetChildren()[0]); // Select first node
+
+				Fit.Events.PreventDefault(ev);
+				return;
+			}
 
 			var node = elm._internal.Node;
 
@@ -489,23 +503,35 @@ Fit.Controls.TreeView = function(ctlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			selectedOrg = [];
+			var fireOnChange = (selected.length > 0);
+
 			executeWithNoOnChange(function() // Prevent node.Selected(true) from firering OnChange event
 			{
 				me.Clear();
 
-				Fit.Array.ForEach(val, function(node)
+				Fit.Array.ForEach(val, function(n)
 				{
-					Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+					Fit.Validation.ExpectInstance(n, Fit.Controls.TreeView.Node);
+
+					var node = ((n.GetTreeView() === me) ? n : me.GetChild(n.Value(), true)); // Try GetChild(..) in case node was constructed, but with a valid value
+
+					if (node === null)
+						Fit.Validation.ThrowError("Node is not assiciated with this TreeView, unable to change selection");
 
 					Fit.Array.Add(selectedOrg, node);
 					node.Selected(true); // Adds node to internal selected collection through TreeViewNodeInterface
+					fireOnChange = true;
 				});
 			});
 
-			me._internal.FireOnChange();
+			if (fireOnChange === true)
+				me._internal.FireOnChange();
 		}
 
-		return selected;
+		var copy = Fit.Array.Copy(selected); // Copy to prevent changes to internal selection array
+		copy.toString = selected.toString;
+
+		return copy;
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="Value" access="public" returns="object">
@@ -531,6 +557,8 @@ Fit.Controls.TreeView = function(ctlId)
 			else if (typeof(val) === "string")
 			{
 				selectedOrg = [];
+				var fireOnChange = (selected.length > 0);
+
 				executeWithNoOnChange(function()
 				{
 					me.Clear();
@@ -542,16 +570,16 @@ Fit.Controls.TreeView = function(ctlId)
 						var child = me.GetChild(nodeVal, true);
 
 						if (child !== null)
+						{
+							Fit.Array.Add(selectedOrg, child);
 							child.Selected(true);
+							fireOnChange = true;
+						}
 					});
-
-					/*executeRecursively(rootNode, function(node)
-					{
-						node.Selected(Fit.Array.Contains(values, node.Value()));
-					});*/
 				});
 
-				me._internal.FireOnChange();
+				if (fireOnChange === true)
+					me._internal.FireOnChange();
 			}
 			else
 			{
@@ -938,7 +966,7 @@ Fit.Controls.TreeView = function(ctlId)
 			if (node.Selectable() === false)
 				return false; // Cancel, node is not selectable
 
-			node.Selected(selected);
+			node.Selected(selected); // Fires OnSelect (which fires OnItemSelectionChanging) and OnSelected (which fires OnItemSelectionChanged)
 
 			if (node.Selected() !== selected)
 				return false; // An event handler has canceled change, node's selection state was not updated - return false to prevent host control from adding item
@@ -1009,7 +1037,12 @@ Fit.Controls.TreeView = function(ctlId)
 		var ev = Fit.Events.GetEvent(e);
 
 		if (ev.type === "keydown")
+		{
 			rootNode.GetDomElement().onkeydown(e);
+
+			if (ev.keyCode === 37 || ev.keyCode === 39) // Left/Right
+				return false; // Suppress, left/right is reserved for expanding/collapsing nodes
+		}
     }
 
 	// ============================================
@@ -1043,12 +1076,12 @@ Fit.Controls.TreeView = function(ctlId)
 
 		selected.toString = function(alternativeSeparator)
 		{
-			Fit.Validation.ExpectStringValue(alternativeSeparator, true);
+			Fit.Validation.ExpectString(alternativeSeparator, true);
 
 			var val = "";
 			Fit.Array.ForEach(this, function(n)
 			{
-				val += ((val !== "") ? (alternativeSeparator ? alternativeSeparator : ";") : "") + n.Value();
+				val += ((val !== "") ? ((Fit.Validation.IsSet(alternativeSeparator) === true) ? alternativeSeparator : ";") : "") + n.Value();
 			});
 			return val;
 		}
@@ -1422,6 +1455,17 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 			return null; // Rooted, but not in another node - most likely rooted in TreeView UL container
 
 		return elmLi.parentNode.parentNode._internal.Node;
+	}
+
+	/// <function container="Fit.Controls.TreeView.Node" name="GetTreeView" access="public" returns="Fit.Controls.TreeView">
+	/// 	<description> Returns TreeView if associated, otherwise Null </description>
+	/// </function>
+	this.GetTreeView = function()
+	{
+		if (elmLi._internal.TreeView !== null)
+			return elmLi._internal.TreeView.GetTreeView();
+
+		return null;
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="GetLevel" access="public" returns="integer">

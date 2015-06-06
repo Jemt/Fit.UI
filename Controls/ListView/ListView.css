@@ -1,7 +1,5 @@
 div.FitUiControlListView
 {
-	min-height: 20px;
-	max-height: 100px;
 	overflow: auto;
 }
 
