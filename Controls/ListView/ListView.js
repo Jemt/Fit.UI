@@ -189,7 +189,6 @@ Fit.Controls.ListView = function(controlId)
 
 				// Prevent scrollable div from scrolling up
 				Fit.Events.PreventDefault(ev);
-				return false;
             }
             else if (ev.keyCode === 40) // arrow down
             {
@@ -197,7 +196,6 @@ Fit.Controls.ListView = function(controlId)
 
 				// Prevent scrollable div from scrolling down
 				Fit.Events.PreventDefault(ev);
-				return false;
             }
             else if (ev.keyCode === 13) // enter
             {
@@ -215,7 +213,6 @@ Fit.Controls.ListView = function(controlId)
 
 				// Prevent form submit
 				Fit.Events.PreventDefault(ev);
-				return false;
             }
         }
     }

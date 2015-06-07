@@ -27,7 +27,7 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 {
 	Fit.Validation.ExpectFunction(callback);
 
-	if (obj instanceof Array || obj instanceof NodeList || obj instanceof HTMLCollection)
+	if (obj instanceof Array || obj instanceof NodeList || (window.StaticNodeList && obj instanceof StaticNodeList) || obj instanceof HTMLCollection)
 	{
 		for (var i = 0 ; i < obj.length ; i++)
 			if (callback(obj[i]) === false)
@@ -196,7 +196,7 @@ Fit.Array.Copy = function(arr)
 }
 
 /// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="array">
-/// 	<description> Convert collection (NodeList or HTMLCollection) to JS array </description>
+/// 	<description> Convert collection (NodeList, StaticNodeList, or HTMLCollection) to JS array </description>
 /// 	<param name="coll" type="object"> Collection to convert to array </param>
 /// </function>
 Fit.Array.ToArray = function(coll)

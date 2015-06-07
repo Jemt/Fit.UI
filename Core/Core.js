@@ -1,4 +1,7 @@
 // TODO (entire framework):
+//  - Use of ev.keyCode is deprecated and must be replaced !
+//    Consider implementing Fit.Events.GetKeyCode(ev)
+//    Search and replace .keyCode, .charCode, and .which
 //  - Get rid of Fit.Validation.ExpectStringValue(..) - do not mix type checking and value validation!
 //  - Perhaps Fit.Core.Extend should be replaced by inheritance using prototyping.
 //  - Fit.Validation.ExpectDomElement(..) is sometimes too vague, e.g. when expecting HTMLInputElement

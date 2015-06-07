@@ -299,33 +299,31 @@ Fit.Controls.WSTreeView = function(ctlId)
 			preSelected = [];
 			var fireOnChange = (me.Selected().length > 0); // Selected() return nodes already loaded and preselections
 
-			me._internal.ExecuteWithNoOnChange(function()
+			// Select nodes already loaded
+
+			var selected = -1;
+			me._internal.ExecuteWithNoOnChange(function() { selected = baseSelected(toSelect); });
+
+			if (selected.length > 0)
+				fireOnChange = true;
+
+			// Update orgSelected used to determine dirty state
+
+			Fit.Array.ForEach(selected, function(node)
 			{
-				// Select nodes already loaded
+				Fit.Array.Add(orgSelected, node.Value());
+			});
 
-				var selected = baseSelected(toSelect);
+			// Add nodes not loaded yet to preselections
 
-				if (selected.length > 0)
-					fireOnChange = true;
-
-				// Update orgSelected used to determine dirty state
-
-				Fit.Array.ForEach(selected, function(node)
+			Fit.Array.ForEach(val, function(node)
+			{
+				if (me.GetChild(node.Value(), true) === null)
 				{
+					Fit.Array.Add(preSelected, node.Value());
 					Fit.Array.Add(orgSelected, node.Value());
-				});
-
-				// Add nodes not loaded yet to preselections
-
-				Fit.Array.ForEach(val, function(node)
-				{
-					if (me.GetChild(node.Value(), true) === null)
-					{
-						Fit.Array.Add(preSelected, node.Value());
-						Fit.Array.Add(orgSelected, node.Value());
-						fireOnChange = true;
-					}
-				});
+					fireOnChange = true;
+				}
 			});
 		}
 

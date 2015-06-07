@@ -1,0 +1,114 @@
+div.FitUiControlDropDownLayer
+{
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	display: none;
+}
+
+div.FitUiControlDropDown
+{
+	/* Position above layer */
+	position: relative;
+	z-index: 1;
+}
+
+div.FitUiControlDropDownItems /* Item container */
+{
+	border: 1px solid gray;
+	border-radius: 4px;
+	padding: 2px 2em 2px 3px;
+	background-color: white;
+	cursor: text;
+	white-space: normal; /* Make sure items wrap properly if used in container with nowrap */
+	position: relative; /* Allow absolute positioning of arrow icon within item container */
+}
+
+div.FitUiControlDropDownItems > i /* Arrow down (open drop down) */
+{
+	position: absolute;
+	top: 50%;
+	margin-top: -0.5em;
+	right: 5px;
+	cursor: pointer;
+}
+
+div.FitUiControlDropDownItems > span /* Selection container */
+{
+	display: inline-block;
+	margin-top: 0.1em;
+	margin-bottom: 0.1em;
+}
+
+div.FitUiControlDropDownItems > span > span /* Selection */
+{
+	display: inline-block;
+	padding: 2px;
+	border: 1px solid silver;
+	border-radius: 2px;
+	background-color: whitesmoke;
+}
+
+div.FitUiControlDropDownItems > span > span.FitUiControlDropDownInvalid /* Invalid selection */
+{
+	background-color: #F5B8B8;
+}
+
+div.FitUiControlDropDownItems > span > span > i /* Delete button */
+{
+	color: #CC0000;
+	padding-left: 0.4em;
+	cursor: pointer;
+}
+
+/* CSS used to calculate width of content for input fields */
+div.FitUiControlDropDownHidden
+{
+	position: absolute;
+	visibility: hidden;
+}
+div.FitUiControlDropDownHidden span
+{
+	white-space: pre;
+}
+div.FitUiControlDropDownItems input
+{
+	/* Make input adopt font settings which must be exactly identical to font settings applied to hidden
+	   span. Otherwise content width calculated using hidden span will not work properly with input control.
+	   See fitWidthToContent(..) function in DropDown menu control for details. */
+	font-family: inherit;
+	font-size: inherit;
+	font-style: inherit;
+	font-weight: inherit;
+
+	width: 5px;
+	height: 1.5em;
+
+	border-style: none;
+	outline: none;
+
+	margin: 0px;
+	padding: 0px;
+}
+
+div.FitUiControlDropDownItems span > span + input /* Right input in selection container */
+{
+	text-align: right;
+	padding-right: 1px; /* IE8: Prevent cursor from disappearing */
+}
+
+div.FitUiControlDropDownItems input::-ms-clear /* Remove clear button in IE10 - requires true IE10 document mode to work */
+{
+    display: none;
+}
+
+div.FitUiControlDropDownPicker /* Picker container (drop down) */
+{
+	background-color: white;
+	border: 1px solid gray;
+	border-top-style: none;
+	border-radius: 2px;
+	display: none;
+}

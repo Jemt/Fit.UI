@@ -121,7 +121,7 @@ Fit.Validation.ExpectCollection = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((val instanceof NodeList) === false && (val instanceof HTMLCollection) === false && (val instanceof Array) === false)
+	if ((val instanceof NodeList) === false && (window.StaticNodeList && (val instanceof StaticNodeList) === false) && (val instanceof HTMLCollection) === false && (val instanceof Array) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a valid collection");
 }
 
