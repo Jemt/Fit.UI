@@ -88,6 +88,9 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation
 	var lblValidationError = null;
 	var onChangeHandlers = [];
+	var txtValue = null;
+	var txtDirty = null;
+	var txtValid = null;
 
 	function init()
 	{
@@ -95,6 +98,31 @@ Fit.Controls.ControlBase = function(controlId)
 		container.id = id;
 		container.style.width = width.Value + width.Unit;
 		Fit.Dom.AddClass(container, "FitUiControl");
+
+		// Add hidden inputs which are automatically populated with
+		// control value and state information when control is updated.
+
+		txtValue = document.createElement("textarea"); // Using Textarea to allow HTML content
+		txtValue.style.display = "none";
+		txtValue.name = "FitUIValue" + me.GetId();
+		Fit.Dom.Add(container, txtValue);
+
+		txtDirty = document.createElement("input");
+		txtDirty.type = "hidden";
+		txtDirty.name = "FitUIDirty" + me.GetId();
+		Fit.Dom.Add(container, txtDirty);
+
+		txtValid = document.createElement("input");
+		txtValid.type = "hidden";
+		txtValid.name = "FitUIValid" + me.GetId();
+		Fit.Dom.Add(container, txtValid);
+
+		me.OnChange(function(sender, value)
+		{
+			txtValue.value = value.toString();
+			txtDirty.value = ((sender.IsDirty() === true) ? "1" : "0");
+			txtValid.value = ((sender.IsValid() === true) ? "1" : "0");
+		});
 	}
 
 	// ============================================
@@ -251,10 +279,15 @@ Fit.Controls.ControlBase = function(controlId)
 	/// </function>
 	this.Scope = function(val)
 	{
-		Fit.Validation.ExpectStringValue(val, true);
+		Fit.Validation.ExpectString(val, true);
 
 		if (Fit.Validation.IsSet(val) === true)
-			scope = val;
+		{
+			if (val === "")
+				scope = null;
+			else
+				scope = val;
+		}
 
 		return scope;
 	}
@@ -400,7 +433,7 @@ Fit.Controls.ControlBase = function(controlId)
 		this._internal.AddDomElement = function(elm)
 		{
 			Fit.Validation.ExpectDomElement(elm);
-			Fit.Dom.Add(container, elm);
+			Fit.Dom.InsertBefore(txtValue, elm); //Fit.Dom.Add(container, elm);
 		},
 
 		this._internal.RemoveDomElement = function(elm)
@@ -496,6 +529,9 @@ Fit.Controls.ValidateAll = function(scope)
 	Fit.Array.ForEach(Fit._internal.ControlBase.Controls, function(controlId)
 	{
 		var control = Fit._internal.ControlBase.Controls[controlId];
+
+		if (Fit.Core.InstanceOf(control, Fit.Controls.ControlBase) === false)
+			return;
 
 		if (Fit.Validation.IsSet(scope) === true && control.Scope() !== scope)
 			return;

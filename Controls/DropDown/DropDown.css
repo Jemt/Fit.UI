@@ -12,7 +12,7 @@ div.FitUiControlDropDown
 {
 	/* Position above layer */
 	position: relative;
-	z-index: 1;
+	z-index: 100;
 }
 
 div.FitUiControlDropDownItems /* Item container */
@@ -111,4 +111,9 @@ div.FitUiControlDropDownPicker /* Picker container (drop down) */
 	border-top-style: none;
 	border-radius: 2px;
 	display: none;
+	min-height: 10px;
+
+	/*position: absolute;
+	width: 100%;
+	z-index: 100;*/
 }
