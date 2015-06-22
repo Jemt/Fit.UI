@@ -70,7 +70,7 @@ Fit.Http.Request = function(url)
 			Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
 		}
 
-		if (httpRequest.readyState === 4 && httpRequest.status !== 200)
+		if (httpRequest.readyState === 4 && httpRequest.status !== 200 && httpRequest.status !== 0) // status is 0 if request was canceled
 		{
 			Fit.Array.ForEach(onFailureHandlers, function(handler) { handler(me); });
 		}
@@ -156,6 +156,14 @@ Fit.Http.Request = function(url)
 			httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
 		httpRequest.send(data);
+	}
+
+	/// <function container="Fit.Http.Request" name="Abort" access="public">
+	/// 	<description> Abort asynchroneus request </description>
+	/// </function>
+	this.Abort = function()
+	{
+		httpRequest.abort();
 	}
 
 	/// <function container="Fit.Http.Request" name="GetResponseXml" access="public" returns="Document">
