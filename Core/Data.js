@@ -1,3 +1,7 @@
+// =====================================
+// Data
+// =====================================
+
 Fit.Data = {};
 
 /// <function container="Fit.Data" name="CreateGuid" access="public" static="true" returns="string">
@@ -37,4 +41,33 @@ Fit.Data.CreateGuid = function(dashFormat)
 	}
 
 	return uuid.join("");
+}
+
+// =====================================
+// String
+// =====================================
+
+Fit.String = {};
+
+/// <function container="Fit.String" name="Trim" access="public" static="true" returns="string">
+/// 	<description> Removes any whitespaces in beginning and end of string passed, and returns the new string </description>
+/// 	<param name="str" type="string"> String to trim </param>
+/// </function>
+Fit.String.Trim = function(str)
+{
+	Fit.Validation.ExpectString(str);
+	return str.replace(/^\s+|\s+$/gm, "");
+}
+
+/// <function container="Fit.String" name="StripHtml" access="public" static="true" returns="string">
+/// 	<description> Removes any HTML contained in string, and returns the raw text value </description>
+/// 	<param name="str" type="string"> String to strip HTML from </param>
+/// </function>
+Fit.String.StripHtml = function(str)
+{
+	Fit.Validation.ExpectString(str);
+
+	var span = document.createElement("span");
+	span.innerHTML = str;
+	return Fit.String.Trim(Fit.Dom.Text(span));
 }

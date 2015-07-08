@@ -122,12 +122,33 @@ Fit.Controls.ControlBase = function(controlId)
 			txtValue.value = value.toString();
 			txtDirty.value = ((sender.IsDirty() === true) ? "1" : "0");
 			txtValid.value = ((sender.IsValid() === true) ? "1" : "0");
+
+			if (me.AutoPostBack() === true && document.forms.length > 0)
+			{
+				document.forms[0].submit();
+			}
 		});
 	}
 
 	// ============================================
 	// Public
 	// ============================================
+
+	/// <function container="Fit.Controls.ControlBase" name="AutoPostBack" access="public" returns="boolean">
+	/// 	<description> Set flag indicating whether control should post back changes automatically when value is changed </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables auto post back, False disables it </param>
+	/// </function>
+	this.AutoPostBack = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			me._internal.Data("autopost", val.toString());
+		}
+
+		return (me._internal.Data("autopost") === "true");
+	}
 
 	/// <function container="Fit.Controls.ControlBase" name="GetId" access="public" returns="string">
 	/// 	<description> Get unique Control ID </description>
@@ -369,7 +390,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnChange" access="public">
 	/// 	<description> Register OnChange event handler which is invoked when control value is changed either programmatically or by user </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) and new control value (object) </param>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) and new control value (string) </param>
 	/// </function>
 	this.OnChange = function(cb)
 	{

@@ -232,7 +232,7 @@ Fit.Dom.GetIndex = function(elm)
 /// 	<description>
 /// 		Get number of levels specified element is nested in DOM.
 /// 		HTMLElement is at level 0, HTMLBodyElement is at level 1,
-/// 		first element in BODYElement is at level 2, and so forth.
+/// 		first element in HTMLBodyElement is at level 2, and so forth.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get depth in DOM for </param>
 /// </function>
@@ -250,6 +250,29 @@ Fit.Dom.GetDepth = function(elm)
     }
 
     return i;
+}
+
+/// <function container="Fit.Dom" name="Contained" access="public" static="true" returns="boolean">
+/// 	<description> Check whether given element is found in given container at any given level in object hierarchy </description>
+/// 	<param name="container" type="DOMElement"> Container expected to contain element </param>
+/// 	<param name="elm" type="DOMElement"> Element expected to be found in container's object hierarchy </param>
+/// </function>
+Fit.Dom.Contained = function(container, elm)
+{
+	Fit.Validation.ExpectDomElement(container);
+	Fit.Validation.ExpectDomElement(elm);
+
+    var parent = elm.parentElement;
+
+    while (parent)
+    {
+        if (parent === container)
+			return true;
+
+        parent = parent.parentElement;
+    }
+
+    return false;
 }
 
 /// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">

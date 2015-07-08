@@ -56,9 +56,12 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 /// </function>
 Fit.Array.Recurse = function(arr, childrenProperty, callback)
 {
-	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectArray(arr, true);
 	Fit.Validation.ExpectStringValue(childrenProperty);
 	Fit.Validation.ExpectFunction(callback);
+
+	if (Fit.Validation.IsSet(arr) === false)
+		return;
 
 	for (var i = 0 ; i < arr.length ; i++)
 	{
