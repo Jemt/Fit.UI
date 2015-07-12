@@ -118,6 +118,31 @@ Fit.Dom.InsertAfter = function(target, newElm)
 		target.parentElement.appendChild(newElm);
 }
 
+/// <function container="Fit.Dom" name="InsertAt" access="public" static="true">
+/// 	<description> Insert DOMElement at given position </description>
+/// 	<param name="container" type="DOMElement"> Container to insert element into </param>
+/// 	<param name="position" type="integer"> Position (index) to insert element at </param>
+/// 	<param name="newElm" type="DOMElement"> Element to insert </param>
+/// </function>
+Fit.Dom.InsertAt = function(container, position, newElm)
+{
+	Fit.Validation.ExpectDomElement(container);
+	Fit.Validation.ExpectInteger(position);
+	Fit.Validation.ExpectDomElement(newElm);
+
+	if (container.children.length === 0 || container.children.length - 1 < position)
+	{
+		container.appendChild(newElm);
+	}
+	else
+	{
+		var before = container.children[position];
+
+		if (before)
+			Fit.Dom.InsertBefore(before, newElm);
+	}
+}
+
 /// <function container="Fit.Dom" name="Add" access="public" static="true">
 /// 	<description> Add DOMElement to container </description>
 /// 	<param name="container" type="DOMElement"> Add element to this container </param>
@@ -273,6 +298,16 @@ Fit.Dom.Contained = function(container, elm)
     }
 
     return false;
+}
+
+/// <function container="Fit.Dom" name="IsVisible" access="public" static="true" returns="boolean">
+/// 	<description> Check whether given element is visible </description>
+/// 	<param name="elm" type="DOMElement"> Element to check visibility for </param>
+/// </function>
+Fit.Dom.IsVisible = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+	return (elm.offsetParent !== null);
 }
 
 /// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">

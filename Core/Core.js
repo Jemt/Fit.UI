@@ -22,6 +22,7 @@
 //  - Type checking (Fit.Validation) has cross frame issues. Passing objects between frames
 //    breaks instanceof because frames do not share the same prototypes. Interesting article:
 //    http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray
+//  - Fit.Events.AddMutationObserver <= Should use native browser mutation observer if available
 
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS

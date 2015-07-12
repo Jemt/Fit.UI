@@ -67,7 +67,32 @@ Fit.String.StripHtml = function(str)
 {
 	Fit.Validation.ExpectString(str);
 
+	// return str.replace(/(<([^>]+)>)/g, "");
+
 	var span = document.createElement("span");
 	span.innerHTML = str;
 	return Fit.String.Trim(Fit.Dom.Text(span));
+}
+
+/// <function container="Fit.String" name="Hash" access="public" static="true" returns="integer">
+/// 	<description> Get Java compatible Hash Code from string </description>
+/// 	<param name="str" type="string"> String to get hash code from </param>
+/// </function>
+Fit.String.Hash = function(str)
+{
+	Fit.Validation.ExpectString(str);
+
+	if (str.length == 0) return 0;
+
+	var hash = 0;
+	var chr = '';
+
+	for (var i = 0 ; i < str.length ; i++)
+	{
+		chr = str.charCodeAt(i);
+		hash = ((hash << 5) - hash) + chr;
+		hash = hash & hash;
+	}
+
+	return hash;
 }

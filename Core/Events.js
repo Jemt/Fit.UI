@@ -214,6 +214,129 @@ Fit.Events.AddHandler(document, "mousemove", function(e)
 });
 
 // ==============================================
+// Simple mutation tracking
+// ==============================================
+
+// This is a very simple substitution for native mutation observers,
+// which unfortunately requires recent versions of some of the major
+// browsers (e.g. IE 11, Safari 6 and Chrome on Android 4.4).
+
+Fit._internal.Events.MutationObservers = []; // Callbacks
+Fit._internal.Events.MutationObserverIntervalId = -1;
+
+/// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true">
+/// 	<description>
+/// 		Registers mutation observer which is invoked when a DOMElement is updated. By default
+/// 		only attributes are observed. Use deep flag to have children and character data observed too.
+/// 		Important: Mutation observers should be removed when no longer needed for better performance!
+/// 		See Fit.Events.RemoveMutationObserver function for details.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> DOMElement to observe </param>
+/// 	<param name="obs" type="function"> JavaScript observer function to register - receives reference to DOMElement being observed when updated </param>
+/// 	<param name="deep" type="boolean" default="false"> Flag indicating whether to check for modifications within element (children and character data) - this could potentially be expensive </param>
+/// </function>
+Fit.Events.AddMutationObserver = function(elm, obs, deep)
+{
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectFunction(obs);
+	Fit.Validation.ExpectBoolean(deep, true);
+
+	// Configure event handlers responsible for triggering mutation check
+
+	if (Fit._internal.Events.MutationObservers.length === 0)
+	{
+		Fit.Events.AddHandler(document, "click", Fit._internal.Events.CheckMutations);
+		Fit.Events.AddHandler(document, "mousedown", Fit._internal.Events.CheckMutations);
+		Fit.Events.AddHandler(document, "mouseup", Fit._internal.Events.CheckMutations);
+		Fit.Events.AddHandler(document, "keypress", Fit._internal.Events.CheckMutations); // Not using keydown, it fires continuously
+		Fit.Events.AddHandler(document, "keyup", Fit._internal.Events.CheckMutations);
+		Fit.Events.AddHandler(document, "touchstart", Fit._internal.Events.CheckMutations);
+		Fit.Events.AddHandler(document, "touchend", Fit._internal.Events.CheckMutations);
+		Fit.Events.AddHandler(document, "touchcancel", Fit._internal.Events.CheckMutations);
+		Fit._internal.Events.MutationObserverIntervalId = setInterval(Fit._internal.Events.CheckMutations, 1000);
+	}
+
+	// Add mutation observer
+
+	hashCode = 0;
+
+	if (deep === true)
+	{
+		hashCode = Fit.String.Hash(elm.outerHTML);
+	}
+	else
+	{
+		var clone = elm.cloneNode(false);
+		hashCode = Fit.String.Hash(clone.outerHTML)
+	}
+
+	Fit.Array.Add(Fit._internal.Events.MutationObservers, { Element: elm, Observer: obs, Hash: hashCode, Deep: (deep === true) });
+}
+
+/// <function container="Fit.Events" name="RemoveMutationObserver" access="public" static="true">
+/// 	<description> Remove mutation observer </description>
+/// 	<param name="elm" type="DOMElement"> DOMElement being observed </param>
+/// 	<param name="obs" type="function"> JavaScript observer function to remove </param>
+/// 	<param name="deep" type="boolean" default="undefined"> If defined, observer must have been registered with the same deep value to be removed </param>
+/// </function>
+Fit.Events.RemoveMutationObserver = function(elm, obs, deep)
+{
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectFunction(obs);
+	Fit.Validation.ExpectBoolean(deep, true);
+
+	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)
+	{
+		if (mo.Element === elm && mo.Observer === obs && (Fit.Validation.IsSet(deep) === false || mo.Deep === deep))
+		{
+			Fit.Array.Remove(Fit._internal.Events.MutationObservers, mo);
+			return false;
+		}
+	});
+
+	// Remove event handlers if all mutation observers have been removed
+
+	if (Fit._internal.Events.MutationObservers.length === 0)
+	{
+		Fit.Events.RemoveHandler(document, "click", Fit._internal.Events.CheckMutations);
+		Fit.Events.RemoveHandler(document, "mousedown", Fit._internal.Events.CheckMutations);
+		Fit.Events.RemoveHandler(document, "mouseup", Fit._internal.Events.CheckMutations);
+		Fit.Events.RemoveHandler(document, "keypress", Fit._internal.Events.CheckMutations); // Not using keydown, it fires continuously
+		Fit.Events.RemoveHandler(document, "keyup", Fit._internal.Events.CheckMutations);
+		Fit.Events.RemoveHandler(document, "touchstart", Fit._internal.Events.CheckMutations);
+		Fit.Events.RemoveHandler(document, "touchend", Fit._internal.Events.CheckMutations);
+		Fit.Events.RemoveHandler(document, "touchcancel", Fit._internal.Events.CheckMutations);
+		clearInterval(Fit._internal.Events.MutationObserverIntervalId);
+	}
+}
+
+Fit._internal.Events.CheckMutations = function()
+{
+	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)
+	{
+		var newHash = 0;
+
+		if (mo.Deep === true)
+		{
+			newHash = Fit.String.Hash(mo.Element.outerHTML);
+		}
+		else
+		{
+			var clone = mo.Element.cloneNode(false);
+			newHash = Fit.String.Hash(clone.outerHTML)
+		}
+
+		if (mo.Hash !== newHash)
+		{
+			// Element has mutated, call observer
+
+			mo.Hash = newHash;
+			mo.Observer(mo.Element);
+		}
+	});
+}
+
+// ==============================================
 // OnReady handling
 // ==============================================
 
