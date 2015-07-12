@@ -229,7 +229,7 @@ Fit._internal.Events.MutationObserverIntervalId = -1;
 /// 		Registers mutation observer which is invoked when a DOMElement is updated. By default
 /// 		only attributes are observed. Use deep flag to have children and character data observed too.
 /// 		Important: Mutation observers should be removed when no longer needed for better performance!
-/// 		See Fit.Events.RemoveMutationObserver function for details.
+/// 		To remove an observer from within the observer function itself, simply call disconnect().
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to observe </param>
 /// 	<param name="obs" type="function"> JavaScript observer function to register - receives reference to DOMElement being observed when updated </param>
@@ -328,10 +328,50 @@ Fit._internal.Events.CheckMutations = function()
 
 		if (mo.Hash !== newHash)
 		{
-			// Element has mutated, call observer
+			// Element has mutated
 
 			mo.Hash = newHash;
-			mo.Observer(mo.Element);
+
+			// Create global disconnect function allowing observer to remove itself by simply invoking disconnect()
+
+			var orgDisconnect = window.disconnect;
+			window.disconnect = function() { Fit.Events.RemoveMutationObserver(mo.Element, mo.Observer, mo.Deep); };
+
+			// Call observer
+
+			var error = null;
+
+			try
+			{
+				mo.Observer(mo.Element);
+			}
+			catch (err)
+			{
+				error = err;
+			}
+
+			// Remove global disconnect function
+
+			if (orgDisconnect)
+			{
+				window.disconnect = orgDisconnect;
+			}
+			else
+			{
+				try
+				{
+					delete window.disconnect; // Fails in IE8 with "Object doesn't support this action"
+				}
+				catch (err)
+				{
+					window.disconnect = undefined;
+				}
+			}
+
+			// Re-throw error if observer failed
+
+			if (error !== null)
+				Fit.Validation.Throw(error);
 		}
 	});
 }
