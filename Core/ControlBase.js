@@ -18,26 +18,19 @@ Fit.Controls.ControlBase = function(controlId)
 	// Interface - must be overridden
 	// ============================================
 
-	/// <function container="Fit.Controls.ControlBase" name="Value" access="public" returns="object">
+	/// <function container="Fit.Controls.ControlBase" name="Value" access="public" returns="string">
 	/// 	<description>
 	/// 		Get/set control value.
-	/// 		Object type accepted and returned is determined by individual controls, but
-	/// 		toString() may be called on returned object to obtain a string representation
-	/// 		with the following format: val1[;val2[;val3]].
-	/// 		The same format may be used to set control value.
+	/// 		For controls supporting multiple selections: Set value by providing a string in one the following formats:
+	/// 		title1=val1[;title2=val2[;title3=val3]] or val1[;val2[;val3]].
+	/// 		If Title or Value contains reserved characters (semicolon or equality sign), these most be URIEncoded.
+	/// 		Selected items are returned in the first format described, also with reserved characters URIEncoded.
+	/// 		Providing a new value to this function results in OnChange being fired.
 	/// 	</description>
-	/// 	<param name="value" type="object" default="undefined"> If defined, control value is updated with specified value </param>
+	/// 	<param name="val" type="string" default="undefined"> If defined, items are selected </param>
 	/// </function>
 	this.Value = function(val)
 	{
-		// Object type (return value and accepted parameter):
-		//  - String (best)
-		//  - Array/object (MUST override toString())
-		// Overriding toString() for Array and Object is important,
-		// since the string representation is used in the RegEx validation logic!
-		// ToString function should accept an alternative separator. If not set,
-		// semicolon (;) should be used.
-
 		// Function MUST remember to fire OnChange event when
 		// value is changed, both programmatically and by user.
 
@@ -167,7 +160,15 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Dispose" access="public">
-	/// 	<description> Destroys control to free up memory </description>
+	/// 	<description>
+	/// 		Destroys control to free up memory.
+	/// 		Make sure to call Dispose() on ControlBase which can be done like so:
+	/// 		this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+	/// 		{
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp; // Add control specific dispose logic here
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp; base(); // Call Dispose on ControlBase
+	/// 		});
+	/// 	</description>
 	/// </function>
 	this.Dispose = function()
 	{

@@ -164,7 +164,7 @@ Fit.Core.CreateOverride = function(originalFunction, newFunction)
 		}
 
 		if (error !== null)
-			Fit.Validation.Throw(error);
+			Fit.Validation.ThrowError(error);
 
 		if (result !== undefined)
 			return result;

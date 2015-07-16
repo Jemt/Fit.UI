@@ -460,7 +460,7 @@ In-place render:<br>
 		}
 
 		eventArgs.Request.AddData("NodeLevel", (node !== null ? node.GetLevel()+1 : 0).toString());
-		eventArgs.Request.AddData("NodeId", (node !== null ? node.Value() : ""));
+		eventArgs.Request.AddData("ParentNode", (node !== null ? node.Value() : ""));
 		//requestContext.NodeLevel = (node !== null ? node.GetLevel()+1 : 0);
 	});
 
@@ -591,7 +591,11 @@ Fit.Dom.InsertBefore(inp.GetDomElement(), lv.GetDomElement());
 
 </script>
 
-<br><br><br><br>
+<br><br>
+
+<h1>Drop down with WSTreeView</h1>
+
+<br><br>
 
 <input type="button" value="Use ListView" onclick="Fit.Controls.Find('DropDown').SetPicker(Fit.Controls.Find('ListView'));">
 <input type="button" value="Use TreeView" onclick="Fit.Controls.Find('DropDown').SetPicker(Fit.Controls.Find('MyDropDownTree'));">
@@ -616,7 +620,7 @@ t.OnRequest(function(sender, eventArgs)
 		eventArgs.Request.AddData("DynamicNodeTitle", "Node title came from RequestContext");
 
 	eventArgs.Request.AddData("NodeLevel", (node !== null ? node.GetLevel()+1 : 0).toString());
-	eventArgs.Request.AddData("NodeId", (node !== null ? node.Value() : ""));
+	eventArgs.Request.AddData("ParentNode", (node !== null ? node.Value() : ""));
 });
 t.OnItemSelectionChanging(function(sender, item) { console.log("TreeView.OnItemSelectionChanging", sender, item); /*console.trace();*/ if (item.Value === "0") { console.log("CANCELING"); return false; } });
 t.OnItemSelectionChanged(function(sender, item) { console.log("TreeView.OnItemSelectionChanged", sender, item); /*console.trace();*/ });
@@ -642,6 +646,7 @@ lv.OnShow(function(sender) { console.log("ListView.OnShow", sender.GetDomElement
 lv.OnHide(function(sender) { console.log("ListView.OnHide", sender.GetDomElement()); });
 
 x = new Fit.Controls.DropDown("DropDown");
+x.InputEnabled(true);
 x.Width(40, "%");
 x.DropDownMaxHeight(100);
 x.SetPicker(lv);
@@ -675,8 +680,49 @@ x.Render();
 
 <input>
 
-<br><br><br><br><br><br><br>
-<br><br><br><br><br><br><br>
+<br><br><br>
+
+<h1>WSDropDown</h1>
+
+<br><br>
+
+<div>
+<script type="text/javascript">
+	dd = new Fit.Controls.WSDropDown(Math.random() + "");
+	dd.InputEnabled(true);
+	dd.OnInputChanged(function(sender, value)
+	{
+		dd.Search = value;
+	});
+	dd.OnRequest(function(sender, eventArgs)
+	{
+		//if (eventArgs.Node
+
+		/*if (Fit.Core.InstanceOf(sender, Fit.Controls.WSListView) === true)
+		{
+			eventArgs.Request.AddData("Search", (dd.Search ? dd.Search : ""));
+		}
+		else // WSTreeView
+		{
+			eventArgs.Request.AddData("ParentNode", (eventArgs.Node !== null ? eventArgs.Node.Value() : ""));
+		}*/
+	});
+	dd.OnResponse(function(sender, eventArgs) { console.log("OnResponse", sender, eventArgs); });
+	dd.MultiSelectionMode(true);
+	dd.Url("getdata.php");
+	dd.Width(600, "px");
+	dd.Render();
+	dd.GetDomElement().style.fontSize = "11px";
+	dd.AddSelection("XYZ", "2");
+	dd.AddSelection("ABC", "3");
+	dd.AddSelection("Muuh", "2_2");
+
+	dd.GetDomElement().parentElement.style.display = "none";
+	setTimeout(function() { dd.SetInputValue("Search stuff here.."); setTimeout(function() { dd.GetDomElement().parentElement.style.display = ""; }, 1200); }, 3000);
+
+	for (var i = 0 ; i < 15 ; i++) document.body.appendChild(document.createElement("br"));
+</script>
+</div>
 
 </form>
 </body>

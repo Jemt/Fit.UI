@@ -1,6 +1,7 @@
 /// <container name="Fit.Controls.TreeView">
 /// 	TreeView control allowing data to be listed in a structured manner.
-/// 	Inheriting from Fit.Controls.ControlBase.
+/// 	Extending from Fit.Controls.PickerBase.
+/// 	Extending from Fit.Controls.ControlBase.
 ///
 /// 	Performance considerations (for huge amounts of data):
 ///
@@ -225,10 +226,7 @@ Fit.Controls.TreeView = function(ctlId)
 			{
 				if (node.Selectable() === true && me.AutoPostBack() === true && document.forms.length > 0)
 				{
-					//  Auto postback
-
 					node.Selected(true);
-					document.forms[0].submit();
 				}
 				else
 				{
@@ -395,29 +393,9 @@ Fit.Controls.TreeView = function(ctlId)
 			// Toggle selection or perform auto postback if node is selectable
 			if (elm.tagName !== "DIV" && node.Selectable() === true)
 			{
-				if (me.AutoPostBack() === true && document.forms.length > 0)
-				{
-					node.Selected(true);
-					document.forms[0].submit();
-				}
-				else
-				{
-					toggleNodeSelection(node);
-				}
+				toggleNodeSelection(node);
 			}
 		}
-
-		// Make value available from post back data
-
-		var txtValue = document.createElement("input");
-		txtValue.type = "hidden";
-		txtValue.name = me.GetId();
-		me._internal.AddDomElement(txtValue);
-
-		me.OnChange(function(sender, value)
-		{
-			txtValue.value = value.toString();
-		});
 	}
 
 	// ============================================
@@ -528,66 +506,61 @@ Fit.Controls.TreeView = function(ctlId)
 				me._internal.FireOnChange();
 		}
 
-		var copy = Fit.Array.Copy(selected); // Copy to prevent changes to internal selection array
+		return Fit.Array.Copy(selected); // Copy to prevent changes to internal selection array
+
+		/*var copy = Fit.Array.Copy(selected); // Copy to prevent changes to internal selection array
 		copy.toString = selected.toString;
 
-		return copy;
+		return copy;*/
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="Value" access="public" returns="object">
-	/// 	<description>
-	/// 		Fit.Controls.ControlBase.Value override:
-	/// 		Get/set selected nodes.
-	/// 		Updating selection can be done by either providing a collection of
-	/// 		Fit.Controls.TreeView.Node instances, or a string with a semicolon
-	/// 		separated list of node values.
-	/// 		Data is returned as an array of Fit.Controls.TreeView.Node[] instances.
-	/// 		Array implements ToString as defined by ControlBase which returns data as val1[;val2[;val3]].
-	/// 	</description>
-	/// 	<param name="val" type="object" default="undefined"> If defined, provided nodes are selected </param>
-	/// </function>
+	// See documentation on ControlBase
 	this.Value = function(val)
 	{
+		Fit.Validation.ExpectString(val, true)
+
+		// Set
+
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (val instanceof Array)
-			{
-				me.Selected(val);
-			}
-			else if (typeof(val) === "string")
-			{
-				selectedOrg = [];
-				var fireOnChange = (selected.length > 0);
+			selectedOrg = [];
+			var fireOnChange = (selected.length > 0);
 
-				executeWithNoOnChange(function()
+			executeWithNoOnChange(function()
+			{
+				me.Clear();
+
+				var values = val.split(";");
+
+				Fit.Array.ForEach(values, function(nodeValue)
 				{
-					me.Clear();
+					var nodeVal = decodeReserved(((nodeValue.indexOf("=") === -1) ? nodeValue : nodeValue.split("=")[1]));
+					var child = me.GetChild(nodeVal, true);
 
-					var values = val.toString().split(";");
-
-					Fit.Array.ForEach(values, function(nodeVal)
+					if (child !== null)
 					{
-						var child = me.GetChild(nodeVal, true);
-
-						if (child !== null)
-						{
-							Fit.Array.Add(selectedOrg, child);
-							child.Selected(true);
-							fireOnChange = true;
-						}
-					});
+						Fit.Array.Add(selectedOrg, child);
+						child.Selected(true);
+						fireOnChange = true;
+					}
 				});
+			});
 
-				if (fireOnChange === true)
-					me._internal.FireOnChange();
-			}
-			else
-			{
-				Fit.Validation.ThrowError("Unsupported value type");
-			}
+			if (fireOnChange === true)
+				me._internal.FireOnChange();
 		}
 
-		return me.Selected();
+		// Get
+
+		var nodes = me.Selected();
+		var val = "";
+
+		Fit.Array.ForEach(nodes, function(node)
+		{
+			val += ((val !== "") ? ";" : "") + encodeReserved(node.Title()) + "=" + encodeReserved(node.Value());
+		});
+
+		return val;
 	}
 
 	// See documentation on ControlBase
@@ -701,22 +674,6 @@ Fit.Controls.TreeView = function(ctlId)
 		forceClear = false;
 
 		me._internal.FireOnChange();
-	}
-
-	/// <function container="Fit.Controls.TreeView" name="AutoPostBack" access="public" returns="boolean">
-	/// 	<description> Set flag indicating whether TreeView should post back changes automatically </description>
-	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables auto post back, False disables it </param>
-	/// </function>
-	this.AutoPostBack = function(val)
-	{
-		Fit.Validation.ExpectBoolean(val, true);
-
-		if (Fit.Validation.IsSet(val) === true)
-		{
-			me._internal.Data("autopost", val.toString());
-		}
-
-		return (me._internal.Data("autopost") === "true");
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="AddChild" access="public">
@@ -908,19 +865,28 @@ Fit.Controls.TreeView = function(ctlId)
 		me._internal.FireOnItemSelectionChanged(node.Title(), node.Value(), node.Selected());
 	});
 
-	this.SetSelections = function(values)
+	this.OnChange(function(sender, value)
 	{
-		Fit.Validation.ExpectString(values);
+		me._internal.FireOnItemSelectionComplete();
+	});
 
+	this.SetSelections = function(items)
+	{
+		Fit.Validation.ExpectArray(items);
+
+		var vals = [];
 		var fireOnChange = false;
+
+		Fit.Array.ForEach(items, function(item)
+		{
+			Fit.Array.Add(vals, item.Value);
+		});
 
 		// Set new selections provided by host control
 
-		var vals = ((values !== "") ? values.split(";") : []);
-
 		executeWithNoOnChange(function()
 		{
-			// Deselect nodes not found in values passed (vals array)
+			// Deselect nodes not found in items passed (vals array)
 
 			Fit.Array.ForEach(selected, function(selectedNode)
 			{
@@ -932,14 +898,14 @@ Fit.Controls.TreeView = function(ctlId)
 				}
 			});
 
-			// Select nodes from values argument not already selected
+			// Select nodes from items argument not already selected
 
 			Fit.Array.ForEach(vals, function(nodeVal)
 			{
 				var child = me.GetChild(nodeVal, true); // Based on indexed lookup - fast!
 
-				// Notice: Values passed may contain nodes that were already selected, hence checking node's
-				// Selected state to prevent OnChange from firing if values provided matched TreeView's current selection.
+				// Notice: Items passed may contain nodes that were already selected, hence checking node's
+				// Selected state to prevent OnChange from firing if items provided matched TreeView's current selection.
 				if (child !== null && child.Selected() === false)
 				{
 					child.Selected(true);
@@ -1042,8 +1008,18 @@ Fit.Controls.TreeView = function(ctlId)
 
 			if (ev.keyCode === 37 || ev.keyCode === 39) // Left/Right
 				return false; // Suppress, left/right is reserved for expanding/collapsing nodes
+			if (ev.keyCode === 32) // Space
+				return false; // Suppress, space is reserved for selecting nodes
 		}
     }
+
+	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function()
+	{
+		// This will destroy control - it will no longer work!
+
+		me.Dispose();
+		base();
+	});
 
 	// ============================================
 	// Private
@@ -1073,19 +1049,6 @@ Fit.Controls.TreeView = function(ctlId)
 	function createInternalCollection()
 	{
 		var selected = [];
-
-		selected.toString = function(alternativeSeparator)
-		{
-			Fit.Validation.ExpectString(alternativeSeparator, true);
-
-			var val = "";
-			Fit.Array.ForEach(this, function(n)
-			{
-				val += ((val !== "") ? ((Fit.Validation.IsSet(alternativeSeparator) === true) ? alternativeSeparator : ";") : "") + n.Value();
-			});
-			return val;
-		}
-
 		return selected;
 	}
 
@@ -1182,6 +1145,18 @@ Fit.Controls.TreeView = function(ctlId)
 		return !cancel;
 	}
 
+	function decodeReserved(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return str.replace(/%3B/g, ";").replace(/%3D/g, "="); // Decode characters reserved for value format
+	}
+
+	function encodeReserved(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return str.replace(/;/g, "%3B").replace(/=/g, "%3D"); // Encode characters reserved for value format
+	}
+
 	init();
 }
 
@@ -1192,8 +1167,8 @@ Fit.Controls.TreeView = function(ctlId)
 /// </function>
 Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 {
-	Fit.Validation.ExpectStringValue(displayTitle);
-	Fit.Validation.ExpectStringValue(nodeValue);
+	Fit.Validation.ExpectString(displayTitle);
+	Fit.Validation.ExpectString(nodeValue);
 
 	var me = this;
 	var elmLi = null;
@@ -1217,7 +1192,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		lblTitle = document.createElement("span");
 
 		me.Title(displayTitle);
-		Fit.Dom.Data(elmLi, "value", nodeValue);
+		Fit.Dom.Data(elmLi, "value", encode(nodeValue));
 
 		Fit.Dom.Data(elmLi, "state", "static");
 		Fit.Dom.Data(elmLi, "selectable", "false");
@@ -1260,7 +1235,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	/// </function>
 	this.Value = function()
 	{
-		return Fit.Dom.Data(elmLi, "value"); // Read only - value has been used on parent node as index (childrenIndexed)
+		return decode(Fit.Dom.Data(elmLi, "value")); // Read only - value has been used on parent node as index (childrenIndexed)
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="Expanded" access="public" returns="boolean">
@@ -1732,6 +1707,18 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 			if (executeRecursively(child, cb) === false)
 				return false;
 		});
+	}
+
+	function decode(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return decodeURIComponent(str); // Turn string back to original value
+	}
+
+	function encode(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return encodeURIComponent(str); // Allow value to be stored in a HTML Data Attribute
 	}
 
 	init();

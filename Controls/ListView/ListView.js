@@ -51,8 +51,11 @@ Fit.Controls.ListView = function(controlId)
 			// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
 			// not keep track of selection state. In theory item could very well already be selected in host control.
 			// Event handlers should not trust boolean to reveal selection in host control, only in picker.
-			if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(elm), Fit.Dom.Data(elm, "value"), false) === true)
-				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(elm), Fit.Dom.Data(elm, "value"), true);
+			if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), false) === true)
+			{
+				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), true);
+				me._internal.FireOnItemSelectionComplete();
+			}
 		}
 
 		list.onfocus = function(e)
@@ -129,12 +132,12 @@ Fit.Controls.ListView = function(controlId)
 	/// </function>
 	this.AddItem = function(title, value)
 	{
-		Fit.Validation.ExpectStringValue(title);
-		Fit.Validation.ExpectStringValue(value);
+		Fit.Validation.ExpectString(title);
+		Fit.Validation.ExpectString(value);
 
 		var entry = document.createElement("div");
 		entry.innerHTML = title;
-		Fit.Dom.Data(entry, "value", value);
+		Fit.Dom.Data(entry, "value", encode(value));
 		Fit.Dom.Data(entry, "active", "false");
 
 		list.appendChild(entry);
@@ -146,11 +149,11 @@ Fit.Controls.ListView = function(controlId)
 	/// </function>
 	this.RemoveItem = function(value)
 	{
-		Fit.Validation.ExpectStringValue(value);
+		Fit.Validation.ExpectString(value);
 
 		Fit.Array.ForEach(list.children, function(child)
 		{
-			if (Fit.Dom.Data(child, "value") === value)
+			if (decode(Fit.Dom.Data(child, "value")) === value)
 			{
 				Fit.Dom.Remove(child);
 				return false;
@@ -164,6 +167,7 @@ Fit.Controls.ListView = function(controlId)
 	this.RemoveItems = function()
 	{
 		list.innerHTML = "";
+		setActive(null);
 	}
 
 	// ============================================
@@ -207,8 +211,11 @@ Fit.Controls.ListView = function(controlId)
 					// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
 					// not keep track of selection state. In theory item could very well already be selected in host control.
 					// Event handlers should not trust boolean to reveal selection in host control, only in picker.
-					if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), false) === true)
-						me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), Fit.Dom.Data(active, "value"), true);
+					if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), false) === true)
+					{
+						me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), true);
+						me._internal.FireOnItemSelectionComplete();
+					}
 				}
 
 				// Prevent form submit
@@ -217,13 +224,14 @@ Fit.Controls.ListView = function(controlId)
         }
     }
 
-	this.Dispose = function()
+	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function()
 	{
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(list);
 		me = list = active = isIe8 = null;
-	}
+		base();
+	});
 
     // ============================================
 	// Private
@@ -288,6 +296,18 @@ Fit.Controls.ListView = function(controlId)
 			Fit.Dom.AddClass(list, "FitUi_Non_Existing_ListView_Class");
 			Fit.Dom.RemoveClass(list, "FitUi_Non_Existing_ListView_Class");
 		}
+	}
+
+	function decode(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return decodeURIComponent(str);
+	}
+
+	function encode(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return encodeURIComponent(str);
 	}
 
 	init();

@@ -1,6 +1,6 @@
 /// <container name="Fit.Controls.PickerBase">
 /// 	Class from which all Picker Controls inherit.
-/// 	Control developers must override: GetDomElement, Dispose.
+/// 	Control developers must override: GetDomElement, Destroy.
 /// 	Overriding the following functions is optional:
 /// 	UpdateItemSelectionState, SetEventDispatcher, HandleEvent.
 /// 	Picker Control must fire OnItemSelectionChanging and OnItemSelectionChanged when an item's
@@ -10,6 +10,12 @@
 /// 	this._internal.FireOnItemSelectionChanged(title:string, value:string, newSelectionState:boolean).
 /// 	Notice that FireOnItemSelectionChanging may return False, which must prevent item from being
 /// 	selected, and at the same time prevent FireOnItemSelectionChanged from being called.
+/// 	Changing an item selection may cause OnItemSelectionChanging and OnItemSelectionChanged to be
+/// 	fired multiple times (e.g. if picker needs to first deselect one item before selecting another one).
+/// 	Therefore PickerBase also features the OnItemSelectionComplete event which must be fired when related
+/// 	changes complete, which is done by invoking this._internal.FireOnItemSelectionComplete().
+/// 	OnItemSelectionComplete should only fire if a change was made (changes can be canceled using
+/// 	OnItemSelectionChanging).
 /// </container>
 Fit.Controls.PickerBase = function(controlId)
 {
@@ -32,8 +38,9 @@ Fit.Controls.PickerBase = function(controlId)
 
 	var onShowHandlers = [];
 	var onHideHandlers = [];
-	var onChangeHandlers = [];
 	var onChangingHandlers = [];
+	var onChangeHandlers = [];
+	var onCompleteHandlers = [];
 
 	// ============================================
 	// Public
@@ -122,6 +129,8 @@ Fit.Controls.PickerBase = function(controlId)
 	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionChanged" access="public">
 	/// 	<description>
 	/// 		Register event handler fired when item selection is changed.
+	/// 		This event may be fired multiple times when a selection is changed, e.g. in Single Selection Mode,
+	/// 		where an existing selected item is deselected, followed by selection of new item.
 	/// 		The following arguments are passed to event handler function:
 	/// 		Sender (PickerBase), EventArgs (containing Title (string), Value (string), and Selected (boolean) properties).
 	/// 	</description>
@@ -132,6 +141,16 @@ Fit.Controls.PickerBase = function(controlId)
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onChangeHandlers, cb);
     }
+
+	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionComplete" access="public">
+	/// 	<description> Register event handler invoked when a series of related item changes are completed </description>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (PickerBase) </param>
+	/// </function>
+	this.OnItemSelectionComplete = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onCompleteHandlers, cb);
+	}
 
 	// ============================================
 	// For derivatives - control developers
@@ -193,15 +212,22 @@ Fit.Controls.PickerBase = function(controlId)
 	/// <function container="Fit.Controls.PickerBase" name="SetSelections" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (optional).
-	/// 		Host control invokes this function when picker is assigned to host control, providing a semicolon
-	/// 		separated string of values already selected. If picker defines preselected items, firering
-	/// 		OnItemSelectionChanged for these items, will update the host control appropriately.
+	/// 		Host control invokes this function when picker is assigned to host control, providing an array
+	/// 		of items already selected. An item is an object with a Title (string) and Value (string) property set.
+	/// 		If picker defines preselected items, firing OnItemSelectionChanged
+	/// 		for these items, will update the host control appropriately.
 	/// 	</description>
-	/// 	<param name="values" type="string"> Item values separated by semicolon </param>
+	/// 	<param name="items" type="array"> Array containing selected items: {Title:string, Value:string} </param>
 	/// </function>
-	this.SetSelections = function(values)
+	this.SetSelections = function(items)
 	{
-		Fit.Validation.ExpectString(values);
+		Fit.Validation.ExpectArray(items);
+
+		Fit.Array.ForEach(items, function(item)
+		{
+			Fit.Validation.ExpectString(item.Title);
+			Fit.Validation.ExpectString(item.Value);
+		});
 	}
 
 	/// <function container="Fit.Controls.PickerBase" name="SetEventDispatcher" access="public" returns="DOMElement">
@@ -233,15 +259,21 @@ Fit.Controls.PickerBase = function(controlId)
 		Fit.Validation.ExpectEvent(e, true);
 	}
 
-	/// <function container="Fit.Controls.PickerBase" name="Dispose" access="public">
+	/// <function container="Fit.Controls.PickerBase" name="Destroy" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (required).
 	/// 		Destroys control to free up memory.
+	/// 		Make sure to call Destroy() on PickerBase which can be done like so:
+	/// 		this.Destroy = Fit.Core.CreateOverride(this.Destroy, function()
+	/// 		{
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp; // Add control specific logic here
+	/// 		&nbsp;&nbsp;&nbsp;&nbsp; base(); // Call Destroy on PickerBase
+	/// 		});
 	/// 	</description>
 	/// </function>
-	this.Dispose = function() // Must be overridden
+	this.Destroy = function() // Must be overridden - remember to call base !
 	{
-		Fit.Validation.ThrowError("Function not implemented");
+		me = id = onShowHandlers = onHideHandlers = onChangingHandlers = onChangeHandlers = onCompleteHandlers = null;
 	}
 
 	// ============================================
@@ -294,6 +326,14 @@ Fit.Controls.PickerBase = function(controlId)
 		Fit.Array.ForEach(onChangeHandlers, function(handler)
 		{
 			handler(me, { Title: title, Value: value, Selected: selected });
+		});
+	}
+
+	this._internal.FireOnItemSelectionComplete = function() // Called by Picker Control
+	{
+		Fit.Array.ForEach(onCompleteHandlers, function(handler)
+		{
+			handler(me);
 		});
 	}
 }

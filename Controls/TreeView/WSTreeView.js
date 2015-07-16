@@ -24,7 +24,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 	var me = this;
 	var url = null;
-	var preSelected = [];
+	var preSelected = {};
 	var orgSelected = [];
 	var loadDataOnInit = true;
 	var onRequestHandlers = [];
@@ -117,7 +117,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// </function>
 	this.Url = function(wsUrl)
 	{
-		Fit.Validation.ExpectString(wsUrl);
+		Fit.Validation.ExpectString(wsUrl, true);
 
 		if (Fit.Validation.IsSet(wsUrl) === true)
 		{
@@ -130,7 +130,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	// See documentation on TreeView
 	this.RemoveAllChildren = Fit.Core.CreateOverride(this.RemoveAllChildren, function()
 	{
-		preSelected = []; // Clear preselections to avoid auto selection of nodes added later
+		preSelected = {}; // Clear preselections to avoid auto selection of nodes added later
 		base();
 	});
 
@@ -141,7 +141,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		Fit.Validation.ExpectBoolean(multi, true);
 		Fit.Validation.ExpectBoolean(showSelAll, true);
 
-		preSelected = []; // Clear preselections to ensure same behaviour as TreeView.Selectable(..) which clear selections - avoid auto selection if nodes are loaded later
+		preSelected = {}; // Clear preselections to ensure same behaviour as TreeView.Selectable(..) which clear selections - avoid auto selection if nodes are loaded later
 		base(val, multi, showSelAll);
 	});
 
@@ -150,7 +150,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	{
 		var fireChange = (me.Selected().length > 0); // Selected() return nodes loaded as well as preselections
 
-		preSelected = [];
+		preSelected = {};
 
 		me._internal.ExecuteWithNoOnChange(function() { base(); });
 
@@ -169,9 +169,11 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// </function>
 	this.Reload = function()
 	{
-		me.RemoveAllChildren(true); // True to dispose objects
-
-		preSelected = [];
+		if (loadDataOnInit === false) // Do not clear on initial data load - no children have been loaded, but more importantly, we want to keep preselections
+		{
+			me.RemoveAllChildren(true); // True to dispose objects
+			preSelected = {};
+		}
 
 		getData(null, function(node, eventArgs)
 		{
@@ -180,80 +182,84 @@ Fit.Controls.WSTreeView = function(ctlId)
 				me.AddChild(createNodeFromJson(jsonChild));
 			});
 		});
+
+		loadDataOnInit = false;
 	}
 
-	/// <function container="Fit.Controls.WSTreeView" name="Value" access="public" returns="object">
-	/// 	<description>
-	/// 		Fit.Controls.TreeView.Value override:
-	/// 		Get/set selected nodes.
-	/// 		Updating selection can be done by either providing a collection of
-	/// 		Fit.Controls.TreeView.Node instances, or a string with a semicolon
-	/// 		separated list of node values.
-	/// 		Data is returned as an array of Fit.Controls.TreeView.Node[] instances.
-	/// 		Array implements ToString as defined by ControlBase which returns data as val1[;val2[;val3]].
-	/// 		Notice for getter: Nodes not loaded yet (preselections) are NOT valid nodes associated with TreeView.
-	/// 		Therefore most functions will not work. Preselection nodes can be identified by their title:
-	/// 		if (node.Title() === "[pre-selection]") console.log("This is a preselection node");
-	/// 		Only the following getter functions can be used for preselection nodes:
-	/// 		node.Title(), node.Value(), node.Selected()
-	/// 	</description>
-	/// 	<param name="val" type="object" default="undefined"> If defined, provided nodes are selected </param>
-	/// </function>
+	// See documentation on ControlBase
 	this.Value = Fit.Core.CreateOverride(this.Value, function(val)
 	{
+		Fit.Validation.ExpectString(val, true);
+
 		// Setter
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (val instanceof Array)
-			{
-				me.Selected(val);
-			}
-			else if (typeof(val) === "string")
-			{
-				orgSelected = [];
-				preSelected = [];
-				var fireOnChange = (me.Selected().length > 0); // Selected() return nodes already loaded and preselections
+			orgSelected = [];
+			preSelected = {};
+			var fireOnChange = (me.Selected().length > 0); // Selected() return nodes already loaded and preselections
 
-				me._internal.ExecuteWithNoOnChange(function()
+			me._internal.ExecuteWithNoOnChange(function()
+			{
+				// Select nodes already loaded
+
+				base(val);
+				var selected = baseSelected(); // Get selection just made as node objects, which can be iterated using ForEach
+
+				if (selected.length > 0)
+					fireOnChange = true;
+
+				// Update orgSelected used to determine dirty state
+
+				Fit.Array.ForEach(selected, function(node)
 				{
-					// Select nodes already loaded
-
-					var selected = base(val);
-
-					if (selected.length > 0)
-						fireOnChange = true;
-
-					// Update orgSelected used to determine dirty state
-
-					Fit.Array.ForEach(selected, function(node)
-					{
-						Fit.Array.Add(orgSelected, node.Value());
-					});
-
-					// Add nodes not loaded yet to preselections
-
-					var values = val.toString().split(";");
-
-					Fit.Array.ForEach(values, function(nodeVal)
-					{
-						if (me.GetChild(nodeVal, true) === null)
-						{
-							Fit.Array.Add(preSelected, nodeVal);
-							Fit.Array.Add(orgSelected, nodeVal);
-							fireOnChange = true;
-						}
-					});
+					Fit.Array.Add(orgSelected, node.Value());
 				});
 
-				if (fireOnChange === true)
-					me._internal.FireOnChange();
-			}
+				// Add nodes not loaded yet to preselections
+
+				var values = val.split(";");
+
+				Fit.Array.ForEach(values, function(nodeVal)
+				{
+					var info = nodeVal.split("=");
+					var preSel = { Title: null, Value: null };
+
+					if (info.length === 1)
+					{
+						preSel.Title = "[pre-selection]";
+						preSel.Value = decodeReserved(info[0]);
+					}
+					else
+					{
+						preSel.Title = decodeReserved(info[0]);
+						preSel.Value = decodeReserved(info[1]);
+					}
+
+					if (me.GetChild(preSel.Value, true) === null)
+					{
+						preSelected[preSel.Value] = preSel;
+						Fit.Array.Add(orgSelected, preSel.Value);
+						fireOnChange = true;
+					}
+				});
+			});
+
+			if (fireOnChange === true)
+				me._internal.FireOnChange();
 		}
 
 		// Getter
 
-		return me.Selected();
+		var nodes = me.Selected();
+		var val = "";
+
+		Fit.Array.ForEach(nodes, function(node)
+		{
+			val += ((val !== "") ? ";" : "") + encodeReserved(node.Title()) + "=" + encodeReserved(node.Value());
+		});
+
+		return val;
 	});
 
 	/// <function container="Fit.Controls.WSTreeView" name="Selected" access="public" returns="Fit.Controls.TreeView.Node[]">
@@ -268,7 +274,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 	</description>
 	/// 	<param name="val" type="Fit.Controls.TreeView.Node[]" default="undefined"> If defined, provided nodes are selected </param>
 	/// </function>
-	var baseSelected = me.Selected; // Used by Selected(..) and SetSelections(..)
+	var baseSelected = me.Selected; // Used by Selected(..), Value(), and SetSelections(..)
 	this.Selected = function(val)
 	{
 		Fit.Validation.ExpectArray(val, true);
@@ -296,12 +302,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 			// Select nodes
 
 			orgSelected = [];
-			preSelected = [];
+			preSelected = {};
 			var fireOnChange = (me.Selected().length > 0); // Selected() return nodes already loaded and preselections
 
 			// Select nodes already loaded
 
-			var selected = -1;
+			var selected = null;
 			me._internal.ExecuteWithNoOnChange(function() { selected = baseSelected(toSelect); });
 
 			if (selected.length > 0)
@@ -320,7 +326,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 			{
 				if (me.GetChild(node.Value(), true) === null)
 				{
-					Fit.Array.Add(preSelected, node.Value());
+					preSelected[node.Value()] = {Title: node.Title(), Value: node.Value()};
 					Fit.Array.Add(orgSelected, node.Value());
 					fireOnChange = true;
 				}
@@ -332,9 +338,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 		var nodes = baseSelected();
 
 		// Add preselections - they are considered part of value
-		Fit.Array.ForEach(preSelected, function(nodeVal)
+		Fit.Array.ForEach(preSelected, function(preSelVal)
 		{
-			Fit.Array.Add(nodes, new Fit.Controls.TreeView.Node("[pre-selection]", nodeVal)); // Invalid nodes! E.g. node.Selected(true) and node.GetTreeView() will not work since node has no association with TreeView
+			var preSel = preSelected[preSelVal];
+			Fit.Array.Add(nodes, new Fit.Controls.TreeView.Node(preSel.Title, preSel.Value)); // Invalid nodes! E.g. node.Selected(true) and node.GetTreeView() will not work since node has no association with TreeView
 		});
 
 		return nodes;
@@ -345,7 +352,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 	{
 		// Get nodes currently selected
 
-		var valuesSelected = me.Value().toString().split(";");
+		var valuesSelected = [];
+
+		Fit.Array.ForEach(me.Selected(), function(selected)
+		{
+			Fit.Array.Add(valuesSelected, selected.Value());
+		});
 
 		// Determine dirty state
 
@@ -386,38 +398,42 @@ Fit.Controls.WSTreeView = function(ctlId)
 	});
 
 	// See documentation on PickerBase
-	this.SetSelections = Fit.Core.CreateOverride(this.SetSelections, function(values)
+	this.SetSelections = Fit.Core.CreateOverride(this.SetSelections, function(items)
 	{
-		Fit.Validation.ExpectString(values);
+		Fit.Validation.ExpectArray(items);
 
-		var fireOnChange = (me.Selected().length > 0); // me.Selected() return nodes not loaded yet and preselections
+		var fireOnChange = (me.Selected().length > 0); // me.Selected() return nodes already loaded and preselections
 
 		// Make sure calls to Value() or Selected() does not return old preselections for events fired
 
-		preSelected = [];
+		preSelected = {};
 
 		// Call SetSelections(..) on base class to make sure nodes already loaded is immediately selected.
 
-		me._internal.ExecuteWithNoOnChange(function() { base(values); });
+		me._internal.ExecuteWithNoOnChange(function() { base(items); });
 
 		if (me.Selected().length > 0)
 			fireOnChange = true;
 
 		// Set preselections for nodes not loaded yet
 
-		if (values !== "")
+		// Add all values to preselections - preselections for nodes already loaded is removed further down
+		Fit.Array.ForEach(items, function(item)
 		{
-			preSelected = values.split(";");
+			Fit.Validation.ExpectString(item.Title);
+			Fit.Validation.ExpectString(item.Value);
 
-			// Remove nodes already selected
-			Fit.Array.ForEach(baseSelected(), function(selected)
-			{
-				Fit.Array.Remove(preSelected, selected.Value());
-			});
+			preSelected[item.Value] = {Title: item.Title, Value: item.Value};
+		});
 
-			if (preSelected.length > 0)
-				fireOnChange = true;
-		}
+		// Remove values from preselections if already loaded
+		Fit.Array.ForEach(baseSelected(), function(selected)
+		{
+			delete preSelected[selected.Value()];
+		});
+
+		if (Fit.Core.IsEqual(preSelected, {}) === false)
+			fireOnChange = true;
 
 		// Fire OnChange
 
@@ -436,18 +452,15 @@ Fit.Controls.WSTreeView = function(ctlId)
 			// Since the node is not loaded yet, OnSelect, OnItemSelectionChanging,
 			// OnSelected, and OnItemSelectionChanged are not fired - they fire once the node is loaded.
 
-			if (selected === true && Fit.Array.Contains(preSelected, itemValue) === false)
+			if (selected === true && preSelected[itemValue] === undefined)
 			{
-				Fit.Array.Add(preSelected, itemValue);
+				preSelected[itemValue] = {Title: "[pre-selection]", Value: itemValue};
 				me._internal.FireOnChange();
 			}
-			else if (selected === false)
+			else if (selected === false && preSelected[itemValue] !== undefined)
 			{
-				var length = preSelected.length;
-				Fit.Array.Remove(preSelected, itemValue);
-
-				if (preSelected.length !== length)
-					me._internal.FireOnChange();
+				delete preSelected[itemValue];
+				me._internal.FireOnChange();
 			}
 		}
 		else // Update nodes already loaded
@@ -568,7 +581,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			// Select nodes found in preselections
 
-			if (preSelected.length > 0)
+			if (Fit.Core.IsEqual(preSelected, {}) === false) // Prevent nodes from being iterated if no preselections are found
 			{
 				// Notice: OnChange is not fired! It has already been fired when PreSelections were added.
 				// They are also included when e.g. WSTreeView.Value() is called to obtain current selections.
@@ -578,10 +591,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 				{
 					Fit.Array.Recurse(((node !== null) ? node.GetChildren() : me.GetChildren()), "GetChildren", function(n)
 					{
-						if (Fit.Array.Contains(preSelected, n.Value()) === true)
+						if (preSelected[n.Value()] !== undefined)
 						{
+							delete preSelected[n.Value()];
 							n.Selected(true);
-							Fit.Array.Remove(preSelected, n.Value());
 						}
 					});
 				});
@@ -606,7 +619,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		// Convert JSON to TreeView node, including all contained children
 
-		var child = new Fit.Controls.TreeView.Node(jsonNode.Title, jsonNode.Value);
+		var child = new Fit.Controls.TreeView.Node((jsonNode.Title ? jsonNode.Title : jsonNode.Value), jsonNode.Value);
 
 		if (jsonNode.Selectable !== undefined)
 			child.Selectable((jsonNode.Selectable === true)); // Node will obtain Selectable state from TreeView unless explicitly set here
@@ -639,6 +652,17 @@ Fit.Controls.WSTreeView = function(ctlId)
 			child.AddChild(new Fit.Controls.TreeView.Node("__", "__"));
 		}
 
+		// Add supplementary information provided by WebService
+
+		child.Supplementary = {};
+		var reserved = new Array("Title", "Value", "Children", "HasChildren", "Selected", "Selectable");
+
+		Fit.Array.ForEach(jsonNode, function(key)
+		{
+			if (Fit.Array.Contains(reserved, key) === false)
+				child.Supplementary[key] = jsonNode[key];
+		});
+
 		return child;
 	}
 
@@ -653,6 +677,18 @@ Fit.Controls.WSTreeView = function(ctlId)
 		});
 
 		return !cancel;
+	}
+
+	function decodeReserved(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return str.replace(/%3B/g, ";").replace(/%3D/g, "="); // Decode characters reserved for value format
+	}
+
+	function encodeReserved(str)
+	{
+		Fit.Validation.ExpectString(str);
+		return str.replace(/;/g, "%3B").replace(/=/g, "%3D"); // Encode characters reserved for value format
 	}
 
 	init();
