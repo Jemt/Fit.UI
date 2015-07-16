@@ -1,3 +1,5 @@
+// Get most recent version from GitHub: https://github.com/Jemt/Fit.UI
+
 // TODO (entire framework):
 //  - Use of ev.keyCode is deprecated and must be replaced !
 //    Consider implementing Fit.Events.GetKeyCode(ev)

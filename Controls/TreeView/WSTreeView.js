@@ -388,14 +388,14 @@ Fit.Controls.WSTreeView = function(ctlId)
 	// PickerBase interface
 	// ============================================
 
-	this.OnShow(function(sender) // Event defined on PickerBase
+	/*this.OnShow(function(sender) // Event defined on PickerBase
 	{
 		if (loadDataOnInit === true)
 		{
 			me.Reload();
 			loadDataOnInit = false;
 		}
-	});
+	});*/
 
 	// See documentation on PickerBase
 	this.SetSelections = Fit.Core.CreateOverride(this.SetSelections, function(items)
@@ -484,8 +484,6 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
 	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
 	/// 		 - Node: Fit.Controls.TreeView.Node instance
-	/// 		 - Children: Fit.Controls.TreeView.Node[] collection which
-	/// 		   is available when OnResponse and OnPopulated is fired.
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -504,9 +502,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
 	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
-	/// 		 - Node: Fit.Controls.TreeView.Node instance
-	/// 		 - Children: Fit.Controls.TreeView.Node[] collection which
-	/// 		   is available when OnResponse and OnPopulated is fired.
+	/// 		 - Node: Fit.Controls.TreeView.Node instance to be populated
+	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -524,9 +521,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
 	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
-	/// 		 - Node: Fit.Controls.TreeView.Node instance
-	/// 		 - Children: Fit.Controls.TreeView.Node[] collection which
-	/// 		   is available when OnResponse and OnPopulated is fired.
+	/// 		 - Node: Fit.Controls.TreeView.Node instance now populated with children
+	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>

@@ -696,16 +696,14 @@ x.Render();
 	});
 	dd.OnRequest(function(sender, eventArgs)
 	{
-		//if (eventArgs.Node
-
-		/*if (Fit.Core.InstanceOf(sender, Fit.Controls.WSListView) === true)
+		if (Fit.Core.InstanceOf(eventArgs.Picker, Fit.Controls.WSListView) === true)
 		{
 			eventArgs.Request.AddData("Search", (dd.Search ? dd.Search : ""));
 		}
 		else // WSTreeView
 		{
 			eventArgs.Request.AddData("ParentNode", (eventArgs.Node !== null ? eventArgs.Node.Value() : ""));
-		}*/
+		}
 	});
 	dd.OnResponse(function(sender, eventArgs) { console.log("OnResponse", sender, eventArgs); });
 	dd.MultiSelectionMode(true);
