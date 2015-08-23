@@ -688,7 +688,7 @@ x.Render();
 
 <div>
 <script type="text/javascript">
-	dd = new Fit.Controls.WSDropDown(Math.random() + "");
+	dd = new Fit.Controls.WSDropDown("CoolDrop");
 	dd.InputEnabled(true);
 	dd.OnInputChanged(function(sender, value)
 	{
@@ -708,7 +708,8 @@ x.Render();
 	dd.OnResponse(function(sender, eventArgs) { console.log("OnResponse", sender, eventArgs); });
 	dd.MultiSelectionMode(true);
 	dd.Url("getdata.php");
-	dd.Width(600, "px");
+	dd.Width(20, "em");
+	dd.DropDownMaxWidth(150, "%");
 	dd.Render();
 	dd.GetDomElement().style.fontSize = "11px";
 	dd.AddSelection("XYZ", "2");

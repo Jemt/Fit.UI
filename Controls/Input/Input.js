@@ -419,6 +419,14 @@ Fit.Controls.Input = function(ctlId)
 				change: function()
 				{
 					input.onkeyup();
+				},
+				focus: function()
+				{
+					me._internal.FireOnFocus();
+				},
+				blur: function()
+				{
+					me._internal.FireOnBlur();
 				}
 			}
 		});

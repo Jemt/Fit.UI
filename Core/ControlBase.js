@@ -72,7 +72,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var me = this;
 	var id = controlId;
 	var container = null;
-	var width = { Value: 200, Unit: "px" };
+	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
 	var height = { Value: -1, Unit: "px" };
 	var scope = null;
 	var required = false;
@@ -81,6 +81,10 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation
 	var lblValidationError = null;
 	var onChangeHandlers = [];
+	var onFocusHandlers = [];
+	var onBlurHandlers = [];
+	var hasFocus = false;			// Used by OnFocusIn and OnFocusOut handlers
+	var focusBlurTimeout = null;	// Used by OnFocusIn and OnFocusOut handlers
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
@@ -91,6 +95,8 @@ Fit.Controls.ControlBase = function(controlId)
 		container.id = id;
 		container.style.width = width.Value + width.Unit;
 		Fit.Dom.AddClass(container, "FitUiControl");
+
+		me._internal.Data("active", "false");
 
 		// Add hidden inputs which are automatically populated with
 		// control value and state information when control is updated.
@@ -121,6 +127,19 @@ Fit.Controls.ControlBase = function(controlId)
 				document.forms[0].submit();
 			}
 		});
+
+		if (Fit.Browser.GetBrowser() !== "MSIE" || Fit.Browser.GetVersion() >= 9)
+		{
+			// Notice: Using Capture (true argument) for these handlers,
+			// meaning they are fired before the event reach its target.
+			Fit.Events.AddHandler(container, "focus", true, onFocusIn);
+			Fit.Events.AddHandler(container, "blur", true, onFocusOut);
+		}
+		else // Legacy IE does not support event capturing used above
+		{
+			container.onfocusin = onFocusIn;
+			container.onfocusout = onFocusOut;
+		}
 	}
 
 	// ============================================
@@ -175,13 +194,13 @@ Fit.Controls.ControlBase = function(controlId)
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(container);
-		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = lblValidationError = onChangeHandlers = null;
+		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = lblValidationError = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = focusBlurTimeout = txtValue = txtDirty = txtValid = null;
 		Fit._internal.ControlBase.Controls[controlId] = null;
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="object">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
-	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value </param>
+	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
 	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit)
@@ -191,12 +210,16 @@ Fit.Controls.ControlBase = function(controlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
-
-			if (width.Value > -1)
+			if (val > -1)
+			{
+				width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
 				container.style.width = width.Value + width.Unit;
+			}
 			else
+			{
+				width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to line declaring the width variable !
 				container.style.width = "";
+			}
 		}
 
 		return width;
@@ -399,9 +422,71 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Array.Add(onChangeHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="OnFocus" access="public">
+	/// 	<description> Register OnFocus event handler which is invoked when control gains focus </description>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// </function>
+	this.OnFocus = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onFocusHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="OnBlur" access="public">
+	/// 	<description> Register OnBlur event handler which is invoked when control loses focus </description>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// </function>
+	this.OnBlur = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onBlurHandlers, cb);
+	}
+
 	// ============================================
 	// Private
 	// ============================================
+
+	function onFocusIn(e)
+	{
+		// Cancel OnBlur (or OnFocus if browser erroneously allow this
+		// event to fire multiple times without firing OnBlur in-between).
+		if (focusBlurTimeout !== null)
+		{
+			clearTimeout(focusBlurTimeout);
+			focusBlurTimeout = null;
+		}
+
+		// Make sure OnFocus only fires once when control is initially given
+		// focus - prevent it from firing when focus is changed internally.
+		if (hasFocus === true)
+			return;
+		hasFocus = true;
+
+		// Queue, event has not reached target yet (using Capture instead of event bubbling).
+		// Target must have focus before firing OnFocus. This approach also allow for control
+		// to internally change focus (e.g. in TreeView where focus may change from one node
+		// to another) which may fire both Focus and Blur multiple times. When Focus fires,
+		// any previous Blur event is canceled. When Blur fires, any previous Focus event is
+		// canceled. The last event fired takes precedence and fires when JS thread is released.
+		focusBlurTimeout = setTimeout(me._internal.FireOnFocus, 0);
+	}
+
+	function onFocusOut(e)
+	{
+		// See comments in onFocusIn(..)
+
+		if (focusBlurTimeout !== null)
+		{
+			clearTimeout(focusBlurTimeout);
+			focusBlurTimeout = null;
+		}
+
+		focusBlurTimeout = setTimeout(function()
+		{
+			hasFocus = false; // Control has lost focus, allow OnFocus to fire again when it regains focus
+			me._internal.FireOnBlur();
+		}, 0);
+	}
 
 	// Private members (must be public in order to be accessible to controls inheriting from ControlBase)
 
@@ -414,6 +499,26 @@ Fit.Controls.ControlBase = function(controlId)
 			Fit.Array.ForEach(onChangeHandlers, function(cb)
 			{
 				cb(me, me.Value());
+			});
+		},
+
+		this._internal.FireOnFocus = function()
+		{
+			me._internal.Data("active", "true");
+
+			Fit.Array.ForEach(onFocusHandlers, function(cb)
+			{
+				cb(me);
+			});
+		},
+
+		this._internal.FireOnBlur = function()
+		{
+			me._internal.Data("active", "false");
+
+			Fit.Array.ForEach(onBlurHandlers, function(cb)
+			{
+				cb(me);
 			});
 		},
 

@@ -47,21 +47,20 @@ Fit.Controls.DropDown = function(ctlId)
 	Fit.Validation.ExpectStringValue(ctlId);
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
-    var me = this;                              // Access to members from event handlers (where "this" may have a different meaning)
-    var itemContainer = null					// Container for selected items and input fields
-    var hidden = null;                          // Area used to hide DOM elements (e.g span used to calculate width of input fields)
-    var spanFitWidth = null;                    // Span element used to calculate text width - used to dynamically control width of input fields
-    var txtPrimary = null;                      // Primary input (search) field initially available
-    var txtCssWidth = -1;                       // Width of input (search) field(s) - specified using CSS
-    var txtActive = null;                       // Currently active input (search) field
+    var me = this;								// Access to members from event handlers (where "this" may have a different meaning)
+    var itemContainer = null;					// Container for selected items and input fields
+    var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
+    var spanFitWidth = null;					// Span element used to calculate text width - used to dynamically control width of input fields
+    var txtPrimary = null;						// Primary input (search) field initially available
+    var txtCssWidth = -1;						// Width of input (search) field(s) - specified using CSS
+    var txtActive = null;						// Currently active input (search) field
 	var txtEnabled = false;						// Flag indicating whether user can enter text
-    var dropDownMenu = null;                    // Drop down menu element
-    var picker = null;                          // Picker control within drop down menu
+    var dropDownMenu = null;					// Drop down menu element
+    var picker = null;							// Picker control within drop down menu
 	var orgSelections = [];						// Original selection set using Value(..) function - used to determine whether control is dirty
-    var invalidMessage = "Invalid selection";   // Mouse over text for invalid selections
-    var initialFocus = true;                    // Flag indicating first focus of control
-    var multiMode = true;                       // Flag indicating whether control allows for multiple selections
-	var maxHeight = 150;						// Picker max height (px)
+    var invalidMessage = "Invalid selection";	// Mouse over text for invalid selections
+    var initialFocus = true;					// Flag indicating first focus of control
+	var maxHeight = { Value: 150, Unit: "px"};	// Picker max height (px)
 	var prevValue = "";							// Previous input value - used to determine whether OnChange should be fired
 	var focusAssigned = false;					// Boolean ensuring that control is only given focus when AddSelection is called, if user assigned focus to control
 
@@ -73,6 +72,10 @@ Fit.Controls.DropDown = function(ctlId)
 	function init()
 	{
 		invalidMessage = Fit.Language.Translations.InvalidSelection;
+
+		// Initial settings
+
+		me._internal.Data("multiselect", "true");
 
 		// Create item container
 
@@ -90,18 +93,18 @@ Fit.Controls.DropDown = function(ctlId)
 		var arrow = document.createElement("i");
 		Fit.Dom.AddClass(arrow, "fa");
 		Fit.Dom.AddClass(arrow, "fa-chevron-down");
-        arrow.onclick = function(e)
-        {
+		arrow.onclick = function(e)
+		{
 			// Do nothing by default, event propagates out to itemContainer
 			// which opens drop down (See itemContainer.onclick handler above).
 
 			// Close drop down if already open
-            if (me.IsDropDownOpen() === true)
-            {
-                me.CloseDropDown();
+			if (me.IsDropDownOpen() === true)
+			{
+				me.CloseDropDown();
 				Fit.Events.StopPropagation(e); // Prevent drop down from opening again
-            }
-        }
+			}
+		}
 
 		// Create primary search textbox
 
@@ -111,12 +114,15 @@ Fit.Controls.DropDown = function(ctlId)
 		// Create drop down menu
 
 		dropDownMenu = document.createElement("div");
-		dropDownMenu.onmousewheel = function(e)
+		if (Fit.Browser.GetBrowser() !== "MSIE" || Fit.Browser.GetVersion() >= 9) // OnMouseWheel event is buggy in IE8
 		{
-			var ev = Fit.Events.GetEvent(e);
+			dropDownMenu.onmousewheel = function(e) // Handler prevents scroll on page when scrolling picker
+			{
+				var ev = Fit.Events.GetEvent(e);
 
-			dropDownMenu.firstElementChild.scrollTop -= ev.wheelDeltaY; // Expecting PickerControl's container (firstElementChild) to be scrollable for this to work
-			Fit.Events.PreventDefault(ev);
+				dropDownMenu.firstChild.scrollTop -= ev.wheelDeltaY; // Expecting PickerControl's container (firstChild) to be scrollable for this to work
+				Fit.Events.PreventDefault(ev);
+			}
 		}
 		Fit.Dom.AddClass(dropDownMenu, "FitUiControlDropDownPicker");
 
@@ -129,17 +135,11 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Make drop down close when user clicks outside of control
 
-		Fit.Events.AddHandler(me.GetDomElement(), "click", function(e)
-		{
-			var ev = Fit.Events.GetEvent(e);
-			ev.FitUiDropDownClicked = true;
-		});
-
 		Fit.Events.AddHandler(document.body, "click", function(e)
 		{
-			var ev = Fit.Events.GetEvent(e);
+			var target = Fit.Events.GetTarget(e);
 
-			if (!ev.FitUiDropDownClicked)
+			if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
 				me.CloseDropDown();
 		});
 
@@ -185,23 +185,60 @@ Fit.Controls.DropDown = function(ctlId)
 
     // Dimensions
 
-	/// <function container="Fit.Controls.DropDown" name="DropDownMaxHeight" access="public" returns="integer">
-	/// 	<description> Get/set max height of drop down in pixels </description>
-	/// 	<param name="val" type="integer" default="undefined> If defined, updates drop down max height (pixels) </param>
+	/// <function container="Fit.Controls.DropDown" name="DropDownMaxHeight" access="public" returns="object">
+	/// 	<description> Get/set max height of drop down - returns object with Value (number) and Unit (string) properties </description>
+	/// 	<param name="value" type="number" default="undefined"> If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content. </param>
+	/// 	<param name="unit" type="string" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
-    this.DropDownMaxHeight = function(val)
+    this.DropDownMaxHeight = function(value, unit)
     {
-		Fit.Validation.ExpectInteger(val, true);
+		Fit.Validation.ExpectNumber(value, true);
+		Fit.Validation.ExpectStringValue(unit, true);
 
-		if (Fit.Validation.IsSet(val) === true)
+		if (Fit.Validation.IsSet(value) === true)
 		{
-			maxHeight = val;
+			maxHeight = { Value: value, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px")};
 
 			if (picker !== null)
-				picker.MaxHeight(val, "px");
+				picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
 		}
 
 		return maxHeight;
+    }
+
+	/// <function container="Fit.Controls.DropDown" name="DropDownMaxWidth" access="public" returns="object">
+	/// 	<description> Get/set max width of drop down - returns object with Value (number) and Unit (string) properties </description>
+	/// 	<param name="value" type="number" default="undefined"> If defined, max width is updated to specified value. A value of -1 forces drop down to use control width. </param>
+	/// 	<param name="unit" type="string" default="undefined"> If defined, max width is updated to specified CSS unit, otherwise px is assumed </param>
+	/// </function>
+    this.DropDownMaxWidth = function(value, unit)
+    {
+		Fit.Validation.ExpectNumber(value, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		if (Fit.Validation.IsSet(value) === true)
+		{
+			if (value !== -1)
+			{
+				dropDownMenu.style.width = "auto"; // Adjust width to content
+				dropDownMenu.style.maxWidth = value + ((Fit.Validation.IsSet(unit) === true) ? unit : "px");
+			}
+			else
+			{
+				dropDownMenu.style.width = "";
+				dropDownMenu.style.maxWidth = "";
+			}
+		}
+
+		var res = { Value: -1, Unit: "px" };
+
+		if (dropDownMenu.style.maxWidth !== "")
+		{
+			res.Value = parseFloat(dropDownMenu.style.maxWidth);
+			res.Unit = dropDownMenu.style.maxWidth.replace(res.Value, "");
+		}
+
+		return res;
     }
 
 	// ControlBase interface
@@ -304,7 +341,7 @@ Fit.Controls.DropDown = function(ctlId)
 		if (picker !== null)
 			picker.Dispose();
 
-		me = itemContainer = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = multiMode = maxHeight = prevValue = focusAssigned = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
+		me = itemContainer = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
 
 		base();
 	});
@@ -320,9 +357,9 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Validation.ExpectBoolean(val, true);
 
 		if (Fit.Validation.IsSet(val) === true)
-			multiMode = val;
+			me._internal.Data("multiselect", val.toString());
 
-		return multiMode;
+		return (me._internal.Data("multiselect") === "true");
     }
 
     // Controlling selections
@@ -359,6 +396,8 @@ Fit.Controls.DropDown = function(ctlId)
 			return;
 		}
 
+		pickerControl._internal.Initialize();
+
 		picker = pickerControl;
 		Fit.Dom.Add(dropDownMenu, picker.GetDomElement());
 
@@ -372,7 +411,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Set picker MaxHeight
 
-		picker.MaxHeight(maxHeight, "px");
+		picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
 
 		// Make sure OnItemSelectionChanged is only registered once
 
@@ -408,7 +447,7 @@ Fit.Controls.DropDown = function(ctlId)
 				// fire it when picker's OnItemSelectionComplete event is fired.
 				me._internal.ExecuteWithNoOnChange(function() { me.AddSelection(eventArgs.Title, eventArgs.Value); }); // Skips item if already added
 
-				if (multiMode === false && getSelectionElements().length > itemCount) // Only auto close in Single Selectin Mode, and if an item was actually added
+				if (me.MultiSelectionMode() === false && getSelectionElements().length > itemCount) // Only auto close in Single Selectin Mode, and if an item was actually added
 					me.CloseDropDown();
 			}
 			else
@@ -501,8 +540,13 @@ Fit.Controls.DropDown = function(ctlId)
 
         // Clear selection if in Single Selection Mode
 
-		if (multiMode === false)
+		if (me.MultiSelectionMode() === false)
+		{
             me._internal.ExecuteWithNoOnChange(function() { me.ClearSelections(); });
+
+			if (getSelectionElements().length > 0) // A picker prevented selected item from being removed
+				return;
+		}
 
 		// Create new item
 
@@ -551,9 +595,9 @@ Fit.Controls.DropDown = function(ctlId)
 
         var before = null;
 
-		if (txtActive !== txtPrimary && multiMode === true && Fit.Dom.GetIndex(txtActive) === 0) // Left input
+		if (txtActive !== txtPrimary && me.MultiSelectionMode() === true && Fit.Dom.GetIndex(txtActive) === 0) // Left input
 			before = txtActive.parentElement;
-		else if (txtActive !== txtPrimary && multiMode === true && Fit.Dom.GetIndex(txtActive) === 2) // Right input
+		else if (txtActive !== txtPrimary && me.MultiSelectionMode() === true && Fit.Dom.GetIndex(txtActive) === 2) // Right input
 			before = txtActive.parentElement.nextSibling;
 		else
 			before = txtPrimary;
@@ -566,7 +610,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Focus input control
 
-        if (multiMode === true)
+        if (me.MultiSelectionMode() === true)
         {
 			// Make input to the right of newly added item active. This to make sure that
             // the next item added appears to the right of the previously added item.
@@ -840,6 +884,7 @@ Fit.Controls.DropDown = function(ctlId)
         if (Fit._internal.DropDown.Current !== null && Fit._internal.DropDown.Current !== me)
             Fit._internal.DropDown.Current.CloseDropDown();
 
+		dropDownMenu.style.minWidth = me.GetDomElement().offsetWidth + "px"; // In case DropDownMaxWidth(..) is set - update every time drop down is opened in case viewport is resized and has changed control width
         dropDownMenu.style.display = "block";
 
         Fit._internal.DropDown.Current = me;
@@ -1128,7 +1173,7 @@ Fit.Controls.DropDown = function(ctlId)
                     timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
                 }
             }
-			else if (ev.keyCode === 13) // Enter
+			else if (ev.keyCode === 13) // Enter - notice that item selection is handled by (delegated to) picker when Enter is pressed - picker.OnItemSelectionChanged receives selected item
 			{
 				// Prevent form submit
 				Fit.Events.PreventDefault(e);
@@ -1220,7 +1265,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			// If newInput belongs to last selection, then select txtPrimary instead
 			if (newInput !== null && newInput.parentElement.nextSibling === txtPrimary)
-                newInput = txtPrimary;
+				newInput = txtPrimary;
         }
 
         if (newInput === null) // May be null if no selections are available to move to
@@ -1231,7 +1276,7 @@ Fit.Controls.DropDown = function(ctlId)
 		me.ClearInput();
 		fitWidthToContent(newInput);*/
 
-        focusInput(newInput);
+		focusInput(newInput);
     }
 
     function focusInput(input)

@@ -55,8 +55,8 @@ Fit.Controls.PickerBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.PickerBase" name="MaxHeight" access="public" returns="object">
-	/// 	<description> Get/set max height of control - returns object with Value (integer) and Unit (string) properties </description>
-	/// 	<param name="value" type="number" default="undefined"> If defined, max height is updated to specified value </param>
+	/// 	<description> Get/set max height of control - returns object with Value (number) and Unit (string) properties </description>
+	/// 	<param name="value" type="number" default="undefined"> If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content. </param>
 	/// 	<param name="unit" type="string" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
 	this.MaxHeight = function(value, unit)
@@ -68,11 +68,23 @@ Fit.Controls.PickerBase = function(controlId)
 
 		if (Fit.Validation.IsSet(value) === true)
 		{
-			elm.style.maxHeight = value + ((Fit.Validation.IsSet(unit) === true) ? unit : "px");
+			if (value !== -1)
+			{
+				elm.style.maxHeight = value + ((Fit.Validation.IsSet(unit) === true) ? unit : "px");
+			}
+			else
+			{
+				elm.style.maxHeight = "";
+			}
 		}
 
-		var res = { Value: parseInt(elm.style.maxHeight), Unit: "px" };
-		res.Unit = elm.style.maxHeight.replace(res.Value, "");
+		var res = { Value: -1, Unit: "px" }; // No maxHeight set, height adjusts to content
+
+		if (elm.style.maxHeight !== "") // MaxHeight set
+		{
+			res.Value = parseFloat(elm.style.maxHeight);
+			res.Unit = elm.style.maxHeight.replace(res.Value, "");
+		}
 
 		return res;
     }
@@ -283,6 +295,10 @@ Fit.Controls.PickerBase = function(controlId)
 	// Private members (must be public in order to be accessible to host control and controls inheriting from PickerBase)
 
 	this._internal = (this._internal ? this._internal : {});
+
+	this._internal.Initialize = function() // Called by Host Control when picker is assigned to it
+	{
+	}
 
 	this._internal.FireOnShow = function() // Called by Host Control
 	{

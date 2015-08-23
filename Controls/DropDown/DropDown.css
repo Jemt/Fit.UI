@@ -1,3 +1,8 @@
+div.FitUiControlDropDown
+{
+	min-width: 50px; /* In case width is set to 100% and control is squeezed */
+}
+
 div.FitUiControlDropDownItems /* Item container */
 {
 	border: 1px solid gray;
@@ -7,25 +12,47 @@ div.FitUiControlDropDownItems /* Item container */
 	cursor: text;
 	white-space: normal; /* Make sure items wrap properly if used in container with nowrap */
 	position: relative; /* Allow absolute positioning of arrow icon within item container */
+	overflow: hidden; /* Prevent large items from overflowing boundaries, in case of tiny control width */
 }
 
-div.FitUiControlDropDownItems > i /* Arrow down (open drop down) */
+div.FitUiControlDropDownItems > i /* Box surrounding arrow icon */
 {
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
+	right: 0px;
+	width: 2em;
+	background-color: white;
+	border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-left: 1px solid #A9A9A9;
+	cursor: pointer;
+}
+div.FitUiControlDropDownItems > i:before
+{
+	/* Position arrow icon */
 	position: absolute;
 	top: 50%;
 	margin-top: -0.5em;
-	right: 5px;
-	cursor: pointer;
+	margin-left: 0.5em;
+}
+div.FitUiControlDropDownItems > i.fa-spin
+{
+	/* WSDropDown: Disable border and background when arrow icon is turned
+	   into a spinning loading indicator, when communicating with the WebService. */
+	border: none;
+	background-color: transparent;
 }
 
 div.FitUiControlDropDownItems > span /* Selection container */
 {
 	display: inline-block;
+	white-space: nowrap;
 	margin-top: 0.1em;
 	margin-bottom: 0.1em;
 }
 
-div.FitUiControlDropDownItems > span > span /* Selection */
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span > span /* Selection (in multi selection mode only) */
 {
 	display: inline-block;
 	padding: 2px;
@@ -44,6 +71,10 @@ div.FitUiControlDropDownItems > span > span > i /* Delete button */
 	color: #CC0000;
 	padding-left: 0.4em;
 	cursor: pointer;
+}
+div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems > span > span > i /* Delete button in selection (in single selection mode only) */
+{
+	display: none;
 }
 
 /* CSS used to calculate width of content for input fields */
@@ -67,12 +98,12 @@ div.FitUiControlDropDownItems input
 	font-weight: inherit;
 
 	width: 5px;
-	height: 1.5em;
 
 	border-style: none;
 	outline: none;
 
 	margin: 0px;
+	margin-top: -0.25em;
 	padding: 0px;
 }
 
@@ -91,12 +122,19 @@ div.FitUiControlDropDownPicker /* Picker container (drop down) */
 {
 	background-color: white;
 	border: 1px solid gray;
-	border-top-style: none;
 	border-radius: 2px;
+	margin-top: -1px;
 	display: none;
 	min-height: 10px;
 
 	position: absolute;
 	width: 100%;
 	z-index: 100;
+}
+
+/* PickerBase */
+
+div.FitUiControlDropDownPicker > *
+{
+	display: block; /* Make sure picker consumes the entire width of drop down (ControlBase is inline-block) */
 }

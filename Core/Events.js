@@ -9,14 +9,44 @@ Fit.Events = {};
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
 /// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
 /// </function>
-Fit.Events.AddHandler = function(element, event, eventFunction)
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true">
+/// 	<description> Registers handler for specified event on given EventTarget </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
+/// </function>
+Fit.Events.AddHandler = function()
 {
+	var element = null;
+	var event = null;
+	var useCapture = false; // false = event bubbling (reverse of event capturing)
+	var eventFunction = null;
+
+	if (arguments.length === 3)
+	{
+		element = arguments[0];
+		event = arguments[1];
+		eventFunction = arguments[2];
+	}
+	else if (arguments.length === 4)
+	{
+		element = arguments[0];
+		event = arguments[1];
+		useCapture = arguments[2];
+		eventFunction = arguments[3];
+	}
+
 	Fit.Validation.ExpectEventTarget(element);
 	Fit.Validation.ExpectStringValue(event);
+	Fit.Validation.ExpectBoolean(useCapture);
 	Fit.Validation.ExpectFunction(eventFunction);
 
 	if (element.addEventListener) // W3C
-		element.addEventListener(event, eventFunction, false); // false = event bubbling (reverse of event capturing)
+		element.addEventListener(event, eventFunction, useCapture);
 	else if (element.attachEvent) // IE
 		element.attachEvent("on" + event, eventFunction);
 
@@ -32,14 +62,43 @@ Fit.Events.AddHandler = function(element, event, eventFunction)
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
 /// 	<param name="eventFunction" type="function"> JavaScript function to remove </param>
 /// </function>
-Fit.Events.RemoveHandler = function(element, event, eventFunction)
+/// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
+/// 	<description> Remove event handler for specified event on given EventTarget </description>
+/// 	<param name="element" type="DOMElement"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
+/// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+/// 	</param>
+/// 	<param name="eventFunction" type="function"> JavaScript function to remove </param>
+/// </function>
+Fit.Events.RemoveHandler = function()
 {
+	var element = null;
+	var event = null;
+	var useCapture = false; // false = event bubbling (reverse of event capturing)
+	var eventFunction = null;
+
+	if (arguments.length === 3)
+	{
+		element = arguments[0];
+		event = arguments[1];
+		eventFunction = arguments[2];
+	}
+	else if (arguments.length === 4)
+	{
+		element = arguments[0];
+		event = arguments[1];
+		useCapture = arguments[2];
+		eventFunction = arguments[3];
+	}
+
 	Fit.Validation.ExpectEventTarget(element);
 	Fit.Validation.ExpectStringValue(event);
+	Fit.Validation.ExpectBoolean(useCapture);
 	Fit.Validation.ExpectFunction(eventFunction);
 
 	if (element.removeEventListener)
-		element.removeEventListener(event, eventFunction, false);
+		element.removeEventListener(event, eventFunction, useCapture);
 	else if (element.detachEvent)
 		element.detachEvent("on" + event, eventFunction);
 }
@@ -100,7 +159,7 @@ Fit.Events.GetTarget = function(e)
 	Fit.Validation.ExpectEvent(e, true);
 
 	var ev = e || window.event;
-	target = ev.srcElement || ev.target;
+	var target = ev.srcElement || ev.target;
 	return (target ? target : null);
 }
 

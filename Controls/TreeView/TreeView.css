@@ -9,7 +9,9 @@ div.FitUiControlTreeView
 	-ms-user-select: none;
 	user-select: none;
 
-	overflow: auto; /* Picker Control */
+	/* Picker Control */
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 
 /* Reset bullet list */
@@ -171,12 +173,6 @@ div.FitUiControlTreeView[data-selectable="true"] li ul li[data-selectable="false
 
 /* Focus */
 
-div.FitUiControlTreeView li ul li
-{
-	/* Make list item as narrow as possible to prevent item from being focused if user
-	   clicks their mouse next to item. Does not cause incorrect rendering of contained elements. */
-	width: 0px;
-}
 div.FitUiControlTreeView li:focus
 {
 	outline: none;
@@ -199,10 +195,6 @@ div.FitUiControlTreeView li a
 
 /* Word wrap */
 
-div.FitUiControlTreeView[data-wordwrap="true"] li ul li
-{
-	width: inherit; /* disables width:0px */
-}
 div.FitUiControlTreeView[data-wordwrap="true"] li ul li > span
 {
 	/*display: inline-block;*/

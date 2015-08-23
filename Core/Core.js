@@ -25,6 +25,12 @@
 //    breaks instanceof because frames do not share the same prototypes. Interesting article:
 //    http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray
 //  - Fit.Events.AddMutationObserver <= Should use native browser mutation observer if available
+//  - ControlBase._internal.Data(..): Setter should force IE8 to repaint by adding and removing
+//    a fake CSS class on element returned by GetDomElement(). TreeView manually calls a
+//    repaint() function that does exactly that, but currently not all data-attributes can
+//    reliably be used with CSS selectors with IE8 since the browser do not repaint as expected.
+//    Investigate whether this will work with TreeView, and if possible get rid of repaint() function
+//    within TreeView.
 
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS

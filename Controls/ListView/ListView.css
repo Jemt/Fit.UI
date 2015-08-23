@@ -1,11 +1,13 @@
 div.FitUiControlListView
 {
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 
 div.FitUiControlListView > div /* List item */
 {
 	padding: 3px;
+	white-space: nowrap;
 }
 
 div.FitUiControlListView > div:hover
