@@ -189,11 +189,11 @@ Fit.Controls.PickerBase = function(controlId)
 	/// 		var item = getItem(value);
 	/// 		if (item !== null)
 	/// 		{
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp; if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return false;
+	/// 			&#160;&#160;&#160;&#160; if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+	/// 			&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; return false;
 	///
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp; item.SetSelected(selected);
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp; this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+	/// 			&#160;&#160;&#160;&#160; item.SetSelected(selected);
+	/// 			&#160;&#160;&#160;&#160; this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
 	/// 		}
 	///
 	/// 		Both events are fired by passing the given item's title, value, and current selection state.
@@ -278,8 +278,8 @@ Fit.Controls.PickerBase = function(controlId)
 	/// 		Make sure to call Destroy() on PickerBase which can be done like so:
 	/// 		this.Destroy = Fit.Core.CreateOverride(this.Destroy, function()
 	/// 		{
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp; // Add control specific logic here
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp; base(); // Call Destroy on PickerBase
+	/// 			&#160;&#160;&#160;&#160; // Add control specific logic here
+	/// 			&#160;&#160;&#160;&#160; base(); // Call Destroy on PickerBase
 	/// 		});
 	/// 	</description>
 	/// </function>

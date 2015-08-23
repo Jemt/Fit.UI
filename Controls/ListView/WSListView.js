@@ -28,8 +28,8 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		Get/set URL to WebService responsible for providing data to control.
 	/// 		WebService must deliver data in the following JSON format:
 	/// 		[
-	/// 			{ Title: "Test 1", Value: "1001", Selectable: true, Children: [] },
-	/// 			{ Title: "Test 2", Value: "1002", Selectable: false, Children: [] }
+	/// 			&#160;&#160;&#160;&#160; { Title: "Test 1", Value: "1001", Selectable: true, Children: [] },
+	/// 			&#160;&#160;&#160;&#160; { Title: "Test 2", Value: "1002", Selectable: false, Children: [] }
 	/// 		]
 	/// 		Only Value is required. Children is a collection of items with the same format as described above.
 	/// 		Be aware that items are treated as a flat list, even when hierarchically structured using the Children property.

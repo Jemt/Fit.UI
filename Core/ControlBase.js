@@ -184,8 +184,8 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 		Make sure to call Dispose() on ControlBase which can be done like so:
 	/// 		this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	/// 		{
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp; // Add control specific dispose logic here
-	/// 		&nbsp;&nbsp;&nbsp;&nbsp; base(); // Call Dispose on ControlBase
+	/// 			&#160;&#160;&#160;&#160; // Add control specific dispose logic here
+	/// 			&#160;&#160;&#160;&#160; base(); // Call Dispose on ControlBase
 	/// 		});
 	/// 	</description>
 	/// </function>
