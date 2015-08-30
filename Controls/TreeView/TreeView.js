@@ -59,6 +59,7 @@ Fit.Controls.TreeView = function(ctlId)
 	var onSelectedHandlers = [];
 	var onToggleHandlers = [];
 	var onToggledHandlers = [];
+	var onSelectAllHandlers = [];
 
 	var forceClear = false;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
@@ -396,6 +397,53 @@ Fit.Controls.TreeView = function(ctlId)
 				toggleNodeSelection(node);
 			}
 		}
+
+		Fit.Events.AddHandler(me.GetDomElement(), "contextmenu", function(e) { return Fit.Events.PreventDefault(e); }); // Disable context menu
+		Fit.Events.AddHandler(me.GetDomElement(), "mouseup", function(e) // Select All feature
+		{
+			if (Fit.Events.GetPointerState().Buttons.Secondary === true) // Right click
+			{
+				var target = Fit.Events.GetTarget(e);
+
+				if (target.tagName === "INPUT") // Checkbox
+				{
+					var node = target.parentElement._internal.Node;
+
+					// Fire OnSelectAll event
+
+					if (fireEventHandlers(onSelectAllHandlers, node) === false)
+						return; // Event handler canceled event
+
+					// Change selection and expand (all nodes)
+
+					var changed = false;
+
+					executeWithNoOnChange(function() // Prevent OnChange from firing every time a node's selection state is changed
+					{
+						var selected = !node.Selected()
+
+						Fit.Array.Recurse([node], "GetChildren", function(child)
+						{
+							if (child.Selectable() === true)
+							{
+								if (child.Selected() !== selected)
+								{
+									changed = true;
+									child.Selected(selected);
+								}
+							}
+
+							child.Expanded(true);
+						});
+					});
+
+					if (changed === true)
+						me._internal.FireOnChange();
+				}
+
+				return Fit.Events.PreventDefault(e);
+			}
+		});
 	}
 
 	// ============================================
@@ -840,6 +888,21 @@ Fit.Controls.TreeView = function(ctlId)
 		Fit.Array.Add(onToggledHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="OnSelectAll" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when Select All is used for a given node.
+	/// 		This event can be canceled by returning False.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnSelectAll = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onSelectAllHandlers, cb);
+	}
+
 	// ============================================
 	// PickerBase interface
 	// ============================================
@@ -865,7 +928,7 @@ Fit.Controls.TreeView = function(ctlId)
 		me._internal.FireOnItemSelectionChanged(node.Title(), node.Value(), node.Selected());
 	});
 
-	this.OnChange(function(sender, value)
+	this.OnChange(function(sender)
 	{
 		me._internal.FireOnItemSelectionComplete();
 	});

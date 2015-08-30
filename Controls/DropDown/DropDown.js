@@ -80,7 +80,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// Create item container
 
 		itemContainer = document.createElement("div");
-		itemContainer.onclick = function()
+		itemContainer.onclick = function(e)
 		{
 			focusAssigned = true;
 			focusInput(txtPrimary);
@@ -141,6 +141,14 @@ Fit.Controls.DropDown = function(ctlId)
 
 			if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
 				me.CloseDropDown();
+		});
+
+		// Suppress context menu (except for input fields)
+
+		Fit.Events.AddHandler(me.GetDomElement(), "contextmenu", function(e)
+		{
+			if (Fit.Events.GetTarget(e).tagName !== "INPUT")
+				return Fit.Events.PreventDefault(e);
 		});
 
 		// Append elements to the DOM

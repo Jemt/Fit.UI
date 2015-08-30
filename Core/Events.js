@@ -113,6 +113,20 @@ Fit.Events.PreventDefault = function(e)
 
 	var ev = e || window.event;
 
+	if ((ev.type === "click" || ev.type === "mousedown" || ev.type === "mouseup") && ev.button === 2) // Right click = suppress context menu
+	{
+		var preventContextMenu = Fit.Events.PreventDefault;
+
+		Fit.Events.AddHandler(document, "contextmenu", true, preventContextMenu);
+		Fit.Events.AddHandler(document, "contextmenu", preventContextMenu);
+
+		setTimeout(function()
+		{
+			Fit.Events.RemoveHandler(document, "contextmenu", true, preventContextMenu);
+			Fit.Events.RemoveHandler(document, "contextmenu", preventContextMenu);
+		}, 0);
+	}
+
 	if (ev.preventDefault)
 		ev.preventDefault();
 	ev.returnValue = false;
@@ -182,6 +196,14 @@ Fit.Events.GetEvent = function(e)
 /// </function>
 Fit.Events.GetModifierKeys = function()
 {
+	if (window.event && (window.event.type === "keypress" || window.event.type === "keydown" || window.event.type === "keyup")) // Make sure state is current on IE8 which does not support event capturing
+	{
+		Fit._internal.Events.KeysDown.Shift = window.event.shiftKey;
+		Fit._internal.Events.KeysDown.Ctrl = window.event.ctrlKey;
+		Fit._internal.Events.KeysDown.Alt = window.event.altKey;
+		Fit._internal.Events.KeysDown.Meta = window.event.metaKey;
+	}
+
 	// Cloning to prevent external code from manipulating the object
 	return Fit.Core.Clone(Fit._internal.Events.KeysDown);
 }
@@ -197,6 +219,20 @@ Fit.Events.GetModifierKeys = function()
 /// </function>
 Fit.Events.GetPointerState = function()
 {
+	if (window.event && (window.event.type === "click" || window.event.type === "mousedown" || window.event.type === "mouseup")) // Make sure state is current on IE8 which does not support event capturing
+	{
+		if ((Fit._internal.Events.Browser.Name === "MSIE" && Fit._internal.Events.Browser.Version === 8 && window.event.button === 1) || window.event.button === 0)
+		{
+			Fit._internal.Events.Mouse.Buttons.Primary = true;
+			Fit._internal.Events.Mouse.Buttons.Secondary = false;
+		}
+		else if (window.event.button === 2)
+		{
+			Fit._internal.Events.Mouse.Buttons.Secondary = true;
+			Fit._internal.Events.Mouse.Buttons.Primary = false;
+		}
+	}
+
 	// Cloning to prevent external code from manipulating the object
 	return Fit.Core.Clone(Fit._internal.Events.Mouse);
 }
@@ -215,7 +251,11 @@ Fit._internal.Events.OnReadyHandlers = [];
 // Keyboard tracking
 // ==============================================
 
-Fit.Events.AddHandler(document, "keydown", function(e)
+// Using event capturing to make sure event is registered before target is reached.
+// This is not supported by MSIE 8, but we solve this by updating the state when
+// Fit.Events.GetModifierKeys() is invoked.
+
+Fit.Events.AddHandler(document, "keydown", true, function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
@@ -224,7 +264,7 @@ Fit.Events.AddHandler(document, "keydown", function(e)
 	Fit._internal.Events.KeysDown.Alt = ev.altKey;
 	Fit._internal.Events.KeysDown.Meta = ev.metaKey;
 });
-Fit.Events.AddHandler(document, "keyup", function(e)
+Fit.Events.AddHandler(document, "keyup", true, function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
@@ -238,25 +278,43 @@ Fit.Events.AddHandler(document, "keyup", function(e)
 // Mouse tracking
 // ==============================================
 
+// Using event capturing to make sure event is registered before target is reached.
+// This is not supported by MSIE 8, but we solve this by updating the state when
+// Fit.Events.GetPointerState() is invoked.
+
+// Notice that MouseUp is not fired when using the secondary mouse button (right click)
+// if context menu is not suppressed. Therefore we always assume the secondary button
+// is released when MouseDown or MouseUp is fired.
+// And for consistency, we do the same for the primary button.
+// Therefore, the primary and secondary buttons are never considered pressed or held down
+// simultaneously.
+
 // http://www.quirksmode.org/js/events_properties.html
 
-Fit.Events.AddHandler(document, "mousedown", function(e)
+Fit.Events.AddHandler(document, "mousedown", true, function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
 	if ((Fit._internal.Events.Browser.Name === "MSIE" && Fit._internal.Events.Browser.Version === 8 && ev.button === 1) || ev.button === 0)
+	{
 		Fit._internal.Events.Mouse.Buttons.Primary = true;
-	if (ev.button === 2)
-		Fit._internal.Events.Mouse.Buttons.Secondary = true;
-});
-Fit.Events.AddHandler(document, "mouseup", function(e)
-{
-	var ev = Fit.Events.GetEvent(e);
-
-	if ((Fit._internal.Events.Browser.Name === "MSIE" && Fit._internal.Events.Browser.Version === 8 && ev.button === 1) || ev.button === 0)
-		Fit._internal.Events.Mouse.Buttons.Primary = false;
-	if (ev.button === 2)
 		Fit._internal.Events.Mouse.Buttons.Secondary = false;
+	}
+	else if (ev.button === 2)
+	{
+		Fit._internal.Events.Mouse.Buttons.Secondary = true;
+		Fit._internal.Events.Mouse.Buttons.Primary = false;
+	}
+});
+Fit.Events.AddHandler(document, "mouseup", true, function(e)
+{
+	Fit._internal.Events.Mouse.Buttons.Primary = false;
+	Fit._internal.Events.Mouse.Buttons.Secondary = false;
+});
+Fit.Events.AddHandler(document, "mouseout", true, function(e)
+{
+	Fit._internal.Events.Mouse.Buttons.Primary = false;
+	Fit._internal.Events.Mouse.Buttons.Secondary = false;
 });
 Fit.Events.AddHandler(document, "mousemove", function(e)
 {

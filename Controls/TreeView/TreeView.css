@@ -81,6 +81,10 @@ div.FitUiControlTreeView li ul li > input
 	   NOTICE: Unfortunately this prevents us from centering the checkbox vertically,
 	   resulting in checkbox sticking at the top of the node if a big font is being used.*/
 	position: absolute;
+
+	/* Make it look decent in IE */
+	border: none;
+	width: 1.5em;
 }
 
 /* Node title */

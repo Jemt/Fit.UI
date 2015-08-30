@@ -150,7 +150,7 @@ Fit.Array.RemoveAt = function(arr, idx)
 Fit.Array.Clear = function(arr)
 {
 	Fit.Validation.ExpectArray(arr);
-    arr = [];
+    arr.length = 0; // http://jsperf.com/array-destroy/151
 }
 
 /// <function container="Fit.Array" name="GetIndex" access="public" static="true" returns="integer">

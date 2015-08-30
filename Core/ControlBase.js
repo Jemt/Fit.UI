@@ -116,9 +116,9 @@ Fit.Controls.ControlBase = function(controlId)
 		txtValid.name = "FitUIValid" + me.GetId();
 		Fit.Dom.Add(container, txtValid);
 
-		me.OnChange(function(sender, value)
+		me.OnChange(function(sender)
 		{
-			txtValue.value = value.toString();
+			txtValue.value = sender.Value().toString();
 			txtDirty.value = ((sender.IsDirty() === true) ? "1" : "0");
 			txtValid.value = ((sender.IsValid() === true) ? "1" : "0");
 
@@ -414,7 +414,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnChange" access="public">
 	/// 	<description> Register OnChange event handler which is invoked when control value is changed either programmatically or by user </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) and new control value (string) </param>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnChange = function(cb)
 	{
@@ -495,10 +495,9 @@ Fit.Controls.ControlBase = function(controlId)
 		this._internal.FireOnChange = function()
 		{
 			me._internal.Validate();
-
 			Fit.Array.ForEach(onChangeHandlers, function(cb)
 			{
-				cb(me, me.Value());
+				cb(me);
 			});
 		},
 

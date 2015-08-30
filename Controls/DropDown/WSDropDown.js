@@ -114,6 +114,12 @@ Fit.Controls.WSDropDown = function(ctlId)
 			fireEventHandlers(onResponseHandlers, tree, eventArgs);
 			cmdOpen.className = classes;
 		});
+		tree.OnSelectAll(function(sender, node)
+		{
+			// Make sure focus is lost when SelectAll is invoked. Otherwise control will
+			// reassign focus every time an item is added which is very expensive performance wise.
+			me.Focused(false);
+		});
 
 		me.OnOpen(function()
 		{
@@ -230,11 +236,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 		Fit.Array.Add(onRequestHandlers, cb);
 	}
 
-	/// <function container="Fit.Controls.WSDropDown" name="OnRequest" access="public">
+	/// <function container="Fit.Controls.WSDropDown" name="OnResponse" access="public">
 	/// 	<description>
-	/// 		Add event handler fired when data is being requested.
-	/// 		Request can be canceled by returning False.
-	/// 		Function receives two arguments:
+	/// 		Add event handler fired when data is received,
+	/// 		allowing for data transformation to occure before
+	/// 		picker control is populated. Function receives two arguments:
 	/// 		Sender (Fit.Controls.WSDropDown) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSDropDown instance
@@ -275,8 +281,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 			else if (eventArgs.Items) // WSListView
 				data = eventArgs.Items;
 
-			if (cb(me, { Sender: me, Picker: picker, Node: (eventArgs.Node ? eventArgs.Node : null), Search: search, Data: data, Request: eventArgs.Request }) === false)
+			var newArgs = { Sender: me, Picker: picker, Node: (eventArgs.Node ? eventArgs.Node : null), SelectAll: eventArgs.SelectAll, Search: search, Data: data, Request: eventArgs.Request };
+
+			if (cb(me, newArgs) === false)
 				cancel = true; // Do not cancel loop though - all handlers must be fired!
+
+			// Assign data back to eventArgs, in case a new array instance was created
+			if (eventArgs.Children) // WSTreeView
+				eventArgs.Children = newArgs.Data;
+			else if (eventArgs.Items) // WSListView
+				eventArgs.Items = newArgs.Data;
 		});
 
 		return !cancel;

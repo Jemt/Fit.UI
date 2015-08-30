@@ -418,6 +418,7 @@ In-place render:<br>
 	t.Url("getdata.php");
 	t.Lines(true);
 	t.Selectable(true, true, true);
+	t.Width(500);
 
 	/*t.OnChange(function(sender, value)
 	{
@@ -426,6 +427,11 @@ In-place render:<br>
 
 	t.OnRequest(function(sender, eventArgs)
 	{
+		var node = eventArgs.Node;
+		eventArgs.Request.AddData("NodeLevel", (node !== null ? node.GetLevel()+1 : 0).toString());
+		eventArgs.Request.AddData("ParentNode", (node !== null ? node.Value() : ""));
+		return;
+
 		var node = eventArgs.Node;
 		//var requestContext = eventArgs.Context;
 
@@ -466,6 +472,8 @@ In-place render:<br>
 
 	t.OnPopulated(function(sender, eventArgs)
 	{
+		return;
+
 		var node = eventArgs.Node;
 		var requestContext = eventArgs.Context;
 
@@ -488,11 +496,14 @@ In-place render:<br>
 
 	t.OnToggle(function(sender, n)
 	{
+		return;
 		console.log("OnToggle", n);
 	});
 
 	t.OnToggled(function(sender, n)
 	{
+		return;
+
 		Fit.Array.Remove(nodes, n);
 
 		if (nodes.length === 0)
@@ -549,9 +560,9 @@ In-place render:<br>
 	Fit.Dom.InsertBefore(t.GetDomElement(), inp2.GetDomElement());
 	Fit.Dom.InsertAfter(inp2.GetDomElement(), document.createElement("br"));
 
-	t.MaxHeight(200, "px");
-	t.Width(300, "px");
-	t.OnItemSelectionChanged(function(title, value, selected) { console.log(title, value, selected); });
+	t.MaxHeight(300, "px");
+	t.Width(600, "px");
+	t.OnItemSelectionChanged(function(title, value, selected) { return; console.log("OnItemSelectionChanged", title, value, selected); });
 </script>
 
 <br><br><br><br><br><br><br> Yiihaaaa ! <br><br><br>
