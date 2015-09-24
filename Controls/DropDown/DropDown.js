@@ -120,7 +120,7 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				var ev = Fit.Events.GetEvent(e);
 
-				dropDownMenu.firstChild.scrollTop -= ev.wheelDeltaY; // Expecting PickerControl's container (firstChild) to be scrollable for this to work
+				dropDownMenu.firstChild.scrollTop -= ((ev.wheelDeltaY !== undefined) ? ev.wheelDeltaY : ev.wheelDelta); // Expecting PickerControl's container (firstChild) to be scrollable for this to work
 				Fit.Events.PreventDefault(ev);
 			}
 		}
@@ -434,6 +434,8 @@ Fit.Controls.DropDown = function(ctlId)
 		// Register OnItemSelectionChanged handler which is used to
 		// synchronize selections from picker control to drop down.
 
+		var fireChangeEvent = false;
+
 		picker.OnItemSelectionChanged(function(sender, eventArgs)
 		{
 			if (suppressOnItemSelectionChanged === true)
@@ -445,21 +447,25 @@ Fit.Controls.DropDown = function(ctlId)
 			// picker.UpdateItemSelection which in turn fires OnItemSelectionChanged, causing an infinite loop.
 			suppressUpdateItemSelectionState = true;
 
-			if (eventArgs.Selected === true)
+			if (eventArgs.Selected === true && me.GetSelectionByValue(eventArgs.Value) === null) // Check whether node is already selected (PreSelection)
 			{
+				fireChangeEvent = true;
+
 				var itemCount = getSelectionElements().length;
 
 				// Changing a selection in the picker control may cause OnItemSelectionChanged to be fired multiple
 				// times since an existing selection may first be deselected, followed by new item being selected.
 				// In this case we suppress OnChange fired by RemoveSelection(..) and AddSelection(..), and instead
 				// fire it when picker's OnItemSelectionComplete event is fired.
-				me._internal.ExecuteWithNoOnChange(function() { me.AddSelection(eventArgs.Title, eventArgs.Value); }); // Skips item if already added
+				me._internal.ExecuteWithNoOnChange(function() { me.AddSelection(eventArgs.Title, eventArgs.Value); });
 
 				if (me.MultiSelectionMode() === false && getSelectionElements().length > itemCount) // Only auto close in Single Selectin Mode, and if an item was actually added
 					me.CloseDropDown();
 			}
-			else
+			else if (eventArgs.Selected === false && me.GetSelectionByValue(eventArgs.Value) !== null)
 			{
+				fireChangeEvent = true;
+
 				txt = txtActive; // RemoveSelection changes txtActive
 
 				// Changing a selection in the picker control may cause OnItemSelectionChanged to be fired multiple
@@ -485,7 +491,14 @@ Fit.Controls.DropDown = function(ctlId)
 			if (suppressOnItemSelectionChanged === true)
 				return;
 
-			me._internal.FireOnChange();
+			// Picker may notify about selections that has already been
+			// made due to PreSelections (nodes are selected when loaded).
+			// Only fire OnChange if control value has actually changed.
+			if (fireChangeEvent === true)
+			{
+				me._internal.FireOnChange();
+				fireChangeEvent = false;
+			}
 		});
 	}
 

@@ -505,7 +505,7 @@ Fit.Events.OnReady = function(callback)
 {
 	Fit.Validation.ExpectFunction(callback);
 
-	if (document.readyState === "complete")
+	if (Fit._internal.Events.OnReadyFired === true)
 	{
 		callback();
 	}
@@ -517,6 +517,8 @@ Fit.Events.OnReady = function(callback)
 
 Fit.Events.AddHandler(window, "load", function()
 {
+	Fit._internal.Events.OnReadyFired = true;
+
 	Fit.Array.ForEach(Fit._internal.Events.OnReadyHandlers, function(handler)
 	{
 		handler();

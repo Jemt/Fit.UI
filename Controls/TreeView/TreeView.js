@@ -50,6 +50,8 @@ Fit.Controls.TreeView = function(ctlId)
 	var selected = createInternalCollection();
 	var selectedOrg = [];
 
+	var ctx = null; // Context menu
+
 	// These events fire when user interacts with the tree,
 	// NOT when nodes are manipulated programmatically!
 	// OnSelect and OnToggle can be canceled by returning False.
@@ -60,6 +62,7 @@ Fit.Controls.TreeView = function(ctlId)
 	var onToggleHandlers = [];
 	var onToggledHandlers = [];
 	var onSelectAllHandlers = [];
+	var onContextMenuHandlers = [];
 
 	var forceClear = false;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
@@ -75,7 +78,7 @@ Fit.Controls.TreeView = function(ctlId)
 		me.AddCssClass("FitUiControlTreeView");
 		me._internal.Data("selectable", "false");
 		me._internal.Data("multiselect", "false");
-		me._internal.Data("wordwrap", "false")
+		me._internal.Data("wordwrap", "false");
 
 		// Create internal root node to hold children
 
@@ -220,6 +223,22 @@ Fit.Controls.TreeView = function(ctlId)
 			}
 
 			var node = elm._internal.Node;
+
+			// Handle context menu
+
+			if (ev.keyCode === 93 || (Fit.Events.GetModifierKeys().Shift === true && ev.keyCode === 121)) // Context menu button or Shift+F10
+			{
+				var label = node.GetDomElement().querySelector("span");
+				var pos = Fit.Dom.GetPosition(label);
+
+				pos.X = pos.X + label.offsetWidth - 10;
+				pos.Y = pos.Y + label.offsetHeight - 5;
+
+				openContextMenu(node, pos);
+
+				Fit.Events.PreventDefault(ev);
+				return;
+			}
 
 			// Handle navigation links
 
@@ -405,7 +424,7 @@ Fit.Controls.TreeView = function(ctlId)
 			{
 				var target = Fit.Events.GetTarget(e);
 
-				if (target.tagName === "INPUT") // Checkbox
+				if (target.tagName === "INPUT") // Checkbox - Select all
 				{
 					var node = target.parentElement._internal.Node;
 
@@ -439,6 +458,13 @@ Fit.Controls.TreeView = function(ctlId)
 
 					if (changed === true)
 						me._internal.FireOnChange();
+				}
+				else // Context menu
+				{
+					var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
+					var pos = Fit.Events.GetPointerState().Coordinates.Document;
+
+					openContextMenu(node, pos);
 				}
 
 				return Fit.Events.PreventDefault(e);
@@ -685,6 +711,22 @@ Fit.Controls.TreeView = function(ctlId)
 		return me.HasCssClass("FitUiControlTreeViewLines");
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="ContextMenu" access="public" returns="Fit.Controls.ContextMenu">
+	/// 	<description> Get/set instance of ContextMenu control triggered when right clicking nodes in TreeView </description>
+	/// 	<param name="contextMenu" type="Fit.Controls.ContextMenu" default="undefined"> If defined, assignes ContextMenu control to TreeView </param>
+	/// </function>
+	this.ContextMenu = function(contextMenu)
+	{
+		Fit.Validation.ExpectInstance(contextMenu, Fit.Controls.ContextMenu, true);
+
+		if (contextMenu !== undefined) // Accept null to disable context menu
+		{
+			ctx = contextMenu;
+		}
+
+		return ctx;
+	}
+
 	/// <function container="Fit.Controls.TreeView" name="Clear" access="public">
 	/// 	<description>
 	/// 		Fit.Controls.ControlBase.Clear override:
@@ -822,7 +864,7 @@ Fit.Controls.TreeView = function(ctlId)
 		// This will destroy control - it will no longer work!
 
 		rootNode.Dispose();
-		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = hostControl = activeNode = isIe8 = null;
+		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = hostControl = activeNode = isIe8 = null;
 		baseDispose();
 	}
 
@@ -901,6 +943,22 @@ Fit.Controls.TreeView = function(ctlId)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onSelectAllHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="OnContextMenu" access="public">
+	/// 	<description>
+	/// 		Add event handler fired before context menu is shown.
+	/// 		This event can be canceled by returning False.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 		Use Sender.ContextMenu() to obtain a reference to the context menu.
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnContextMenu = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onContextMenuHandlers, cb);
 	}
 
 	// ============================================
@@ -1006,7 +1064,8 @@ Fit.Controls.TreeView = function(ctlId)
 	{
 		Fit.Validation.ExpectDomElement(control);
 
-		me.GetDomElement().style.paddingLeft = "12px";
+		me.GetDomElement().style.paddingLeft = "1em";
+		me.GetDomElement().style.paddingRight = "30px"; // Make room for scrollbar in drop down
 
 		// This is not pretty. SetEventDispatcher was implemented to support the TreeView
 		// picker control which uses this function to register an OnBlur handler on the
@@ -1130,6 +1189,8 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function toggleNodeSelection(node)
 	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+
 		// TreeViewNodeInterface now takes care of deselecting an existing node if in Single Selection Mode,
 		// but prevents selection change if currently selected node is non-selectable (read only).
 		// See Select and FireSelect functions on TreeViewNodeInterface for details.
@@ -1139,6 +1200,8 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function focusNode(node)
 	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+
 		if (hostControl !== null)
 		{
 			// Since host control has focus, we use the "active" data attribute
@@ -1192,7 +1255,21 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function getNodeFocused()
 	{
-		return ((document.activeElement && document.activeElement.tagName === "LI" && document.activeElement._internal) ? document.activeElement._internal.Node : null);
+		return ((document.activeElement && document.activeElement.tagName === "LI" && document.activeElement._internal && Fit.Dom.Contained(rootContainer, document.activeElement) === true) ? document.activeElement._internal.Node : null);
+	}
+
+	function openContextMenu(node, pos)
+	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectIsSet(pos); // Anonymous JSON object
+
+		if (ctx === null)
+			return;
+
+		if (fireEventHandlers(onContextMenuHandlers, node) === false)
+			return;
+
+		ctx.Show(pos.X, pos.Y);
 	}
 
 	function fireEventHandlers(handlers, node)

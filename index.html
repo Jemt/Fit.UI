@@ -183,6 +183,25 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		tree.WordWrap(true);
 		tree.Lines(true);
 
+		var ctxNode = null;
+		var ctx = new Fit.Controls.WSContextMenu();
+		ctx.Url("getdata.php");
+		ctx.OnShowing(function(sender) { console.log("ContextMenu.Showing", sender, sender.GetDomElement()); });
+		ctx.OnShown(function(sender) { console.log("ContextMenu.Shown", sender, sender.GetDomElement()); });
+		ctx.OnSelect(function(sender, item) { console.log("ContextMenu.Select", item.Title(), item.Value(), sender.GetChild(item.Value(), true)); });
+		tree.ContextMenu(ctx);
+
+		tree.OnContextMenu(function(sender, node)
+		{
+			ctxNode = node;
+			console.log("TreeView.OnContextMenu", sender, sender.GetDomElement());
+		});
+		ctx.OnRequest(function(sender, eventArgs)
+		{
+			eventArgs.Request.AddData("Search", ctxNode.Title());
+			ctxNode = null;
+		});
+
 		tree.OnChange(function(sender, value)
 		{
 			var vals = "";
@@ -726,6 +745,8 @@ x.Render();
 	dd.AddSelection("XYZ", "2");
 	dd.AddSelection("ABC", "3");
 	dd.AddSelection("Muuh", "2_2");
+
+	dd.AutoPostBack(true);
 
 	dd.GetDomElement().parentElement.style.display = "none";
 	setTimeout(function() { dd.SetInputValue("Search stuff here.."); setTimeout(function() { dd.GetDomElement().parentElement.style.display = ""; }, 1200); }, 3000);
