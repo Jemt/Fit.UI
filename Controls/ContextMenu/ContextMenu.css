@@ -5,4 +5,5 @@ div.FitUiControlContextMenu
 	background: rgba(255, 255, 255, 0.8);
 	padding: 10px;
 	position: absolute; /* top/left set using JS */
+	z-index: 999999;
 }
