@@ -135,7 +135,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Make drop down close when user clicks outside of control
 
-		Fit.Events.AddHandler(document.body, "click", function(e)
+		Fit.Events.AddHandler(document, "click", function(e)
 		{
 			var target = Fit.Events.GetTarget(e);
 

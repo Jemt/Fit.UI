@@ -23,33 +23,71 @@ Fit.Controls.WSContextMenu = function()
 
 	function init()
 	{
-		// Register OnShowing handler responsible for loading data
-
-		me.OnShowing(function(sender)
-		{
-			getData(function(eventArgs)
-			{
-				// Populate data received
-				Fit.Array.ForEach(eventArgs.Children, function(c)
-				{
-					me.AddChild(createItemFromJson(c));
-				});
-
-				me.Focused(true);
-			});
-		});
-
-		// Register OnHide handler responsible for removing items
-
-		me.OnHide(function()
-		{
-			me.RemoveAllChildren(true); // Clear items - data is reloaded OnShowing
-		});
 	}
 
 	// ============================================
 	// Public
 	// ============================================
+
+	this.Show = function(x, y)
+	{
+		Fit.Validation.ExpectInteger(x, true);
+		Fit.Validation.ExpectInteger(y, true);
+
+		// Fire OnShowing event
+
+		if (me._internal.FireOnShowing() === false)
+			return;
+
+		// Close context menu if one is already open
+
+		if (Fit._internal.ContextMenu.Current !== null && Fit._internal.ContextMenu.Current !== me && Fit._internal.ContextMenu.Current.IsVisible() === true)
+		{
+			Fit._internal.ContextMenu.Current.Hide();
+			Fit._internal.ContextMenu.Current = null;
+		}
+
+		// Load data
+
+		getData(function(eventArgs)
+		{
+			// Populate data received
+
+			me.RemoveAllChildren();
+
+			Fit.Array.ForEach(eventArgs.Children, function(c)
+			{
+				me.AddChild(createItemFromJson(c));
+			});
+
+			// Set position
+
+			var pos = Fit.Events.GetPointerState().Coordinates.Document;
+
+			var posX = ((Fit.Validation.IsSet(x) === true) ? x : pos.X);
+			var posY = ((Fit.Validation.IsSet(y) === true) ? y : pos.Y);
+
+			me.GetDomElement().style.left = posX + "px";
+			me.GetDomElement().style.top = posY + "px";
+			me.GetDomElement().style.width = "auto"; // TreeView.Width(val, unit) cannot be used to set width:auto
+
+			// Add to DOM (context menu shows up)
+
+			if (me.IsVisible() === false) // Only append to DOM once - ContextMenu may have been rooted elsewhere by external code
+			{
+				Fit.Dom.Add(document.body, me.GetDomElement());
+				Fit._internal.ContextMenu.Current = me;
+			}
+
+			// Focus context menu
+
+			me.Focused(true);
+
+			// Fire OnShown event
+
+			me._internal.FireOnShown();
+		});
+	}
 
 	/// <function container="Fit.Controls.WSContextMenu" name="Url" access="public" returns="string">
 	/// 	<description>

@@ -461,10 +461,13 @@ Fit.Controls.TreeView = function(ctlId)
 				}
 				else // Context menu
 				{
-					var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
-					var pos = Fit.Events.GetPointerState().Coordinates.Document;
+					if (target !== me.GetDomElement()) // Skip if right clicking TreeView container (possible if padding is applied)
+					{
+						var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
+						var pos = Fit.Events.GetPointerState().Coordinates.Document;
 
-					openContextMenu(node, pos);
+						openContextMenu(node, pos);
+					}
 				}
 
 				return Fit.Events.PreventDefault(e);

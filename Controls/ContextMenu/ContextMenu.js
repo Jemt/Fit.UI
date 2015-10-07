@@ -54,6 +54,8 @@ Fit.Controls.ContextMenu = function()
 				return;
 
 			fireEventHandlers(onSelect, node.GetDomElement()._internal.ContextMenuItem);
+
+			me.Hide();
 		});
 	}
 
@@ -78,7 +80,7 @@ Fit.Controls.ContextMenu = function()
 
 		// Close context menu if one is already open
 
-		if (Fit._internal.ContextMenu.Current !== null && Fit._internal.ContextMenu.Current.IsVisible() === true)
+		if (Fit._internal.ContextMenu.Current !== null && Fit._internal.ContextMenu.Current !== me && Fit._internal.ContextMenu.Current.IsVisible() === true)
 		{
 			Fit._internal.ContextMenu.Current.Hide();
 			Fit._internal.ContextMenu.Current = null;
@@ -97,12 +99,14 @@ Fit.Controls.ContextMenu = function()
 
 		// Add to DOM
 
-		document.body.appendChild(tree.GetDomElement());
-		Fit._internal.ContextMenu.Current = me;
+		if (me.IsVisible() === false) // Only append to DOM once - ContextMenu may have been rooted elsewhere by external code
+		{
+			Fit.Dom.Add(document.body, tree.GetDomElement());
+			Fit._internal.ContextMenu.Current = me;
+		}
 
 		// Focus context menu
 
-		prevFocused = document.activeElement;
 		me.Focused(true);
 
 		// Fire OnShown event
@@ -117,7 +121,7 @@ Fit.Controls.ContextMenu = function()
 	{
 		if (me.IsVisible() === true)
 		{
-			document.body.removeChild(tree.GetDomElement());
+			Fit.Dom.Remove(tree.GetDomElement());
 			fireEventHandlers(onHide);
 		}
 	}
@@ -214,6 +218,12 @@ Fit.Controls.ContextMenu = function()
 	this.Focused = function(value)
 	{
 		Fit.Validation.ExpectBoolean(value, true);
+
+		if (Fit.Validation.IsSet(value) === true)
+		{
+			prevFocused = document.activeElement;
+		}
+
 		return tree.Focused(value);
 	}
 
@@ -287,6 +297,25 @@ Fit.Controls.ContextMenu = function()
 	// ============================================
 	// Private
 	// ============================================
+
+	this._internal = (this._internal ? this._internal : {});
+
+	this._internal.FireOnShowing = function()
+	{
+		return fireEventHandlers(onShowing);
+	}
+	this._internal.FireOnShown = function()
+	{
+		fireEventHandlers(onShown);
+	}
+	this._internal.FireOnHide = function()
+	{
+		fireEventHandlers(onHide);
+	}
+	this._internal.FireOnSelect = function()
+	{
+		fireEventHandlers(onSelect);
+	}
 
 	function fireEventHandlers(handlers, item) // Notice: item variable only provided for OnSelect event
 	{
@@ -446,7 +475,7 @@ Fit._internal.ContextMenu.Current = null;
 
 Fit.Events.OnReady(function()
 {
-	Fit.Events.AddHandler(document.body, "click", function(e)
+	Fit.Events.AddHandler(document, "click", function(e)
 	{
 		var target = Fit.Events.GetTarget(e);
 		var ctx = Fit._internal.ContextMenu.Current;
@@ -456,4 +485,10 @@ Fit.Events.OnReady(function()
 
 		ctx.Hide();
 	});
+
+	/*Fit.Events.AddHandler(document, "mousewheel", function(e) // Close ContextMenu when scrolling
+	{
+		if (Fit._internal.ContextMenu.Current !== null)
+			Fit._internal.ContextMenu.Current.Hide();
+	});*/
 });
