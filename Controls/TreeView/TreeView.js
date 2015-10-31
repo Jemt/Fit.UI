@@ -289,9 +289,6 @@ Fit.Controls.TreeView = function(ctlId)
 				else
 				{
 					next = node.GetParent();
-
-					if (next === rootNode)
-						next = null;
 				}
 
 				Fit.Events.PreventDefault(ev);
@@ -308,79 +305,14 @@ Fit.Controls.TreeView = function(ctlId)
 			else if (ev.keyCode === 38) // Up
 			{
 				// Move selection up
-
-				// Find current node's position in parent node
-				var children = node.GetParent().GetChildren();
-				var idx = Fit.Array.GetIndex(children, node);
-
-				// Select node above current node, within same parent
-				next = ((idx > 0) ? children[idx-1] : null);
-
-				if (next !== null)
-				{
-					// Now make sure the last node in a hierarchy
-					// of expanded nodes gets selected.
-					while (next.Expanded() === true)
-					{
-						children = next.GetChildren();
-						next = children[children.length - 1];
-					}
-				}
-				else
-				{
-					// Current node is top node within parent.
-					// Move selection to parent, unless this is the hidden root node.
-
-					next = node.GetParent();
-
-					if (next === rootNode)
-						next = null;
-
-				}
+				next = getNodeAbove(node);
 
 				Fit.Events.PreventDefault(ev);
 			}
 			else if (ev.keyCode === 40) // Down
 			{
 				// Move selection down
-
-				if (node.Expanded() === true)
-				{
-					// Select first child if current node is expanded
-					var children = node.GetChildren();
-					next = children[0];
-				}
-				else
-				{
-					// Get node below current bide within same level (parent)
-
-					// Find current node's position in parent node
-					var children = node.GetParent().GetChildren();
-					var idx = Fit.Array.GetIndex(children, node);
-
-					// Select node below current node, within same parent
-					next = ((children.length - 1 >= idx + 1) ? children[idx+1] : null);
-
-					// If no node within same level was found, traverse tree
-					// bottom-up until a parent is found that has a node below current node.
-
-					var parent = node.GetParent();
-					var grandParent = parent.GetParent();
-
-					while (next === null && parent !== null && grandParent !== null)
-					{
-						// Find parent's position within grandparent
-						children = grandParent.GetChildren();
-						idx = Fit.Array.GetIndex(children, parent);
-
-						// Select node below parent if this is not the last node,
-						// or set Null to continue traversing tree bottom-up.
-						next = ((idx+1 <= children.length-1) ? children[idx+1] : null);
-
-						parent = parent.GetParent();
-						grandParent = parent.GetParent();
-					}
-				}
+				next = getNodeBelow(node);
 
 				Fit.Events.PreventDefault(ev);
 			}
@@ -427,37 +359,7 @@ Fit.Controls.TreeView = function(ctlId)
 				if (target.tagName === "INPUT") // Checkbox - Select all
 				{
 					var node = target.parentElement._internal.Node;
-
-					// Fire OnSelectAll event
-
-					if (fireEventHandlers(onSelectAllHandlers, node) === false)
-						return; // Event handler canceled event
-
-					// Change selection and expand (all nodes)
-
-					var changed = false;
-
-					executeWithNoOnChange(function() // Prevent OnChange from firing every time a node's selection state is changed
-					{
-						var selected = !node.Selected()
-
-						Fit.Array.Recurse([node], "GetChildren", function(child)
-						{
-							if (child.Selectable() === true)
-							{
-								if (child.Selected() !== selected)
-								{
-									changed = true;
-									child.Selected(selected);
-								}
-							}
-
-							child.Expanded(true);
-						});
-					});
-
-					if (changed === true)
-						me._internal.FireOnChange();
+					me.SelectAll(!node.Selected(), node);
 				}
 				else // Context menu
 				{
@@ -591,6 +493,53 @@ Fit.Controls.TreeView = function(ctlId)
 		return copy;*/
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="SelectAll" access="public">
+	/// 	<description> Select all nodes </description>
+	/// 	<param name="selected" type="boolean"> Value indicating whether to select or deselect nodes </param>
+	/// 	<param name="selectAllNode" type="Fit.Controls.TreeView.Node" default="undefined">
+	/// 		If specified, given node is selected/deselected along with all its children.
+	/// 		If not specified, all nodes contained in TreeView will be selected/deselected.
+	/// 	</param>
+	/// </function>
+	this.SelectAll = function(selected, selectAllNode)
+	{
+		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectInstance(selectAllNode, Fit.Controls.TreeView.Node, true);
+
+		var node = (selectAllNode ? selectAllNode : null); // Null = select all nodes, Set = select only children under passed node
+
+		// Fire OnSelectAll event
+
+		if (fireEventHandlers(onSelectAllHandlers, { Node: node, Selected: selected }) === false)
+			return; // Event handler canceled event
+
+		// Change selection and expand (all nodes)
+
+		var changed = false;
+
+		executeWithNoOnChange(function() // Prevent OnChange from firing every time a node's selection state is changed
+		{
+			var nodes = ((node !== null) ? [node] : rootNode.GetChildren());
+
+			Fit.Array.Recurse(nodes, "GetChildren", function(child)
+			{
+				if (child.Selectable() === true)
+				{
+					if (child.Selected() !== selected)
+					{
+						changed = true;
+						child.Selected(selected);
+					}
+				}
+
+				child.Expanded(true);
+			});
+		});
+
+		if (changed === true)
+			me._internal.FireOnChange();
+	}
+
 	// See documentation on ControlBase
 	this.Value = function(val)
 	{
@@ -630,14 +579,14 @@ Fit.Controls.TreeView = function(ctlId)
 		// Get
 
 		var nodes = me.Selected();
-		var val = "";
+		var value = "";
 
 		Fit.Array.ForEach(nodes, function(node)
 		{
-			val += ((val !== "") ? ";" : "") + encodeReserved(node.Title()) + "=" + encodeReserved(node.Value());
+			value += ((value !== "") ? ";" : "") + encodeReserved(node.Title()) + "=" + encodeReserved(node.Value());
 		});
 
-		return val;
+		return value;
 	}
 
 	// See documentation on ControlBase
@@ -938,7 +887,10 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Add event handler fired when Select All is used for a given node.
 	/// 		This event can be canceled by returning False.
 	/// 		Function receives two arguments:
-	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Node: Fit.Controls.TreeView.Node instance
+	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -1261,6 +1213,73 @@ Fit.Controls.TreeView = function(ctlId)
 		return ((document.activeElement && document.activeElement.tagName === "LI" && document.activeElement._internal && Fit.Dom.Contained(rootContainer, document.activeElement) === true) ? document.activeElement._internal.Node : null);
 	}
 
+	function getNodeAbove(node)
+	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+
+		// Get parent node
+		var parent = node.GetParent();
+		parent = ((parent !== null) ? parent : rootNode);
+
+		// Find current node's position in parent node
+		var children = parent.GetChildren();
+		var idx = Fit.Array.GetIndex(children, node);
+
+		// Select node above current node, within same parent
+		var next = ((idx > 0) ? children[idx-1] : null);
+
+		if (next !== null)
+		{
+			// Now make sure the last node in a hierarchy
+			// of expanded nodes gets selected.
+			while (next.Expanded() === true)
+			{
+				children = next.GetChildren();
+				next = children[children.length - 1];
+			}
+		}
+		else
+		{
+			// Current node is top node within parent - select parent
+			next = node.GetParent();
+		}
+
+		return next;
+	}
+
+	function getNodeBelow(node, noFirstOnExpand)
+	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectBoolean(noFirstOnExpand, true);
+
+		if (node.Expanded() === true && noFirstOnExpand !== true) // Select first child if current node is expanded
+		{
+			var children = node.GetChildren();
+			return children[0];
+		}
+		else // Get node below current node within same level (parent)
+		{
+			// Get parent node
+
+			var parent = node.GetParent();
+			parent = ((parent !== null) ? parent : rootNode);
+
+			// Find current node's position in parent node
+			var children = parent.GetChildren();
+			var idx = Fit.Array.GetIndex(children, node);
+
+			// Select node below current node, within same parent
+			var next = ((children.length - 1 >= idx + 1) ? children[idx+1] : null);
+
+			if (next !== null || node.GetParent() === null) // Found, or last element within root node (in which case next variable is Null)
+				return next;
+
+			// No more nodes within parent - select node below parent
+
+			return getNodeBelow(parent, true);
+		}
+	}
+
 	function openContextMenu(node, pos)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
@@ -1275,13 +1294,14 @@ Fit.Controls.TreeView = function(ctlId)
 		ctx.Show(pos.X, pos.Y);
 	}
 
-	function fireEventHandlers(handlers, node)
+	function fireEventHandlers(handlers, evObj)
 	{
 		var cancel = false;
+		var clone = (Fit.Core.InstanceOf(evObj, Fit.Controls.TreeView.Node) === false); // Clone event object if not a node, to prevent any changes from affecting other handlers
 
 		Fit.Array.ForEach(handlers, function(cb)
 		{
-			if (cb(me, node) === false)
+			if (cb(me, ((clone === false) ? evObj : Fit.Core.Clone(evObj))) === false)
 				cancel = true; // Do NOT cancel loop though! All handlers must be fired!
 		});
 
@@ -1571,6 +1591,8 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 			return null; // Not rooted in another node yet
 		if (!elmLi.parentNode.parentNode._internal)
 			return null; // Rooted, but not in another node - most likely rooted in TreeView UL container
+		if (elmLi.parentNode.parentNode._internal.Node.Value() === "TREEVIEW_ROOT_NODE")
+			return null; // Indicate top by returning Null when root node is reached
 
 		return elmLi.parentNode.parentNode._internal.Node;
 	}
@@ -1594,9 +1616,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		var level = 0;
 		var node = me;
 
-		// Parent is Null when no more nodes are found.
-		// Parent value is "TREEVIEW_ROOT_NODE" when node is nested in TreeView.
-		while ((node = node.GetParent()) !== null && node.Value() !== "TREEVIEW_ROOT_NODE")
+		while ((node = node.GetParent()) !== null) // Parent is Null when no more nodes are found, and when TREEVIEW_ROOT_NODE is reached for nodes rooted in TreeView
 		{
 			level++;
 		}
@@ -1611,6 +1631,17 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	this.AddChild = function(node)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+
+		// Remove node from existing parent if already rooted.
+		// This is important to make sure that TreeView, from which
+		// node is moved, is updated to reflect the change, and
+		// to ensure that node (and its children) is no longer capable
+		// of updating the old TreeView through its TreeViewNodeInterface.
+
+		if (node.GetParent() !== null)
+			node.GetParent().RemoveChild(node);
+		if (node.GetTreeView() !== null)
+			node.GetTreeView().RemoveChild(node);
 
 		// Register child node.
 		// This is done prior to firing any events so that event handlers
@@ -1652,7 +1683,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 
 			executeRecursively(node, function(n)
 			{
-				n.GetDomElement()._internal.TreeView = null; // Avoid conflicts if node currently belongs to another TreeView (e.g. drag and drop)
+				//n.GetDomElement()._internal.TreeView = null; // Avoid conflicts if node currently belongs to another TreeView (e.g. drag and drop)
 
 				if (n.Selected() === true)
 				{
@@ -1705,7 +1736,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 
-		if (node.GetParent() === me)
+		if (node.GetParent() === me || (me.Value() === "TREEVIEW_ROOT_NODE" && me.GetTreeView().GetChild(node.Value()) !== null))
 		{
 			// Deconfigure TreeView association and synchronize selection state
 

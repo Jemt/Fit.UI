@@ -66,7 +66,8 @@
 <input type="button" value="IsDirty" onclick="alert('Is dirty (different from initial value): ' + Fit.Controls.Find('MyInput').IsDirty())">
 <input type="button" value="GetValue" onclick="alert('Value: ' + Fit.Controls.Find('MyInput').Value())">
 <input type="button" value="SetValue" onclick="Fit.Controls.Find('MyInput').Value(prompt('Indtast værdi', 'Hello world'));">
-<input type="button" value="Enable A-Z 0-9 RegExp" onclick="Fit.Controls.Find('MyInput').SetValidationExpression(new RegExp('^[a-z0-9 ]*$', 'i'), 'Only A-Z, 0-9 and space is allowed!');">
+<input type="button" value="Toggle required" onclick="Fit.Controls.Find('MyInput').Required(!Fit.Controls.Find('MyInput').Required()); alert('Required: ' + Fit.Controls.Find('MyInput').Required());">
+<input type="button" value="Enable A-Z 0-9 RegExp" onclick="Fit.Controls.Find('MyInput').SetValidationExpression(new RegExp('^[a-z0-9 ]+$', 'i'), 'Only A-Z, 0-9 and space is allowed (and not empty)!');">
 <input type="button" value="Focus" onclick="setTimeout(function() { Fit.Controls.Find('MyInput').Focused(true); }, 300);">
 <input type="submit" value="Submit page">
 
@@ -143,8 +144,6 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 <br><br>
 <br><br><br><br>
 
-
-
 <script type="text/javascript">
 	window.ShowLines = function(val)
 	{
@@ -162,7 +161,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 		input.IsValid();
 		//input.Render(document.body);
 		input.Render(document.getElementById("Input"));
-		input.OnChange(function(sender, value) { console.log(sender, value); });
+		input.OnChange(function(sender) { console.log(sender, sender.Value()); });
 		input.Width(300);
 		input.Value("Hello world");
 		input.Focused(true);
@@ -202,7 +201,7 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 			ctxNode = null;
 		});
 
-		tree.OnChange(function(sender, value)
+		tree.OnChange(function(sender)
 		{
 			var vals = "";
 
@@ -364,7 +363,24 @@ Fit.Array.ForEach(document.querySelectorAll("li"), function(l) { new Fit.DragDro
 
 		//n1.GetChild("1798234").Dispose()
 
+		// Drag/drop nodes
 
+		Fit.Array.ForEach(Fit.Controls.Find("MyTreeView").GetAllNodes(), function(n)
+		{
+			var dr = new Fit.DragDrop.Draggable(n.GetDomElement());
+			dr.OnDragStop(function(draggable)
+			{
+				draggable.Reset();
+			});
+
+			var dz = new Fit.DragDrop.Dropzone(n.GetDomElement());
+
+			dz.OnDrop(function(dropzone, draggable)
+			{
+				dropzone.GetElement()._internal.Node.AddChild(draggable.GetElement()._internal.Node);
+				draggable.Reset();
+			});
+		});
 	});
 </script>
 
@@ -511,6 +527,27 @@ In-place render:<br>
 			});
 			//}, 10);
 		}
+	});
+
+	t.OnPopulated(function(sender, eventArgs)
+	{
+		var nodes = ((eventArgs.Node !== null) ? [eventArgs.Node] : sender.GetChildren());
+
+		Fit.Array.Recurse(nodes, "GetChildren", function(n)
+		{
+			var dr = new Fit.DragDrop.Draggable(n.GetDomElement());
+			dr.OnDragStop(function(draggable)
+			{
+				draggable.Reset();
+			});
+
+			var dz = new Fit.DragDrop.Dropzone(n.GetDomElement());
+			dz.OnDrop(function(dropzone, draggable)
+			{
+				dropzone.GetElement()._internal.Node.AddChild(draggable.GetElement()._internal.Node);
+				draggable.Reset();
+			});
+		});
 	});
 
 	t.OnToggle(function(sender, n)
@@ -680,7 +717,7 @@ x.InputEnabled(true);
 x.Width(40, "%");
 x.DropDownMaxHeight(100);
 x.SetPicker(lv);
-x.OnChange(function(sender, value) { console.log("DropDown.OnChange", sender, value.toString()); });
+x.OnChange(function(sender) { console.log("DropDown.OnChange", sender, sender.Value().toString()); });
 x.OnInputChanged(function(sender, value) { console.log("DropDown.OnInputChanged", sender, value); });
 x.OnPaste(function(sender, value) { console.log("DropDown.OnPaste", sender, value); sender.AddSelection(value, Math.random().toString(), (value !== "jit@flowit.dk" ? false : true)); });
 
@@ -746,7 +783,7 @@ x.Render();
 	dd.AddSelection("ABC", "3");
 	dd.AddSelection("Muuh", "2_2");
 
-	dd.AutoPostBack(true);
+	//dd.AutoPostBack(true);
 
 	dd.GetDomElement().parentElement.style.display = "none";
 	setTimeout(function() { dd.SetInputValue("Search stuff here.."); setTimeout(function() { dd.GetDomElement().parentElement.style.display = ""; }, 1200); }, 3000);

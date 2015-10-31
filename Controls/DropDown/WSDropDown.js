@@ -114,7 +114,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			fireEventHandlers(onResponseHandlers, tree, eventArgs);
 			cmdOpen.className = classes;
 		});
-		tree.OnSelectAll(function(sender, node)
+		tree.OnSelectAll(function(sender, eventArgs)
 		{
 			// Make sure focus is lost when SelectAll is invoked. Otherwise control will
 			// reassign focus every time an item is added which is very expensive performance wise.

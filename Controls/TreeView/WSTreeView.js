@@ -94,23 +94,33 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		//{ SelectAll
 
-		me.OnSelectAll(function(sender, node)
+		me.OnSelectAll(function(sender, eventArgs)
 		{
+			// Event handler is reponsible for loading nodes before selecting/deselecting and expanding them
+
 			// NOTICE: How it works:
-			// Fit.Controls.TreeView checks and expands all children ALREADY loaded.
-			// Nodes with children NOT loaded yet (WSHasChildren === true)
-			// are expanded here to force them to load. The OnPopulated handler registered
-			// below is then responsible for checking and expanding the children received.
-			// If Instant Mode (selectAllMode variable) is enabled, all children is expected
-			// to be returned at once through one single HTTP request. In this case
-			// the OnResponse handler below will remove existing children to have
-			// them replaced by the complete record set return from the WebService.
-			// If Progressive Mode on the other hand is enabled, nodes will be chain loaded,
-			// just as if the user expanded all the nodes - it just happens automatically.
+			// Progressive Mode:
+			//    Nodes are loaded progressively (chain loaded).
+			//    Nodes with children not loaded yet are automatically expanded to force their children to load.
+			//    WebService may return multiple levels of nodes, or even the complete hierarchy, but Progressive Mode
+			//    will never be able to quarantee that only one request are made, since the node triggering Select All
+			//    may already have multiple children loaded with HasChildren set to True, which will spawn individual
+			//    requests when expanded. OnChange will fire multiple times.
+			//    Chain loading is made possible using the OnPopulated handler which automatically expands children received.
+			// Instant Mode:
+			//    Node on which Select All is triggered will have all its children removed (in OnResponse handler)
+			//    and replaced by the new data returned (in OnPopulated handler). This is to prevent that any children
+			//    already loaded is expanded and causing separate requests. Instant Mode is quaranteed to only trigger
+			//    one request and fire Onchange only once, provided that no nodes returned has HasChildren set to True
+			//    which WILL trigger additional requests and fire OnChange multiple times.
+			// Both modes have children selected/deselected in OnResponse handler.
+			// Search for "selectAllMode" and "WSSelectAll" to reveal code involved in the Select All function.
 
-			var selected = !node.Selected();
+			// If node is provided, select only children under passed node - otherwise, select all nodes in treeview (root node (TREEVIEW_ROOT_NODE))
+			var node = ((eventArgs.Node !== null) ? eventArgs.Node : me.GetDomElement().firstChild.firstChild._internal.Node);
+			var selected = eventArgs.Selected;
 
-			if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly) // Load all children at once (in just one HTTP request)
+			if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly) // Load all children at once (in one single HTTP request)
 			{
 				if (nodeFullyLoaded(node) === false)
 				{
@@ -126,6 +136,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 					delete internal.WSDone;
 					delete internal.WSLoading;
 
+					// Auto expand node to have children load
 					node.Expanded(false);
 					setTimeout(function() { node.Expanded(true); }, 0); // Auto expand node to have children load after SelectAll is canceled below (False returned)
 
@@ -153,12 +164,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnResponse(function(sender, eventArgs)
 		{
-			// Select All in Instant Mode returns all children at once (not populated yet).
+			// Select All in Instant Mode returns all children at once (received but not populated yet).
 			// Remove any existing children - may have been partically loaded by user.
 
-			if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+			if (eventArgs.Node !== null && eventArgs.Node.GetDomElement()._internal.WSSelectAll === true)
 			{
-				if (eventArgs.Node !== null && eventArgs.Node.GetDomElement()._internal.WSSelectAll === true)
+				if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly)
 				{
 					me._internal.ExecuteWithNoOnChange(function() // Prevent checked nodes from firing OnChange when removed
 					{
@@ -177,7 +188,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 		{
 			var node = eventArgs.Node;
 
-			if (node === null) return; // Root
+			if (node === null)
+				return; // Root node
 
 			if (node.GetDomElement()._internal.WSSelectAll === true) // Select All triggered request
 			{
@@ -185,30 +197,62 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 				var selected = node.GetDomElement()._internal.WSCheckedState;
 
-				if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly)
-					node.Selected(selected); // SelectAll was canceled in Instant Mode to prevent OnChange from firing - select node now
-
 				me._internal.ExecuteWithNoOnChange(function()
 				{
+					if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+						node.Selected(selected); // SelectAll was canceled in Instant Mode to prevent OnChange from firing - select node now
+
 					Fit.Array.Recurse(node.GetChildren(), "GetChildren", function(child)
 					{
-						// Make sure children (and their children) keeps loading in Progressive Mode (chain loading)
+						// Make sure children (and their children) keeps loading in Progressive Mode (chain loading).
+						// NOTICE: Check for Progressive Mode disabled to allow nodes returned in any Select All Mode
+						// (progressively AND instantly) to be chain loaded, in case HasChildren has been set to True.
+						// This is odd behaviour for Instant Mode since all nodes are expected to be returned in one
+						// single request, but better than potentially causing some nodes to be left out if WebService
+						// is not behaving as expected. Also, it does allow for e.g. primary nodes to be immediately
+						// returned, and for any performance heavy nodes to be requested, calculated, and retrieved
+						// subsequently. A noticification is logged to the browser console to make developers aware
+						// of this behaviour.
 
-						if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Progressively)
+						//if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Progressively)
+						//{
+						var childInternal = child.GetDomElement()._internal;
+
+						if (childInternal.WSHasChildren === true && childInternal.WSDone !== true) // Node has children server side which have not loaded yet
 						{
-							var childInternal = child.GetDomElement()._internal;
+							childInternal.WSSelectAll = true;
+							childInternal.WSCheckedState = selected;
+						}
+						//}
 
-							if (childInternal.WSHasChildren === true && childInternal.WSDone !== true) // Node has children server side which have not loaded yet
-							{
-								childInternal.WSSelectAll = true;
-								childInternal.WSCheckedState = selected;
-							}
+						if (childInternal.WSHasChildren === true && selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+						{
+							// Show warning since this is most likely not the desired behaviour, unless some nodes can be resolved quickly
+							// while others take more time to retrieve, in which case it might make sense to have them load subsequently.
+							Fit.Browser.Log("Notice: SelectAllMode is set to Instantly, but a node with the value '" + child.Value() + "' has HasChildren:true, resulting in an extra request");
 						}
 
 						// Select and expand
 
 						if (child.Selectable() === true)
 							child.Selected(selected);
+
+						// Handle situation where WebService erroneously has marked some nodes with HasChildren:true,
+						// which indicates that more nodes are available server side. Expanding such nodes will cause
+						// their children to be requested. However, Instant Mode is not supposed to trigger multiple
+						// requests, so we assume HasChildren:true was set by mistake and removes the expander node.
+						// NOTICE: Code below disabled since it is likely that WebService has been incorrectly configured.
+						// We do not want to potentially cause some nodes to be left out if more children are in fact available.
+
+						/*if (selectAllMode === Fit.Controls.WSTreeView.SelectAllMode.Instantly && childInternal.WSHasChildren === true)
+						{
+							childInternal.WSHasChildren = false;
+
+							var expanderNode = child.GetChild("__");
+
+							if (expanderNode !== null)
+								child.RemoveChild(expanderNode);
+						}*/
 
 						child.Expanded(true);
 					});

@@ -78,8 +78,10 @@ Fit.Controls.ControlBase = function(controlId)
 	var required = false;
 	var validationExpr = null;
 	var validationError = null;
-	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation
+	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation, 2 = Callback validation
 	var lblValidationError = null;
+	var validationCallbackFunc = null;
+	var validationCallbackError = null;
 	var onChangeHandlers = [];
 	var onFocusHandlers = [];
 	var onBlurHandlers = [];
@@ -194,7 +196,7 @@ Fit.Controls.ControlBase = function(controlId)
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(container);
-		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = lblValidationError = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = focusBlurTimeout = txtValue = txtDirty = txtValid = null;
+		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = lblValidationError = validationCallbackFunc = validationCallbackError = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = focusBlurTimeout = txtValue = txtDirty = txtValid = null;
 		Fit._internal.ControlBase.Controls[controlId] = null;
 	}
 
@@ -303,16 +305,7 @@ Fit.Controls.ControlBase = function(controlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			required = val;
-
-			if (val === true)
-			{
-				me._internal.Validate();
-			}
-			else if (lblValidationError !== null)
-			{
-				Fit.Dom.Remove(lblValidationError);
-				lblValidationError = null;
-			}
+			me._internal.Validate(); // Update error indicator
 		}
 
 		return required;
@@ -362,7 +355,7 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 	<description> Set regular expression used to perform on-the-fly validation against control value </description>
 	/// 	<param name="regEx" type="RegExp"> Regular expression to validate against </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
-	/// 		If defined, specified error message is displayed when user clicks our hovers validation error indicator
+	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
 	/// 	</param>
 	/// </function>
 	this.SetValidationExpression = function(regEx, errorMsg)
@@ -372,6 +365,24 @@ Fit.Controls.ControlBase = function(controlId)
 
 		validationExpr = (regEx ? regEx : null);
 		validationError = (errorMsg ? errorMsg : null);
+
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="SetValidationCallback" access="public">
+	/// 	<description> Set callback function used to perform on-the-fly validation against control value </description>
+	/// 	<param name="cb" type="function"> Function receiving control value - must return True if value is valid, otherwise False </param>
+	/// 	<param name="errorMsg" type="string" default="undefined">
+	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
+	/// 	</param>
+	/// </function>
+	this.SetValidationCallback = function(cb, errorMsg)
+	{
+		Fit.Validation.ExpectFunction(cb, true); // Allow Null/undefined which disables validation
+		Fit.Validation.ExpectString(errorMsg, true);
+
+		validationCallbackFunc = (cb ? cb : null);;
+		validationCallbackError = (errorMsg ? errorMsg : null);
 
 		me._internal.Validate();
 	}
@@ -387,7 +398,7 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		validationErrorType = -1;
 
-		if (validationExpr === null && required === false)
+		if (validationExpr === null && validationCallbackFunc === null && required === false)
 			return true;
 
 		var obj = me.Value();
@@ -402,6 +413,12 @@ Fit.Controls.ControlBase = function(controlId)
 		if (validationExpr !== null && validationExpr.test(val) === false)
 		{
 			validationErrorType = 1;
+			return false;
+		}
+
+		if (validationCallbackFunc !== null && validationCallbackFunc(val) === false)
+		{
+			validationErrorType = 2;
 			return false;
 		}
 
@@ -580,7 +597,7 @@ Fit.Controls.ControlBase = function(controlId)
 				// Add error indicator
 
 				lblValidationError = document.createElement("div");
-				lblValidationError.title = ((validationError !== null) ? validationError : "");
+				lblValidationError.title = "";
 				lblValidationError.onclick = function() { if (lblValidationError.title !== "") alert(lblValidationError.title); };
 				Fit.Dom.AddClass(lblValidationError, "fa");
 				Fit.Dom.AddClass(lblValidationError, "fa-exclamation-circle");
@@ -588,6 +605,10 @@ Fit.Controls.ControlBase = function(controlId)
 
 				if (validationErrorType === 0)
 					lblValidationError.title = Fit.Language.Translations.Required;
+				else if (validationErrorType === 1 && validationError !== null)
+					lblValidationError.title = validationError;
+				else if (validationErrorType === 2 && validationCallbackError !== null)
+					lblValidationError.title = validationCallbackError;
 
 				Fit.Dom.InsertBefore(container.firstChild, lblValidationError);
 			}
@@ -595,10 +616,14 @@ Fit.Controls.ControlBase = function(controlId)
 			{
 				// Update error indicator - make sure error indicator contains correct description
 
+				lblValidationError.title = "";
+
 				if (validationErrorType === 0)
 					lblValidationError.title = Fit.Language.Translations.Required;
-				else
-					lblValidationError.title = ((validationError !== null) ? validationError : "");
+				else if (validationErrorType === 1 && validationError !== null)
+					lblValidationError.title = validationError;
+				else if (validationErrorType === 2 && validationCallbackError !== null)
+					lblValidationError.title = validationCallbackError;
 			}
 			else if (valid === true && lblValidationError !== null)
 			{
