@@ -356,20 +356,12 @@ Fit.Controls.TreeView = function(ctlId)
 			{
 				var target = Fit.Events.GetTarget(e);
 
-				if (target.tagName === "INPUT") // Checkbox - Select all
+				if (target !== me.GetDomElement()) // Skip if right clicking TreeView container (possible if padding is applied)
 				{
-					var node = target.parentElement._internal.Node;
-					me.SelectAll(!node.Selected(), node);
-				}
-				else // Context menu
-				{
-					if (target !== me.GetDomElement()) // Skip if right clicking TreeView container (possible if padding is applied)
-					{
-						var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
-						var pos = Fit.Events.GetPointerState().Coordinates.Document;
+					var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
+					var pos = Fit.Events.GetPointerState().Coordinates.Document;
 
-						openContextMenu(node, pos);
-					}
+					openContextMenu(node, pos);
 				}
 
 				return Fit.Events.PreventDefault(e);
@@ -757,7 +749,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 		executeWithNoOnChange(function()
 		{
-			var children = Fit.Array.Copy(rootNode.GetChildren());
+			var children = rootNode.GetChildren();
 
 			Fit.Array.ForEach(children, function(child)
 			{
@@ -964,7 +956,7 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			// Deselect nodes not found in items passed (vals array)
 
-			Fit.Array.ForEach(selected, function(selectedNode)
+			Fit.Array.ForEach(Fit.Array.Copy(selected), function(selectedNode) // Copying array to prevent "Collection modified" error - deselecting nodes causes them to be removed from array
 			{
 				// Notice that non-selectable (read only) nodes always keep their selection state
 				if (Fit.Array.Contains(vals, selectedNode.Value()) === false && selectedNode.Selectable() === true)
@@ -1832,7 +1824,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	/// </function>
 	this.GetChildren = function()
 	{
-		return childrenArray;
+		return Fit.Array.Copy(childrenArray); // Copy to prevent changes to internal children array
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="Dispose" access="public">

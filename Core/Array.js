@@ -29,9 +29,16 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 
 	if (obj instanceof Array || obj instanceof NodeList || (window.StaticNodeList && obj instanceof StaticNodeList) || obj instanceof HTMLCollection)
 	{
+		var count = obj.length;
+
 		for (var i = 0 ; i < obj.length ; i++)
+		{
+			if (obj.length !== count)
+				Fit.Validation.ThrowError("Collection was modified while iterating objects");
+
 			if (callback(obj[i]) === false)
 				break;
+		}
 	}
 	else if (typeof(obj) === "object")
 	{
@@ -63,8 +70,13 @@ Fit.Array.Recurse = function(arr, childrenProperty, callback)
 	if (Fit.Validation.IsSet(arr) === false)
 		return;
 
+	var count = arr.length;
+
 	for (var i = 0 ; i < arr.length ; i++)
 	{
+		if (arr.length !== count)
+			Fit.Validation.ThrowError("Collection was modified while iterating objects");
+
 		if (callback(arr[i]) === false)
 			break;
 

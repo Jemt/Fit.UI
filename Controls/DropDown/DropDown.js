@@ -125,6 +125,7 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		}
 		Fit.Dom.AddClass(dropDownMenu, "FitUiControlDropDownPicker");
+		dropDownMenu.style.display = "none"; // Considered closed by default (prevent OnClose from firing if CloseDropDown() is called on closed drop down)
 
 		// Create hidden span used to calculate width of input field value
 

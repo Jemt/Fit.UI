@@ -119,6 +119,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 			// Make sure focus is lost when SelectAll is invoked. Otherwise control will
 			// reassign focus every time an item is added which is very expensive performance wise.
 			me.Focused(false);
+
+			// Make sure TreeView is the active picker to have changes synchronized with
+			// drop down control (in case SelectAll is triggered programmatically).
+			if (me.GetPicker() !== tree)
+				me.SetPicker(tree);
 		});
 
 		me.OnOpen(function()
@@ -132,7 +137,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 			me.SetPicker(tree);
 
 			if (tree.GetChildren().length === 0)
+			{
+				var selected = tree.Selected(); // Save selection which is cleared when Reload() is called
 				tree.Reload();
+				tree.Selected(selected); // Restore selection
+			}
 		});
 	}
 

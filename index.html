@@ -755,11 +755,21 @@ x.Render();
 
 <div>
 <script type="text/javascript">
+	var selectAll = ""; // "", "true", "false"
+
 	dd = new Fit.Controls.WSDropDown("CoolDrop");
 	dd.InputEnabled(true);
 	dd.OnInputChanged(function(sender, value)
 	{
 		dd.Search = value;
+	});
+	dd.OnChange(function(sender)
+	{
+		console.log("DropDown.OnChange");
+	});
+	dd.GetTreeView().OnChange(function(sender)
+	{
+		console.log("TreeView.OnChange");
 	});
 	dd.OnRequest(function(sender, eventArgs)
 	{
@@ -769,19 +779,35 @@ x.Render();
 		}
 		else // WSTreeView
 		{
-			eventArgs.Request.AddData("ParentNode", (eventArgs.Node !== null ? eventArgs.Node.Value() : ""));
+			var node = eventArgs.Node;
+			eventArgs.Request.AddData("ParentNode", (node !== null ? node.Value() : ""));
+			eventArgs.Request.AddData("NodeLevel", (node !== null ? node.GetLevel()+1 : 0).toString());
+			eventArgs.Request.AddData("SelectAll", selectAll);
+
+			selectAll = "";
+		}
+	});
+	dd.GetTreeView().OnSelectAll(function(sender, eventArgs)
+	{
+		if (sender.SelectAllMode() === Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+		{
+			selectAll = "true";
 		}
 	});
 	dd.OnResponse(function(sender, eventArgs) { console.log("OnResponse", sender, eventArgs); });
 	dd.MultiSelectionMode(true);
-	dd.Url("getdata.php");
-	dd.Width(20, "em");
-	dd.DropDownMaxWidth(150, "%");
+	dd.Url("getdata-static.php");
+	dd.Width(120, "em");
+	dd.DropDownMaxWidth(225, "%");
 	dd.Render();
 	dd.GetDomElement().style.fontSize = "11px";
-	dd.AddSelection("XYZ", "2");
-	dd.AddSelection("ABC", "3");
-	dd.AddSelection("Muuh", "2_2");
+	dd.AddSelection("Hanne", "Hanne");
+	dd.AddSelection("Omstillingen", "Omstillingen");
+	dd.AddSelection("Jimmy", "Jimmy");
+	dd.AddSelection("Salg & Adm.", "Salg");
+	dd.AddSelection("Diverse", "Diverse");
+	dd.AddSelection("Deep", "Deep");
+	dd.AddSelection("Eksternt", "Eksternt");
 
 	//dd.AutoPostBack(true);
 

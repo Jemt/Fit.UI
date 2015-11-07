@@ -57,6 +57,13 @@ Fit.Controls.ContextMenu = function()
 
 			me.Hide();
 		});
+
+		// Contain clicks - prevents e.g. drop down from closing when context menu is used within picker control
+
+		Fit.Events.AddHandler(tree.GetDomElement(), "click", function(e)
+		{
+			Fit.Events.StopPropagation(e);
+		});
 	}
 
 	// ============================================
