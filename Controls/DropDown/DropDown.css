@@ -14,6 +14,10 @@ div.FitUiControlDropDownItems /* Item container */
 	position: relative; /* Allow absolute positioning of arrow icon within item container */
 	overflow: hidden; /* Prevent large items from overflowing boundaries, in case of tiny control width */
 }
+div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems
+{
+	white-space: nowrap; /* Make sure txtPrimary does not word wrap in Single Selection Mode */
+}
 
 div.FitUiControlDropDownItems > i /* Box surrounding arrow icon */
 {

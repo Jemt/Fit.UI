@@ -23,6 +23,7 @@ Fit.Controls.Input = function(ctlId)
 	var minimizeHeight = -1;
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
+	var mutationObserverId = -1;
 
 	// ============================================
 	// Init
@@ -119,7 +120,7 @@ Fit.Controls.Input = function(ctlId)
 		if (designEditor !== null)
 			designEditor.destroy();
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = null;
 
 		baseDispose();
 	}
@@ -385,6 +386,21 @@ Fit.Controls.Input = function(ctlId)
 
 		// Create editor
 
+		// NOTICE: CKEDITOR requires input control to be rooted in DOM.
+		// Creating the editor when Render(..) is called is not the solution, since the programmer
+		// may call GetDomElement() instead and root the element at any given time which is out of our control.
+		// It may be possible to temporarily root the control and make it invisible while the control
+		// is being created, and remove it from the DOM when instanceReady is fired. However, since creating
+		// the editor is an asynchronous operation, we need to detect whether the element has been rooted
+		// elsewhere when instanceCreated is fired, and only remove it from the DOM if this is not the case.
+		// This problem needs to be solved some other time as it may spawn other problems, such as determining
+		// the size of objects while being invisible. The CKEditor team may also solve the bug in an update.
+		if (me.GetDomElement().parentElement === null)
+		{
+			CKEDITOR._loading = false;
+			Fit.Validation.ThrowError("Control must be appended/rendered to DOM before DesignMode can be initialized");
+		}
+
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules
@@ -445,7 +461,34 @@ Fit.Controls.Input = function(ctlId)
 			if (w.Unit !== "px" || h.Unit !== "px")
 				throw new Error("DesignMode does not support resizing in units different from px");
 
-			designEditor.resize(((w.Value > -1) ? w.Value : 200), ((h.Value > -1) ? h.Value : 150)); // Default control width is 200px (defined in Styles.css)
+			// Default control width is 200px (defined in Styles.css).
+			// NOTICE: resize does not work reliably when editor is hidden, e.g. behind a tab with display:none.
+			// The height set will not have the height of the toolbar substracted since the height can not be
+			// determined for hidden objects, so the editor will become larger than the value set (height specified + toolbar height).
+			// http://docs.ckeditor.com/#!/api/CKEDITOR.editor-method-resize
+			designEditor.resize(((w.Value > -1) ? w.Value : 200), ((h.Value > -1) ? h.Value : 150));
+
+			// Set mutation observer responsible for updating editor size once it becomes visible
+
+			if (mutationObserverId !== -1) // Cancel any mutation observer previously registered
+			{
+				Fit.Events.RemoveMutationObserver(mutationObserverId);
+				mutationObserverId = -1;
+			}
+
+			var concealer = Fit.Dom.GetConcealer(me.GetDomElement()); // Get element hiding editor
+
+			if (concealer !== null) // Editor is hidden - adjust size when it becomes visible
+			{
+				mutationObserverId = Fit.Events.AddMutationObserver(concealer, function(elm)
+				{
+					if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
+					{
+						designEditor.resize(((w.Value > -1) ? w.Value : 200), ((h.Value > -1) ? h.Value : 150));
+						disconnect(); // Observers are expensive - remove when no longer needed
+					}
+				});
+			}
 		}
 	}
 

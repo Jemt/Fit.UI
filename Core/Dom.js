@@ -2,7 +2,6 @@
 /// 	DOM (Document Object Model) manipulation and helper functionality
 /// </container>
 Fit.Dom = {};
-Fit.Dom._internal = {};
 
 // ==========================================================
 // CSS
@@ -82,6 +81,29 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 	}
 
     return (res !== undefined ? res : null);
+}
+
+/// <function container="Fit.Dom" name="GetInnerWidth" access="public" static="true" returns="integer">
+/// 	<description> Get inner width of given container (width with padding and borders substracted) </description>
+/// 	<param name="elm" type="DOMElement"> Element to get inner width for </param>
+/// </function>
+Fit.Dom.GetInnerWidth = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	var px = function(val) { return (val ? parseInt(val) : 0); }
+
+	var width = elm.offsetWidth;
+
+	if (width === 0) // Element is either 0px wide, or is not visible
+		return width;
+
+	width -= px(Fit.Dom.GetComputedStyle(elm, "padding-left"));
+	width -= px(Fit.Dom.GetComputedStyle(elm, "padding-right"));
+	width -= px(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
+	width -= px(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
+
+	return width;
 }
 
 
@@ -301,13 +323,70 @@ Fit.Dom.Contained = function(container, elm)
 }
 
 /// <function container="Fit.Dom" name="IsVisible" access="public" static="true" returns="boolean">
-/// 	<description> Check whether given element is visible </description>
+/// 	<description>
+/// 		Check whether given element is visible. Returns True if element has been rooted
+/// 		in DOM and is visible. Returns False if not rooted, or display:none has been set
+/// 		on element or any of its ancestors.
+/// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to check visibility for </param>
 /// </function>
 Fit.Dom.IsVisible = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
-	return (elm.offsetParent !== null);
+
+	// Determine visibility quickly using offsetParent if possible.
+	// Notice that offsetParent is always Null for an element with
+	// position:fixed, in which case this check will not suffice.
+	if (Fit._internal.Dom.IsOffsetParentSupported() === true && Fit.Dom.GetComputedStyle(elm, "position") !== "fixed")
+	{
+		return (elm.offsetParent !== null);
+	}
+
+	// Traverse DOM bottom-up to determine whether element or any ancestors have display:none set
+
+	var element = elm;
+	var previous = null;
+
+	while (element !== null)
+	{
+		if (Fit.Dom.GetComputedStyle(element, "display") === "none")
+			return false; // Element is not visible
+
+		previous = element;
+		element = element.parentElement;
+	}
+
+	return (previous === document.documentElement); // If last parent reached is not <html>, then element is not rooted in DOM yet
+}
+
+/// <function container="Fit.Dom" name="GetConcealer" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Get container responsible for hiding given element.
+/// 		Element passed will be returned if hidden itself.
+/// 		Returns Null if element is visible, or has not been rooted in DOM yet.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get concealer for </param>
+/// </function>
+Fit.Dom.GetConcealer = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	if (Fit.Dom.IsVisible(elm) === true)
+		return null; // Element is not concealed - it is visible and rooted in DOM
+
+	// Element is hidden or not rooted in DOM.
+	// Traverse DOM bottom-up to find container hiding element.
+
+	var element = elm;
+	while (element !== null)
+	{
+		if (Fit.Dom.GetComputedStyle(element, "display") === "none")
+			return element;
+
+		element = element.parentElement;
+	}
+
+	return null; // Not rooted in DOM yet
 }
 
 /// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">
@@ -343,7 +422,7 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 	Fit.Validation.ExpectDomElement(elementToWrap);
 	Fit.Validation.ExpectDomElement(container);
 
-	var parent = elementToWrap.parentNode;
+	var parent = elementToWrap.parentElement;
 	var nextSibling = elementToWrap.nextSibling;
 
 	container.appendChild(elementToWrap); // Causes elementToWrap to be removed from existing container
@@ -452,4 +531,26 @@ Fit.Dom.GetScrollPosition = function(elm)
 	}
 
     return pos;
+}
+
+// Internal members
+
+Fit._internal.Dom = {};
+
+Fit._internal.Dom.IsOffsetParentSupported = function()
+{
+	if (Fit._internal.Dom.OffsetParentSupported === undefined)
+	{
+		var parent = document.createElement("div");
+		var child = document.createElement("div");
+
+		parent.style.display = "none";
+
+		Fit.Dom.Add(document.body, parent);
+		Fit.Dom.Add(parent, child);
+
+		Fit._internal.Dom.OffsetParentSupported = (child.offsetParent === null); // If supported, offsetParent should return Null (will return <body> on e.g. IE9-10)
+	}
+
+	return Fit._internal.Dom.OffsetParentSupported;
 }

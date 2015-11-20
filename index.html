@@ -62,6 +62,8 @@
 <input type="button" value="Set Width (px)" onclick="Fit.Controls.Find('MyInput').Width(parseInt(prompt('Indtast bredde i pixels', 500)));">
 <input type="button" value="Toggle: Maximizable" onclick="Fit.Controls.Find('MyInput').Maximizable(!Fit.Controls.Find('MyInput').Maximizable());">
 <input type="button" value="Toggle: Design Mode" onclick="Fit.Controls.Find('MyInput').DesignMode(!Fit.Controls.Find('MyInput').DesignMode());">
+<input type="button" value="Design Mode (Concealed)" onclick="var c = Fit.Controls.Find('MyInput'); var ce = c.GetDomElement(); ce.style.display = 'none'; Fit.Controls.Find('MyInput').DesignMode(true); c.Height(432); setTimeout(function() { ce.style.display = 'block'; }, 4000);">
+<input type="button" value="Design Mode (Unconcealed)" onclick="var c = Fit.Controls.Find('MyInput'); Fit.Controls.Find('MyInput').DesignMode(true); c.Height(432);">
 <input type="button" value="Make Draggable" onclick="new Fit.DragDrop.Draggable(Fit.Controls.Find('MyInput').GetDomElement());">
 <input type="button" value="IsDirty" onclick="alert('Is dirty (different from initial value): ' + Fit.Controls.Find('MyInput').IsDirty())">
 <input type="button" value="GetValue" onclick="alert('Value: ' + Fit.Controls.Find('MyInput').Value())">
@@ -666,8 +668,10 @@ Fit.Dom.InsertBefore(inp.GetDomElement(), lv.GetDomElement());
 
 <input type="button" value="Use ListView" onclick="Fit.Controls.Find('DropDown').SetPicker(Fit.Controls.Find('ListView'));">
 <input type="button" value="Use TreeView" onclick="Fit.Controls.Find('DropDown').SetPicker(Fit.Controls.Find('MyDropDownTree'));">
-<input type="button" value="TreeView: Single Selection" onclick="Fit.Controls.Find('MyDropDownTree').Selectable(true, false);Fit.Controls.Find('MyDropDownTree').Reload();">
-<input type="button" value="TreeView: Multi Selection" onclick="Fit.Controls.Find('MyDropDownTree').Selectable(true, true);Fit.Controls.Find('MyDropDownTree').Reload();">
+<!--input type="button" value="TreeView: Single Selection" onclick="Fit.Controls.Find('MyDropDownTree').Selectable(true, false);Fit.Controls.Find('MyDropDownTree').Reload();">
+<input type="button" value="TreeView: Multi Selection" onclick="Fit.Controls.Find('MyDropDownTree').Selectable(true, true);Fit.Controls.Find('MyDropDownTree').Reload();"-->
+<input type="button" value="DropDown: Single Selection" onclick="Fit.Controls.Find('DropDown').MultiSelectionMode(false);Fit.Controls.Find('MyDropDownTree').Reload();">
+<input type="button" value="DropDown: Multi Selection" onclick="Fit.Controls.Find('DropDown').MultiSelectionMode(true);Fit.Controls.Find('MyDropDownTree').Reload();">
 
 <br><br>
 
@@ -714,7 +718,7 @@ lv.OnHide(function(sender) { console.log("ListView.OnHide", sender.GetDomElement
 
 x = new Fit.Controls.DropDown("DropDown");
 x.InputEnabled(true);
-x.Width(40, "%");
+x.Width(30, "%");
 x.DropDownMaxHeight(100);
 x.SetPicker(lv);
 x.OnChange(function(sender) { console.log("DropDown.OnChange", sender, sender.Value().toString()); });

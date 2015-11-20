@@ -338,7 +338,8 @@ Fit.Events.AddHandler(document, "mousemove", function(e)
 // which unfortunately requires recent versions of some of the major
 // browsers (e.g. IE 11, Safari 6 and Chrome on Android 4.4).
 
-Fit._internal.Events.MutationObservers = []; // Callbacks
+Fit._internal.Events.MutationObservers = [];
+Fit._internal.Events.MutationObserverIds = -1;
 Fit._internal.Events.MutationObserverIntervalId = -1;
 
 /// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true">
@@ -375,19 +376,23 @@ Fit.Events.AddMutationObserver = function(elm, obs, deep)
 
 	// Add mutation observer
 
-	hashCode = 0;
+	var hashCode = 0;
+	var dimensions = elm.offsetWidth + "x" + elm.offsetHeight;
 
 	if (deep === true)
 	{
-		hashCode = Fit.String.Hash(elm.outerHTML);
+		hashCode = Fit.String.Hash(elm.outerHTML + dimensions);
 	}
 	else
 	{
 		var clone = elm.cloneNode(false);
-		hashCode = Fit.String.Hash(clone.outerHTML)
+		hashCode = Fit.String.Hash(clone.outerHTML + dimensions)
 	}
 
-	Fit.Array.Add(Fit._internal.Events.MutationObservers, { Element: elm, Observer: obs, Hash: hashCode, Deep: (deep === true) });
+	Fit._internal.Events.MutationObserverIds++;
+	Fit.Array.Add(Fit._internal.Events.MutationObservers, { Element: elm, Observer: obs, Hash: hashCode, Deep: (deep === true), Id: Fit._internal.Events.MutationObserverIds });
+
+	return Fit._internal.Events.MutationObserverIds;
 }
 
 /// <function container="Fit.Events" name="RemoveMutationObserver" access="public" static="true">
@@ -396,18 +401,37 @@ Fit.Events.AddMutationObserver = function(elm, obs, deep)
 /// 	<param name="obs" type="function"> JavaScript observer function to remove </param>
 /// 	<param name="deep" type="boolean" default="undefined"> If defined, observer must have been registered with the same deep value to be removed </param>
 /// </function>
-Fit.Events.RemoveMutationObserver = function(elm, obs, deep)
+/// <function container="Fit.Events" name="RemoveMutationObserver" access="public" static="true">
+/// 	<description> Remove mutation observer by ID </description>
+/// 	<param name="id" type="integer"> Observer ID returned from AddMutationObserver(..) function </param>
+/// </function>
+Fit.Events.RemoveMutationObserver = function()
 {
-	Fit.Validation.ExpectDomElement(elm);
-	Fit.Validation.ExpectFunction(obs);
-	Fit.Validation.ExpectBoolean(deep, true);
+	var elm, obs, deep, id = undefined;
+
+	if (arguments.length > 1)
+	{
+		elm = arguments[0];
+		obs = arguments[1];
+		deep = arguments[2];
+
+		Fit.Validation.ExpectDomElement(elm);
+		Fit.Validation.ExpectFunction(obs);
+		Fit.Validation.ExpectBoolean(deep, true);
+	}
+	else
+	{
+		id = arguments[0];
+
+		Fit.Validation.ExpectInteger(id);
+	}
 
 	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)
 	{
-		if (mo.Element === elm && mo.Observer === obs && (Fit.Validation.IsSet(deep) === false || mo.Deep === deep))
+		if ((Fit.Validation.IsSet(id) === true && mo.Id === id) || (mo.Element === elm && mo.Observer === obs && mo.Deep === ((Fit.Validation.IsSet(deep) === true) ? deep : false)))
 		{
 			Fit.Array.Remove(Fit._internal.Events.MutationObservers, mo);
-			return false;
+			return false; // Break loop
 		}
 	});
 
@@ -429,18 +453,21 @@ Fit.Events.RemoveMutationObserver = function(elm, obs, deep)
 
 Fit._internal.Events.CheckMutations = function()
 {
+	var toRemove = [];
+
 	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)
 	{
 		var newHash = 0;
+		var dimensions = mo.Element.offsetWidth + "x" + mo.Element.offsetHeight;
 
 		if (mo.Deep === true)
 		{
-			newHash = Fit.String.Hash(mo.Element.outerHTML);
+			newHash = Fit.String.Hash(mo.Element.outerHTML + dimensions);
 		}
 		else
 		{
 			var clone = mo.Element.cloneNode(false);
-			newHash = Fit.String.Hash(clone.outerHTML)
+			newHash = Fit.String.Hash(clone.outerHTML + dimensions)
 		}
 
 		if (mo.Hash !== newHash)
@@ -452,7 +479,7 @@ Fit._internal.Events.CheckMutations = function()
 			// Create global disconnect function allowing observer to remove itself by simply invoking disconnect()
 
 			var orgDisconnect = window.disconnect;
-			window.disconnect = function() { Fit.Events.RemoveMutationObserver(mo.Element, mo.Observer, mo.Deep); };
+			window.disconnect = function() { Fit.Array.Add(toRemove, mo); };
 
 			// Call observer
 
@@ -490,6 +517,11 @@ Fit._internal.Events.CheckMutations = function()
 			if (error !== null)
 				Fit.Validation.Throw(error);
 		}
+	});
+
+	Fit.Array.ForEach(toRemove, function(mo)
+	{
+		Fit.Events.RemoveMutationObserver(mo.Element, mo.Observer, mo.Deep);
 	});
 }
 

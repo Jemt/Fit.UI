@@ -19,12 +19,14 @@ Fit.Browser = {};
 Fit._internal.Browser = {};
 
 /// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns="string">
-/// 	<description> Returns browser name. Possible values are: Chrome, Safari, MSIE, Firefox, Opera, Unknown </description>
+/// 	<description> Returns browser name. Possible values are: Chrome, Safari, Edge, MSIE, Firefox, Opera, Unknown </description>
 /// </function>
 Fit.Browser.GetBrowser = function()
 {
 	var agent = navigator.userAgent;
 
+	if (agent.indexOf("Edge/") > -1) // Check Edge first, it contain portions from Chrome's and Safari's user agent strings
+		return "Edge";
 	if (agent.indexOf("Chrome") > -1)
 		return "Chrome";
 	if (agent.indexOf("Safari") > -1)
@@ -48,6 +50,13 @@ Fit.Browser.GetVersion = function()
 	var end = 0;
 	var agent = navigator.userAgent;
 
+	if (Fit.Browser.GetBrowser() === "Edge")
+	{
+		start = agent.indexOf("Edge/");
+		start = (start !== -1 ? start + 5 : 0);
+		end = agent.indexOf(".", start);
+		end = (end !== -1 ? end : 0);
+	}
 	if (Fit.Browser.GetBrowser() === "Chrome")
 	{
 		start = agent.indexOf("Chrome/");

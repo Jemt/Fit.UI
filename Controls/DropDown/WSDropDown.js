@@ -98,6 +98,8 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		// Create TreeView
 
+		var initialLoad = true;
+
 		tree = new Fit.Controls.WSTreeView(ctlId + "__WSTreeView");
 		tree.Width(100, "%");
 		tree.Lines(true);
@@ -113,6 +115,32 @@ Fit.Controls.WSDropDown = function(ctlId)
 		{
 			fireEventHandlers(onResponseHandlers, tree, eventArgs);
 			cmdOpen.className = classes;
+		});
+		tree.OnPopulated(function(sender, eventArgs)
+		{
+			if (initialLoad === true)
+			{
+				// Disable helper lines if no children are contained
+
+				var hasChildren = false;
+
+				Fit.Array.ForEach(tree.GetChildren(), function(c)
+				{
+					if (c.GetChildren().length > 0)
+					{
+						hasChildren = true;
+						return false;
+					}
+				});
+
+				if (hasChildren === false)
+				{
+					tree.Lines(false);
+					tree.GetDomElement().style.marginLeft = "-2em";
+				}
+
+				initialLoad = false;
+			}
 		});
 		tree.OnSelectAll(function(sender, eventArgs)
 		{
