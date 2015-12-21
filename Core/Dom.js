@@ -236,6 +236,33 @@ Fit.Dom.Data = function(elm, name, value)
 	return Fit.Dom.Attribute(elm, "data-" + name, value);
 }
 
+/// <function container="Fit.Dom" name="CreateElement" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Create element with the specified HTML content.
+/// 		HTML content is (by default) wrapped in a &lt;div&gt; if it produced multiple elements.
+/// 		If content on the other hand produces only one outer element, that particular element is returned.
+/// 		The container type used to wrap multiple elements can be changed using the containerTagName argument.
+/// 	</description>
+/// 	<param name="html" type="string"> HTML element to create DOMElement from </param>
+/// 	<param name="containerTagName" type="string" default="div">
+/// 		If defined, and html argument produces multiple element, the result is wrapped in a container of
+/// 		the specified type. If not set, multiple elements will be wrapped in a &lt;div&gt; container.
+/// 	</param>
+/// </function>
+Fit.Dom.CreateElement = function(html, containerTagName)
+{
+	Fit.Validation.ExpectString(html);
+	Fit.Validation.ExpectStringValue(containerTagName, true);
+
+	var container = document.createElement(((Fit.Validation.IsSet(containerTagName) === true) ? containerTagName : "div"));
+	container.innerHTML = html;
+
+	if (container.children.length === 1)
+		return container.firstChild;
+
+	return container;
+}
+
 /// <function container="Fit.Dom" name="Text" access="public" static="true" returns="string">
 /// 	<description> Get/set inner text of DOMElement </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to which text is added and/or returned from </param>

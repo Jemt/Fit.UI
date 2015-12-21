@@ -1,30 +1,23 @@
+Fit.Http = {};
+
+// Use http://www.jsontest.com for testing
+
 /// <container name="Fit.Http.Request">
 /// 	Asynchronous HTTP request functionality (AJAX/WebService).
 ///
 /// 	// Example code
 ///
-/// 	var http = new Fit.Http.Request(&quot;CreateUser.php&quot;, true);
+/// 	var http = new Fit.Http.Request(&quot;CreateUser.php&quot;);
 ///
 /// 	http.SetData(&quot;username=Jack&amp;password=Secret&quot;);
 /// 	http.SetStateListener(function()
 /// 	{
-/// 		&#160;&#160;&#160;&#160; if (this.GetCurrentState() === 4 &amp;&amp; this.GetHttpStatus() === 200)
-/// 		&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; alert(&quot;User created - server said: &quot; + this.GetResponseText());
+/// 		&#160;&#160;&#160;&#160; if (http.GetCurrentState() === 4 &amp;&amp; http.GetHttpStatus() === 200)
+/// 		&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; alert(&quot;User created - server said: &quot; + http.GetResponseText());
 /// 	});
 ///
 /// 	http.Start();
 /// </container>
-Fit.Http = {};
-
-// Calling .NET WebService (replace QuickNavigatorSearch with desired WS Method):
-/*
-r = new Fit.Http.Request("http://domain.com/path/to/WebService.asmx/QuickNavigatorSearch", false);
-r.SetData(JSON.stringify({"context":{"Text":"mobil","NumberOfItems":0,"SelectEnum":"ProjectSearch","WebServiceLogId":"","UserId":"domain\\username"}}));
-r.AddHeader("Content-Type", "application/json; charset=UTF-8");
-r.Start();
-*/
-
-// Use http://www.jsontest.com for testing
 
 /// <function container="Fit.Http.Request" name="Request" access="public">
 /// 	<description> Constructor - creates instance of Request class </description>
@@ -55,6 +48,7 @@ Fit.Http.Request = function(url)
 	var onStateChange = [];
 	var onSuccessHandlers = [];
 	var onFailureHandlers = [];
+	var onAbortHandlers = [];
 
 	// Init
 
@@ -65,14 +59,20 @@ Fit.Http.Request = function(url)
 			handler(me);
 		});
 
-		if (httpRequest.readyState === 4 && httpRequest.status === 200)
+		if (httpRequest.readyState === 4)
 		{
-			Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
-		}
-
-		if (httpRequest.readyState === 4 && httpRequest.status !== 200 && httpRequest.status !== 0) // status is 0 if request was canceled
-		{
-			Fit.Array.ForEach(onFailureHandlers, function(handler) { handler(me); });
+			if (httpRequest.status === 0)
+			{
+				Fit.Array.ForEach(onAbortHandlers, function(handler) { handler(me); });
+			}
+			else if (httpRequest.status === 200)
+			{
+				Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
+			}
+			else
+			{
+				Fit.Array.ForEach(onFailureHandlers, function(handler) { handler(me); });
+			}
 		}
 	}
 
@@ -279,6 +279,19 @@ Fit.Http.Request = function(url)
 		Fit.Array.Add(onFailureHandlers, func);
 	}
 
+	/// <function container="Fit.Http.Request" name="OnAbort" access="public">
+	/// 	<description> Add function to invoke when request is canceled </description>
+	/// 	<param name="func" type="function">
+	/// 		JavaScript function invoked when request is canceled.
+	/// 		Fit.Http.Request instance is passed to function.
+	/// 	</param>
+	/// </function>
+	this.OnAbort = function(func)
+	{
+		Fit.Validation.ExpectFunction(func);
+		Fit.Array.Add(onAbortHandlers, func);
+	}
+
 	// Private
 
 	function getHttpRequestObject()
@@ -292,19 +305,35 @@ Fit.Http.Request = function(url)
 	}
 }
 
-/// <function container="Fit.Http.DotNetRequest" name="DotNetJsonRequest" access="public">
+/// <container name="Fit.Http.JsonRequest">
+/// 	Asynchronous HTTP request functionality (AJAX/WebService)
+/// 	optimized for exchanging data with the server in JSON format.
+/// 	Inheriting from Fit.Http.Request.
+///
+/// 	// Example code
+///
+/// 	var http = new Fit.Http.JsonRequest(&quot;WebService.asmx/AddUser&quot;);
+///
+/// 	http.SetData({ Username: &quot;Jack&quot;, Password: &quot;Secret&quot; });
+/// 	http.OnSuccess(function(sender)
+/// 	{
+/// 		&#160;&#160;&#160;&#160; var json = http.GetResponseJson();
+/// 		&#160;&#160;&#160;&#160; alert(&quot;User created - server response: &quot; + json.Message);
+/// 	});
+///
+/// 	http.Start();
+/// </container>
+
+/// <function container="Fit.Http.JsonRequest" name="JsonRequest" access="public">
 /// 	<description>
-/// 		Constructor - creates instance of .NET JSON Request class
-/// 		Preconfigured with required HTTP headers enabling
-/// 		support for .NET WebServices communicating using JSON.
-/// 		Inheriting from Fit.Http.Request.
+/// 		Constructor - creates instance of JSON Request class.
 /// 	</description>
 /// 	<param name="url" type="string">
 /// 		URL to request, e.g.
 /// 		http://server/_layouts/15/Company/MyWebService.asmx/MyMethod
 /// 	</param>
 /// </function>
-Fit.Http.DotNetJsonRequest = function(url)
+Fit.Http.JsonRequest = function(url)
 {
 	Fit.Validation.ExpectStringValue(url);
 	Fit.Core.Extend(this, Fit.Http.Request).Apply(url);
@@ -318,7 +347,7 @@ Fit.Http.DotNetJsonRequest = function(url)
 		me.AddHeader("X-Requested-With", "XMLHttpRequest");
 	}
 
-	/// <function container="Fit.Http.DotNetJsonRequest" name="SetData" access="public">
+	/// <function container="Fit.Http.JsonRequest" name="SetData" access="public">
 	/// 	<description> Set JSON data to post - this will change the request method from GET to POST </description>
 	/// 	<param name="json" type="object"> Data to send </param>
 	/// </function>
@@ -329,7 +358,7 @@ Fit.Http.DotNetJsonRequest = function(url)
 		data = json;
 	}
 
-	/// <function container="Fit.Http.DotNetJsonRequest" name="GetData" access="public" returns="object">
+	/// <function container="Fit.Http.JsonRequest" name="GetData" access="public" returns="object">
 	/// 	<description> Get JSON data set to be posted </description>
 	/// </function>
 	this.GetData = function(dataStr)
@@ -346,10 +375,10 @@ Fit.Http.DotNetJsonRequest = function(url)
 
 	this.AddData = function(key, value, uriEncode)
 	{
-		Fit.Validation.ThrowError("Use SetData(..) to set JSON request data for .NET JSON WebService");
+		Fit.Validation.ThrowError("Use SetData(..) to set JSON request data for JSON WebService");
 	}
 
-	/// <function container="Fit.Http.DotNetJsonRequest" name="GetResponseJson" access="public" returns="object">
+	/// <function container="Fit.Http.JsonRequest" name="GetResponseJson" access="public" returns="object">
 	/// 	<description>
 	/// 		Returns result from request as JSON object, Null if no response was returned.
 	/// 		Return value will only be as expected if GetCurrentState() returns a value of 4
@@ -363,11 +392,16 @@ Fit.Http.DotNetJsonRequest = function(url)
 	{
 		var resp = baseGetResponseJson();
 
-		if (resp && resp.d)
-			resp = resp.d;
+		if (url.toLowerCase().indexOf(".asmx/") !== -1 && resp && resp.d)
+			resp = resp.d; // Extract .NET response data
 
 		return resp;
 	}
 
 	init();
 }
+
+/// <container name="Fit.Http.DotNetJsonRequest">
+/// 	Backward compatibility class - use Fit.Http.JsonRequest instead
+/// </container>
+Fit.Http.DotNetJsonRequest = Fit.Http.JsonRequest;

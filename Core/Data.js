@@ -67,11 +67,12 @@ Fit.String.StripHtml = function(str)
 {
 	Fit.Validation.ExpectString(str);
 
-	// return str.replace(/(<([^>]+)>)/g, "");
+	return str.replace(/(<([^>]+)>)/g, "");
 
-	var span = document.createElement("span");
+	// Disabled - whitespaces are not preserved!
+	/*var span = document.createElement("span");
 	span.innerHTML = str;
-	return Fit.String.Trim(Fit.Dom.Text(span));
+	return Fit.String.Trim(Fit.Dom.Text(span));*/
 }
 
 /// <function container="Fit.String" name="Hash" access="public" static="true" returns="integer">

@@ -15,6 +15,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
+	var onAbortHandlers = [];
 	//var onPopulatedHandlers = [];
 
 	function init()
@@ -86,6 +87,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 			fireEventHandlers(onResponseHandlers, list, eventArgs);
 			cmdOpen.className = classes;
 		});
+		list.OnAbort(function(sender, eventArgs)
+		{
+			fireEventHandlers(onAbortHandlers, list, eventArgs);
+			cmdOpen.className = classes;
+		});
 		list.OnItemSelectionChanging(function(sender, item)
 		{
 			// Prevent user from deselecting node which is read only in tree (not selectable)
@@ -116,6 +122,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 			fireEventHandlers(onResponseHandlers, tree, eventArgs);
 			cmdOpen.className = classes;
 		});
+		tree.OnAbort(function(sender, eventArgs)
+		{
+			fireEventHandlers(onAbortHandlers, tree, eventArgs);
+			cmdOpen.className = classes;
+		});
 		tree.OnPopulated(function(sender, eventArgs)
 		{
 			if (initialLoad === true)
@@ -136,7 +147,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 				if (hasChildren === false)
 				{
 					tree.Lines(false);
-					tree.GetDomElement().style.marginLeft = "-2em";
+					//tree.GetDomElement().style.marginLeft = "-2em";
 				}
 
 				initialLoad = false;
@@ -295,6 +306,27 @@ Fit.Controls.WSDropDown = function(ctlId)
 		Fit.Array.Add(onResponseHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.WSDropDown" name="OnAbort" access="public">
+	/// 	<description>
+	/// 		Add event handler fired if data request is canceled.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.WSDropDown) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Sender: Fit.Controls.WSDropDown instance
+	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+	/// 		 - Node: Fit.Controls.TreeView.Node instance if requesting TreeView children, Null if requesting root nodes
+	/// 		 - Search: Search value if entered
+	/// 		 - Data: JSON data received from WebService (Null in this particular case)
+	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnAbort = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onAbortHandlers, cb);
+	}
+
 	/*this.OnPopulated = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb);
@@ -311,7 +343,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Array.ForEach(handlers, function(cb)
 		{
-			var data = null;
+			var data = null; // Remains Null for OnAbort event (no Children or Items provided)
 
 			if (eventArgs.Children) // WSTreeView
 				data = eventArgs.Children;

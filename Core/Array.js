@@ -3,9 +3,10 @@
 /// </container>
 Fit.Array = {};
 
-/// <function container="Fit.Array" name="ForEach" access="public" static="true">
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
 /// 	<description>
 /// 		Iterates through elements in array and passes each value to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 /// 	</description>
 /// 	<param name="arr" type="array"> Array containing values to iterate through </param>
 /// 	<param name="callback" type="function">
@@ -13,9 +14,10 @@ Fit.Array = {};
 /// 		Return False from callback to break loop.
 /// 	</param>
 /// </function>
-/// <function container="Fit.Array" name="ForEach" access="public" static="true">
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
 /// 	<description>
 /// 		Iterates through object properties and passes each property name to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 /// 	</description>
 /// 	<param name="obj" type="object"> Object containing properties to iterate through </param>
 /// 	<param name="callback" type="function">
@@ -37,20 +39,23 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 				Fit.Validation.ThrowError("Collection was modified while iterating objects");
 
 			if (callback(obj[i]) === false)
-				break;
+				return false;
 		}
 	}
 	else if (typeof(obj) === "object")
 	{
 		for (var i in obj)
 			if (callback(i) === false)
-				break;
+				return false;
 	}
+
+	return true;
 }
 
-/// <function container="Fit.Array" name="Recurse" access="public" static="true">
+/// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
 /// 	<description>
 /// 		Recursively iterates through objects in array and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 /// 	</description>
 /// 	<param name="arr" type="array"> Array containing objects to iterate through </param>
 /// 	<param name="childrenProperty" type="string">
@@ -68,7 +73,7 @@ Fit.Array.Recurse = function(arr, childrenProperty, callback)
 	Fit.Validation.ExpectFunction(callback);
 
 	if (Fit.Validation.IsSet(arr) === false)
-		return;
+		return true;
 
 	var count = arr.length;
 
@@ -78,7 +83,7 @@ Fit.Array.Recurse = function(arr, childrenProperty, callback)
 			Fit.Validation.ThrowError("Collection was modified while iterating objects");
 
 		if (callback(arr[i]) === false)
-			break;
+			return false;
 
 		if (Fit.Validation.IsSet(arr[i][childrenProperty]) === false)
 			continue;
@@ -86,14 +91,42 @@ Fit.Array.Recurse = function(arr, childrenProperty, callback)
 		if (arr[i][childrenProperty] instanceof Function)
 		{
 			if (Fit.Array.Recurse(arr[i][childrenProperty](), childrenProperty, callback) === false)
-				break;
+				return false;
 		}
 		else
 		{
 			if (Fit.Array.Recurse(arr[i][childrenProperty], childrenProperty, callback) === false)
-				break;
+				return false;
 		}
 	}
+
+	return true;
+}
+
+/// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterate objects in collection and pass each object to provided callback.
+/// 		Callback is expected to return any children supposed to be iterated too, or Null
+/// 		if further/deeper iteration is not necessary.
+/// 	</description>
+/// 	<param name="arr" type="array"> Array containing objects to iterate through </param>
+/// 	<param name="callback" type="function">
+/// 		Callback function accepting objects from the array, passed in turn.
+/// 		Function must return children collection to continue recursive operation,
+/// 		or Null to prevent further processing.
+/// 	</param>
+/// </function>
+Fit.Array.CustomRecurse = function(arr, callback) // arr not validated - passing null/undefined is allowed - no iteration is performed in this case
+{
+	Fit.Validation.ExpectFunction(callback);
+
+	if ((arr === undefined || arr === null || arr instanceof Array || arr instanceof NodeList || (window.StaticNodeList && arr instanceof StaticNodeList) || arr instanceof HTMLCollection) === false)
+		Fit.Validation.ThrowError("Unexpected collection type passed"); // CustomRecurse does not support iterating object properties like ForEach does
+
+	Fit.Array.ForEach(arr, function(o)
+	{
+		Fit.Array.CustomRecurse(callback(o), callback);
+	});
 }
 
 /// <function container="Fit.Array" name="Add" access="public" static="true">

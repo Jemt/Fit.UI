@@ -1011,8 +1011,8 @@ Fit.Controls.TreeView = function(ctlId)
 	{
 		Fit.Validation.ExpectDomElement(control);
 
-		me.GetDomElement().style.paddingLeft = "1em";
-		me.GetDomElement().style.paddingRight = "30px"; // Make room for scrollbar in drop down
+		me.GetDomElement().style.paddingLeft = "0.5em";
+		me.GetDomElement().style.paddingRight = "30px"; // Make room for scrollbar in drop down to prevent items from being partially hidden (drop down fits content up to a given maximum width, so items may not word wrap)
 
 		// This is not pretty. SetEventDispatcher was implemented to support the TreeView
 		// picker control which uses this function to register an OnBlur handler on the

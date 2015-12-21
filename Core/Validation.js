@@ -238,8 +238,10 @@ Fit.Validation.ExpectInstance = function(val, instanceType, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((val instanceof instanceType) === false && Fit.Core.Extends(val, instanceType) === false)
-		Fit.Validation.ThrowError("Unsupported object type passed");
+	if ((val instanceof instanceType) === true || Fit.Core.Extends(val, instanceType) === true)
+		return;
+
+	Fit.Validation.ThrowError("Unsupported object type passed");
 }
 
 /// <function container="Fit.Validation" name="ExpectIsSet" access="public" static="true">

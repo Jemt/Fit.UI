@@ -197,7 +197,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 		Fit.Dom.Remove(container);
 		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = lblValidationError = validationCallbackFunc = validationCallbackError = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = focusBlurTimeout = txtValue = txtDirty = txtValid = null;
-		Fit._internal.ControlBase.Controls[controlId] = null;
+		delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="object">

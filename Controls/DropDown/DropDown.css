@@ -86,6 +86,13 @@ div.FitUiControlDropDownHidden
 {
 	position: absolute;
 	visibility: hidden;
+
+	/* Reduce risk of element affecting viewport dimensions,
+	   which could potentially cause scrolling (X and Y). A very
+	   large value will still produce horizontal scrolling though.*/
+	position: 0px;
+	top: 0px;
+	left: 0px;
 }
 div.FitUiControlDropDownHidden span
 {

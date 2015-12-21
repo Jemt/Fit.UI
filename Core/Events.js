@@ -320,6 +320,9 @@ Fit.Events.AddHandler(document, "mousemove", function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
+	if (document.body === null) // Not ready yet
+		return;
+
 	// Mouse position in viewport
 	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = (ev.clientX || ev.pageX);
 	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = (ev.clientY || ev.pageY);

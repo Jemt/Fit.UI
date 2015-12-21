@@ -8,6 +8,7 @@ Fit.Controls.WSListView = function(ctlId)
 	var loadDataOnInit = true;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
+	var onAbortHandlers = [];
 	var onPopulatedHandlers = [];
 
 	function init()
@@ -107,6 +108,24 @@ Fit.Controls.WSListView = function(ctlId)
 		Fit.Array.Add(onResponseHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.WSListView" name="OnAbort" access="public">
+	/// 	<description>
+	/// 		Add event handler fired if data request is canceled.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.WSListView) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Sender: Fit.Controls.WSListView instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Items: JSON items received from WebService (Null in this particular case)
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnAbort = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onAbortHandlers, cb);
+	}
+
 	/// <function container="Fit.Controls.WSListView" name="OnPopulated" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when ListView has been populated with items.
@@ -173,6 +192,11 @@ Fit.Controls.WSListView = function(ctlId)
 		request.OnFailure(function(req)
 		{
 			Fit.Validation.ThrowError("Unable to get data - request failed with HTTP Status code " + request.GetHttpStatus())
+		});
+
+		request.OnAbort(function(req)
+		{
+			fireEventHandlers(onAbortHandlers, eventArgs);
 		});
 
 		// Invoke request

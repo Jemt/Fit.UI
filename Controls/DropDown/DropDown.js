@@ -65,6 +65,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var focusAssigned = false;					// Boolean ensuring that control is only given focus when AddSelection is called, if user assigned focus to control
 	var visibilityObserverId = -1;				// Observer (ID) responsible for updating input control width when drop down becomes visible (if initially hidden)
 	var widthObserverId = -1;					// Observer (ID) responsible for updating tab flow when control width is changed
+	var tabOrderObserverId = -1;				// Observer (ID) responsible for updating tab flow when control becomes visible
 	var partiallyHidden = null;					// Reference to item partially hidden (only used in Single Selection Mode where word wrapping is disabled)
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
@@ -78,7 +79,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Initial settings
 
-		me._internal.Data("multiselect", "true");
+		me._internal.Data("multiselect", "false");
 
 		// Create item container
 
@@ -207,45 +208,47 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Make sure tab flow is automatically updated if control width is changed due to use of relative unit
 
-		if ((rtn.Unit === "%" || rtn.Unit === "em" || rtn.Unit === "rem") && widthObserverId === -1)
-		{
-			var prevWidth = me.GetDomElement().offsetWidth;
-			var moTimeout = null;
-
-			widthObserverId = Fit.Events.AddMutationObserver(me.GetDomElement(), function(elm)
-			{
-				var newWidth = me.GetDomElement().offsetWidth;
-
-				if (prevWidth !== newWidth) // Width has changed
-				{
-					prevWidth = newWidth;
-
-					if (moTimeout !== null) // Clear pending optimization
-						clearTimeout(moTimeout);
-
-					// Schedule optimization to prevent too many identical operations
-					// in case observer fires several times almost simultaneously.
-					moTimeout = setTimeout(function()
-					{
-						moTimeout = null;
-						optimizeTabOrder();
-					}, 250);
-				}
-			});
-		}
-		else
-		{
-			if (widthObserverId !== -1)
-			{
-				Fit.Events.RemoveMutationObserver(widthObserverId);
-				widthObserverId = -1;
-			}
-		}
-
-		// Immediately update tab flow if control width was changed
-
 		if (Fit.Validation.IsSet(val) === true)
+		{
+			if ((rtn.Unit === "%" || rtn.Unit === "em" || rtn.Unit === "rem") && widthObserverId === -1)
+			{
+				var prevWidth = me.GetDomElement().offsetWidth;
+				var moTimeout = null;
+
+				widthObserverId = Fit.Events.AddMutationObserver(me.GetDomElement(), function(elm)
+				{
+					var newWidth = me.GetDomElement().offsetWidth;
+
+					if (prevWidth !== newWidth) // Width has changed
+					{
+						prevWidth = newWidth;
+
+						if (moTimeout !== null) // Clear pending optimization
+							clearTimeout(moTimeout);
+
+						// Schedule optimization to prevent too many identical operations
+						// in case observer fires several times almost simultaneously.
+						moTimeout = setTimeout(function()
+						{
+							moTimeout = null;
+							optimizeTabOrder();
+						}, 250);
+					}
+				});
+			}
+			else
+			{
+				if (widthObserverId !== -1)
+				{
+					Fit.Events.RemoveMutationObserver(widthObserverId);
+					widthObserverId = -1;
+				}
+			}
+
+			// Immediately update tab flow when control width is changed
+
 			optimizeTabOrder();
+		}
 
 		return rtn;
 	});
@@ -706,12 +709,49 @@ Fit.Controls.DropDown = function(ctlId)
 
         me.ClearInput();
 
+		// Optimize tab order
+
+		var concealer = Fit.Dom.GetConcealer(me.GetDomElement());
+
+		if (concealer === null)
+		{
+			// Controls is visible - immediately optimize tab order
+
+			if (me.MultiSelectionMode() === true)
+				optimizeTabOrder(item); // Optmize tab order for this particular item only - disables right search field (tabIndex = -1) if item is wider than control
+			else
+				optimizeTabOrder(); // Update tab flow and partiallyHidden variable
+		}
+		else
+		{
+			// Control is hidden - optimize tab order once it becomes visible again
+
+			// Remove existing mutation observer - Selection Mode (multi/single) may have changed
+			/*if (tabOrderObserverId !== -1)
+			{
+				Fit.Events.RemoveMutationObserver(tabOrderObserverId);
+				tabOrderObserverId = -1;
+			}*/
+
+			// Register mutation observer if not already registered
+			if (tabOrderObserverId === -1)
+			{
+				tabOrderObserverId = Fit.Events.AddMutationObserver(concealer, function(elm)
+				{
+					if (Fit.Dom.IsVisible(concealer) === true)
+					{
+						optimizeTabOrder();
+						disconnect(); // Observers are expensive - remove when no longer needed
+						tabOrderObserverId = -1;
+					}
+				});
+			}
+		}
+
 		// Focus input control
 
         if (me.MultiSelectionMode() === true)
         {
-			optimizeTabOrder(item); // Optmize tab order for this particular item only - disables right search field (tabIndex = -1) if item is wider than control
-
 			// Make input to the right of newly added item active. This to make sure that
             // the next item added appears to the right of the previously added item.
             // If a left input field is selected, it remains focused, as the new element
@@ -730,7 +770,6 @@ Fit.Controls.DropDown = function(ctlId)
 			// in which case the first input field (left side) is focused instead, since txtPrimary will also
 			// have been hidden due to word wrapping being disabled in Single Selection Mode.
 
-			optimizeTabOrder(); // Update tab flow and partiallyHidden variable
 			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary)); // partiallyHidden.previousSibling is the same as searchLeft
 		}
 
@@ -969,6 +1008,7 @@ Fit.Controls.DropDown = function(ctlId)
 					{
 						fitWidthToContent(txt);
 						disconnect(); // Observers are expensive - remove when no longer needed
+						visibilityObserverId = -1;
 					}
 				});
 			}
@@ -1047,7 +1087,7 @@ Fit.Controls.DropDown = function(ctlId)
 	// Events (OnChange defined on BaseControl)
 	// ============================================
 
-	/// <function container="Fit.Controls.TreeView" name="OnInputChanged" access="public">
+	/// <function container="Fit.Controls.DropDown" name="OnInputChanged" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when input value is changed.
 	/// 		Function receives two arguments:
@@ -1061,7 +1101,7 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Array.Add(onInputChangedHandlers, cb);
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="OnPaste" access="public">
+	/// <function container="Fit.Controls.DropDown" name="OnPaste" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when text is pasted into input field.
 	/// 		Function receives two arguments:
@@ -1076,7 +1116,7 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Array.Add(onPasteHandlers, cb);
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="OnOpen" access="public">
+	/// <function container="Fit.Controls.DropDown" name="OnOpen" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when drop down menu is opened.
 	/// 		Function receives one argument: Sender (Fit.Controls.DropDown)
@@ -1089,7 +1129,7 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Array.Add(onOpenHandlers, cb);
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="OnClose" access="public">
+	/// <function container="Fit.Controls.DropDown" name="OnClose" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when drop down menu is closed.
 	/// 		Function receives one argument: Sender (Fit.Controls.DropDown)
@@ -1181,9 +1221,6 @@ Fit.Controls.DropDown = function(ctlId)
 
             if (ev.keyCode === 9) // Tab
             {
-				if (me.MultiSelectionMode() === false && partiallyHidden !== null)
-					return; // Let browser handle navigation - only left input control can receive focus at this point
-
                 if (ev.shiftKey === true) // Moving left
                 {
                     if (me.GetSelections().length === 0)
@@ -1201,7 +1238,14 @@ Fit.Controls.DropDown = function(ctlId)
                 }
                 else // Moving right
                 {
-                    if (txt === txtPrimary)
+					if (me.MultiSelectionMode() === false && partiallyHidden !== null)
+					{
+						// Let browser handle navigation - only left input control can receive focus at this point
+
+						me.CloseDropDown();
+						return;
+					}
+					else if (txt === txtPrimary)
                     {
                         me.CloseDropDown();
                         return;

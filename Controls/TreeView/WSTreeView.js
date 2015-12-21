@@ -29,8 +29,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 	var orgSelected = [];
 	var loadDataOnInit = true;
 	var selectAllMode = Fit.Controls.WSTreeView.SelectAllMode.Progressively;
+	var loading = null;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
+	var onAbortHandlers = [];
 	var onPopulatedHandlers = [];
 
 	function init()
@@ -47,7 +49,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				return;
 
 			if (node.GetDomElement()._internal.WSLoading === true)
-				return;
+				return false; // Return False to cancel toggle to prevent user from being able to expand node while loading (clicking expand twice)
 
 			if (node.GetDomElement()._internal.WSHasChildren === false)
 				return;
@@ -56,7 +58,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			var li = node.GetDomElement();
 
-			var loading = document.createElement("i");
+			loading = document.createElement("i");
 			Fit.Dom.AddClass(loading, "FitUiControlLoadingIndicator");
 			Fit.Dom.Add(li, loading);
 
@@ -83,6 +85,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				// Remove loading indicator
 
 				Fit.Dom.Remove(loading);
+				loading = null;
 
 				node.GetDomElement()._internal.WSDone = true;
 				node.Expanded(true); // Unfortunately causes both OnToggle and OnToggled to be fired, although OnToggle has already been fired once (canceled below)
@@ -91,7 +94,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 			// Remove loading indicator if request was canceled
 
 			if (canceled === true)
+			{
 				Fit.Dom.Remove(loading);
+				loading = null;
+			}
 
 			return false; // Cancel toggle, will be "resumed" when data is loaded
 		});
@@ -804,6 +810,25 @@ Fit.Controls.WSTreeView = function(ctlId)
 		Fit.Array.Add(onResponseHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.WSTreeView" name="OnAbort" access="public">
+	/// 	<description>
+	/// 		Add event handler fired if data request is canceled.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.WSTreeView) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Sender: Fit.Controls.WSTreeView instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Node: Fit.Controls.TreeView.Node instance to be populated
+	/// 		 - Children: JSON nodes received from WebService (Null in this particular case)
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnAbort = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onAbortHandlers, cb);
+	}
+
 	/// <function container="Fit.Controls.WSTreeView" name="OnPopulated" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when TreeView has been populated with nodes.
@@ -892,6 +917,22 @@ Fit.Controls.WSTreeView = function(ctlId)
 		request.OnFailure(function(req)
 		{
 			Fit.Validation.ThrowError("Unable to get children for " + ((node !== null) ? "node '" + node.Title() + "'" : "root level") + " - request failed with HTTP Status code " + request.GetHttpStatus())
+		});
+
+		request.OnAbort(function(req)
+		{
+			if (loading !== null) // Loading indicator not set when requesting root nodes
+			{
+				Fit.Dom.Remove(loading); // Remove loading indicator
+				loading = null;
+			}
+
+			if (node !== null) // Null when requesting root nodes
+			{
+				delete node.GetDomElement()._internal.WSLoading;
+			}
+
+			fireEventHandlers(onAbortHandlers, eventArgs);
 		});
 
 		// Invoke request

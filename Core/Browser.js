@@ -265,3 +265,34 @@ Fit.Browser.GetInfo = function()
 
 	return Fit.Core.Clone(Fit._internal.Browser.Info); // Clone to ensure values are not shared and potentially changed
 }
+
+/// <function container="Fit.Browser" name="StorageSupported" access="public" static="true" returns="boolean">
+/// 	<description> Returns value indicating whether Session and Local storage is supported or not </description>
+/// </function>
+Fit.Browser.StorageSupported = function()
+{
+	if (Fit._internal.Browser.StorageSupported === undefined)
+	{
+		try
+		{
+			if (window.localStorage && window.sessionStorage)
+			{
+				var x = "__FITUITEST__";
+
+				localStorage.setItem(x, x);
+				localStorage.removeItem(x);
+
+				sessionStorage.setItem(x, x);
+				sessionStorage.removeItem(x);
+
+				Fit._internal.StorageSupported = true;
+			}
+		}
+		catch (err)
+		{
+			Fit._internal.StorageSupported = false;
+		}
+	}
+
+	return Fit._internal.StorageSupported;
+}
