@@ -1579,14 +1579,14 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	/// </function>
 	this.GetParent = function()
 	{
-		if (elmLi.parentNode === null)
+		if (!elmLi.parentElement)
 			return null; // Not rooted in another node yet
-		if (!elmLi.parentNode.parentNode._internal)
+		if (!elmLi.parentElement.parentElement._internal)
 			return null; // Rooted, but not in another node - most likely rooted in TreeView UL container
-		if (elmLi.parentNode.parentNode._internal.Node.Value() === "TREEVIEW_ROOT_NODE")
+		if (elmLi.parentElement.parentElement._internal.Node.Value() === "TREEVIEW_ROOT_NODE")
 			return null; // Indicate top by returning Null when root node is reached
 
-		return elmLi.parentNode.parentNode._internal.Node;
+		return elmLi.parentElement.parentElement._internal.Node;
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="GetTreeView" access="public" returns="Fit.Controls.TreeView">
@@ -1842,9 +1842,20 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		var parentNode = me.GetParent();
 
 		if (parentNode !== null)
+		{
 			parentNode.RemoveChild(me);
+		}
 		else
-			Fit.Dom.Remove(elmLi);
+		{
+			if (me.GetTreeView() !== null)
+			{
+				me.GetTreeView().RemoveChild(me);
+			}
+			else
+			{
+				Fit.Dom.Remove(elmLi);
+			}
+		}
 
 		// Dispose private members
 		elmLi = elmUl = cmdToggle = lblTitle = childrenIndexed = childrenArray = lastChild = selectable = chkSelect = chkSelectAll = null;

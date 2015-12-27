@@ -125,7 +125,7 @@ Fit.Controls.WSContextMenu = function()
 	/// 		Sender (Fit.Controls.WSContextMenu) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSContextMenu instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -143,7 +143,7 @@ Fit.Controls.WSContextMenu = function()
 	/// 		Sender (Fit.Controls.WSContextMenu) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSContextMenu instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Children: JSON items received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -161,7 +161,7 @@ Fit.Controls.WSContextMenu = function()
 	/// 		Sender (Fit.Controls.WSContextMenu) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSContextMenu instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Children: JSON items received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -183,7 +183,7 @@ Fit.Controls.WSContextMenu = function()
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to get data, no WebService URL has been specified");
 
-		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.DotNetJsonRequest(url));
+		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.JsonRequest(url));
 
 		// Fire OnRequest
 

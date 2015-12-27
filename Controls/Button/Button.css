@@ -1,0 +1,65 @@
+div.FitUiControlButton
+{
+	cursor: pointer;
+	width: auto;
+	padding: 5px 10px 5px 10px;
+	border-radius: 3px;
+	border-width: 1px;
+	border-style: solid;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+
+	/* data-type="Default" */
+	border-color: #CCCCCC;
+	background-color: #FFFFFF;
+	color: #333333;
+}
+
+div.FitUiControlButton[data-type="Primary"]
+{
+	border-color: #2E6DA4;
+	background-color: #337AB7;
+	color: #FFFFFF;
+}
+
+div.FitUiControlButton[data-type="Success"]
+{
+	border-color: #4CAE4C;
+	background-color: #5CB85C;
+	color: #FFFFFF;
+}
+
+div.FitUiControlButton[data-type="Info"]
+{
+	border-color: #46B8DA;
+	background-color: #5BC0DE;
+	color: #FFFFFF;
+}
+
+div.FitUiControlButton[data-type="Warning"]
+{
+	border-color: #D58512;
+	background-color: #EC971F;
+	color: #FFFFFF;
+}
+
+div.FitUiControlButton[data-type="Danger"]
+{
+	border-color: #D43F3A;
+	background-color: #D9534F;
+	color: #FFFFFF;
+}
+
+div.FitUiControlButton > span
+{
+	padding-right: 8px;
+}
+
+div.FitUiControlButton[data-enabled="false"]
+{
+	cursor: not-allowed;
+	opacity: 0.65;
+}

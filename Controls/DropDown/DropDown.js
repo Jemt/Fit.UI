@@ -515,15 +515,13 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				fireChangeEvent = true;
 
-				var itemCount = getSelectionElements().length;
-
 				// Changing a selection in the picker control may cause OnItemSelectionChanged to be fired multiple
 				// times since an existing selection may first be deselected, followed by new item being selected.
 				// In this case we suppress OnChange fired by RemoveSelection(..) and AddSelection(..), and instead
 				// fire it when picker's OnItemSelectionComplete event is fired.
 				me._internal.ExecuteWithNoOnChange(function() { me.AddSelection(eventArgs.Title, eventArgs.Value); });
 
-				if (me.MultiSelectionMode() === false && getSelectionElements().length > itemCount) // Only auto close in Single Selectin Mode, and if an item was actually added
+				if (me.MultiSelectionMode() === false)
 					me.CloseDropDown();
 			}
 			else if (eventArgs.Selected === false && me.GetSelectionByValue(eventArgs.Value) !== null)

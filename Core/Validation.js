@@ -21,7 +21,7 @@ Fit.Validation.ExpectNumber = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if (typeof(val) !== "number")
+	if (typeof(val) !== "number" || isNaN(val) === true)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a valid number");
 }
 

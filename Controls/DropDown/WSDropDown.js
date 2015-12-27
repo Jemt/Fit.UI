@@ -274,7 +274,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeView.Node instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -296,7 +296,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Node: Fit.Controls.TreeView.Node instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered
 	/// 		 - Data: JSON data received from WebService
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -317,7 +317,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Node: Fit.Controls.TreeView.Node instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered
 	/// 		 - Data: JSON data received from WebService (Null in this particular case)
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>

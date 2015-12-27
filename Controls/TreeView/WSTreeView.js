@@ -779,7 +779,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSTreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Node: Fit.Controls.TreeView.Node instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -798,7 +798,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSTreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Node: Fit.Controls.TreeView.Node instance to be populated
 	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
@@ -817,7 +817,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSTreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Node: Fit.Controls.TreeView.Node instance to be populated
 	/// 		 - Children: JSON nodes received from WebService (Null in this particular case)
 	/// 	</description>
@@ -836,7 +836,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSTreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Node: Fit.Controls.TreeView.Node instance now populated with children
 	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
@@ -860,7 +860,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to get data, no WebService URL has been specified");
 
-		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.DotNetJsonRequest(url));
+		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.JsonRequest(url));
 
 		// Fire OnRequest
 

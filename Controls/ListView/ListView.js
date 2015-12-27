@@ -143,6 +143,28 @@ Fit.Controls.ListView = function(controlId)
 		list.appendChild(entry);
 	}
 
+	/// <function container="Fit.Controls.ListView" name="HasItem" access="public" returns="boolean">
+	/// 	<description> Returns value indicating whether control contains item with specified value </description>
+	/// 	<param name="value" type="string"> Value of item to check for </param>
+	/// </function>
+	this.HasItem = function(value)
+	{
+		Fit.Validation.ExpectString(value);
+
+		var exists = false;
+
+		Fit.Array.ForEach(list.children, function(child)
+		{
+			if (decode(Fit.Dom.Data(child, "value")) === value)
+			{
+				exists = true;
+				return false;
+			}
+		});
+
+		return exists;
+	}
+
 	/// <function container="Fit.Controls.ListView" name="RemoveItem" access="public">
 	/// 	<description> Remove item from ListView </description>
 	/// 	<param name="value" type="string"> Value of item to remove </param>

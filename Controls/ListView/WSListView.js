@@ -79,7 +79,7 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSListView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSListView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -97,7 +97,7 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSListView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSListView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Items: JSON items received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -115,7 +115,7 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSListView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSListView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Items: JSON items received from WebService (Null in this particular case)
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -133,7 +133,7 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		Sender (Fit.Controls.WSListView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSListView instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.DotNetJsonRequest instance
+	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 		 - Items: JSON items received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -155,7 +155,7 @@ Fit.Controls.WSListView = function(ctlId)
 
 		loadDataOnInit = false;
 
-		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.DotNetJsonRequest(url));
+		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.JsonRequest(url));
 
 		// Fire OnRequest
 
