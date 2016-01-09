@@ -380,6 +380,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		Only Value is required. Children is a collection of nodes with the same format as described above.
 	/// 		HasChildren:boolean may be set to indicate that children are available server side and that WebService
 	/// 		should be called to load these children when the given node is expanded.
+	/// 		Additionally Expanded:boolean can be set to initially display node as expanded.
 	/// 	</description>
 	/// 	<param name="wsUrl" type="string"> WebService URL - e.g. http://server/ws/data.asxm/GetNodes </param>
 	/// </function>
@@ -964,6 +965,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 			});
 		}
 
+		if (jsonNode.Expanded !== undefined)
+			child.Expanded((jsonNode.Expanded === true)); // Notice, will not cause various events to fire since TreeViewNodeInterface is not assigned at this point
+
 		// Set internal flag indicating whether node has children server side
 
 		child.GetDomElement()._internal.WSHasChildren = (jsonNode.HasChildren === true);
@@ -986,7 +990,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		// Add supplementary information provided by WebService
 
 		child.Supplementary = {};
-		var reserved = new Array("Title", "Value", "Children", "HasChildren", "Selected", "Selectable");
+		var reserved = new Array("Title", "Value", "Children", "HasChildren", "Selected", "Selectable", "Expanded");
 
 		Fit.Array.ForEach(jsonNode, function(key)
 		{

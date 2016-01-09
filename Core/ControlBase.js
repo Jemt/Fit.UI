@@ -229,7 +229,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="Height" access="public" returns="object">
 	/// 	<description> Get/set control height - returns object with Value and Unit properties </description>
-	/// 	<param name="val" type="number" default="undefined"> If defined, control height is updated to specified value </param>
+	/// 	<param name="val" type="number" default="undefined"> If defined, control height is updated to specified value. A value of -1 resets control height. </param>
 	/// 	<param name="unit" type="string" default="px"> If defined, control height is updated to specified CSS unit </param>
 	/// </function>
 	this.Height = function(val, unit)

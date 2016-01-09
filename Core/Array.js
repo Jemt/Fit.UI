@@ -29,7 +29,7 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 {
 	Fit.Validation.ExpectFunction(callback);
 
-	if (obj instanceof Array || obj instanceof NodeList || (window.StaticNodeList && obj instanceof StaticNodeList) || obj instanceof HTMLCollection)
+	if (obj instanceof Array || obj instanceof NodeList || (window.FileList && obj instanceof FileList) || (window.StaticNodeList && obj instanceof StaticNodeList) || obj instanceof HTMLCollection)
 	{
 		var count = obj.length;
 

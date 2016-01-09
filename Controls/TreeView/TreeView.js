@@ -1835,7 +1835,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		// This will destroy node - it will no longer work!
 
 		// Dispose children
-		Fit.Array.ForEach(childrenArray, function(child) { child.Dispose(); });
+		Fit.Array.ForEach(Fit.Array.Copy(childrenArray), function(child) { child.Dispose(); });
 
 		// Remove from DOM
 

@@ -134,8 +134,8 @@ Fit.Dom.InsertAfter = function(target, newElm)
 	Fit.Validation.ExpectDomElement(target);
 	Fit.Validation.ExpectDomElement(newElm);
 
-	if (target.nextElementSibling)
-		target.parentElement.insertBefore(newElm, target.nextElementSibling);
+	if (target.nextSibling)
+		target.parentElement.insertBefore(newElm, target.nextSibling);
 	else
 		target.parentElement.appendChild(newElm);
 }
