@@ -2,6 +2,8 @@
 /// 	Button control with support for Font Awesome icons
 /// </container>
 
+// http://fiddle.jshell.net/05q0tLt6/14/
+
 /// <function container="Fit.Controls.Button" name="Button" access="public">
 /// 	<description> Create instance of Button control </description>
 /// 	<param name="controlId" type="string" default="undefined">
@@ -26,10 +28,13 @@ Fit.Controls.Button = function(controlId)
 	// Internals
 
 	var me = this;
-	var element = null;
 	var id = (controlId ? controlId : null);
+	var element = null;
+	var label = null;
 	var title = "";
 	var icon = "";
+	var width = { Value: -1, Unit: "px" };	// Initial width - a value of -1 indicates that size adjusts to content
+	var height = { Value: -1, Unit: "px" };	// Initial height - a value of -1 indicates that size adjusts to content
 	var onClickHandlers = [];
 
 	function init()
@@ -49,16 +54,29 @@ Fit.Controls.Button = function(controlId)
 				});
 			}
 		});
+		Fit.Events.AddHandler(element, "keydown", function(e)
+		{
+			var ev = Fit.Events.GetEvent(e);
+
+			if (ev.keyCode === 13 || ev.keyCode === 32) // Enter or Spacebar
+			{
+				element.click(null);
+				Fit.Events.PreventDefault(ev);
+			}
+		});
 
 		Fit.Dom.AddClass(element, "FitUiControl");
 		Fit.Dom.AddClass(element, "FitUiControlButton");
+
+		label = document.createElement("div");
+		Fit.Dom.Add(element, label);
 
 		me.Enabled(true);
 		me.Type(Fit.Controls.Button.Type.Default);
 	}
 
 	/// <function container="Fit.Controls.Button" name="GetId" access="public" returns="string">
-	/// 	<description> Get unique Control ID </description>
+	/// 	<description> Get unique Control ID - returns Null if not set </description>
 	/// </function>
 	this.GetId = function()
 	{
@@ -76,14 +94,14 @@ Fit.Controls.Button = function(controlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			title = val;
-			element.innerHTML = ((icon !== "") ? "<span class=\"fa " + ((icon.indexOf("fa") !== 0) ? "fa-" : "") + icon + "\"></span>" : "") + val;
+			label.innerHTML = ((icon !== "") ? "<span class=\"fa " + ((icon.indexOf("fa-") !== 0) ? "fa-" : "") + icon + "\"></span>" : "") + val;
 		}
 
 		return title;
 	}
 
 	/// <function container="Fit.Controls.Button" name="Icon" access="public" returns="string">
-	/// 	<description> Get/set button icon (font awesome icon name, e.g. fa-check-circle-o - http://fontawesome.io/icons) </description>
+	/// 	<description> Get/set button icon (Font Awesome icon name, e.g. fa-check-circle-o - http://fontawesome.io/icons) </description>
 	/// 	<param name="val" type="string" default="undefined"> If specified, button icon will be set to specified value </param>
 	/// </function>
 	this.Icon = function(val)
@@ -93,7 +111,7 @@ Fit.Controls.Button = function(controlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			icon = val.toLowerCase();
-			me.Title(me.Title()); // Updates UI
+			me.Title(me.Title()); // Updates icon
 		}
 
 		return icon;
@@ -138,14 +156,77 @@ Fit.Controls.Button = function(controlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			Fit.Dom.Data(element, "enabled", ((val === true) ? "true" : "false"));
+			element.tabIndex = ((val === true) ? 0 : -1);
 		}
 
 		return (Fit.Dom.Data(element, "enabled") === "true");
 	}
 
+	/// <function container="Fit.Controls.Button" name="Width" access="public" returns="object">
+	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// </function>
+	this.Width = function(val, unit) // Differs from ControlBase.Width(..) when -1 is passed - this control resets to width:auto while ControlBase resets to width:200px
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				element.style.width = width.Value + width.Unit;
+			}
+			else
+			{
+				width = { Value: -1, Unit: "px" };
+				element.style.width = ""; // Notice: width:auto is applied in Button.css
+			}
+		}
+
+		return width;
+	}
+
+	/// <function container="Fit.Controls.Button" name="Height" access="public" returns="object">
+	/// 	<description> Get/set control height - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, control height is updated to specified value. A value of -1 resets control height. </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, control height is updated to specified CSS unit </param>
+	/// </function>
+	this.Height = function(val, unit)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				height = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				element.style.height = height.Value + height.Unit;
+
+				// Work around bug in WebKit/Chrome:
+				// https://code.google.com/p/chromium/issues/detail?id=573715
+				// Also see Button.css (div.FitUiControlButton[style*="height"] > div)
+				label.style.position = "relative";
+			}
+			else
+			{
+				height = { Value: -1, Unit: "px" };
+				element.style.height = "";
+
+				// Undo WebKit/Chrome bug fix (see condition above)
+				label.style.position = "";
+			}
+		}
+
+		return height;
+	}
+
 	/// <function container="Fit.Controls.Button" name="OnClick" access="public">
 	/// 	<description> Set callback function invoked when button is clicked </description>
-	/// 	<param name="cb" type="function"> Callback function invoked when button is clicked - takes button instances as argument </param>
+	/// 	<param name="cb" type="function"> Callback function invoked when button is clicked - takes button instance as argument </param>
 	/// </function>
 	this.OnClick = function(cb)
 	{
@@ -180,6 +261,15 @@ Fit.Controls.Button = function(controlId)
 		}
 	}
 
+	/// <function container="Fit.Controls.ControlBase" name="Dispose" access="public">
+	/// 	<description> Destroys control to free up memory </description>
+	/// </function>
+	this.Dispose = function()
+	{
+		me = id = element = label = title = icon = width = height = onClickHandlers = null;
+		Fit.Dom.Remove(element);
+	}
+
 	init();
 }
 
@@ -189,7 +279,7 @@ Fit.Controls.Button = function(controlId)
 Fit.Controls.Button.Type =
 {
 	/// <member container="Fit.Controls.Button.Type" name="Default" access="public" static="true" type="string" default="Default">
-	/// 	<description> Default look and feel </description>
+	/// 	<description> White unless styled differently - default look and feel </description>
 	/// </member>
 	Default: "Default",
 

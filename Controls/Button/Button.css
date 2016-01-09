@@ -2,6 +2,9 @@ div.FitUiControlButton
 {
 	cursor: pointer;
 	width: auto;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden; /* Notice: Causes small spacing below button - visible when contained in another element with borders */
 	padding: 5px 10px 5px 10px;
 	border-radius: 3px;
 	border-width: 1px;
@@ -53,7 +56,18 @@ div.FitUiControlButton[data-type="Danger"]
 	color: #FFFFFF;
 }
 
-div.FitUiControlButton > span
+div.FitUiControlButton[style*="height"] > div
+{
+	/* Center icon and title vertically when height is set (works for
+	   block and inline-block). Does not work on IE8 which is fine.
+	   Also notice that this doesn't work on WebKit/Chrome unless
+	   a repaint is forced: https://code.google.com/p/chromium/issues/detail?id=573715 */
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+div.FitUiControlButton > div > span[class^="fa"]
 {
 	padding-right: 8px;
 }
@@ -62,4 +76,15 @@ div.FitUiControlButton[data-enabled="false"]
 {
 	cursor: not-allowed;
 	opacity: 0.65;
+}
+
+div.FitUiControlButton:focus
+{
+	outline: none; /* Chrome fix - even though tabIndex is -1, control is still outlined when clicked */
+}
+div.FitUiControlButton[data-enabled="true"]:focus
+{
+	outline: 2px solid #3B99FC;
+	outline-offset: 2px;
+	border: 1px solid #3B99FC\9; /* Legacy IE (9 and earlier) which does not support outline */
 }
