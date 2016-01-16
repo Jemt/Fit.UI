@@ -1,0 +1,28 @@
+/* Modern control (default) */
+
+div.FitUiControlFilePicker[data-legacy="false"] input
+{
+	opacity: 0;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	cursor: inherit; /* Inherit cursor from Button - does not work for button in native file picker on WebKit/Chrome on OSX */
+}
+div.FitUiControlFilePicker[data-legacy="false"] div.FitUiControlButton
+{
+	/* Since cursor:inherit above doesn't work properly on WebKit/Chrome, simply always use
+	   cursor:default for FilePicker button to prevent cursor from changing between
+	   Default and Pointer, when moving mouse around on top of FilePicker.
+	   It is only the button from the native file picker (which is hidden using opacity:0)
+	   that doesn't support cursor:inherit - it is quite confusing that the cursor changes. */
+	cursor: default;
+}
+
+/* Legacy control */
+
+div.FitUiControlFilePicker[data-legacy="true"] input
+{
+	display: block;
+}
