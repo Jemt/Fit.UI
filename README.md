@@ -35,4 +35,4 @@ to ship a pre-compiled and ready-to-use package around summer 2016.
 
 Check out this super cool upload component based on
 Button, FilePicker, and ProgressBar:
-http://fiddle.jshell.net/gho7Lmno/80/embedded/result/light/
+http://fiddle.jshell.net/gho7Lmno/84/embedded/result/light/
