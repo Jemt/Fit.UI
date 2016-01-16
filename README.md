@@ -31,9 +31,9 @@ On top of Core we've built **Controls** which is a set of very nice UI Controls 
 # Release
 
 We have been working very hard on Fit.UI since March 2015 and is now ready
-with a beta for poeple to start experimenting with. This beta is considered
+with a beta for people to start experimenting with. This beta is considered
 quite stable and reliable for a beta. It has been tested and improved on for
-more than 4 months, and is currently being incoorporated into mission
+more than 4 months, and is currently being incorporated into mission
 critical enterprise applications running on SharePoint (server & cloud).
 
 # Example
