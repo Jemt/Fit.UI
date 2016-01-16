@@ -41,3 +41,17 @@ critical enterprise applications running on SharePoint (server & cloud).
 Check out this super cool upload component based on
 Button, FilePicker, and ProgressBar:
 http://fiddle.jshell.net/gho7Lmno/84/embedded/result/light/
+
+Here is the Input control with support for HTML editing
+thanks to the power of CKEditor:
+http://fiddle.jshell.net/sejcg222/3/embedded/result/light/
+
+Buttons are essential to almost all applications, and FIT.UI
+provides some great onces, with support for FontAwesome icons:
+http://fiddle.jshell.net/05q0tLt6/14/embedded/result/light/
+
+Navigation and data selection is equally important to websites
+and applications, so we provide a great TreeView and DropDown control
+for that. Also notice that all controls has a WebService enabled
+sibling that automatically loads data from a server in JSON format:
+http://fiddle.jshell.net/zc99y8u1/4/embedded/result/light/
