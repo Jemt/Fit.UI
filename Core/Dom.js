@@ -165,8 +165,22 @@ Fit.Dom.InsertAt = function(container, position, newElm)
 	}
 }
 
+/// <function container="Fit.Dom" name="Replace" access="public" static="true">
+/// 	<description> Replace element with another one </description>
+/// 	<param name="oldElm" type="object"> Element to replace (Element or Text) </param>
+/// 	<param name="newElm" type="object"> Replacement element (Element or Text) </param>
+/// </function>
+Fit.Dom.Replace = function(oldElm, newElm) // http://jsfiddle.net/Jemt/eu74o984/
+{
+	Fit.Validation.ExpectContentNode(oldElm);
+	Fit.Validation.ExpectContentNode(newElm);
+
+	var container = oldElm.parentElement;
+	container.replaceChild(newElm, oldElm);
+}
+
 /// <function container="Fit.Dom" name="Add" access="public" static="true">
-/// 	<description> Add DOMElement to container </description>
+/// 	<description> Add element to container </description>
 /// 	<param name="container" type="DOMElement"> Add element to this container </param>
 /// 	<param name="elm" type="object"> Element or Text node to add to container </param>
 /// </function>
@@ -257,7 +271,12 @@ Fit.Dom.CreateElement = function(html, containerTagName)
 	var container = document.createElement(((Fit.Validation.IsSet(containerTagName) === true) ? containerTagName : "div"));
 	container.innerHTML = html;
 
-	if (container.children.length === 1)
+	// Using childNodes property instead of children property to include text nodes,
+	// which the DOM functions in Fit.UI usually do not take into account.
+	// If text nodes are not included, a call like the following would exclude
+	// the " world" portion. We do not want to throw away data, naturally! Example:
+	// Fit.Dom.CreateElement("<span>Hello</span> world"); // Returns <div><span>Hello</span> world</div>
+	if (container.childNodes.length === 1)
 		return container.firstChild;
 
 	return container;
@@ -480,26 +499,26 @@ Fit.Dom.GetPosition = function(elm, relativeToViewport)
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectBoolean(relativeToViewport, true);
 
-    // Return position within viewport
+	// Return position within viewport
 
-    if (relativeToViewport === true)
-    {
-        var res = elm.getBoundingClientRect();
-        return { X: res.left, Y: res.top };
-    }
-
-    // Return position within document
-
-    var pos = { X: 0, Y: 0 };
-
-	while (elm)
-    {
-        pos.X += elm.offsetLeft;
-        pos.Y += elm.offsetTop;
-        elm = elm.offsetParent;
+	if (relativeToViewport === true)
+	{
+		var res = elm.getBoundingClientRect(); // DOMRect object with float properties
+		return { X: Math.floor(res.left), Y: Math.floor(res.top) };
 	}
 
-    return pos;
+	// Return position within document
+
+	var pos = { X: 0, Y: 0 };
+
+	while (elm)
+	{
+		pos.X += elm.offsetLeft;
+		pos.Y += elm.offsetTop;
+		elm = elm.offsetParent;
+	}
+
+	return pos;
 }
 
 /// <function container="Fit.Dom" name="GetInnerPosition" access="public" static="true" returns="object">

@@ -29,7 +29,6 @@ Fit.Controls.WSTreeView = function(ctlId)
 	var orgSelected = [];
 	var loadDataOnInit = true;
 	var selectAllMode = Fit.Controls.WSTreeView.SelectAllMode.Progressively;
-	var loading = null;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
 	var onAbortHandlers = [];
@@ -54,14 +53,6 @@ Fit.Controls.WSTreeView = function(ctlId)
 			if (node.GetDomElement()._internal.WSHasChildren === false)
 				return;
 
-			// Loading indicator
-
-			var li = node.GetDomElement();
-
-			loading = document.createElement("i");
-			Fit.Dom.AddClass(loading, "FitUiControlLoadingIndicator");
-			Fit.Dom.Add(li, loading);
-
 			// Get data
 
 			node.GetDomElement()._internal.WSLoading = true;
@@ -82,22 +73,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 					node.AddChild(createNodeFromJson(c));
 				});
 
-				// Remove loading indicator
-
-				Fit.Dom.Remove(loading);
-				loading = null;
-
 				node.GetDomElement()._internal.WSDone = true;
 				node.Expanded(true); // Unfortunately causes both OnToggle and OnToggled to be fired, although OnToggle has already been fired once (canceled below)
 			});
-
-			// Remove loading indicator if request was canceled
-
-			if (canceled === true)
-			{
-				Fit.Dom.Remove(loading);
-				loading = null;
-			}
 
 			return false; // Cancel toggle, will be "resumed" when data is loaded
 		});
@@ -889,6 +867,14 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			cb(node, eventArgs); // Callback is responsible for populating TreeView
 
+			// Remove loading indicator
+
+			if (request._loadingIndicator !== undefined) // Loading indicator not set when requesting root nodes
+			{
+				Fit.Dom.Remove(request._loadingIndicator);
+				delete request._loadingIndicator;
+			}
+
 			// Select nodes found in preselections
 
 			if (Fit.Core.IsEqual(preSelected, {}) === false) // Prevent nodes from being iterated if no preselections are found
@@ -922,10 +908,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		request.OnAbort(function(req)
 		{
-			if (loading !== null) // Loading indicator not set when requesting root nodes
+			if (request._loadingIndicator !== undefined) // Loading indicator not set when requesting root nodes
 			{
-				Fit.Dom.Remove(loading); // Remove loading indicator
-				loading = null;
+				Fit.Dom.Remove(request._loadingIndicator);
+				delete request._loadingIndicator;
 			}
 
 			if (node !== null) // Null when requesting root nodes
@@ -935,6 +921,17 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			fireEventHandlers(onAbortHandlers, eventArgs);
 		});
+
+		// Display loading indicator
+
+		if (node !== null) // Null when requesting root nodes
+		{
+			var li = node.GetDomElement();
+
+			request._loadingIndicator = document.createElement("i");
+			Fit.Dom.AddClass(request._loadingIndicator, "FitUiControlLoadingIndicator");
+			Fit.Dom.Add(li, request._loadingIndicator);
+		}
 
 		// Invoke request
 

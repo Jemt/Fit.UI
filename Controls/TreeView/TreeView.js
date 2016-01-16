@@ -229,7 +229,7 @@ Fit.Controls.TreeView = function(ctlId)
 			if (ev.keyCode === 93 || (Fit.Events.GetModifierKeys().Shift === true && ev.keyCode === 121)) // Context menu button or Shift+F10
 			{
 				var label = node.GetDomElement().querySelector("span");
-				var pos = Fit.Dom.GetPosition(label);
+				var pos = Fit.Dom.GetPosition(label, true); // True argument = get position relative to viewport rather than document
 
 				pos.X = pos.X + label.offsetWidth - 10;
 				pos.Y = pos.Y + label.offsetHeight - 5;
