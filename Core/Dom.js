@@ -14,6 +14,9 @@ Fit.Dom = {};
 /// </function>
 Fit.Dom.AddClass = function(elm, cls)
 {
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectStringValue(cls);
+
 	if (Fit.Dom.HasClass(elm, cls) === false)
 		elm.className += ((elm.className !== "") ? " " : "") + cls;
 }
@@ -25,6 +28,9 @@ Fit.Dom.AddClass = function(elm, cls)
 /// </function>
 Fit.Dom.RemoveClass = function(elm, cls)
 {
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectStringValue(cls);
+
     var arr = elm.className.split(" ");
     var newCls = "";
 
@@ -44,6 +50,9 @@ Fit.Dom.RemoveClass = function(elm, cls)
 /// </function>
 Fit.Dom.HasClass = function(elm, cls)
 {
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectStringValue(cls);
+
     var arr = elm.className.split(" ");
 	var found = false;
 
@@ -69,6 +78,9 @@ Fit.Dom.HasClass = function(elm, cls)
 /// </function>
 Fit.Dom.GetComputedStyle = function(elm, style)
 {
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectStringValue(style);
+
 	var res = null;
 
     if (window.getComputedStyle)
@@ -309,6 +321,8 @@ Fit.Dom.Text = function(elm, value)
 /// </function>
 Fit.Dom.GetIndex = function(elm)
 {
+	Fit.Validation.ExpectDomElement(elm);
+
 	if (!elm.parentElement)
 		return -1;
 

@@ -1,37 +1,3 @@
-// Get most recent version from GitHub: https://github.com/Jemt/Fit.UI
-
-// TODO (entire framework):
-//  - Use of ev.keyCode is deprecated and must be replaced !
-//    Consider implementing Fit.Events.GetKeyCode(ev)
-//    Search and replace .keyCode, .charCode, and .which
-//  - Get rid of Fit.Validation.ExpectStringValue(..) - do not mix type checking and value validation!
-//  - Perhaps Fit.Core.Extend should be replaced by inheritance using prototyping.
-//  - Fit.Validation.ExpectDomElement(..) is sometimes too vague, e.g. when expecting HTMLInputElement
-//    Use Fit.Validation.ExpectInstance(elm, HTMLInputElement) instead !
-//  - ControlBase.Value should always "communicate" using strings.
-//    Individual controls could simply implement their own value getter/setter.
-//    Using specialized return values would require the programmer to know about
-//    the design of the Control anyways, so a specialized function is alright.
-//  - Consistency in event handlers - always pass Sender and EventArgs.
-//    EventArgs allows us to add more information later.
-//  - Search and replace elm.appendChild(c) and elm.removeChild(c)
-//    with Fit.Dom.Add(elm, c) and Fit.dom.Remove(c) for consistency
-//  - Replace "inherit" and "inherting" with "extend" and "extending"
-//    since its closer to extending/mixins rather than inheritance/prototyping.
-//  - Replace "firering" with correct word; "firing"
-//  - Create HttpRequest interface and have Request and DotNetRequest extend from it
-//  - Create WebServiceControl base class, have WSListView, WSTreeView, and WSDropDown extend from it
-//  - Type checking (Fit.Validation) has cross frame issues. Passing objects between frames
-//    breaks instanceof because frames do not share the same prototypes. Interesting article:
-//    http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray
-//  - Fit.Events.AddMutationObserver <= Should use native browser mutation observer if available
-//  - ControlBase._internal.Data(..): Setter should force IE8 to repaint by adding and removing
-//    a fake CSS class on element returned by GetDomElement(). TreeView manually calls a
-//    repaint() function that does exactly that, but currently not all data-attributes can
-//    reliably be used with CSS selectors with IE8 since the browser do not repaint as expected.
-//    Investigate whether this will work with TreeView, and if possible get rid of repaint() function
-//    within TreeView.
-
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS
 /// </container>
