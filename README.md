@@ -17,7 +17,8 @@ in JavaScript. It enhances native JS with added features for:
  - Async. JS and CSS loader
  - Type checking and validation
 
-On top of Core we've built **Controls** which is a set of very nice UI Controls and components.
+On top of Core we've built **Controls** which is a set of very nice UI Controls and components,
+exposing rich APIs and event models.
 
  - Button
  - Tree View
@@ -55,3 +56,7 @@ and applications, so we provide a great TreeView and DropDown control
 for that. Also notice that all controls has a WebService enabled
 sibling that automatically loads data from a server in JSON format:
 http://fiddle.jshell.net/zc99y8u1/4/embedded/result/light/
+
+# API Documentation
+
+Fit.UI has been thoroughly documented: http://codemagic.dk/FlowIT/GUI/SimpleDocs.html
