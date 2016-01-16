@@ -28,8 +28,13 @@ On top of Core we've built **Controls** which is a set of very nice UI Controls 
  - Input (with HTML editing using CKEditor)
  - and more to come
 
-We have been working very hard on Fit.UI since March 2015 and is expecting
-to ship a pre-compiled and ready-to-use package around summer 2016.
+# Release
+
+We have been working very hard on Fit.UI since March 2015 and is now ready
+with a beta for poeple to start experimenting with. This beta is considered
+quite stable and reliable for a beta. It has been tested and improved on for
+more than 4 months, and is currently being incoorporated into mission
+critical enterprise applications running on SharePoint (server & cloud).
 
 # Example
 
