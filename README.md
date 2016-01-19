@@ -29,6 +29,9 @@ exposing rich APIs and event models.
  - Input (with HTML editing using CKEditor)
  - and more to come
 
+Fit.UI supports all major browsers (FireFox, Chrome, Edge, Opera, Safari, and even Internet Explorer 8+).
+A lot of work has been put into making Fit.UI the most compatible framework available, leaving nobody behind.
+
 # Release
 
 We have been working very hard on Fit.UI since March 2015 and is now ready
