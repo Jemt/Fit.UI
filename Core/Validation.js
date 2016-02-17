@@ -111,6 +111,34 @@ Fit.Validation.ExpectArray = function(val, allowNotSet)
 		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of Array");
 }
 
+/// <function container="Fit.Validation" name="ExpectTypeArray" access="public" static="true">
+/// 	<description>
+/// 		Throws error if passed object is not an instance of Array
+/// 		contaning only objects/values of type given by validation callback.
+/// 		Example: Fit.Validation.ExpectTypeArray(arr, Fit.Validation.ExpectString)
+/// 	</description>
+/// 	<param name="val" type="object"> Object to validate </param>
+/// 	<param name="typeValCallback" type="function"> Value validation callback </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectTypeArray = function(val, typeValCallback, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof Array) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of Array");
+
+	// Validate types within array
+
+	Fit.Validation.ExpectFunction(typeValCallback); // Make sure callback is valid
+
+	Fit.Array.ForEach(val, function(v)
+	{
+		typeValCallback(v);
+	});
+}
+
 /// <function container="Fit.Validation" name="ExpectCollection" access="public" static="true">
 /// 	<description> Throws error if passed object is not a collection that can be iterated </description>
 /// 	<param name="val" type="object"> Object to validate </param>

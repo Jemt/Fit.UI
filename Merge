@@ -29,3 +29,20 @@ do
 		cat Controls/$dir/$file >> Fit.UI.css
 	done
 done
+
+
+# Create dist
+
+rm dist/ -R
+
+mkdir dist
+mkdir -p dist/Controls/TreeView
+
+cp Fit.UI.js dist/
+cp Fit.UI.css dist/
+cp Controls/TreeView/*.png dist/Controls/TreeView
+cp Resources/ dist/ -R
+
+cp Examples/ dist/ -R
+
+zip -r dist-$(date +%F) dist

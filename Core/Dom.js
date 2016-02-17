@@ -95,27 +95,45 @@ Fit.Dom.GetComputedStyle = function(elm, style)
     return (res !== undefined ? res : null);
 }
 
-/// <function container="Fit.Dom" name="GetInnerWidth" access="public" static="true" returns="integer">
-/// 	<description> Get inner width of given container (width with padding and borders substracted) </description>
-/// 	<param name="elm" type="DOMElement"> Element to get inner width for </param>
+/// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Returns object with X and Y properties (integers) with inner dimensions of specified
+/// 		container. Inner dimensions are width and height with padding and borders substracted.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get inner dimensions for </param>
 /// </function>
-Fit.Dom.GetInnerWidth = function(elm)
+Fit.Dom.GetInnerDimensions = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
 
 	var px = function(val) { return (val ? parseInt(val) : 0); }
 
 	var width = elm.offsetWidth;
+	var height = elm.offsetHeight;
 
-	if (width === 0) // Element is either 0px wide, or is not visible
-		return width;
+	if (width !== 0) // Width is 0 if element is either not visible, or truly 0px
+	{
+		width -= px(Fit.Dom.GetComputedStyle(elm, "padding-left"));
+		width -= px(Fit.Dom.GetComputedStyle(elm, "padding-right"));
+		width -= px(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
+		width -= px(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
+	}
 
-	width -= px(Fit.Dom.GetComputedStyle(elm, "padding-left"));
-	width -= px(Fit.Dom.GetComputedStyle(elm, "padding-right"));
-	width -= px(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
-	width -= px(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
+	if (height !== 0) // Height is 0 if element is either not visible, or truly 0px
+	{
+		height -= px(Fit.Dom.GetComputedStyle(elm, "padding-top"));
+		height -= px(Fit.Dom.GetComputedStyle(elm, "padding-bottom"));
+		height -= px(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
+		height -= px(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
+	}
 
-	return width;
+	return { X: Math.floor(width), Y: Math.floor(height) };
+}
+
+Fit.Dom.GetInnerWidth = function(elm) // Backward compatibility
+{
+	Fit.Validation.ExpectDomElement(elm);
+	return Fit.Dom.GetInnerDimensions(elm).X;
 }
 
 
@@ -498,6 +516,14 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 // Position
 // ==========================================================
 
+// Notice: Browser vendors are changing the way coordinates
+// and dimensions are reported. W3C previously define these as
+// integers/longs, but browsers are moving to floats for smoother
+// animation and scrolling, and for more accurate positioning.
+// https://code.google.com/p/chromium/issues/detail?id=323935
+// For consistency we use Math.floor to make sure integers are
+// always returned on both modern and legacy browsers.
+
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
 /// 	<description>
 /// 		Get element position.
@@ -521,7 +547,9 @@ Fit.Dom.GetPosition = function(elm, relativeToViewport)
 		return { X: Math.floor(res.left), Y: Math.floor(res.top) };
 	}
 
-	// Return position within document
+	// Return position within document.
+	// NOTICE: Does not substract any scrolling! Use Fit.Dom.GetScrollPosition(..)
+	// to calculate the amount of pixels a given element has been scrolled.
 
 	var pos = { X: 0, Y: 0 };
 
@@ -531,6 +559,9 @@ Fit.Dom.GetPosition = function(elm, relativeToViewport)
 		pos.Y += elm.offsetTop;
 		elm = elm.offsetParent;
 	}
+
+	pos.X = Math.floor(pos.X);
+	pos.Y = Math.floor(pos.Y);
 
 	return pos;
 }
@@ -557,7 +588,7 @@ Fit.Dom.GetInnerPosition = function(elm, parent)
 		y += elm.offsetTop;
 	}
 
-	return { X: x, Y: y };
+	return { X: Math.floor(x), Y: Math.floor(y) };
 }
 
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
@@ -573,24 +604,27 @@ Fit.Dom.GetScrollPosition = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
 
-    // Get number of pixels specified element's container(s)
-    // have been scrolled. This gives us the total scroll value
-    // for nested scrollable elements which in combination with
-    // X,Y mouse coordinates can be used to determine the mouse
-    // position in the document rather than in the viewport:
-    // scrollX = mouseXviewport + GetScrollPosition(elm).X;
-    // scrollY = mouseYviewport + GetScrollPosition(elm).Y;
+	// Get number of pixels specified element's container(s)
+	// have been scrolled. This gives us the total scroll value
+	// for nested scrollable elements which in combination with
+	// X,Y mouse coordinates can be used to determine the mouse
+	// position in the document rather than in the viewport:
+	// scrollX = mouseXviewport + GetScrollPosition(elm).X;
+	// scrollY = mouseYviewport + GetScrollPosition(elm).Y;
 
-    var pos = { X: 0, Y: 0 };
+	var pos = { X: 0, Y: 0 };
 
 	while (elm)
-    {
-        pos.X += elm.scrollLeft;
-        pos.Y += elm.scrollTop;
-        elm = elm.parentElement;
+	{
+		pos.X += elm.scrollLeft;
+		pos.Y += elm.scrollTop;
+		elm = elm.parentElement;
 	}
 
-    return pos;
+	pos.X = Math.floor(pos.X);
+	pos.Y = Math.floor(pos.Y);
+
+	return pos;
 }
 
 // Internal members

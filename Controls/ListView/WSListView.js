@@ -5,7 +5,6 @@ Fit.Controls.WSListView = function(ctlId)
 
 	var me = this;
 	var url = null;
-	var loadDataOnInit = true;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
 	var onAbortHandlers = [];
@@ -13,11 +12,6 @@ Fit.Controls.WSListView = function(ctlId)
 
 	function init()
 	{
-		me.OnShow(function()
-		{
-			if (loadDataOnInit === true)
-				getData();
-		});
 	}
 
 	// ============================================
@@ -63,7 +57,7 @@ Fit.Controls.WSListView = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
-		me = url = onRequestHandlers = onResponseHandlers = onPopulatedHandlers = null;
+		me = url = onRequestHandlers = onResponseHandlers = onAbortHandlers = onPopulatedHandlers = null;
 		base();
 	});
 
@@ -152,8 +146,6 @@ Fit.Controls.WSListView = function(ctlId)
 	{
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to get data, no WebService URL has been specified");
-
-		loadDataOnInit = false;
 
 		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.JsonRequest(url));
 

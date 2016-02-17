@@ -29,7 +29,7 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 {
 	Fit.Validation.ExpectFunction(callback);
 
-	if (obj instanceof Array || obj instanceof NodeList || (window.FileList && obj instanceof FileList) || (window.StaticNodeList && obj instanceof StaticNodeList) || obj instanceof HTMLCollection)
+	if (Fit._internal.Array.isCollectionType(obj) === true)
 	{
 		var count = obj.length;
 
@@ -50,6 +50,33 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 	}
 
 	return true;
+}
+
+/// <function container="Fit.Array" name="Count" access="public" static="true" returns="integer">
+/// 	<description> Returns number of elements in collection </description>
+/// 	<param name="arr" type="array"> Collection to count elements within </param>
+/// </function>
+/// <function container="Fit.Array" name="Count" access="public" static="true" returns="integer">
+/// 	<description> Returns number of elements in object array </description>
+/// 	<param name="obj" type="object"> Object array to count elements within </param>
+/// </function>
+Fit.Array.Count = function(obj)
+{
+	if (Fit._internal.Array.isCollectionType(obj) === true)
+	{
+		return obj.length;
+	}
+	else if (typeof(obj) === "object")
+	{
+		var count = 0;
+
+		for (var i in obj)
+			count++;
+
+		return count;
+	}
+
+	Fit.Validation.ThrowError("Unsupported collection type passed - unable to determine number of contained elements");
 }
 
 /// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
@@ -120,8 +147,8 @@ Fit.Array.CustomRecurse = function(arr, callback) // arr not validated - passing
 {
 	Fit.Validation.ExpectFunction(callback);
 
-	if ((arr === undefined || arr === null || arr instanceof Array || arr instanceof NodeList || (window.StaticNodeList && arr instanceof StaticNodeList) || arr instanceof HTMLCollection) === false)
-		Fit.Validation.ThrowError("Unexpected collection type passed"); // CustomRecurse does not support iterating object properties like ForEach does
+	if (arr !== undefined && arr !== null && Fit._internal.Array.isCollectionType(arr) === false)
+		Fit.Validation.ThrowError("Unexpected collection type passed"); // CustomRecurse does not support iterating object arrays like ForEach does
 
 	Fit.Array.ForEach(arr, function(o)
 	{
@@ -260,6 +287,15 @@ Fit.Array.ToArray = function(coll)
 		arr.push(coll[i]);
 
 	return arr;
+}
+
+// Internal members
+
+Fit._internal.Array = {};
+
+Fit._internal.Array.isCollectionType = function(obj) // Returns True if obj is a collection that can be iterated using a .length property
+{
+	return (obj instanceof Array || obj instanceof NodeList || (window.FileList && obj instanceof FileList) || (window.StaticNodeList && obj instanceof StaticNodeList) || obj instanceof HTMLCollection);
 }
 
 /*

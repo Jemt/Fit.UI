@@ -287,7 +287,7 @@ Fit.Controls.ContextMenu = function()
 		Fit.Array.Add(onHide, cb);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="OnHide" access="public">
+	/// <function container="Fit.Controls.ContextMenu" name="OnSelect" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when an item is selected in context menu.
 	/// 		Function receives two arguments:

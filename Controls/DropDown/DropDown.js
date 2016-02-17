@@ -956,9 +956,15 @@ Fit.Controls.DropDown = function(ctlId)
     {
 		Fit.Validation.ExpectInstance(input, HTMLInputElement, true);
 
-        inp = ((Fit.Validation.IsSet(input) === true) ? input : txtActive);
+        var inp = ((Fit.Validation.IsSet(input) === true) ? input : txtActive);
+
+		if (inp.value === "")
+			return;
+
         inp.value = "";
 		inp.style.width = "";
+
+		fireOnInputChanged("");
 
 		// Resetting width (above): Seems to be buggy with Chrome+SharePoint. Input sometime retains width and is incorrectly positioned above selected items,
 		// which does not happen with IE and Firefox. Releasing JS thread using setTimeout solves the problem, but it will only work when input argument is passed,
@@ -978,12 +984,22 @@ Fit.Controls.DropDown = function(ctlId)
     {
 		Fit.Validation.ExpectString(val);
 
-		me.ClearInput();
+		if (txtActive.value === val)
+			return;
+
+		txtActive.value = "";
+		txtActive.style.width = "";
 
 		var txt = ((focusAssigned === true) ? txtActive : txtPrimary);
 
+		if (partiallyHidden !== null)
+			txt = partiallyHidden.previousSibling;
+
 		txt.value = val;
+		txtActive = txt;
+
 		fitWidthToContent(txt);
+		fireOnInputChanged(txt.value);
 
 		// Fix for hidden control, in which case fitWidthToContent(..) won't work and txt.offsetWidth remains 0.
 		// Register mutation observer which is invoked when DOMElement hiding control becomes visible.
@@ -1183,6 +1199,7 @@ Fit.Controls.DropDown = function(ctlId)
             }
 
             txtActive = txt;
+			prevValue = txtActive.value;
 
 			clearAllInputsButActive();
 
@@ -1268,6 +1285,9 @@ Fit.Controls.DropDown = function(ctlId)
             }
             else if (ev.keyCode === 39) // Arrow right
             {
+				if (me.MultiSelectionMode() === false && partiallyHidden !== null)
+					return;
+
                 moveToInput("Next");
             }
             else if (ev.keyCode === 27) // Escape

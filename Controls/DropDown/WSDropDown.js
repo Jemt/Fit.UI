@@ -8,6 +8,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var tree = null;
 
 	var search = "";
+	var forceNewSearch = false;
 	var suppressTreeOnOpen = false;
 	var timeOut = null;
 	var currentRequest = null;
@@ -24,46 +25,8 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		me.OnInputChanged(function(sender, value)
 		{
-			// Abort previous timer to prevent multiple WebService requests from being started
-
-			if (timeOut !== null)
-			{
-				clearTimeout(timeOut);
-				timeOut = null;
-			}
-
-			// Abort WebService request (ListView search) if such is in progress
-
-			if (currentRequest !== null)
-				currentRequest.Abort();
-
-			// Set picker (using ListView when searching, otherwise TreeView)
-
-			search = value; // Search is passed to OnRequest handler using EventArgs object
-
-			if (search === "")
-			{
-				me.SetPicker(tree);
-				me.OpenDropDown(); // Fires OnOpen which is used to load data for TreeView
-			}
-			else
-			{
-				list.RemoveItems(); // Remove data from previous search - may confuse user
-				me.SetPicker(list);
-
-				timeOut = setTimeout(function()
-				{
-					if (me.IsDropDownOpen() === false)
-					{
-						suppressTreeOnOpen = true; // Drop Down changes picker to TreeView when OnOpen fires - prevent this from happening
-						me.OpenDropDown();
-					}
-
-					list.Reload();
-
-					timeOut = null;
-				}, 500);
-			}
+			if (me.Focused() === true) // Prevent search from being triggered when OnInputChanged fires after programmatically changing input value
+				searchData(value);
 		});
 
 		// Get drop down open/close button element (arrow)
@@ -86,11 +49,15 @@ Fit.Controls.WSDropDown = function(ctlId)
 		{
 			fireEventHandlers(onResponseHandlers, list, eventArgs);
 			cmdOpen.className = classes;
-		});
-		list.OnAbort(function(sender, eventArgs)
-		{
-			fireEventHandlers(onAbortHandlers, list, eventArgs);
-			cmdOpen.className = classes;
+			currentRequest = null;
+
+			if (forceNewSearch === true)
+			{
+				forceNewSearch = false;
+
+				eventArgs.Items = []; // Remove data, we do not want it to be populated to control
+				searchData(me.GetInputValue());
+			}
 		});
 		list.OnItemSelectionChanging(function(sender, item)
 		{
@@ -100,6 +67,15 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 			if (node !== null && node.Selectable() === false)
 				return false;
+		});
+		list.OnItemSelectionChanged(function(sender, item)
+		{
+			// DropDown (base) automatically closes drop down in Single Selection Mode, but we
+			// always want it to close drop down when using ListView to select data from a search query.
+			// ListView is only used to select data from search results - TreeView is used to display
+			// all data, no matter if it is received in a flat list or a hierarchy.
+			if (item.Selected === true) // Only close when a selection is made - removing an item keeps drop down open
+				me.CloseDropDown();
 		});
 
 		// Create TreeView
@@ -254,7 +230,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		list.Destroy();
 		tree.Destroy();
 
-		me = list = tree = search = suppressTreeOnOpen = timeOut = currentRequest = classes = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = search = forceNewSearch = suppressTreeOnOpen = timeOut = currentRequest = classes = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -336,6 +312,50 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// ============================================
 	// Private
 	// ============================================
+
+	function searchData(value)
+	{
+		// Abort time responsible for starting search request X milliseconds after user stops typing
+
+		if (timeOut !== null)
+		{
+			clearTimeout(timeOut);
+			timeOut = null;
+		}
+
+		// Schedule new search request if a WebService request is already in progress
+
+		if (currentRequest !== null)
+		{
+			forceNewSearch = true;
+			return;
+		}
+
+		// Schedule search to run X milliseconds after user stops typing
+
+		// Search value is passed to WSDropDown event handler using EventArgs object. External code
+		// is responsible for exposing it to the backend, which in turn must return matching items.
+		search = value;
+
+		if (search !== "")
+		{
+			list.RemoveItems(); // Remove data from previous search
+			me.SetPicker(list);
+
+			timeOut = setTimeout(function()
+			{
+				if (me.IsDropDownOpen() === false)
+				{
+					suppressTreeOnOpen = true; // Drop Down changes picker to TreeView when OnOpen fires - prevent this from happening
+					me.OpenDropDown();
+				}
+
+				list.Reload();
+
+				timeOut = null;
+			}, 500);
+		}
+	}
 
 	function fireEventHandlers(handlers, picker, eventArgs)
 	{

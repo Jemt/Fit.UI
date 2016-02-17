@@ -229,10 +229,13 @@ Fit.Controls.TreeView = function(ctlId)
 			if (ev.keyCode === 93 || (Fit.Events.GetModifierKeys().Shift === true && ev.keyCode === 121)) // Context menu button or Shift+F10
 			{
 				var label = node.GetDomElement().querySelector("span");
-				var pos = Fit.Dom.GetPosition(label);
 
-				pos.X = pos.X + label.offsetWidth - 10;
-				pos.Y = pos.Y + label.offsetHeight - 5;
+				var pos = Fit.Dom.GetPosition(label);
+				var scrollContainers = Fit.Dom.GetScrollPosition(label); // TreeView may be placed in container(s) with scroll
+				var scrollDocument = Fit.Dom.GetScrollPosition(document.body); // Page may have been scrolled
+
+				pos.X = (pos.X - scrollContainers.X) + scrollDocument.X + label.offsetWidth - 10;
+				pos.Y = (pos.Y - scrollContainers.Y) + scrollDocument.Y + label.offsetHeight - 5;
 
 				openContextMenu(node, pos);
 
@@ -1289,11 +1292,10 @@ Fit.Controls.TreeView = function(ctlId)
 	function fireEventHandlers(handlers, evObj)
 	{
 		var cancel = false;
-		var clone = (Fit.Core.InstanceOf(evObj, Fit.Controls.TreeView.Node) === false); // Clone event object if not a node, to prevent any changes from affecting other handlers
 
 		Fit.Array.ForEach(handlers, function(cb)
 		{
-			if (cb(me, ((clone === false) ? evObj : Fit.Core.Clone(evObj))) === false)
+			if (cb(me, evObj) === false)
 				cancel = true; // Do NOT cancel loop though! All handlers must be fired!
 		});
 

@@ -20,7 +20,6 @@ Fit.Controls.FilePicker = function(ctlId)
 	var width = { Value: -1, Unit: "px" }; // Differs from default value on ControlBase which is 200px - here a value of -1 indicates width:auto
 	var url = null;
 	var files = [];
-	var completed = [];
 	var inputs = []; // Legacy control - contains input controls when legacy mode is enabled (IE9 and older)
 
 	var onUploadHandlers = [];
@@ -68,36 +67,23 @@ Fit.Controls.FilePicker = function(ctlId)
 			if (inputs.length === 0) // Modern control
 			{
 				files = [];
-				completed = [];
 
 				// Add selected files to internal collection
 				Fit.Array.ForEach(inp.files, function(file)
 				{
-					Fit.Array.Add(files, { Filename: file.name, Type: file.type, Size: file.size, Id: Fit.Data.CreateGuid(), Processed: false, Input: inp, FileObject: file, GetImagePreview: function() { return getImagePreview(file); } });
+					Fit.Array.Add(files, { Filename: file.name, Type: file.type, Size: file.size, Id: Fit.Data.CreateGuid(), Processed: false, Input: inp, FileObject: file, GetImagePreview: function() { return getImagePreview(file); }, ServerResponse: null });
 				});
 			}
 			else // Legacy control
 			{
 				files = [];
 
-				if (me.MultiSelectionMode() === false)
-				{
-					// Only clear completed for Legacy Control in Single Selection Mode as previously uploaded
-					// file pickers are kept visible in Multi Selection Mode (although disabled).
-					// However, collection is cleared in Single Selection Mode when FilePicker.Clear() is called in Legacy Mode.
-					completed = [];
-				}
-
-				// Some files may have been uploaded earlier (e.g. if AutoPostBack is enabled or if user
-				// selects 3 files, triggers upload, selects another 5 files, and triggers upload again).
-				// Make sure ID and Processed flags do not change for these files.
-
-				inp._id = ((inp._id !== undefined && me.MultiSelectionMode() === true) ? inp._id : Fit.Data.CreateGuid());
-				inp._processed = ((inp._processed !== undefined && me.MultiSelectionMode() === true) ? inp._processed : false);
-
 				// Add selected files to internal collection
+
 				Fit.Array.ForEach(Fit.Array.Copy(inputs), function(i)
 				{
+					// Remove empty input fields
+
 					if (i.value === "")
 					{
 						if (me.MultiSelectionMode() === true) // Remove empty upload controls in Multi Selection Mode
@@ -109,7 +95,28 @@ Fit.Controls.FilePicker = function(ctlId)
 						return; // Skip file picker, no file selected
 					}
 
-					Fit.Array.Add(files, { Filename: i.value, Type: "Unknown", Size: -1, Id: i._id, Processed: i._processed, Input: i, FileObject: null, GetImagePreview: function() { return null; } });
+					// file has been selected, create file information object
+
+					var file = null;
+
+					// Some files may have been uploaded earlier (e.g. if AutoPostBack is enabled or if user
+					// selects 3 files, triggers upload, selects another 5 files, and triggers upload again).
+					// Make sure file information is preserved for files already processed.
+
+					if (me.MultiSelectionMode() === true && i._file !== undefined && i._file.Processed === true)
+					{
+						file = i._file;
+					}
+					else
+					{
+						file = { Filename: i.value, Type: "Unknown", Size: -1, Id: Fit.Data.CreateGuid(), Processed: false, Input: i, FileObject: null, GetImagePreview: function() { return null; }, ServerResponse: null };
+					}
+
+					i._file = file;
+
+					// Add file information
+
+					Fit.Array.Add(files, file);
 				});
 
 				// Make sure an empty upload control is always available in Multi Selection Mode, allowing for another file to be added
@@ -220,9 +227,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				Fit.Array.Remove(inputs, i);
 			});
 
-			completed = [];
-
-			createUploadField(); // Create temporarily file picker on which OnChange can be triggered below
+			createUploadField();
 			inputs[0].onchange(null);
 		}
 	}
@@ -232,7 +237,7 @@ Fit.Controls.FilePicker = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
-		me = button = input = width = url = files = completed = inputs = onUploadHandlers = onProgressHandlers = onSuccessHandlers = onFailureHandlers = onCompletedHandlers = null; // onAbortHandlers
+		me = button = input = width = url = files = inputs = onUploadHandlers = onProgressHandlers = onSuccessHandlers = onFailureHandlers = onCompletedHandlers = null; // onAbortHandlers
 		base();
 	});
 
@@ -421,7 +426,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				{
 					inp.disabled = !val;
 
-					if (val === true && inp._processed === true && me.MultiSelectionMode() === true) // Input controls previously uploaded should remain disabled
+					if (me.MultiSelectionMode() === true && val === true && inp._file !== undefined && inp._file.Processed === true) // Input controls previously uploaded should remain disabled
 						inp.disabled = true;
 				})
 			}
@@ -445,24 +450,44 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		Use the OnProgress event to monitor the upload process, or use the OnCompleted event
 	/// 		to be notified when all files have been fully processed.
 	/// 	</description>
+	/// 	<param name="skip" type="string[]" default="undefined">
+	/// 		Optional argument allowing some of the selected files to be skipped during
+	/// 		upload. The argument is a string array with the names of the files to skip.
+	/// 	</param>
 	/// </function>
-	this.Upload = function()
+	this.Upload = function(skip)
 	{
+		Fit.Validation.ExpectTypeArray(skip, Fit.Validation.ExpectStringValue, true);
+
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to upload file(s), no URL has been specified");
 
 		if (me.Enabled() === false) // Legacy control cannot upload data when disabled - this ensures consistency
 			return;
 
-		if (files.length === 0)
+		var filesToUpload = [];
+
+		Fit.Array.ForEach(files, function(file)
+		{
+			if (Fit.Validation.IsSet(skip) === false || Fit.Array.Contains(skip, file.Filename) === false)
+			{
+				if (file.Processed === true) // Skip previously uploaded files
+					return;
+
+				Fit.Array.Add(filesToUpload, file);
+			}
+		});
+
+		if (filesToUpload.length === 0)
 			return;
 
 		if (fireEvent(onUploadHandlers) === false)
 			return;
 
-		Fit.Array.ForEach(files, function(file)
+		var completed = [];
+
+		Fit.Array.ForEach(filesToUpload, function(file)
 		{
-			file.Input._processed = true;
 			file.Processed = true;
 
 			if (inputs.length === 0) // Modern control
@@ -476,21 +501,31 @@ Fit.Controls.FilePicker = function(ctlId)
 					var ev = Fit.Events.GetEvent(e);
 					fireEvent(onProgressHandlers, file, ((ev.loaded > 0 && ev.total > 0) ? Math.floor((ev.loaded / ev.total) * 100) : 0));
 				});
-				Fit.Events.AddHandler(req.upload, "load", function(e)
+				Fit.Events.AddHandler(req, "readystatechange", function(e)
 				{
-					Fit.Array.Add(completed, file);
-					fireEvent(onSuccessHandlers, file);
+					// Using readystatechange rather than req.upload.onload (success) and req.upload.onerror (failure).
+					// Server response is not available when req.upload.onload fires: Fit.Events.AddHandler(req.upload, "load", function(e) { /*..*/ });
+					// OnError only fires when network communication fails (e.g. network unplugged or server process is restarted), not when an error
+					// occur server side (500 Internal Server Error). Using readystatechange we can catch both communication and server errors.
 
-					if (completed.length === files.length)
-						fireEvent(onCompletedHandlers);
-				});
-				Fit.Events.AddHandler(req.upload, "error", function(e)
-				{
-					Fit.Array.Add(completed, file);
-					fireEvent(onFailureHandlers, file);
+					if (req.readyState === 4)
+					{
+						if (req.status === 200) // Success
+						{
+							file.ServerResponse = req.responseText;
 
-					if (completed.length === files.length)
-						fireEvent(onCompletedHandlers);
+							Fit.Array.Add(completed, file);
+							fireEvent(onSuccessHandlers, file);
+						}
+						else // Failure
+						{
+							Fit.Array.Add(completed, file);
+							fireEvent(onFailureHandlers, file);
+						}
+
+						if (completed.length === filesToUpload.length)
+							fireEvent(onCompletedHandlers);
+					}
 				});
 				/*Fit.Events.AddHandler(req.upload, "abort", function(e)
 				{
@@ -503,9 +538,6 @@ Fit.Controls.FilePicker = function(ctlId)
 			else // Legacy control
 			{
 				var picker = file.Input;
-
-				if (picker.value === "" || picker.disabled === true)
-					return; // Skip, either empty or already uploaded/uploading (disabled)
 
 				var iFrame = null;
 				var form = null;
@@ -521,18 +553,30 @@ Fit.Controls.FilePicker = function(ctlId)
 				Fit.Dom.InsertAfter(picker, iFrame);
 				iFrame.onload = function(e) // Must be registered AFTER rooting iFrame in DOM, to prevent WebKit/Chrome from firing OnLoad multiple times
 				{
-					// Picker was temporarily moved to form during upload.
-					// Return it to its original position before removing form and iframe.
+					// Read server response
+
+					try // Will throw an error if uploading to foreign domain, in which case ServerResponse will remain Null
+					{
+						file.ServerResponse = iFrame.contentDocument.body.innerHTML;
+					}
+					catch (err)
+					{
+						Fit.Browser.Log("Unable to read server response, most likely due to violation of Same-Origin Policy");
+					}
+
+					// Clean up
+
 					Fit.Dom.Remove(iFrame);
+					clearInterval(interval);
+
+					// Fire events
 
 					Fit.Array.Add(completed, file);
-
-					clearInterval(interval);
 
 					fireEvent(onProgressHandlers, file, 100);
 					fireEvent(onSuccessHandlers, file);
 
-					if (completed.length === files.length)
+					if (completed.length === filesToUpload.length)
 						fireEvent(onCompletedHandlers);
 				};
 
@@ -585,13 +629,16 @@ Fit.Controls.FilePicker = function(ctlId)
 		{
 			var img = new Image();
 
-			var fr = new FileReader();
-			fr.onload = function(e)
+			setTimeout(function() // Postpone to allow external code to register an onload handler on the image, which should be registered before assigning image source (src)
 			{
-				var ev = Fit.Events.GetEvent(e);
-				img.src = ev.target.result;
-			}
-			fr.readAsDataURL(file);
+				var fr = new FileReader();
+				fr.onload = function(e)
+				{
+					var ev = Fit.Events.GetEvent(e);
+					img.src = ev.target.result;
+				}
+				fr.readAsDataURL(file);
+			}, 0);
 
 			return img;
 		}
@@ -616,7 +663,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				if (cb(me, eventArgs) === false)
 					canceled = true;
 			}
-			else // OnCompleted
+			else // OnUpload/OnCompleted
 			{
 				if (cb(me) === false)
 					canceled = true;
@@ -685,6 +732,7 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Input:HTMLInputElement (Input control used as file picker)
 	/// 		 - FileObject:File (Native JS File object representing given file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
+	/// 		 - ServerResponse:string (Contains the response received from the server after a successful upload)
 	/// 		Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
 	/// 		case will be Null. GetImagePreview() will also return Null in Legacy Mode.
 	/// 	</description>
@@ -726,6 +774,8 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 	<description>
 	/// 		Add event handler fired when all files selected have been fully processed.
 	/// 		Be aware that this event fires even if some files were not uploaded successfully.
+	/// 		At this point files returned from GetFiles() contains a ServerResponse:string property
+	/// 		containing the response from the server. This property remains Null in case of errors.
 	/// 		Function receives one argument: Sender (Fit.Controls.FlePicker).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>

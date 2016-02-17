@@ -46,6 +46,7 @@ Fit.Http.Request = function(url)
 	var data = "";
 
 	var onStateChange = [];
+	var onRequestHandlers = [];
 	var onSuccessHandlers = [];
 	var onFailureHandlers = [];
 	var onAbortHandlers = [];
@@ -141,6 +142,21 @@ Fit.Http.Request = function(url)
 	/// </function>
 	this.Start = function()
 	{
+		// Fire OnRequest
+
+		var cancel = false;
+
+		Fit.Array.ForEach(onRequestHandlers, function(handler)
+		{
+			if (handler(me) === false)
+				cancel = true;
+		});
+
+		if (cancel === true)
+			return;
+
+		// Perform request
+
 		var method = (data ? "POST" : "GET");
 		var async = (onStateChange.length > 0 || onSuccessHandlers.length > 0 || onFailureHandlers.length > 0);
 		httpRequest.open(method, url, async);
@@ -253,6 +269,22 @@ Fit.Http.Request = function(url)
 
 	this.SetStateListener = this.OnStateChange; // Backward compatibility
 
+	/// <function container="Fit.Http.Request" name="OnRequest" access="public">
+	/// 	<description>
+	/// 		Add function to invoke when request is initiated.
+	/// 		Request can be canceled by returning False.
+	/// 	</description>
+	/// 	<param name="func" type="function">
+	/// 		JavaScript function invoked when request is initiated.
+	/// 		Fit.Http.Request instance is passed to function.
+	/// 	</param>
+	/// </function>
+	this.OnRequest = function(func)
+	{
+		Fit.Validation.ExpectFunction(func);
+		Fit.Array.Add(onRequestHandlers, func);
+	}
+
 	/// <function container="Fit.Http.Request" name="OnSuccess" access="public">
 	/// 	<description> Add function to invoke when request is successful </description>
 	/// 	<param name="func" type="function">
@@ -356,6 +388,7 @@ Fit.Http.JsonRequest = function(url)
 	{
 		Fit.Validation.ExpectIsSet(json);
 		data = json;
+		baseSetData(JSON.stringify(data));
 	}
 
 	/// <function container="Fit.Http.JsonRequest" name="GetData" access="public" returns="object">
@@ -364,13 +397,6 @@ Fit.Http.JsonRequest = function(url)
 	this.GetData = function(dataStr)
 	{
 		return data;
-	}
-
-	var baseStart = me.Start;
-	this.Start = function()
-	{
-		baseSetData(JSON.stringify(data));
-		baseStart();
 	}
 
 	this.AddData = function(key, value, uriEncode)

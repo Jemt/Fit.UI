@@ -323,12 +323,20 @@ Fit.Events.AddHandler(document, "mousemove", function(e)
 	if (document.body === null) // Not ready yet
 		return;
 
+	// Notice: Browser vendors are changing the way coordinates
+	// and dimensions are reported. W3C previously define these as
+	// integers/longs, but browsers are moving to floats for smoother
+	// animation and scrolling, and for more accurate positioning.
+	// https://code.google.com/p/chromium/issues/detail?id=323935
+	// For consistency we use Math.floor to make sure integers are
+	// always returned on both modern and legacy browsers.
+
 	// Mouse position in viewport
-	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = (ev.clientX || ev.pageX);
-	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = (ev.clientY || ev.pageY);
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = Math.floor(ev.clientX);
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = Math.floor(ev.clientY);
 
 	// Mouse position in document which may have been scrolled
-	var scrollPos = Fit.Dom.GetScrollPosition(document.body);
+	var scrollPos = Fit.Dom.GetScrollPosition(document.body); // Object with integer values returned
 	Fit._internal.Events.Mouse.Coordinates.Document.X = Fit._internal.Events.Mouse.Coordinates.ViewPort.X + scrollPos.X;
 	Fit._internal.Events.Mouse.Coordinates.Document.Y = Fit._internal.Events.Mouse.Coordinates.ViewPort.Y + scrollPos.Y;
 });
