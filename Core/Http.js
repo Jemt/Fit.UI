@@ -399,6 +399,12 @@ Fit.Http.JsonRequest = function(url)
 		return data;
 	}
 
+	this.Start = Fit.Core.CreateOverride(this.Start, function()
+	{
+		baseSetData(JSON.stringify(data)); // In case external code manipulated data without calling SetData(json) - example: req.GetData().Xyz = newValue;
+		base();
+	});
+
 	this.AddData = function(key, value, uriEncode)
 	{
 		Fit.Validation.ThrowError("Use SetData(..) to set JSON request data for JSON WebService");
