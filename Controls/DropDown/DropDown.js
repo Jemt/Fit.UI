@@ -1001,8 +1001,8 @@ Fit.Controls.DropDown = function(ctlId)
 		fitWidthToContent(txt);
 		fireOnInputChanged(txt.value);
 
-		// Fix for hidden control, in which case fitWidthToContent(..) won't work and txt.offsetWidth remains 0.
-		// Register mutation observer which is invoked when DOMElement hiding control becomes visible.
+		// Fix for hidden or non-rooted control, in which case fitWidthToContent(..) won't work and txt.offsetWidth remains 0.
+		// Register mutation observer which is invoked when control is rooted, or when DOMElement hiding control becomes visible.
 
 		if (visibilityObserverId !== -1) // Cancel any mutation observer previously registered
 		{
@@ -1012,11 +1012,16 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (val.length > 0 && txt.offsetWidth === 0)
 		{
-			var concealer = Fit.Dom.GetConcealer(txt);
+			var observe = null;
 
-			if (concealer !== null)
+			if (Fit.Dom.IsRooted(txt) === false)
+				observe = txt;
+			else
+				observe = Fit.Dom.GetConcealer(txt); // Returns Null if not concealed (hidden)
+
+			if (observe !== null)
 			{
-				visibilityObserverId = Fit.Events.AddMutationObserver(concealer, function(elm)
+				visibilityObserverId = Fit.Events.AddMutationObserver(observe, function(elm)
 				{
 					if (Fit.Dom.IsVisible(txt) === true)
 					{

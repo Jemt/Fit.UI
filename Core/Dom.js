@@ -141,6 +141,26 @@ Fit.Dom.GetInnerWidth = function(elm) // Backward compatibility
 // DOM
 // ==========================================================
 
+/// <function container="Fit.Dom" name="IsRooted" access="public" static="true" returns="boolean">
+/// 	<description> Returns True if element is rooted in document (appended to body), otherwise False </description>
+/// 	<param name="elm" type="DOMElement"> Element to check </param>
+/// </function>
+Fit.Dom.IsRooted = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	var parent = elm.parentElement;
+	while (parent !== null)
+	{
+		if (parent === document.body)
+			return true;
+
+		parent = parent.parentElement;
+	}
+
+	return false;
+}
+
 /// <function container="Fit.Dom" name="InsertBefore" access="public" static="true">
 /// 	<description> Insert DOMElement before another DOMElement </description>
 /// 	<param name="target" type="DOMElement"> Element to insert new element before </param>
