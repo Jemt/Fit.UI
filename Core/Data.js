@@ -16,6 +16,36 @@ Fit.Data.CreateGuid = function(dashFormat)
 {
 	Fit.Validation.ExpectBoolean(dashFormat, true);
 
+	/*
+	// Test case proving that unique GUIDs are generated every time.
+	// Use a powerful computer to run this test, and a fast browser (e.g. Safari).
+
+	var guids = {};
+	var minors = 0;
+
+	for (var i = 0 ; i < 25000000 ; i++) // 25 million
+	{
+		var g = Fit.Data.CreateGuid();
+
+		minors++;
+		if (minors === 5000)
+		{
+			console.log("5000 more GUIDs generated");
+			minors = 0;
+		}
+
+		if (guids[g])
+		{
+			alert("GUID already in use: " + g);
+			break;
+		}
+		else
+		{
+			guids[g] = 1;
+		}
+	}
+	*/
+
 	var chars = "0123456789abcdef".split("");
 
 	var uuid = new Array();

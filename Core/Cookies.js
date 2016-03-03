@@ -7,13 +7,16 @@ Fit.Cookies = {};
 /// 	<description> Create or update cookie - returns True on success, otherwise False </description>
 /// 	<param name="name" type="string"> Unique cookie name </param>
 /// 	<param name="value" type="string"> Cookie value (cannot contain semicolon!) </param>
-/// 	<param name="seconds" type="integer"> Expiration time in seconds </param>
+/// 	<param name="seconds" type="integer" default="undefined">
+/// 		Optional expiration time in seconds. Creating a cookie with
+/// 		no expiration time will cause it to expire when session ends.
+/// 	</param>
 /// </function>
 Fit.Cookies.Set = function(name, value, seconds)
 {
 	Fit.Validation.ExpectStringValue(name);
 	Fit.Validation.ExpectString(name);
-	Fit.Validation.ExpectInteger(seconds);
+	Fit.Validation.ExpectInteger(seconds, true);
 
 	if (value.indexOf(';') > -1)
 	{
@@ -21,9 +24,15 @@ Fit.Cookies.Set = function(name, value, seconds)
 		return false;
 	}
 
-	var date = new Date();
-	date.setTime(date.getTime() + (seconds * 1000));
-	document.cookie = name + "=" + value + "; expires=" + date.toGMTString() + "; path=/";
+	var date = null;
+
+	if (Fit.Validation.IsSet(seconds) === true)
+	{
+		date = new Date();
+		date.setTime(date.getTime() + (seconds * 1000));
+	}
+
+	document.cookie = name + "=" + value + ((date !== null) ? "; expires=" + date.toGMTString() : "") + "; path=/";
 
 	return true;
 }
