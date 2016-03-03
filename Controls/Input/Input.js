@@ -403,8 +403,8 @@ Fit.Controls.Input = function(ctlId)
 
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
-			allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules
-			extraPlugins: "justify",
+			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
+			extraPlugins: "justify,pastefromword",
 			toolbar:
 			[
 				{
