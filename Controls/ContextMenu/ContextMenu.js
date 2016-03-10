@@ -10,6 +10,8 @@ Fit.Controls.ContextMenu = function()
 	var me = this;
 	var tree = new Fit.Controls.TreeView("ContextMenuTreeView_" + Fit.Data.CreateGuid());
 	var prevFocused = null;
+	var detectBoundaries = true;
+	var highlightOnInitKeyStroke = true;
 
 	var onShowing = [];
 	var onShown = [];
@@ -22,11 +24,16 @@ Fit.Controls.ContextMenu = function()
 
 	function init()
 	{
-		//tree.RemoveCssClass("FitUiControlTreeView");
+		Fit.Dom.Data(tree.GetDomElement(), "keynav", "false");				// True when navigating using keyboard
+		Fit.Dom.Data(tree.GetDomElement(), "sticky", "false");				// True when user toggles node
+		Fit.Dom.Data(tree.GetDomElement(), "viewportcollision", "false");	// True when context menu collides with viewport boundaries
+
 		tree.AddCssClass("FitUiControlContextMenu");
 		tree.Selectable(true);
 
-		// Allow context menu to be closed using ESC key
+		// Custom keyboard navigation
+
+		tree.KeyboardNavigation(false);
 
 		Fit.Events.AddHandler(tree.GetDomElement(), "keydown", function(e)
 		{
@@ -34,7 +41,6 @@ Fit.Controls.ContextMenu = function()
 
 			if (ev.keyCode === 27) // Escape
 			{
-				// Hide context menu
 				me.Hide();
 
 				// Return focus to previously focused element
@@ -43,6 +49,88 @@ Fit.Controls.ContextMenu = function()
 					prevFocused.focus();
 					prevFocused = null;
 				}
+
+				return;
+			}
+
+			var node = tree.GetNodeFocused();
+
+			if (node === null) // In case context menu has no children
+				return;
+
+			if (highlightOnInitKeyStroke === true)
+			{
+				highlightOnInitKeyStroke = false;
+				Fit.Dom.Data(tree.GetDomElement(), "keynav", "true"); // Requires repaint in Legacy IE
+				repaint();
+
+				// Make sure the first item is highlighted instead of
+				// the 2nd item, in case initial keystroke was arrow down.
+
+				if (ev.keyCode === 40 && tree.GetChildren().length > 0)
+				{
+					tree.GetChildren()[0].Focused(true);
+
+					Fit.Events.PreventDefault(ev); // Prevent scrolling
+					return;
+				}
+			}
+
+			if (ev.keyCode === 37) // Arrow left
+			{
+				if (node.Expanded() === true)
+				{
+					node.Expanded(false);
+				}
+				else if (node.GetParent() !== null)
+				{
+					node.GetParent().Focused(true);
+				}
+
+				Fit.Events.PreventDefault(ev); // Prevent scrolling
+				return;
+			}
+
+			if (ev.keyCode === 39) // Arrow right
+			{
+				if (node.GetChildren().length > 0)
+				{
+					node.Expanded(true);
+					node.GetChildren()[0].Focused(true);
+				}
+
+				Fit.Events.PreventDefault(ev); // Prevent scrolling
+				return;
+			}
+
+			if (ev.keyCode === 38) // Arrow up
+			{
+				var newNode = tree.GetNodeAbove(node);
+
+				if (newNode !== null)
+					newNode.Focused(true);
+
+				Fit.Events.PreventDefault(ev); // Prevent scrolling
+				return;
+			}
+
+			if (ev.keyCode === 40) // Arrow down
+			{
+				var newNode = tree.GetNodeBelow(node);
+
+				if (newNode !== null)
+					newNode.Focused(true);
+
+				Fit.Events.PreventDefault(ev); // Prevent scrolling
+				return;
+			}
+
+			if (ev.keyCode === 13) // Enter
+			{
+				if (node.Selectable() === true)
+					node.Selected(true);
+
+				return;
 			}
 		});
 
@@ -50,12 +138,90 @@ Fit.Controls.ContextMenu = function()
 
 		tree.OnSelected(function(sender, node)
 		{
-			if (node.Selected() === false) // Another node may have been selected without navigating away - skip this event for deselected node when new selection is made
-				return;
+			if (node.Selected() === true) // OnSelected fires when both selecting and deselecting nodes
+			{
+				node.Selected(false); // Notice: Fires OnSelected again
+				node.Expanded(!node.Expanded());
 
-			fireEventHandlers(onSelect, node.GetDomElement()._internal.ContextMenuItem);
+				// Navigate link contained in item, or fire ContextMenu.OnSelect
 
-			me.Hide();
+				var links = node.GetDomElement().getElementsByTagName("a");
+
+				if (links.length === 1 && Fit.Dom.GetParentOfType(links[0], "li") === node.GetDomElement())
+				{
+					links[0].click();
+					me.Hide();
+				}
+				else
+				{
+					fireEventHandlers(onSelect, node.GetDomElement()._internal.ContextMenuItem);
+				}
+			}
+		});
+
+		// Support for sticky nodes
+
+		tree.OnToggled(function(sender, node)
+		{
+			if (node.Expanded() === false) // Node collapsed
+			{
+				// Collapse all children
+				Fit.Array.ForEach(node.GetChildren(), function(c)
+				{
+					c.Expanded(false); // Notice: Fires OnToggled again if node is expanded, causing all children to be collapsed recursively
+				});
+			}
+			else // Node expanded
+			{
+				if (node.Focused() === true) // Prevent this from executing when recursively expanding parent nodes (see further down)
+				{
+					Fit.Dom.Data(tree.GetDomElement(), "sticky", "true");
+					highlightOnInitKeyStroke = false;
+
+					// Collapse previously expanded nodes
+
+					var expanded = null;
+					var currentNode = node;
+
+					while (currentNode !== null)
+					{
+						if (currentNode.GetParent() !== null)
+							expanded = getExpandedChild(currentNode.GetParent().GetChildren(), currentNode);
+						else
+							expanded = getExpandedChild(tree.GetChildren(), currentNode);
+
+						if (expanded !== null)
+						{
+							expanded.Expanded(false); // Notice: Fires OnToggled again, causing all children to be collapsed recursively
+							break;
+						}
+
+						currentNode = currentNode.GetParent();
+					}
+				}
+
+				// Expand parent nodes to make the currently hovered hierarchy/path sticky
+				if (node.GetParent() !== null)
+					node.GetParent().Expanded(true); // Notice: Fires OnToggled again causing all parents to expand recursively
+
+				// Boundary detection - detect and handle viewport collisions
+				if (detectBoundaries === true)
+					handleViewPortCollision(node.GetDomElement());
+			}
+		});
+
+		// Boundary detection - detect and handle viewport collisions when hovering items to open submenus
+
+		Fit.Events.AddHandler(tree.GetDomElement(), "mouseover", function(e)
+		{
+			if (detectBoundaries === true && Fit.Dom.Data(tree.GetDomElement(), "sticky") === "false") // Viewport collision is handled by OnToggled handler when items are sticky
+			{
+				var elm = Fit.Events.GetTarget(e);
+				elm = ((elm.tagName === "LI") ? elm : Fit.Dom.GetParentOfType(elm, "li")); // Null if user is hovering context menu border or any margin/padding applied to context menu container
+
+				if (elm !== null)
+					handleViewPortCollision(elm);
+			}
 		});
 
 		// Contain clicks - prevents e.g. drop down from closing when context menu is used within picker control
@@ -112,7 +278,21 @@ Fit.Controls.ContextMenu = function()
 			Fit._internal.ContextMenu.Current = me;
 		}
 
-		// Focus context menu
+		// Boundary detection
+
+		if (detectBoundaries === true)
+		{
+			var treeElm = tree.GetDomElement();
+			Fit.Dom.Data(treeElm, "viewportcollision", "false");
+
+			if (Fit.Browser.GetViewPortDimensions().Height < (posY - Fit.Dom.GetScrollPosition(document.body).Y) + treeElm.offsetHeight)
+			{
+				Fit.Dom.Data(treeElm, "viewportcollision", "true");
+				treeElm.style.top = (posY - treeElm.offsetHeight) + "px";
+			}
+		}
+
+		// Focus context menu to allow keyboard navigation
 
 		me.Focused(true);
 
@@ -130,7 +310,47 @@ Fit.Controls.ContextMenu = function()
 		{
 			Fit.Dom.Remove(tree.GetDomElement());
 			fireEventHandlers(onHide);
+
+			Fit.Array.ForEach(tree.GetChildren(), function(n) // OnToggled handler makes sure to collapse nodes recursively
+			{
+				n.Expanded(false);
+			});
+
+			highlightOnInitKeyStroke = true;
+			Fit.Dom.Data(tree.GetDomElement(), "keynav", "false");
+			Fit.Dom.Data(tree.GetDomElement(), "viewportcollision", "false");
+			Fit.Dom.Data(tree.GetDomElement(), "sticky", "false");
+
+			Fit.Array.ForEach(tree.GetDomElement().getElementsByTagName("ul"), function(ul)
+			{
+				Fit.Dom.Data(ul, "viewportcollision", null);
+			});
 		}
+	}
+
+	/// <function container="Fit.Controls.ContextMenu" name="DetectBoundaries" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether boundary/collision detection is enabled or not </description>
+	/// </function>
+	this.DetectBoundaries = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === false)
+			{
+				Fit.Dom.Data(tree.GetDomElement(), "viewportcollision", "false");
+
+				Fit.Array.ForEach(tree.GetDomElement().getElementsByTagName("ul"), function(ul)
+				{
+					Fit.Dom.Data(ul, "viewportcollision", null);
+				});
+			}
+
+			detectBoundaries = val;
+		}
+
+		return detectBoundaries;
 	}
 
 	/// <function container="Fit.Controls.ContextMenu" name="IsVisible" access="public" returns="boolean">
@@ -211,6 +431,21 @@ Fit.Controls.ContextMenu = function()
 		var items = [];
 
 		Fit.Array.ForEach(tree.GetChildren(), function(tvNode)
+		{
+			Fit.Array.Add(items, tvNode.GetDomElement()._internal.ContextMenuItem);
+		});
+
+		return items;
+	}
+
+	/// <function container="Fit.Controls.ContextMenu" name="GetAllChildren" access="public" returns="Fit.Controls.ContextMenu.Item[]">
+	/// 	<description> Get all children across entire hierarchy in a flat collection </description>
+	/// </function>
+	this.GetAllChildren = function()
+	{
+		var items = [];
+
+		Fit.Array.ForEach(tree.GetAllNodes(), function(tvNode)
 		{
 			Fit.Array.Add(items, tvNode.GetDomElement()._internal.ContextMenuItem);
 		});
@@ -337,6 +572,73 @@ Fit.Controls.ContextMenu = function()
 		return !cancel;
 	}
 
+	function getExpandedChild(children, childToIgnore)
+	{
+		Fit.Validation.ExpectInstanceArray(children, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(childToIgnore, Fit.Controls.TreeView.Node);
+
+		var found = null;
+
+		Fit.Array.ForEach(children, function(c)
+		{
+			if (c.Expanded() === true && c !== childToIgnore)
+			{
+				found = c;
+				return false; // Break loop
+			}
+		});
+
+		return found;
+	}
+
+	function handleViewPortCollision(nodeElm)
+	{
+		Fit.Validation.ExpectDomElement(nodeElm);
+
+		if (nodeElm.getElementsByTagName("ul").length > 0)
+		{
+			var ul = nodeElm.getElementsByTagName("ul")[0];
+			Fit.Dom.Data(ul, "viewportcollision", null); // Requires repaint in Legacy IE
+
+			repaint(function()
+			{
+				var pos = Fit.Dom.GetPosition(ul, true);
+
+				if (Fit.Browser.GetViewPortDimensions().Height < pos.Y + ul.offsetHeight)
+					Fit.Dom.Data(ul, "viewportcollision", "true");
+			});
+		}
+	}
+
+	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
+	function repaint(f)
+	{
+		Fit.Validation.ExpectFunction(f, true);
+
+		var cb = ((Fit.Validation.IsSet(f) === true) ? f : function() {});
+
+		if (isIe8 === false)
+		{
+			cb();
+		}
+		else
+		{
+			// Flickering may occure on IE8 when updating UI over time
+			// (UI update + JS thread released + UI updates again "later").
+
+			Fit.Dom.AddClass(tree.GetDomElement(), "FitUi_Non_Existing_ContextMenu_Class");
+			Fit.Dom.RemoveClass(tree.GetDomElement(), "FitUi_Non_Existing_ContextMenu_Class");
+
+			setTimeout(function()
+			{
+				cb();
+
+				Fit.Dom.AddClass(tree.GetDomElement(), "FitUi_Non_Existing_ContextMenu_Class");
+				Fit.Dom.RemoveClass(tree.GetDomElement(), "FitUi_Non_Existing_ContextMenu_Class");
+			}, 0);
+		}
+	}
+
 	init();
 }
 
@@ -366,7 +668,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 	// Public
 	// ============================================
 
-	/// <function container="Fit.Controls.ContextMenu.Node" name="Title" access="public" returns="string">
+	/// <function container="Fit.Controls.ContextMenu.Item" name="Title" access="public" returns="string">
 	/// 	<description> Get/set item title </description>
 	/// 	<param name="val" type="string" default="undefined"> If defined, item title is updated </param>
 	/// </function>
@@ -376,7 +678,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return node.Title(val);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Node" name="Value" access="public" returns="string">
+	/// <function container="Fit.Controls.ContextMenu.Item" name="Value" access="public" returns="string">
 	/// 	<description> Get item value </description>
 	/// </function>
 	this.Value = function()
@@ -459,6 +761,15 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		});
 
 		return items;
+	}
+
+	/// <function container="Fit.Controls.ContextMenu.Item" name="GetParent" access="public" returns="Fit.Controls.ContextMenu.Item">
+	/// 	<description> Get parent item - returns Null for a root item </description>
+	/// </function>
+	this.GetParent = function()
+	{
+		var parent = node.GetParent();
+		return ((parent !== null) ? parent.GetDomElement()._internal.ContextMenuItem : null);
 	}
 
 	/// <function container="Fit.Controls.ContextMenu.Item" name="Dispose" access="public">

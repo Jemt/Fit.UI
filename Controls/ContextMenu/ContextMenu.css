@@ -1,9 +1,78 @@
-div.FitUiControlContextMenu
+div.FitUiControlContextMenu.FitUiControlTreeView
 {
-	box-shadow: 0px 0px 3px 0px #333;
-	border: 0.5px solid #A9A9A9;
+	border: 1px solid #A9A9A9;
 	background-color: #FFFFFF;
+	color: #333333;
 	padding: 10px;
 	position: absolute; /* top/left set using JS */
 	z-index: 999999;
+	cursor: pointer; /* Prevent arrow being shown between items (padding) */
+}
+
+/* Transform TreeView to context menu, unless on low-res devices */
+
+@media (min-device-width: 600px) and (min-device-height: 400px) /* Media query not supported by IE8 */
+{
+	div.FitUiControlContextMenu.FitUiControlTreeView
+	{
+		overflow: visible; /* Disable scrolling to allow submenus to be displayed next to parent */
+		padding: 0px;
+	}
+
+	/* Padding */
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li
+	{
+		padding: 0.1em 0em 0.1em 1.5em;
+	}
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li > span,
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li:focus > span,
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li[data-active="true"] > span
+	{
+		padding: 0px 1em 0px 0px;
+	}
+
+	/* Remove highlighting border for selected item - use background color instead */
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li:focus > span
+	{
+		border: none;
+	}
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-sticky="false"][data-keynav="false"] li ul li:hover,
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-keynav="true"] li ul li:focus,
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-sticky="true"] li ul li:focus
+	{
+		background: #E8E8E8; /* Legacy IE fallback */
+		background: rgba(0, 0, 0, 0.1);
+	}
+
+	/* Display submenu when hovering parent */
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-sticky="false"][data-keynav="false"] li ul li:hover > ul
+	{
+		display: block;
+	}
+
+	/* Float submenu next to parent item */
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li > span
+	{
+		display: inline-block;
+		width: 100%;
+	}
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li[data-state="expanded"] > ul,
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-sticky="false"][data-keynav="false"] li ul li:hover > ul
+	{
+		display: inline-block;
+		position: absolute;
+		z-index: 999999;
+
+		border: 1px solid #A9A9A9;
+		background-color: #FFFFFF;
+		margin-top: -0.1em;				/* Compensate for padding */
+		transform: translateY(-1px);	/* Compensate for border */
+	}
+
+	/* Boundary detection - open upward */
+	div.FitUiControlContextMenu.FitUiControlTreeView li ul li[data-state="expanded"] > ul[data-viewportcollision="true"],
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-sticky="false"][data-keynav="false"] li ul li:hover > ul[data-viewportcollision="true"]
+	{
+		bottom: 0px;
+	}
 }

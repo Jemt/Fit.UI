@@ -79,7 +79,21 @@ Fit.Controls.WSContextMenu = function()
 				Fit._internal.ContextMenu.Current = me;
 			}
 
-			// Focus context menu
+			// Boundary detection
+
+			if (me.DetectBoundaries() === true)
+			{
+				var treeElm = me.GetDomElement();
+				Fit.Dom.Data(treeElm, "viewportcollision", "false");
+
+				if (Fit.Browser.GetViewPortDimensions().Height < (posY - Fit.Dom.GetScrollPosition(document.body).Y) + treeElm.offsetHeight)
+				{
+					Fit.Dom.Data(treeElm, "viewportcollision", "true");
+					treeElm.style.top = (posY - treeElm.offsetHeight) + "px";
+				}
+			}
+
+			// Focus context menu to allow keyboard navigation
 
 			me.Focused(true);
 

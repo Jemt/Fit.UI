@@ -243,8 +243,8 @@ Fit.Events.GetPointerState = function()
 
 Fit._internal.Events = {};
 Fit._internal.Events.Browser = Fit.Browser.GetInfo();
-Fit._internal.Events.KeysDown = { Shift: false, Ctrl: false, Alt: false, Meta: false };
-Fit._internal.Events.Mouse = { Buttons: { Primary: false, Secondary: false }, Coordinates: { ViewPort: { X: -1, Y: -1 }, Document: { X: -1, Y: -1 } } };
+Fit._internal.Events.KeysDown = { Shift: false, Ctrl: false, Alt: false, Meta: false, KeyDown: -1, KeyUp: -1 };
+Fit._internal.Events.Mouse = { Buttons: { Primary: false, Secondary: false, Touch: false }, Coordinates: { ViewPort: { X: -1, Y: -1 }, Document: { X: -1, Y: -1 } } };
 Fit._internal.Events.OnReadyHandlers = [];
 
 // ==============================================
@@ -263,6 +263,8 @@ Fit.Events.AddHandler(document, "keydown", true, function(e)
 	Fit._internal.Events.KeysDown.Ctrl = ev.ctrlKey;
 	Fit._internal.Events.KeysDown.Alt = ev.altKey;
 	Fit._internal.Events.KeysDown.Meta = ev.metaKey;
+	Fit._internal.Events.KeysDown.KeyUp = -1;
+	Fit._internal.Events.KeysDown.KeyDown = ev.keyCode;
 });
 Fit.Events.AddHandler(document, "keyup", true, function(e)
 {
@@ -272,10 +274,12 @@ Fit.Events.AddHandler(document, "keyup", true, function(e)
 	Fit._internal.Events.KeysDown.Ctrl = ev.ctrlKey;
 	Fit._internal.Events.KeysDown.Alt = ev.altKey;
 	Fit._internal.Events.KeysDown.Meta = ev.metaKey;
+	Fit._internal.Events.KeysDown.KeyUp = ev.keyCode;
+	Fit._internal.Events.KeysDown.KeyDown = -1;
 });
 
 // ==============================================
-// Mouse tracking
+// Mouse and touch tracking
 // ==============================================
 
 // Using event capturing to make sure event is registered before target is reached.
@@ -336,6 +340,56 @@ Fit.Events.AddHandler(document, "mousemove", function(e)
 	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = Math.floor(ev.clientY);
 
 	// Mouse position in document which may have been scrolled
+	var scrollPos = Fit.Dom.GetScrollPosition(document.body); // Object with integer values returned
+	Fit._internal.Events.Mouse.Coordinates.Document.X = Fit._internal.Events.Mouse.Coordinates.ViewPort.X + scrollPos.X;
+	Fit._internal.Events.Mouse.Coordinates.Document.Y = Fit._internal.Events.Mouse.Coordinates.ViewPort.Y + scrollPos.Y;
+});
+Fit.Events.AddHandler(document, "touchstart", true, function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	Fit._internal.Events.Mouse.Buttons.Touch = true;
+
+	// Touch position in viewport
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = Math.floor(ev.touches[0].clientX);
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = Math.floor(ev.touches[0].clientY);
+
+	// Touch position in document which may have been scrolled
+	var scrollPos = Fit.Dom.GetScrollPosition(document.body); // Object with integer values returned
+	Fit._internal.Events.Mouse.Coordinates.Document.X = Fit._internal.Events.Mouse.Coordinates.ViewPort.X + scrollPos.X;
+	Fit._internal.Events.Mouse.Coordinates.Document.Y = Fit._internal.Events.Mouse.Coordinates.ViewPort.Y + scrollPos.Y;
+});
+Fit.Events.AddHandler(document, "touchend", true, function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	Fit._internal.Events.Mouse.Buttons.Touch = false;
+
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
+	Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
+	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;
+});
+Fit.Events.AddHandler(document, "touchcancel", true, function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	Fit._internal.Events.Mouse.Buttons.Touch = false;
+
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
+	Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
+	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;
+});
+Fit.Events.AddHandler(document, "touchmove", function(e)
+{
+	var ev = Fit.Events.GetEvent(e);
+
+	// Touch position in viewport
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = Math.floor(ev.touches[0].clientX);
+	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = Math.floor(ev.touches[0].clientY);
+
+	// Touch position in document which may have been scrolled
 	var scrollPos = Fit.Dom.GetScrollPosition(document.body); // Object with integer values returned
 	Fit._internal.Events.Mouse.Coordinates.Document.X = Fit._internal.Events.Mouse.Coordinates.ViewPort.X + scrollPos.X;
 	Fit._internal.Events.Mouse.Coordinates.Document.Y = Fit._internal.Events.Mouse.Coordinates.ViewPort.Y + scrollPos.Y;

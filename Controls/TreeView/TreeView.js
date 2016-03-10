@@ -43,6 +43,8 @@ Fit.Controls.TreeView = function(ctlId)
 	var rootContainer = null;		// UL element
 	var rootNode = null;			// Fit.Controls.TreeView.Node instance
 
+	var keyNavigationEnabled = true;
+
 	var selectable = false;
 	var multiSelect = false;
 	var showSelectAll = false;
@@ -187,6 +189,9 @@ Fit.Controls.TreeView = function(ctlId)
 			var ev = Fit.Events.GetEvent(e);
 			var elm = Fit.Events.GetTarget(e);
 
+			if (keyNavigationEnabled === false)
+				return;
+
 			//{ PickerControl support - START
 
 			// If used as picker control, make sure first node is selected on initial key press
@@ -247,7 +252,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 			if (ev.keyCode === 13) // Enter
 			{
-				if (node.Selectable() === true && me.AutoPostBack() === true && document.forms.length > 0)
+				if (node.Selectable() === true)
 				{
 					node.Selected(true);
 				}
@@ -286,8 +291,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 				if (node.Expanded() === true)
 				{
-					if (node.Expanded() === true)
-						node.Expanded(false);
+					node.Expanded(false);
 				}
 				else
 				{
@@ -362,9 +366,7 @@ Fit.Controls.TreeView = function(ctlId)
 				if (target !== me.GetDomElement()) // Skip if right clicking TreeView container (possible if padding is applied)
 				{
 					var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
-					var pos = Fit.Events.GetPointerState().Coordinates.Document;
-
-					openContextMenu(node, pos);
+					openContextMenu(node);
 				}
 
 				return Fit.Events.PreventDefault(e);
@@ -789,7 +791,7 @@ Fit.Controls.TreeView = function(ctlId)
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="GetAllNodes" access="public" returns="Fit.Controls.TreeView.Node[]">
-	/// 	<description> Return all nodes across all children and their children, in a flat structure </description>
+	/// 	<description> Get all nodes across all children and their children, in a flat structure </description>
 	/// </function>
 	this.GetAllNodes = function()
 	{
@@ -802,6 +804,48 @@ Fit.Controls.TreeView = function(ctlId)
 			Fit.Array.Add(nodes, n);
 		});
 		return nodes;
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="GetNodeFocused" access="public" returns="Fit.Controls.TreeView.Node">
+	/// 	<description> Get node currently having focus - returns Null if no node has focus </description>
+	/// </function>
+	this.GetNodeFocused = function()
+	{
+		return getNodeFocused();
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="GetNodeAbove" access="public" returns="Fit.Controls.TreeView.Node">
+	/// 	<description> Get node above specified node - returns Null if no node is above the specified one </description>
+	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to get node above </param>
+	/// </function>
+	this.GetNodeAbove = function(node)
+	{
+		return getNodeAbove(node, true);
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="GetNodeBelow" access="public" returns="Fit.Controls.TreeView.Node">
+	/// 	<description> Get node below specified node - returns Null if no node is below the specified one </description>
+	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to get node below </param>
+	/// </function>
+	this.GetNodeBelow = function(node)
+	{
+		return getNodeBelow(node, true, true);
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="KeyboardNavigation" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether keyboard navigation is enabled </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables keyboard navigation, False disables it </param>
+	/// </function>
+	this.KeyboardNavigation = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			keyNavigationEnabled = val;
+		}
+
+		return keyNavigationEnabled;
 	}
 
 	// See documentation on ControlBase
@@ -1208,9 +1252,10 @@ Fit.Controls.TreeView = function(ctlId)
 		return ((document.activeElement && document.activeElement.tagName === "LI" && document.activeElement._internal && Fit.Dom.Contained(rootContainer, document.activeElement) === true) ? document.activeElement._internal.Node : null);
 	}
 
-	function getNodeAbove(node)
+	function getNodeAbove(node, noLastOnExpand)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectBoolean(noLastOnExpand, true);
 
 		// Get parent node
 		var parent = node.GetParent();
@@ -1223,10 +1268,14 @@ Fit.Controls.TreeView = function(ctlId)
 		// Select node above current node, within same parent
 		var next = ((idx > 0) ? children[idx-1] : null);
 
+		if (noLastOnExpand === true)
+			return next;
+
+		// Now make sure the last node in a hierarchy
+		// of expanded nodes gets selected.
+
 		if (next !== null)
 		{
-			// Now make sure the last node in a hierarchy
-			// of expanded nodes gets selected.
 			while (next.Expanded() === true)
 			{
 				children = next.GetChildren();
@@ -1242,10 +1291,11 @@ Fit.Controls.TreeView = function(ctlId)
 		return next;
 	}
 
-	function getNodeBelow(node, noFirstOnExpand)
+	function getNodeBelow(node, noFirstOnExpand, noSkipToParent)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 		Fit.Validation.ExpectBoolean(noFirstOnExpand, true);
+		Fit.Validation.ExpectBoolean(noSkipToParent, true);
 
 		if (node.Expanded() === true && noFirstOnExpand !== true) // Select first child if current node is expanded
 		{
@@ -1266,7 +1316,7 @@ Fit.Controls.TreeView = function(ctlId)
 			// Select node below current node, within same parent
 			var next = ((children.length - 1 >= idx + 1) ? children[idx+1] : null);
 
-			if (next !== null || node.GetParent() === null) // Found, or last element within root node (in which case next variable is Null)
+			if (noSkipToParent === true || next !== null || node.GetParent() === null) // Found, or last element within root node (in which case next variable is Null)
 				return next;
 
 			// No more nodes within parent - select node below parent
@@ -1275,10 +1325,9 @@ Fit.Controls.TreeView = function(ctlId)
 		}
 	}
 
-	function openContextMenu(node, pos)
+	function openContextMenu(node, pos) // pos is optional
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
-		Fit.Validation.ExpectIsSet(pos); // Anonymous JSON object
 
 		if (ctx === null)
 			return;
@@ -1286,7 +1335,10 @@ Fit.Controls.TreeView = function(ctlId)
 		if (fireEventHandlers(onContextMenuHandlers, node) === false)
 			return;
 
-		ctx.Show(pos.X, pos.Y);
+		if (Fit.Validation.IsSet(pos) === true)
+			ctx.Show(pos.X, pos.Y);
+		else
+			ctx.Show();
 	}
 
 	function fireEventHandlers(handlers, evObj)

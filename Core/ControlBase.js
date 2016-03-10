@@ -98,7 +98,7 @@ Fit.Controls.ControlBase = function(controlId)
 		container.style.width = width.Value + width.Unit;
 		Fit.Dom.AddClass(container, "FitUiControl");
 
-		me._internal.Data("active", "false");
+		me._internal.Data("focused", "false");
 
 		// Add hidden inputs which are automatically populated with
 		// control value and state information when control is updated.
@@ -520,7 +520,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 		this._internal.FireOnFocus = function()
 		{
-			me._internal.Data("active", "true");
+			me._internal.Data("focused", "true");
 
 			Fit.Array.ForEach(onFocusHandlers, function(cb)
 			{
@@ -530,7 +530,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 		this._internal.FireOnBlur = function()
 		{
-			me._internal.Data("active", "false");
+			me._internal.Data("focused", "false");
 
 			Fit.Array.ForEach(onBlurHandlers, function(cb)
 			{

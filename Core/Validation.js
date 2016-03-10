@@ -139,6 +139,32 @@ Fit.Validation.ExpectTypeArray = function(val, typeValCallback, allowNotSet)
 	});
 }
 
+/// <function container="Fit.Validation" name="ExpectInstanceArray" access="public" static="true">
+/// 	<description>
+/// 		Throws error if passed object is not an instance of Array
+/// 		contaning only instances of specified type. Example:
+/// 		Fit.Validation.ExpectInstanceArray(arr, Fit.Controls.TreeView.Node)
+/// 	</description>
+/// 	<param name="val" type="object"> Object to validate </param>
+/// 	<param name="instanceType" type="object"> Instance type (constructor, e.g. Fit.Http.Request) </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectInstanceArray = function(val, instanceType, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof Array) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of Array");
+
+	// Validate types within array
+
+	Fit.Array.ForEach(val, function(v)
+	{
+		Fit.Validation.ExpectInstance(v, instanceType);
+	});
+}
+
 /// <function container="Fit.Validation" name="ExpectCollection" access="public" static="true">
 /// 	<description> Throws error if passed object is not a collection that can be iterated </description>
 /// 	<param name="val" type="object"> Object to validate </param>
@@ -302,12 +328,25 @@ Fit.Validation.IsSet = function(obj)
 Fit.Validation.ThrowError = function(msg)
 {
 	if (Fit._internal.Validation.DebugMode === true)
-		alert("ThrowError: " + msg);
+	{
+		var stackTrace = Fit.Validation.GetStackTrace();
+		alert("ThrowError: " + msg + ((stackTrace !== "") ? "\n\n" : "") + stackTrace);
+	}
 
 	if (window.console && console.trace)
 		console.trace();
 
 	throw new Error(msg); // Never change this behaviour - we should always re-throw the error to terminate execution
+}
+
+Fit.Validation.GetStackTrace = function()
+{
+	if (window.Error === undefined || Error.captureStackTrace === undefined)
+		return "";
+
+	var obj = {};
+	Error.captureStackTrace(obj, Fit.Validation.GetStackTrace);
+	return obj.stack;
 }
 
 // ==========================================================
