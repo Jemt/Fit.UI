@@ -365,10 +365,10 @@ Fit.Events.AddHandler(document, "touchend", true, function(e)
 
 	Fit._internal.Events.Mouse.Buttons.Touch = false;
 
-	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
+	/*Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
 	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
 	Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
-	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;
+	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;*/
 });
 Fit.Events.AddHandler(document, "touchcancel", true, function(e)
 {
@@ -376,10 +376,10 @@ Fit.Events.AddHandler(document, "touchcancel", true, function(e)
 
 	Fit._internal.Events.Mouse.Buttons.Touch = false;
 
-	Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
+	/*Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
 	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
 	Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
-	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;
+	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;*/
 });
 Fit.Events.AddHandler(document, "touchmove", function(e)
 {

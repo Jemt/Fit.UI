@@ -372,6 +372,33 @@ Fit.Controls.TreeView = function(ctlId)
 				return Fit.Events.PreventDefault(e);
 			}
 		});
+
+		var touchTimeout = null;
+		Fit.Events.AddHandler(me.GetDomElement(), "touchstart", function(e)
+		{
+			var target = Fit.Events.GetTarget(e);
+
+			if (target !== me.GetDomElement()) // Skip if touching TreeView container (possible if padding is applied)
+			{
+				touchTimeout = setTimeout(function()
+				{
+					var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
+					openContextMenu(node);
+
+					touchTimeout = null;
+				}, 500);
+			}
+		});
+		Fit.Events.AddHandler(me.GetDomElement(), "touchend", function(e)
+		{
+			var elm = Fit.Events.GetTarget(e);
+
+			if (touchTimeout !== null)
+			{
+				clearTimeout(touchTimeout);
+				touchTimeout = null;
+			}
+		});
 	}
 
 	// ============================================
