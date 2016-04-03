@@ -709,9 +709,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Optimize tab order
 
-		var concealer = Fit.Dom.GetConcealer(me.GetDomElement());
-
-		if (concealer === null)
+		if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
 		{
 			// Controls is visible - immediately optimize tab order
 
@@ -722,21 +720,14 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 		else
 		{
-			// Control is hidden - optimize tab order once it becomes visible again
-
-			// Remove existing mutation observer - Selection Mode (multi/single) may have changed
-			/*if (tabOrderObserverId !== -1)
-			{
-				Fit.Events.RemoveMutationObserver(tabOrderObserverId);
-				tabOrderObserverId = -1;
-			}*/
+			// Control is hidden or not rooted - optimize tab order once it becomes visible
 
 			// Register mutation observer if not already registered
 			if (tabOrderObserverId === -1)
 			{
-				tabOrderObserverId = Fit.Events.AddMutationObserver(concealer, function(elm)
+				tabOrderObserverId = Fit.Events.AddMutationObserver(me.GetDomElement(), function(elm)
 				{
-					if (Fit.Dom.IsVisible(concealer) === true)
+					if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
 					{
 						optimizeTabOrder();
 						disconnect(); // Observers are expensive - remove when no longer needed

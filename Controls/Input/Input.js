@@ -1,7 +1,7 @@
 /// <container name="Fit.Controls.Input">
 /// 	Input control which allows for one or multiple lines of
 /// 	text, and features a Design Mode for rich HTML content.
-/// 	Inheriting from Fit.Controls.ControlBase.
+/// 	Extending from Fit.Controls.ControlBase.
 /// </container>
 
 /// <function container="Fit.Controls.Input" name="Input" access="public">
@@ -395,7 +395,7 @@ Fit.Controls.Input = function(ctlId)
 		// elsewhere when instanceCreated is fired, and only remove it from the DOM if this is not the case.
 		// This problem needs to be solved some other time as it may spawn other problems, such as determining
 		// the size of objects while being invisible. The CKEditor team may also solve the bug in an update.
-		if (me.GetDomElement().parentElement === null)
+		if (Fit.Dom.IsRooted(me.GetDomElement()) === false)
 		{
 			CKEDITOR._loading = false;
 			Fit.Validation.ThrowError("Control must be appended/rendered to DOM before DesignMode can be initialized");
