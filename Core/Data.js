@@ -73,6 +73,63 @@ Fit.Data.CreateGuid = function(dashFormat)
 	return uuid.join("");
 }
 
+
+// =====================================
+// Math
+// =====================================
+
+Fit.Math = {};
+
+/// <function container="Fit.Math" name="Round" access="public" static="true" returns="number">
+/// 	<description> Round off value to a number with the specified precision </description>
+/// 	<param name="value" type="number"> Number to round off </param>
+/// 	<param name="precision" type="integer"> Desired precision </param>
+/// </function>
+Fit.Math.Round = function(value, precision)
+{
+	Fit.Validation.ExpectNumber(value);
+	Fit.Validation.ExpectInteger(precision, true);
+
+	var decimals = ((Fit.Validation.IsSet(precision) === true) ? precision : 0);
+
+    var factor = 1;
+    for (var i = 0 ; i < decimals ; i++) factor = factor * 10;
+    var res = Math.round(value * factor) / factor;
+
+	return res;
+}
+
+/// <function container="Fit.Math" name="Format" access="public" static="true" returns="string">
+/// 	<description>
+/// 		Format value to produce a number with the specified number of decimals.
+/// 		Value is properly rounded off to ensure best precision.
+/// 	</description>
+/// 	<param name="value" type="number"> Number to format </param>
+/// 	<param name="decimals" type="integer"> Desired number of decimals </param>
+/// 	<param name="decimalSeparator" type="string" default="undefined">
+/// 		If defined, the specified decimal separator will be used
+/// 	</param>
+/// </function>
+Fit.Math.Format = function(value, decimals, decimalSeparator)
+{
+	Fit.Validation.ExpectNumber(value);
+	Fit.Validation.ExpectInteger(decimals, true);
+	Fit.Validation.ExpectString(decimalSeparator, true);
+
+	var res = Fit.Math.Round(value, decimals);
+
+    if (decimals <= 0)
+        return res.toString();
+
+    var str = ((res % 1 === 0) ? res.toString() + ".0" : res.toString());
+
+    for (var i = str.split(".")[1].length ; i < decimals ; i++)
+        str += "0";
+
+    return ((Fit.Validation.IsSet(decimalSeparator) === true) ? str.replace(".", decimalSeparator) : str);
+}
+
+
 // =====================================
 // String
 // =====================================

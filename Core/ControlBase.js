@@ -3,7 +3,7 @@ Fit._internal.ControlBase = {};
 Fit._internal.ControlBase.Controls = {};
 
 /// <container name="Fit.Controls.ControlBase">
-/// 	Class from which all GUI Controls inherit
+/// 	Class from which all UI Controls extend
 /// </container>
 Fit.Controls.ControlBase = function(controlId)
 {
@@ -505,7 +505,7 @@ Fit.Controls.ControlBase = function(controlId)
 		}, 0);
 	}
 
-	// Private members (must be public in order to be accessible to controls inheriting from ControlBase)
+	// Private members (must be public in order to be accessible to controls extending from ControlBase)
 
 	this._internal = (this._internal ? this._internal : {});
 

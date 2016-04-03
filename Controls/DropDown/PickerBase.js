@@ -1,5 +1,5 @@
 /// <container name="Fit.Controls.PickerBase">
-/// 	Class from which all Picker Controls inherit.
+/// 	Class from which all Picker Controls extend.
 /// 	Control developers must override: GetDomElement, Destroy.
 /// 	Overriding the following functions is optional:
 /// 	UpdateItemSelectionState, SetEventDispatcher, HandleEvent.
@@ -292,7 +292,7 @@ Fit.Controls.PickerBase = function(controlId)
 	// Private
 	// ============================================
 
-	// Private members (must be public in order to be accessible to host control and controls inheriting from PickerBase)
+	// Private members (must be public in order to be accessible to host control and controls extending from PickerBase)
 
 	this._internal = (this._internal ? this._internal : {});
 

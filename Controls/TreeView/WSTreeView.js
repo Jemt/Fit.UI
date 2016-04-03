@@ -1,7 +1,7 @@
 /// <container name="Fit.Controls.WSTreeView">
 /// 	TreeView control allowing data from a
 /// 	WebService to be listed in a structured manner.
-/// 	Inheriting from Fit.Controls.TreeView.
+/// 	Extending from Fit.Controls.TreeView.
 ///
 /// 	Notice: WSTreeView works a bit differently from TreeView.
 /// 	Nodes are loaded on-demand, meaning when Selected(..) or Value(..)

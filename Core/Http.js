@@ -340,7 +340,7 @@ Fit.Http.Request = function(url)
 /// <container name="Fit.Http.JsonRequest">
 /// 	Asynchronous HTTP request functionality (AJAX/WebService)
 /// 	optimized for exchanging data with the server in JSON format.
-/// 	Inheriting from Fit.Http.Request.
+/// 	Extending from Fit.Http.Request.
 ///
 /// 	// Example code
 ///

@@ -7,7 +7,7 @@
 /// <function container="Fit.Controls.Button" name="Button" access="public">
 /// 	<description> Create instance of Button control </description>
 /// 	<param name="controlId" type="string" default="undefined">
-/// 		Unique control ID. if specified, control will be
+/// 		Unique control ID. If specified, control will be
 /// 		accessible using the Fit.Controls.Find(..) function.
 /// 	</param>
 /// </function>
@@ -47,20 +47,15 @@ Fit.Controls.Button = function(controlId)
 		Fit.Events.AddHandler(element, "click", function(e)
 		{
 			if (me.Enabled() === true)
-			{
-				Fit.Array.ForEach(onClickHandlers, function(handler)
-				{
-					handler(me);
-				});
-			}
+				me.Click();
 		});
 		Fit.Events.AddHandler(element, "keydown", function(e)
 		{
 			var ev = Fit.Events.GetEvent(e);
 
-			if (ev.keyCode === 13 || ev.keyCode === 32) // Enter or Spacebar
+			if (me.Enabled() === true && (ev.keyCode === 13 || ev.keyCode === 32)) // Enter or Spacebar
 			{
-				element.click(null);
+				me.Click();
 				Fit.Events.PreventDefault(ev);
 			}
 		});
@@ -162,6 +157,25 @@ Fit.Controls.Button = function(controlId)
 		return (Fit.Dom.Data(element, "enabled") === "true");
 	}
 
+	/// <function container="Fit.Controls.Button" name="Focused" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control has focus </description>
+	/// 	<param name="focus" type="boolean" default="undefined"> If defined, True assigns focus, False removes focus (blur) </param>
+	/// </function>
+	this.Focused = function(focus)
+	{
+		Fit.Validation.ExpectBoolean(focus, true);
+
+		if (Fit.Validation.IsSet(focus) === true)
+		{
+			if (focus === true)
+				element.focus();
+			else
+				element.blur();
+		}
+
+		return (document.activeElement === element);
+	}
+
 	/// <function container="Fit.Controls.Button" name="Width" access="public" returns="object">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
@@ -232,6 +246,17 @@ Fit.Controls.Button = function(controlId)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onClickHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.Button" name="Click" access="public">
+	/// 	<description> Programmatically trigger a button click </description>
+	/// </function>
+	this.Click = function()
+	{
+		Fit.Array.ForEach(onClickHandlers, function(handler)
+		{
+			handler(me);
+		});
 	}
 
 	/// <function container="Fit.Controls.Button" name="GetDomElement" access="public" returns="DOMElement">

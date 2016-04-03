@@ -122,6 +122,37 @@ Fit.Browser.GetVersion = function()
 	return -1;
 }
 
+/// <function container="Fit.Browser" name="GetQueryString" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Returns query string object contain the following properties:
+/// 		 - Url:string (Full URL)
+/// 		 - Parameters:object (associative object array with URL parameters as keys)
+/// 		 - Anchor:string (anchor if set, otherwise Null)
+/// 	</description>
+/// </function>
+Fit.Browser.GetQueryString = function()
+{
+	var qs = { Url: null, Parameters: {}, Anchor: null };
+
+	var url = location.href;
+	var params = ((url.indexOf("?") > -1) ? url.split("?")[1] : "");
+	var anchor = null;
+
+	params = ((params.indexOf("#") > -1) ? params.split("#")[0] : params);
+	anchor = ((url.indexOf("#") > -1) ? url.split("#")[1] : null);
+
+	qs.Url = url;
+	qs.Anchor = anchor;
+
+	Fit.Array.ForEach(((params !== "") ? params.split("&") : []), function(p)
+	{
+		var keyval = p.split("=");
+		qs.Parameters[keyval[0]] = ((keyval.length > 1) ? decodeURIComponent(keyval[1]) : "");
+	});
+
+	return qs;
+}
+
 /// <function container="Fit.Browser" name="GetLanguage" access="public" static="true" returns="string">
 /// 	<description> Returns browser language - e.g. &quot;da&quot; (Danish), &quot;en&quot; (English) etc. </description>
 /// </function>

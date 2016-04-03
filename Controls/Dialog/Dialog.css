@@ -1,0 +1,79 @@
+div.FitUiControlDialog
+{
+	border: 1px solid #333333;
+	background: #FFFFFF;
+	min-width: 200px;
+	max-width: 40%;
+
+	position: fixed;
+
+	/* Centering for Legacy browsers - unfortunately this does not work with width:auto */
+	width: 40%;
+	top: 2em;
+	left: 0px;
+	right: 0px;
+	margin: 0 auto;
+	z-index: 99999;
+}
+div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below */
+{
+	border: none;
+	box-shadow: 0px 0px 10px 0px #333333;
+	border-radius: 2px;
+
+	/* Centering for modern browsers */
+	width: auto;
+	margin: 0;
+	top: 25%;
+	left: 50%;
+	right: auto; /* Prevent dialog from stretching to the maximum width allowed - respect width:auto */
+	-webkit-transform: translate(-50%, -25%);
+	-moz-transform: translate(-50%, -25%);
+	-ms-transform: translate(-50%, -25%);
+	-o-transform: translate(-50%, -25%);
+	transform: translate(-50%, -25%);
+}
+@media (max-width: 1000px)
+{
+	div.FitUiControlDialog
+	{
+		max-width: 90%
+	}
+}
+@media (max-width: 500px)
+{
+	div.FitUiControlDialog
+	{
+		max-width: 95%
+	}
+}
+
+div.FitUiControlDialog > div
+{
+	padding: 1.5em;
+}
+
+div.FitUiControlDialog > div + div /* Buttons */
+{
+	padding: 0.5em;
+	border-top: 1px solid silver;
+	text-align: right;
+}
+div.FitUiControlDialog > div + div div.FitUiControlButton
+{
+	margin-left: 0.75em;
+}
+
+div.FitUiControlDialogModalLayer
+{
+	position: fixed;
+	top: 0px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	z-index: 9999;
+
+	background-color: #333333;
+	opacity: 0.5;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+}

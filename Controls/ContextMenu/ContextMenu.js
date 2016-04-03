@@ -12,6 +12,7 @@ Fit.Controls.ContextMenu = function()
 	var prevFocused = null;
 	var detectBoundaries = true;
 	var highlightOnInitKeyStroke = true;
+	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	var onShowing = [];
 	var onShown = [];
@@ -475,7 +476,7 @@ Fit.Controls.ContextMenu = function()
 	this.Dispose = function()
 	{
 		tree.Dispose();
-		tree = prevFocused = onShowing = onShown = onHide = onSelect = null;
+		me = tree = prevFocused = detectBoundaries = highlightOnInitKeyStroke = isIe8 = onShowing = onShown = onHide = onSelect = null;
 	}
 
 	// ============================================
@@ -610,7 +611,6 @@ Fit.Controls.ContextMenu = function()
 		}
 	}
 
-	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 	function repaint(f)
 	{
 		Fit.Validation.ExpectFunction(f, true);

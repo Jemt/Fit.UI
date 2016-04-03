@@ -1,6 +1,6 @@
 /// <container name="Fit.Controls.WSContextMenu">
 /// 	ContextMenu control allowing for quick access to select features provided by a WebService.
-/// 	Inheriting from Fit.Controls.ContextMenu.
+/// 	Extending from Fit.Controls.ContextMenu.
 /// </container>
 
 /// <function container="Fit.Controls.WSContextMenu" name="WSContextMenu" access="public">
