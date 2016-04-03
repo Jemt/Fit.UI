@@ -8,7 +8,7 @@ in JavaScript. It enhances native JS with added features for:
 
  - Arrays/collections
  - Browser detection
- - Cookie, Local, and Session Storage
+ - Cookie storage
  - DOM and CSS manipulation
  - Events and Manipulation Observers
  - Drag and Drop
@@ -21,12 +21,14 @@ On top of Core we've built **Controls** which is a set of very nice UI Controls 
 exposing rich APIs and event models.
 
  - Button
- - Tree View
- - Drop Down (with ListView or TreeView)
+ - CheckBox
  - Context Menu
- - Progress Bar
+ - Dialog
+ - Drop Down (with ListView or TreeView)
  - File Picker (async. upload with image previews)
  - Input (with HTML editing using CKEditor)
+ - Progress Bar
+ - Tree View
  - and more to come
 
 Fit.UI supports all major browsers (FireFox, Chrome, Edge, Opera, Safari, and even Internet Explorer 8+).
@@ -36,9 +38,9 @@ A lot of work has been put into making Fit.UI the most compatible framework avai
 
 We have been working very hard on Fit.UI since March 2015 and is now ready
 with a beta for people to start experimenting with. This beta is considered
-quite stable and reliable for a beta. It has been tested and improved on for
-more than 4 months, and is currently being incorporated into mission
-critical enterprise applications running on SharePoint (server & cloud).
+quite stable and reliable for a beta. It has been tested and improved on since
+September 2015, and is currently being incorporated into mission critical
+enterprise applications running on SharePoint (server & cloud).
 
 # Example
 
@@ -56,7 +58,7 @@ http://fiddle.jshell.net/05q0tLt6/14/embedded/result/light/
 
 Navigation and data selection is equally important to websites
 and applications, so we provide a great TreeView and DropDown control
-for that. Also notice that all controls has a WebService enabled
+for that. Also notice that all controls have a WebService enabled
 sibling that automatically loads data from a server in JSON format:
 http://fiddle.jshell.net/zc99y8u1/4/embedded/result/light/
 
