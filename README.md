@@ -46,7 +46,7 @@ enterprise applications running on SharePoint (server & cloud).
 
 Check out this super cool upload component based on
 Button, FilePicker, and ProgressBar:
-http://fiddle.jshell.net/gho7Lmno/84/embedded/result/light/
+http://codemagic.dk/FlowIT/GUI/Examples/Upload.html
 
 Here is the Input control with support for HTML editing
 thanks to the power of CKEditor:
