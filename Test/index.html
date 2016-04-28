@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Fit.UI - QUnit tests</title>
+
+	<link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.0.css">
+	<link rel="stylesheet" type="text/css" href="http://codemagic.dk/FlowIT/GUI/Fit.UI.css">
+	<script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
+	<script src="../Fit.UI.js"></script>
+
+	<script type="text/javascript">
+		Fit._internal.Validation.DebugMode = false; // Only suppresses any alerts - type checking remains enabled
+
+		function executeTestCases(testId, testCases)
+		{
+			QUnit.module(testId);
+
+			Fit.Array.ForEach(testCases, function(test)
+			{
+				var testCase = new testCases[test]();
+
+				if (testCase.PostponeTest === undefined)
+				{
+					executeTestCase(testId, testCase);
+				}
+				else
+				{
+					setTimeout(function() { executeTestCase(testId, testCase); }, testCase.PostponeTest);
+				}
+			});
+		}
+
+		function executeTestCase(testId, testCase)
+		{
+			QUnit.test(testCase.Description, function(assert)
+			{
+				if (testCase.ThrowsError === true)
+				{
+					assert.raises(testCase.Execute, "Expecting error to be thrown");
+					return;
+				}
+
+				testCase.Execute();
+
+				if (testCase.PostponeVerification === undefined)
+				{
+					finalizeTest(testId, testCase, assert);
+				}
+				else
+				{
+					var done = assert.async(testCase.Assertions.length);
+
+					setTimeout(function()
+					{
+						finalizeTest(testId, testCase, assert, done);
+					},
+					testCase.PostponeVerification);
+				}
+			});
+		}
+
+		function finalizeTest(testId, testCase, assert, assertCallback)
+		{
+			Fit.Array.ForEach(testCase.Assertions, function(testAssert)
+			{
+				assert.strictEqual(testAssert.GetResult(), testAssert.Expected, testAssert.Message);
+
+				if (assertCallback)
+					assertCallback();
+			});
+
+			if (testCase.Dispose)
+				testCase.Dispose();
+
+			if (testCase.Tests !== undefined)
+			{
+				// Notice: If primary test case has been postponed, any nested tests
+				// are now added to the end of the queue and is not executed by QUnit
+				// immediately after primary test case is finished.
+
+				executeTestCases(testId, testCase.Tests);
+			}
+		}
+	</script>
+
+	<script type="text/javascript">
+		var qs = Fit.Browser.GetQueryString();
+		var targets = [ "Core/Validation", "Core/Core", "Core/Array", "Core/Cookies", "Controls/Input", "Controls/TreeView" ];
+		Tests = {};
+
+		Fit.Loader.LoadScripts([ { source: "Common.js" }, { source: "ControlBase.js" } ], function(configs)
+		{
+			Fit.Array.ForEach(targets, function(target)
+			{
+				if (qs.Parameters["Test"] === undefined || qs.Parameters["Test"] === target)
+				{
+					Fit.Loader.LoadScript(target + ".js", function(src)
+					{
+						var testCases = Tests; // Tests defined in test case file (globally accessible)
+						Tests = {};
+
+						executeTestCases(target, testCases);
+					});
+				}
+			});
+		});
+	</script>
+</head>
+<body>
+
+<div id="qunit"></div>
+
+</body>
+</html>
