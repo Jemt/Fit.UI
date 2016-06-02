@@ -4613,7 +4613,7 @@ Fit.Http.Request = function(uri)
 	req.OnFailure(function(r) { console.log("OnFailure ", r, r.GetHttpStatus()); });
 	req.Start();*/
 
-	Fit.Validation.ExpectStringValue(url);
+	Fit.Validation.ExpectStringValue(uri);
 
 	var me = this;
 	var url = uri;
@@ -4723,7 +4723,7 @@ Fit.Http.Request = function(uri)
 
 	this.Url = function(val)
 	{
-		Fit.Validation.ExpectString(val);
+		Fit.Validation.ExpectStringValue(val);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
