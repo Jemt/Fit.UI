@@ -4723,7 +4723,7 @@ Fit.Http.Request = function(uri)
 
 	this.Url = function(val)
 	{
-		Fit.Validation.ExpectStringValue(val);
+		Fit.Validation.ExpectStringValue(val, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -9766,7 +9766,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// </function>
 	this.Url = function(wsUrl)
 	{
-		Fit.Validation.ExpectString(wsUrl);
+		Fit.Validation.ExpectString(wsUrl, true);
 
 		if (Fit.Validation.IsSet(wsUrl) === true)
 		{
