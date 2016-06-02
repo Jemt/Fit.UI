@@ -4596,9 +4596,9 @@ Fit.Http = {};
 
 /// <function container="Fit.Http.Request" name="Request" access="public">
 /// 	<description> Constructor - creates instance of Request class </description>
-/// 	<param name="url" type="string"> URL to request </param>
+/// 	<param name="uri" type="string"> URL to request </param>
 /// </function>
-Fit.Http.Request = function(url)
+Fit.Http.Request = function(uri)
 {
 	/*
 	// Test case
@@ -4616,6 +4616,7 @@ Fit.Http.Request = function(url)
 	Fit.Validation.ExpectStringValue(url);
 
 	var me = this;
+	var url = uri;
 	var httpRequest = getHttpRequestObject();
 	var customHeaders = {};
 	var data = "";
@@ -4718,6 +4719,18 @@ Fit.Http.Request = function(url)
 		}
 
 		return method;
+	}
+
+	this.Url = function(val)
+	{
+		Fit.Validation.ExpectString(val);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			url = val;
+		}
+
+		return url;
 	}
 
 	/// <function container="Fit.Http.Request" name="Start" access="public">
