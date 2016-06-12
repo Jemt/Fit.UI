@@ -7,6 +7,24 @@ div.FitUiControlInput textarea
 	margin: 0px;
 	text-align: inherit;
 	border: 1px solid #909090;
+	display: block; /* Remove annoying spacing above input when outline is applied (when value is invalid) */
+}
+
+/* Hide clear button within input fields in IE */
+div.FitUiControlInput input::-ms-clear
+{
+	display: none;
+}
+
+/* Error indication */
+div.FitUiControlInput[data-valid="false"]
+{
+	outline: none;
+}
+div.FitUiControlInput[data-valid="false"] input,
+div.FitUiControlInput[data-valid="false"] textarea
+{
+	border-color: red;
 }
 
 /* Maximize button */
@@ -19,6 +37,10 @@ div.FitUiControlInput span.fa
 	position: absolute;
 	top: 0px;
 	right: -20px;
+}
+div.FitUiControlInput[data-maximizable="true"]
+{
+    margin-right: 25px;
 }
 
 /* Remove outline when input has focus */

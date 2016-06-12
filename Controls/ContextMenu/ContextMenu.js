@@ -300,6 +300,11 @@ Fit.Controls.ContextMenu = function()
 		// Fire OnShown event
 
 		fireEventHandlers(onShown);
+
+		// Make sure OnClick handler on document does not close
+		// Context Menu if triggered using left button.
+		Fit._internal.ContextMenu.SkipClickClose = true;
+		setTimeout(function() { Fit._internal.ContextMenu.SkipClickClose = false; }, 0);
 	}
 
 	/// <function container="Fit.Controls.ContextMenu" name="Hide" access="public">
@@ -475,6 +480,9 @@ Fit.Controls.ContextMenu = function()
 	/// </function>
 	this.Dispose = function()
 	{
+		if (me === Fit._internal.ContextMenu.Current) // In case ContextMenu is being disposed while being used
+			Fit._internal.ContextMenu.Current = null;
+
 		tree.Dispose();
 		me = tree = prevFocused = detectBoundaries = highlightOnInitKeyStroke = isIe8 = onShowing = onShown = onHide = onSelect = null;
 	}
@@ -787,6 +795,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 // Internals
 
 Fit._internal.ContextMenu = {};
+Fit._internal.ContextMenu.SkipClickClose = false;
 Fit._internal.ContextMenu.Current = null;
 
 // Event handler responsible for closing context menu when clicking outside of context menu
@@ -795,6 +804,9 @@ Fit.Events.OnReady(function()
 {
 	Fit.Events.AddHandler(document, "click", function(e)
 	{
+		if (Fit._internal.ContextMenu.SkipClickClose === true)
+			return;
+
 		var target = Fit.Events.GetTarget(e);
 		var ctx = Fit._internal.ContextMenu.Current;
 

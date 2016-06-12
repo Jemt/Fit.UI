@@ -82,7 +82,8 @@ Fit.Controls.CheckBox = function(ctlId)
 				me.GetDomElement().blur();
 		}
 
-		return (document.activeElement === me.GetDomElement());
+		// Fit.Dom.Contained(..) portion added to support IE which incorrectly assigns focus to contained elements, even though tabIndex is not set
+		return (document.activeElement === me.GetDomElement() || (document.activeElement && Fit.Dom.Contained(me.GetDomElement(), document.activeElement)));
 	}
 
 	// See documentation on ControlBase
@@ -229,8 +230,21 @@ Fit.Controls.CheckBox = function(ctlId)
 	{
 		if (isIe8 === true)
 		{
-			me.AddCssClass("FitUi_Non_Existing_CheckBox_Class");
-			me.RemoveCssClass("FitUi_Non_Existing_CheckBox_Class");
+			// IE8 does not update pseudo elements properly.
+			// Changing CSS classes or content within the control
+			// is not sufficient - we actually have to remove the
+			// control temporarily from the DOM to make it update.
+			// Unfortunately this results in focus being lost if
+			// control had focus, so we have to restore it as well.
+
+			var focused = document.activeElement;
+
+			var elm = document.createElement("");
+			Fit.Dom.Replace(checkbox, elm);
+			Fit.Dom.Replace(elm, checkbox);
+
+			if (document.activeElement !== focused)
+				focused.focus();
 		}
 	}
 

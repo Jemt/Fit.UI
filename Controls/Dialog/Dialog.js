@@ -67,6 +67,9 @@ Fit.Controls.Dialog = function()
 
 		Fit.Events.AddHandler(dialog, "click", function(e)
 		{
+			if (me === null)
+				return; // Dialog was disposed when a button was clicked
+
 			if (buttons.children.length > 0 && (document.activeElement === null || Fit.Dom.Contained(dialog, document.activeElement) === false))
 				buttons.children[0].focus();
 		});
@@ -155,12 +158,20 @@ Fit.Controls.Dialog = function()
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="Dispose" access="public">
-	/// 	<description> Destroys component to free up memory </description>
+	/// 	<description> Destroys component to free up memory, including associated buttons </description>
 	/// </function>
 	this.Dispose = function()
 	{
 		Fit.Dom.Remove(dialog);
-		Fit.Dom.Remove(layer);
+
+		if (layer !== null)
+			Fit.Dom.Remove(layer);
+
+		Fit.Array.ForEach(Fit.Array.Copy(buttons.children), function(buttonElm) // Using Copy(..) since Dispose() modifies children collection
+		{
+			Fit.Controls.Find(buttonElm.id).Dispose();
+		});
+
 		me = dialog = content = buttons = modal = layer = null;
 	}
 

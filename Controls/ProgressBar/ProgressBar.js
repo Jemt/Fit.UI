@@ -76,7 +76,7 @@ Fit.Controls.ProgressBar = function(controlId)
 		return title.innerHTML;
 	}
 
-	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.ProgressBar" name="Width" access="public" returns="object">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
 	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
@@ -130,7 +130,7 @@ Fit.Controls.ProgressBar = function(controlId)
 		}
 	}
 
-	/// <function container="Fit.Controls.ControlBase" name="Progress" access="public" returns="integer">
+	/// <function container="Fit.Controls.ProgressBar" name="Progress" access="public" returns="integer">
 	/// 	<description> Get/set progress - a value between 0 and 100 </description>
 	/// 	<param name="val" type="integer" default="undefined"> If defined, progress is set to specified value (0-100) </param>
 	/// </function>
@@ -161,6 +161,18 @@ Fit.Controls.ProgressBar = function(controlId)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onProgressHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.ProgressBar" name="Dispose" access="public">
+	/// 	<description> Destroys control to free up memory </description>
+	/// </function>
+	this.Dispose = function()
+	{
+		Fit.Dom.Remove(element);
+		me = id = element = status = title = width = onProgressHandlers = null;
+
+		if (Fit.Validation.IsSet(controlId) === true)
+			delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
 	init();

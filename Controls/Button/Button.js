@@ -30,9 +30,9 @@ Fit.Controls.Button = function(controlId)
 	var me = this;
 	var id = (controlId ? controlId : null);
 	var element = null;
+	var wrapper = null;
+	var icon = null;
 	var label = null;
-	var title = "";
-	var icon = "";
 	var width = { Value: -1, Unit: "px" };	// Initial width - a value of -1 indicates that size adjusts to content
 	var height = { Value: -1, Unit: "px" };	// Initial height - a value of -1 indicates that size adjusts to content
 	var onClickHandlers = [];
@@ -63,8 +63,14 @@ Fit.Controls.Button = function(controlId)
 		Fit.Dom.AddClass(element, "FitUiControl");
 		Fit.Dom.AddClass(element, "FitUiControlButton");
 
-		label = document.createElement("div");
-		Fit.Dom.Add(element, label);
+		wrapper = document.createElement("div");
+		Fit.Dom.Add(element, wrapper);
+
+		icon = document.createElement("span");
+		Fit.Dom.Add(wrapper, icon);
+
+		label = document.createElement("span");
+		Fit.Dom.Add(wrapper, label);
 
 		me.Enabled(true);
 		me.Type(Fit.Controls.Button.Type.Default);
@@ -88,11 +94,11 @@ Fit.Controls.Button = function(controlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			title = val;
-			label.innerHTML = ((icon !== "") ? "<span class=\"fa " + ((icon.indexOf("fa-") !== 0) ? "fa-" : "") + icon + "\"></span>" : "") + val;
+			Fit.Dom.Data(element, "title", ((val !== "") ? val : null));
+			label.innerHTML = val;
 		}
 
-		return title;
+		return ((Fit.Dom.Data(element, "title") !== null) ? Fit.Dom.Data(element, "title") : "");
 	}
 
 	/// <function container="Fit.Controls.Button" name="Icon" access="public" returns="string">
@@ -105,11 +111,11 @@ Fit.Controls.Button = function(controlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			icon = val.toLowerCase();
-			me.Title(me.Title()); // Updates icon
+			Fit.Dom.Data(element, "icon", ((val !== "") ? val : null));
+			icon.className = ((val !== "") ? "fa " + ((val.indexOf("fa-") !== 0) ? "fa-" : "") + val : "");
 		}
 
-		return icon;
+		return ((Fit.Dom.Data(element, "icon") !== null) ? Fit.Dom.Data(element, "icon") : "");
 	}
 
 	/// <function container="Fit.Controls.Button" name="Type" access="public" returns="Fit.Controls.Button.Type">
@@ -173,7 +179,8 @@ Fit.Controls.Button = function(controlId)
 				element.blur();
 		}
 
-		return (document.activeElement === element);
+		// Fit.Dom.Contained(..) portion added to support IE which incorrectly assigns focus to contained elements, even though tabIndex is not set
+		return (document.activeElement === element || (document.activeElement && Fit.Dom.Contained(element, document.activeElement)));
 	}
 
 	/// <function container="Fit.Controls.Button" name="Width" access="public" returns="object">
@@ -223,7 +230,7 @@ Fit.Controls.Button = function(controlId)
 				// Work around bug in WebKit/Chrome:
 				// https://code.google.com/p/chromium/issues/detail?id=573715
 				// Also see Button.css (div.FitUiControlButton[style*="height"] > div)
-				label.style.position = "relative";
+				wrapper.style.position = "relative";
 			}
 			else
 			{
@@ -231,7 +238,7 @@ Fit.Controls.Button = function(controlId)
 				element.style.height = "";
 
 				// Undo WebKit/Chrome bug fix (see condition above)
-				label.style.position = "";
+				wrapper.style.position = "";
 			}
 		}
 
@@ -286,13 +293,16 @@ Fit.Controls.Button = function(controlId)
 		}
 	}
 
-	/// <function container="Fit.Controls.ControlBase" name="Dispose" access="public">
+	/// <function container="Fit.Controls.Button" name="Dispose" access="public">
 	/// 	<description> Destroys control to free up memory </description>
 	/// </function>
 	this.Dispose = function()
 	{
-		me = id = element = label = title = icon = width = height = onClickHandlers = null;
 		Fit.Dom.Remove(element);
+		me = id = element = wrapper = icon = label = width = height = onClickHandlers = null;
+
+		if (Fit.Validation.IsSet(controlId) === true)
+			delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
 	init();

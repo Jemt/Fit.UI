@@ -4,8 +4,9 @@ div.FitUiControlButton
 	width: auto;
 	text-align: center;
 	white-space: nowrap;
-	overflow: hidden; /* Notice: Causes small spacing below button - visible when contained in another element with borders */
-	padding: 5px 10px 5px 10px;
+	overflow: hidden;
+	vertical-align: bottom; /* Overflow:hidden (above) changes the baseline for inline-block elements - see CSS specification (scroll to bottom): https://www.w3.org/TR/CSS2/visudet.html#propdef-vertical-align */
+	padding: 0.3em 0.75em 0.3em 0.75em;
 	border-radius: 3px;
 	border-width: 1px;
 	border-style: solid;
@@ -71,9 +72,9 @@ div.FitUiControlButton[style*="height"] > div
 	transform: translateY(-50%);
 }
 
-div.FitUiControlButton > div > span[class^="fa"]
+div.FitUiControlButton[data-icon][data-title] > div > span + span
 {
-	padding-right: 8px;
+	margin-left: 0.5em;
 }
 
 div.FitUiControlButton[data-enabled="false"]

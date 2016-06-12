@@ -67,6 +67,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var widthObserverId = -1;					// Observer (ID) responsible for updating tab flow when control width is changed
 	var tabOrderObserverId = -1;				// Observer (ID) responsible for updating tab flow when control becomes visible
 	var partiallyHidden = null;					// Reference to item partially hidden (only used in Single Selection Mode where word wrapping is disabled)
+	var clickHandlerId = -1;					// Event (ID) responsible for closing drop down when user clicks outside of control
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -140,7 +141,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Make drop down close when user clicks outside of control
 
-		Fit.Events.AddHandler(document, "click", function(e)
+		clickHandlerId = Fit.Events.AddHandler(document, "click", function(e)
 		{
 			var target = Fit.Events.GetTarget(e);
 
@@ -409,7 +410,9 @@ Fit.Controls.DropDown = function(ctlId)
 		if (picker !== null)
 			picker.Dispose();
 
-		me = itemContainer = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = partiallyHidden = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
+		Fit.Events.RemoveHandler(document, clickHandlerId);
+
+		me = itemContainer = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = partiallyHidden = clickHandlerId = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
 
 		base();
 	});

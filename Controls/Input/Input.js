@@ -24,6 +24,7 @@ Fit.Controls.Input = function(ctlId)
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
 	var mutationObserverId = -1;
+	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	// ============================================
 	// Init
@@ -48,6 +49,12 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.AddDomElement(input);
 
 		me.AddCssClass("FitUiControlInput");
+
+		me._internal.Data("multiline", "false");
+		me._internal.Data("maximizable", "false");
+		me._internal.Data("maximized", "false");
+		me._internal.Data("designmode", "false");
+
 	}
 
 	// ============================================
@@ -120,7 +127,7 @@ Fit.Controls.Input = function(ctlId)
 		if (designEditor !== null)
 			designEditor.destroy();
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = isIe8 = null;
 
 		baseDispose();
 	}
@@ -198,6 +205,9 @@ Fit.Controls.Input = function(ctlId)
 
 				if (me.Height().Value === -1)
 					me.Height(150);
+
+				me._internal.Data("multiline", "true");
+				repaint();
 			}
 			else if (val === false && input.tagName === "TEXTAREA")
 			{
@@ -208,6 +218,10 @@ Fit.Controls.Input = function(ctlId)
 				{
 					me._internal.RemoveDomElement(cmdResize);
 					cmdResize = null;
+
+					me._internal.Data("maximized", "false");
+					me._internal.Data("maximizable", "false");
+					repaint();
 				}
 
 				input = document.createElement("input");
@@ -221,6 +235,9 @@ Fit.Controls.Input = function(ctlId)
 				me.Height(-1);
 
 				wasMultiLineBefore = false;
+
+				me._internal.Data("multiline", "false");
+				repaint();
 			}
 		}
 
@@ -278,6 +295,9 @@ Fit.Controls.Input = function(ctlId)
 				Fit.Dom.AddClass(cmdResize, "fa");
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
 				me._internal.AddDomElement(cmdResize);
+
+				me._internal.Data("maximizable", "true");
+				repaint();
 			}
 			else if (val === false && cmdResize !== null)
 			{
@@ -288,6 +308,9 @@ Fit.Controls.Input = function(ctlId)
 					me.Height(minimizeHeight, minMaxUnit);
 				else
 					me.MultiLine(false);
+
+				me._internal.Data("maximizable", "false"); // Also set in MultiLine(..)
+				repaint();
 			}
 		}
 
@@ -309,12 +332,18 @@ Fit.Controls.Input = function(ctlId)
 				me.Height(maximizeHeight, minMaxUnit, true);
 				Fit.Dom.RemoveClass(cmdResize, "fa-chevron-down");
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-up");
+
+				me._internal.Data("maximized", "true");
+				repaint();
 			}
 			else if (val === false && Fit.Dom.HasClass(cmdResize, "fa-chevron-down") === false)
 			{
 				me.Height(minimizeHeight, minMaxUnit, true);
 				Fit.Dom.RemoveClass(cmdResize, "fa-chevron-up");
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
+
+				me._internal.Data("maximized", "false"); // Also set in MultiLine(..)
+				repaint();
 			}
 		}
 
@@ -354,6 +383,9 @@ Fit.Controls.Input = function(ctlId)
 						createEditor();
 					});
 				}
+
+				me._internal.Data("designmode", "true");
+				repaint();
 			}
 			else if (val === false && designEditor !== null)
 			{
@@ -362,6 +394,9 @@ Fit.Controls.Input = function(ctlId)
 
 				if (wasMultiLineBefore === false)
 					me.MultiLine(false);
+
+				me._internal.Data("designmode", "false");
+				repaint();
 			}
 		}
 
@@ -489,6 +524,15 @@ Fit.Controls.Input = function(ctlId)
 					}
 				});
 			}
+		}
+	}
+
+	function repaint()
+	{
+		if (isIe8 === true)
+		{
+			me.AddCssClass("FitUi_Non_Existing_Input_Class");
+			me.RemoveCssClass("FitUi_Non_Existing_Input_Class");
 		}
 	}
 

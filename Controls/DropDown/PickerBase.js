@@ -286,6 +286,9 @@ Fit.Controls.PickerBase = function(controlId)
 	this.Destroy = function() // Must be overridden - remember to call base !
 	{
 		me = id = onShowHandlers = onHideHandlers = onChangingHandlers = onChangeHandlers = onCompleteHandlers = null;
+
+		if (Fit.Validation.IsSet(controlId) === true)
+			delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
 	// ============================================
