@@ -83,12 +83,26 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 
 	var res = null;
 
-    if (window.getComputedStyle)
+    if (window.getComputedStyle) // W3C
 	{
 		res = window.getComputedStyle(elm)[style];
 	}
     else if (elm.currentStyle)
 	{
+		if (style.indexOf("-") !== -1) // Turn e.g. border-bottom-style into borderBottomStyle which is required by legacy browsers
+		{
+			var items = style.split("-");
+			style = "";
+
+			Fit.Array.ForEach(items, function(i)
+			{
+				if (style === "")
+					style = i;
+				else
+					style += Fit.String.UpperCaseFirst(i);
+			});
+		}
+
         res = elm.currentStyle[style];
 	}
 
@@ -318,18 +332,45 @@ Fit.Dom.CreateElement = function(html, containerTagName)
 	Fit.Validation.ExpectString(html);
 	Fit.Validation.ExpectStringValue(containerTagName, true);
 
-	var container = document.createElement(((Fit.Validation.IsSet(containerTagName) === true) ? containerTagName : "div"));
-	container.innerHTML = html;
+	if (Fit.String.Trim(html).toLowerCase().indexOf("<tr") === 0) // <tr> can only be rooted in a <table> container
+	{
+		html = Fit.String.Trim(html);
 
-	// Using childNodes property instead of children property to include text nodes,
-	// which the DOM functions in Fit.UI usually do not take into account.
-	// If text nodes are not included, a call like the following would exclude
-	// the " world" portion. We do not want to throw away data, naturally! Example:
-	// Fit.Dom.CreateElement("<span>Hello</span> world"); // Returns <div><span>Hello</span> world</div>
-	if (container.childNodes.length === 1)
+		var container = document.createElement("div"); // Using <div> rather than <tbody> because tbody.innerHTML is read-only in Legacy IE
+		container.innerHTML = "<table><tbody>" + html + "</tbody></table>";
+
+		if (container.firstChild.firstChild.children.length === 1)
+			return container.firstChild.firstChild.firstChild;
+
 		return container.firstChild;
+	}
+	else if (Fit.String.Trim(html).toLowerCase().indexOf("<td") === 0) // <td> can only be rooted in a <tr> container
+	{
+		html = Fit.String.Trim(html); // Make sure container is not returned if e.g. "  <td>test</td>" is passed
 
-	return container;
+		var container = document.createElement("div"); // Using <div> rather than <tr> because tr.innerHTML is read-only in Legacy IE
+		container.innerHTML = "<table><tbody><tr>" + html + "</tr></tbody></table>";
+
+		if (container.firstChild.firstChild.firstChild.children.length === 1)
+			return container.firstChild.firstChild.firstChild.firstChild;
+
+		return container.firstChild.firstChild.firstChild;
+	}
+	else
+	{
+		var container = document.createElement(((Fit.Validation.IsSet(containerTagName) === true) ? containerTagName : "div"));
+		container.innerHTML = html;
+
+		// Using childNodes property instead of children property to include text nodes,
+		// which the DOM functions in Fit.UI usually do not take into account.
+		// If text nodes are not included, a call like the following would exclude
+		// the " world" portion. We do not want to throw away data, naturally! Example:
+		// Fit.Dom.CreateElement("<span>Hello</span> world"); // Returns <div><span>Hello</span> world</div>
+		if (container.childNodes.length === 1)
+			return container.firstChild;
+
+		return container;
+	}
 }
 
 /// <function container="Fit.Dom" name="Text" access="public" static="true" returns="string">

@@ -13,27 +13,26 @@
 	box-sizing: border-box;
 }
 
-div.FitUiControlError
+/* Validation error (value validation) */
+.FitUiControl[data-valid="false"]
 {
-	/* Used in conjunction with fa and fa-exclamation-circle classes
-	   to produce a warning indicator that floats to the left of controls  */
-
-	position: absolute;
-	left: -25px;
-
-	width: 18px;
-	height: 18px;
-	font-size: 14px;
-	padding: 2px;
-	background-color: #F0481B;
-	color: #FFFFFF;
-	text-align: center;
-	border-radius: 8px; /* IE7/IE8: Rounded corners not supported - too bad! */
-	cursor: pointer;
+	outline: 2px solid red;
 }
-div.FitUiControlErrorCorrected
+.FitUiControl[data-valid="false"][data-errormessage]:hover:after
 {
-	background-color: green;
+	content: attr(data-errormessage);
+	box-shadow: 0px 0px 5px 0px #797979;
+	border-radius: 2px;
+	background-color: #FEFFDD;
+	padding: 0.75em;
+	white-space: pre-line;
+	position: absolute;
+	margin-top: 0.2em;
+	z-index: 999;
+
+	/* Fix if control is aligned to the right */
+	left: 0px;
+	text-align: left;
 }
 
 .FitUiControlLoadingIndicator

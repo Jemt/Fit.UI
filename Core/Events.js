@@ -3,14 +3,14 @@
 /// </container>
 Fit.Events = {};
 
-/// <function container="Fit.Events" name="AddHandler" access="public" static="true">
-/// 	<description> Registers handler for specified event on given EventTarget </description>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
 /// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
 /// </function>
-/// <function container="Fit.Events" name="AddHandler" access="public" static="true">
-/// 	<description> Registers handler for specified event on given EventTarget </description>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
 /// 	<param name="useCapture" type="boolean">
@@ -50,12 +50,23 @@ Fit.Events.AddHandler = function()
 	else if (element.attachEvent) // IE
 		element.attachEvent("on" + event, eventFunction);
 
+	element._internal = element._internal || {};
+	element._internal.Events = element._internal.Events || { Handlers: [] };
+	Fit.Array.Add(element._internal.Events.Handlers, { Event: event, Handler: eventFunction, UseCapture: useCapture, Id: element._internal.Events.Handlers.length });
+
 	// Fire event function for onload event if document in window/iframe has already been loaded.
 	// Notice that no event argument is passed to function since we don't have one.
 	if (event.toLowerCase() === "load" && element.document && element.document.readyState === "complete")
 		eventFunction();
+
+	return element._internal.Events.Handlers.length - 1;
 }
 
+/// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
+/// 	<description> Remove event handler given by Event ID returned from Fit.Events.AddHandler(..) </description>
+/// 	<param name="element" type="DOMElement"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
+/// 	<param name="eventId" type="integer"> Event ID identifying handler to remove </param>
+/// </function>
 /// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
 /// 	<description> Remove event handler for specified event on given EventTarget </description>
 /// 	<param name="element" type="DOMElement"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
@@ -78,7 +89,26 @@ Fit.Events.RemoveHandler = function()
 	var useCapture = false; // false = event bubbling (reverse of event capturing)
 	var eventFunction = null;
 
-	if (arguments.length === 3)
+	if (arguments.length === 2)
+	{
+		Fit.Validation.ExpectEventTarget(arguments[0]);
+		Fit.Validation.ExpectInteger(arguments[1]);
+
+		element = arguments[0];
+
+		var handler = ((element._internal && element._internal.Events && element._internal.Events.Handlers) ? element._internal.Events.Handlers[arguments[1]] : undefined);
+
+		if (handler === undefined)
+			Fit.Validation.Throw("No event handler with ID '" + arguments[0] + "' exists for this element");
+
+		if (handler === null)
+			return; // Already removed
+
+		event = handler.Event;
+		eventFunction = handler.Handler;
+		useCapture = handler.UseCapture;
+	}
+	else if (arguments.length === 3)
 	{
 		element = arguments[0];
 		event = arguments[1];
@@ -101,6 +131,9 @@ Fit.Events.RemoveHandler = function()
 		element.removeEventListener(event, eventFunction, useCapture);
 	else if (element.detachEvent)
 		element.detachEvent("on" + event, eventFunction);
+
+	if (arguments.length === 2)
+		element._internal.Events.Handlers[arguments[1]] = null;
 }
 
 /// <function container="Fit.Events" name="PreventDefault" access="public" static="true" returns="boolean">
@@ -407,10 +440,11 @@ Fit._internal.Events.MutationObservers = [];
 Fit._internal.Events.MutationObserverIds = -1;
 Fit._internal.Events.MutationObserverIntervalId = -1;
 
-/// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true">
+/// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true" returns="integer">
 /// 	<description>
 /// 		Registers mutation observer which is invoked when a DOMElement is updated. By default
 /// 		only attributes are observed. Use deep flag to have children and character data observed too.
+/// 		An observer ID is returned which can be used to remove mutation observer.
 /// 		Important: Mutation observers should be removed when no longer needed for better performance!
 /// 		To remove an observer from within the observer function itself, simply call disconnect().
 /// 	</description>
@@ -491,14 +525,19 @@ Fit.Events.RemoveMutationObserver = function()
 		Fit.Validation.ExpectInteger(id);
 	}
 
+	var found = null;
+
 	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)
 	{
 		if ((Fit.Validation.IsSet(id) === true && mo.Id === id) || (mo.Element === elm && mo.Observer === obs && mo.Deep === ((Fit.Validation.IsSet(deep) === true) ? deep : false)))
 		{
-			Fit.Array.Remove(Fit._internal.Events.MutationObservers, mo);
+			found = mo;
 			return false; // Break loop
 		}
 	});
+
+	if (found !== null)
+		Fit.Array.Remove(Fit._internal.Events.MutationObservers, found);
 
 	// Remove event handlers if all mutation observers have been removed
 

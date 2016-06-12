@@ -256,7 +256,7 @@ Fit.Loader.LoadStyleSheets = function(cfg, callback)
 	for (var i = 0 ; i < cfg.length ; i++)
 	{
 		Fit.Validation.ExpectStringValue(cfg[i].source);
-		Fit.Validation.ExpectFunction(cfg[i].loaded);
+		Fit.Validation.ExpectFunction(cfg[i].loaded, true);
 	}
 
 	// Invoke callback if nothing to load

@@ -79,9 +79,10 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationExpr = null;
 	var validationError = null;
 	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation, 2 = Callback validation
-	var lblValidationError = null;
 	var validationCallbackFunc = null;
 	var validationCallbackError = null;
+	var lazyValidation = false;
+	var blockAutoPostBack = false; // Used by AutoPostBack mechanism to prevent multiple postbacks, e.g on double click
 	var onChangeHandlers = [];
 	var onFocusHandlers = [];
 	var onBlurHandlers = [];
@@ -90,6 +91,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
+	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	function init()
 	{
@@ -99,6 +101,7 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Dom.AddClass(container, "FitUiControl");
 
 		me._internal.Data("focused", "false");
+		me._internal.Data("valid", "true");
 
 		// Add hidden inputs which are automatically populated with
 		// control value and state information when control is updated.
@@ -124,9 +127,15 @@ Fit.Controls.ControlBase = function(controlId)
 			txtDirty.value = ((sender.IsDirty() === true) ? "1" : "0");
 			txtValid.value = ((sender.IsValid() === true) ? "1" : "0");
 
-			if (me.AutoPostBack() === true && document.forms.length > 0)
+			if (blockAutoPostBack === false && me.AutoPostBack() === true && document.forms.length > 0)
 			{
-				document.forms[0].submit();
+				setTimeout(function() // Postpone to allow other handlers to execute before postback
+				{
+					blockAutoPostBack = true;
+					document.forms[0].submit();
+
+					setTimeout(function() { blockAutoPostBack = false; }, 500); // Enable AutoPostBack again in case OnBeforeUnload handler was used to cancel postback
+				}, 0);
 			}
 		});
 
@@ -142,6 +151,12 @@ Fit.Controls.ControlBase = function(controlId)
 			container.onfocusin = onFocusIn;
 			container.onfocusout = onFocusOut;
 		}
+
+		me.OnBlur(function(sender)
+		{
+			if (lazyValidation === true)
+				me._internal.Validate(true);
+		});
 	}
 
 	// ============================================
@@ -196,7 +211,7 @@ Fit.Controls.ControlBase = function(controlId)
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(container);
-		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = lblValidationError = validationCallbackFunc = validationCallbackError = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = focusBlurTimeout = txtValue = txtDirty = txtValid = null;
+		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = focusBlurTimeout = txtValue = txtDirty = txtValid = isIe8 = null;
 		delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
@@ -425,6 +440,24 @@ Fit.Controls.ControlBase = function(controlId)
 		return true;
 	}
 
+	this.LazyValidation = function(val) // Make control appear valid until user touches it, or until Fit.Controls.ValidateAll(..) is invoked
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			lazyValidation = val;
+
+			if (lazyValidation === true)
+			{
+				me._internal.Data("valid", "true");
+				me._internal.Data("errormessage", null);
+			}
+		}
+
+		return lazyValidation;
+	}
+
 	// ============================================
 	// Events
 	// ============================================
@@ -485,7 +518,13 @@ Fit.Controls.ControlBase = function(controlId)
 		// to another) which may fire both Focus and Blur multiple times. When Focus fires,
 		// any previous Blur event is canceled. When Blur fires, any previous Focus event is
 		// canceled. The last event fired takes precedence and fires when JS thread is released.
-		focusBlurTimeout = setTimeout(me._internal.FireOnFocus, 0);
+		focusBlurTimeout = setTimeout(function()
+		{
+			if (me === null)
+				return; // Control was disposed
+
+			me._internal.FireOnFocus();
+		}, 0);
 	}
 
 	function onFocusOut(e)
@@ -500,6 +539,9 @@ Fit.Controls.ControlBase = function(controlId)
 
 		focusBlurTimeout = setTimeout(function()
 		{
+			if (me === null)
+				return; // Control was disposed
+
 			hasFocus = false; // Control has lost focus, allow OnFocus to fire again when it regains focus
 			me._internal.FireOnBlur();
 		}, 0);
@@ -512,6 +554,7 @@ Fit.Controls.ControlBase = function(controlId)
 		this._internal.FireOnChange = function()
 		{
 			me._internal.Validate();
+
 			Fit.Array.ForEach(onChangeHandlers, function(cb)
 			{
 				cb(me);
@@ -521,6 +564,7 @@ Fit.Controls.ControlBase = function(controlId)
 		this._internal.FireOnFocus = function()
 		{
 			me._internal.Data("focused", "true");
+			me._internal.Repaint();
 
 			Fit.Array.ForEach(onFocusHandlers, function(cb)
 			{
@@ -531,6 +575,7 @@ Fit.Controls.ControlBase = function(controlId)
 		this._internal.FireOnBlur = function()
 		{
 			me._internal.Data("focused", "false");
+			me._internal.Repaint();
 
 			Fit.Array.ForEach(onBlurHandlers, function(cb)
 			{
@@ -567,7 +612,7 @@ Fit.Controls.ControlBase = function(controlId)
 			Fit.Validation.ExpectStringValue(key);
 			Fit.Validation.ExpectString(val, true);
 
-			if (Fit.Validation.IsSet(val) === true)
+			if (Fit.Validation.IsSet(val) === true || val === null)
 				Fit.Dom.Data(container, key, val);
 
 			return Fit.Dom.Data(container, key);
@@ -585,62 +630,59 @@ Fit.Controls.ControlBase = function(controlId)
 			Fit.Dom.Remove(elm);
 		},
 
-		this._internal.Validate = function()
+		this._internal.Validate = function(force)
 		{
-			if (container.parentElement === null)
-				return; // Not rendered yet!
+			Fit.Validation.ExpectBoolean(force, true);
+
+			if (lazyValidation === true && me.Focused() === false && force !== true)
+				return;
 
 			var valid = me.IsValid();
 
-			if (valid === false && lblValidationError === null)
+			me._internal.Data("valid", valid.toString());
+
+			if (valid === false)
 			{
-				// Add error indicator
-
-				lblValidationError = document.createElement("div");
-				lblValidationError.title = "";
-				lblValidationError.onclick = function() { if (lblValidationError.title !== "") alert(lblValidationError.title); };
-				Fit.Dom.AddClass(lblValidationError, "fa");
-				Fit.Dom.AddClass(lblValidationError, "fa-exclamation-circle");
-				Fit.Dom.AddClass(lblValidationError, "FitUiControlError");
-
 				if (validationErrorType === 0)
-					lblValidationError.title = Fit.Language.Translations.Required;
+					me._internal.Data("errormessage", Fit.Language.Translations.Required);
 				else if (validationErrorType === 1 && validationError !== null)
-					lblValidationError.title = validationError;
+					me._internal.Data("errormessage", validationError.replace("\r", "").replace(/<br.*>/i, "\n"));
 				else if (validationErrorType === 2 && validationCallbackError !== null)
-					lblValidationError.title = validationCallbackError;
-
-				Fit.Dom.InsertBefore(container.firstChild, lblValidationError);
+					me._internal.Data("errormessage", validationCallbackError.replace("\r", "").replace(/<br.*>/i, "\n"));
 			}
-			else if (valid === false && lblValidationError !== null)
+			else
 			{
-				// Update error indicator - make sure error indicator contains correct description
-
-				lblValidationError.title = "";
-
-				if (validationErrorType === 0)
-					lblValidationError.title = Fit.Language.Translations.Required;
-				else if (validationErrorType === 1 && validationError !== null)
-					lblValidationError.title = validationError;
-				else if (validationErrorType === 2 && validationCallbackError !== null)
-					lblValidationError.title = validationCallbackError;
+				me._internal.Data("errormessage", null);
 			}
-			else if (valid === true && lblValidationError !== null)
+
+			me._internal.Repaint();
+		}
+
+		this._internal.Repaint = function(f) // Use callback function if a repaint is required both before and after a given operation, which often requires JS thread to be released on IE
+		{
+			Fit.Validation.ExpectFunction(f, true);
+
+			var cb = ((Fit.Validation.IsSet(f) === true) ? f : function() {});
+
+			if (isIe8 === false)
 			{
-				// Update error indicator - temporarily show success indicator when invalid value is corrected
+				cb();
+			}
+			else
+			{
+				// Flickering may occure on IE8 when updating UI over time
+				// (UI update + JS thread released + UI updates again "later").
 
-				Fit.Dom.RemoveClass(lblValidationError, "fa-exclamation-circle");
-				Fit.Dom.AddClass(lblValidationError, "fa-thumbs-up");
-				Fit.Dom.AddClass(lblValidationError, "FitUiControlErrorCorrected");
-				lblValidationError.onclick = null;
-
-				var lblValidationErrorClosure = lblValidationError;
-				lblValidationError = null;
+				Fit.Dom.AddClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
+				Fit.Dom.RemoveClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
 
 				setTimeout(function()
 				{
-					Fit.Dom.Remove(lblValidationErrorClosure);
-				}, 1000);
+					cb();
+
+					Fit.Dom.AddClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
+					Fit.Dom.RemoveClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
+				}, 0);
 			}
 		}
 
@@ -677,6 +719,7 @@ Fit.Controls.ValidateAll = function(scope)
 	Fit.Validation.ExpectStringValue(scope, true);
 
 	var result = true;
+
 	Fit.Array.ForEach(Fit._internal.ControlBase.Controls, function(controlId)
 	{
 		var control = Fit._internal.ControlBase.Controls[controlId];
@@ -687,11 +730,11 @@ Fit.Controls.ValidateAll = function(scope)
 		if (Fit.Validation.IsSet(scope) === true && control.Scope() !== scope)
 			return;
 
+		control._internal.Validate(true);
+
 		if (control.IsValid() === false)
-		{
 			result = false;
-			return false;
-		}
 	});
+
 	return result;
 }

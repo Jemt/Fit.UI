@@ -10,11 +10,16 @@
 Fit.Cookies = function()
 {
 	var me = this;
-	var path = location.pathname.match(/^.*\//)[0];
+	var path = location.pathname.match(/^.*\//)[0]; // Examples: / OR /sub/ OR /sub/sub/sub/
 	var prefix = "";
 
 	function init()
 	{
+		// Remove trailing slash for path determined automatically,
+		// to prevent double slashes when doing this: cookieContainer.Path() + "/sub"
+		// Actually a trailing slash should be used for the path, but fortunately
+		// Fit.Cookies.Set(..) makes sure to add it if missing.
+		path = path.substring(0, path.length - 1);
 	}
 
 	/// <function container="Fit.Cookies" name="Path" access="public" returns="string">
@@ -142,7 +147,7 @@ Fit.Cookies.Get = function(name)
 	var cookies = document.cookie.split(";");
 	var cookie = null;
 
-	for (i = 0 ; i < cookies.length ; i++)
+	for (var i = 0 ; i < cookies.length ; i++)
 	{
 		cookie = cookies[i];
 

@@ -29,22 +29,25 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 {
 	Fit.Validation.ExpectFunction(callback);
 
-	if (Fit._internal.Array.isCollectionType(obj) === true)
+	if (Fit._internal.Validation.IsCollectionType(obj) === true)
 	{
 		var count = obj.length;
+		var res = false;
 
 		for (var i = 0 ; i < obj.length ; i++)
 		{
+			res = callback(obj[i]);
+
 			if (obj.length !== count)
 				Fit.Validation.ThrowError("Collection was modified while iterating objects");
 
-			if (callback(obj[i]) === false)
+			if (res === false)
 				return false;
 		}
 	}
 	else if (typeof(obj) === "object")
 	{
-		for (var i in obj)
+		for (var i in obj) // Object array is not vulnerable to changes in callback - properties removed or added is not iterated
 			if (callback(i) === false)
 				return false;
 	}
@@ -62,7 +65,7 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 /// </function>
 Fit.Array.Count = function(obj)
 {
-	if (Fit._internal.Array.isCollectionType(obj) === true)
+	if (Fit._internal.Validation.IsCollectionType(obj) === true)
 	{
 		return obj.length;
 	}
@@ -147,7 +150,7 @@ Fit.Array.CustomRecurse = function(arr, callback) // arr not validated - passing
 {
 	Fit.Validation.ExpectFunction(callback);
 
-	if (arr !== undefined && arr !== null && Fit._internal.Array.isCollectionType(arr) === false)
+	if (arr !== undefined && arr !== null && Fit._internal.Validation.IsCollectionType(arr) === false)
 		Fit.Validation.ThrowError("Unexpected collection type passed"); // CustomRecurse does not support iterating object arrays like ForEach does
 
 	Fit.Array.ForEach(arr, function(o)
@@ -263,7 +266,7 @@ Fit.Array.Contains = function(arr, obj) // obj not validated - passing any objec
 /// </function>
 Fit.Array.Copy = function(arr)
 {
-	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectCollection(arr);
 
 	var newArr = [];
 	Fit.Array.ForEach(arr, function(item)
@@ -287,15 +290,6 @@ Fit.Array.ToArray = function(coll)
 		arr.push(coll[i]);
 
 	return arr;
-}
-
-// Internal members
-
-Fit._internal.Array = {};
-
-Fit._internal.Array.isCollectionType = function(obj) // Returns True if obj is a collection that can be iterated using a .length property
-{
-	return (obj instanceof Array || obj instanceof NodeList || (window.FileList && obj instanceof FileList) || (window.StaticNodeList && obj instanceof StaticNodeList) || obj instanceof HTMLCollection);
 }
 
 /*

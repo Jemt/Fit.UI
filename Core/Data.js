@@ -143,7 +143,7 @@ Fit.String = {};
 Fit.String.Trim = function(str)
 {
 	Fit.Validation.ExpectString(str);
-	return str.replace(/^\s+|\s+$/gm, "");
+	return str.replace(/^\s+|\s+$/g, "");
 }
 
 /// <function container="Fit.String" name="StripHtml" access="public" static="true" returns="string">
@@ -160,6 +160,26 @@ Fit.String.StripHtml = function(str)
 	/*var span = document.createElement("span");
 	span.innerHTML = str;
 	return Fit.String.Trim(Fit.Dom.Text(span));*/
+}
+
+/// <function container="Fit.String" name="EncodeHtml" access="public" static="true" returns="string">
+/// 	<description> Encode special characters into HTML entities </description>
+/// 	<param name="str" type="string"> String to encode </param>
+/// </function>
+Fit.String.EncodeHtml = function(str)
+{
+	Fit.Validation.ExpectString(str);
+	return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+}
+
+/// <function container="Fit.String" name="DecodeHtml" access="public" static="true" returns="string">
+/// 	<description> Decode special characters represented as HTML entities back into their actual characters </description>
+/// 	<param name="str" type="string"> String to decode </param>
+/// </function>
+Fit.String.DecodeHtml = function(str)
+{
+	Fit.Validation.ExpectString(str);
+	return str.replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&#039;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
 
 /// <function container="Fit.String" name="Hash" access="public" static="true" returns="integer">
@@ -183,4 +203,296 @@ Fit.String.Hash = function(str)
 	}
 
 	return hash;
+}
+
+/// <function container="Fit.String" name="UpperCaseFirst" access="public" static="true" returns="string">
+/// 	<description> Returns string with first letter upper cased </description>
+/// 	<param name="str" type="string"> String to turn first letter into upper case </param>
+/// </function>
+Fit.String.UpperCaseFirst = function(str)
+{
+	Fit.Validation.ExpectString(str);
+
+	if (str === "")
+		return str;
+
+	return str[0].toUpperCase() + str.slice(1);
+}
+
+
+// =====================================
+// Date
+// =====================================
+
+Fit.Date = {};
+
+/// <function container="Fit.Date" name="Format" access="public" static="true" returns="string">
+/// 	<description>
+/// 		Format instance of Date.
+/// 		Example: Fit.Date.Format(new Date(), &quot;YYYY-MM-DD hh:mm:ss&quot;);
+/// 		Result: 2016-06-18 15:23:48
+///
+/// 		Date can be formatted using the following variables:
+/// 		YYYY: 4 digits year (e.g. 2016)
+/// 		YY: 2 digits year (e.g. 16)
+/// 		MM: 2 digits month (e.g. 04)
+/// 		M: Prefer 1 digit month if possible (e.g. 4)
+/// 		DD: 2 digits day (e.g. 09)
+/// 		D: Prefer 1 digit day if possible (e.g. 9)
+/// 		W: 1 digit week number (e.g. 35)
+/// 		hh: 2 digits hours value (e.g. 08)
+/// 		h: 1 digit hours value if possible (e.g. 8)
+/// 		mm: 2 digits minutes value (e.g. 02)
+/// 		m: 1 digit minutes value if possible (e.g. 2)
+/// 		ss: 2 digits seconds value (e.g. 05)
+/// 		s: 1 digit seconds value if possible (e.g. 5)
+/// 	</description>
+/// 	<param name="date" type="Date"> Date to format as string </param>
+/// 	<param name="format" type="string"> Date format </param>
+/// </function>
+Fit.Date.Format = function(date, format)
+{
+	Fit.Validation.ExpectDate(date);
+	Fit.Validation.ExpectString(format);
+
+	format = format.replace(/YYYY/g, date.getFullYear().toString());
+	format = format.replace(/YY/g, date.getFullYear().toString().substring(2));
+	format = format.replace(/Y/g, parseInt(date.getFullYear().toString().substring(2), 10).toString());
+	format = format.replace(/MM/g, ((date.getMonth() + 1 <= 9) ? "0" : "") + (date.getMonth() + 1));
+	format = format.replace(/M/g, (date.getMonth() + 1).toString());
+	format = format.replace(/DD/g, ((date.getDate() <= 9) ? "0" : "") + date.getDate());
+	format = format.replace(/D/g, date.getDate().toString());
+	format = format.replace(/W/g, Fit.Date.GetWeek(date).toString());
+	format = format.replace(/hh/g, ((date.getHours() <= 9) ? "0" : "") + date.getHours());
+	format = format.replace(/h/g, date.getHours().toString());
+	format = format.replace(/mm/g, ((date.getMinutes() <= 9) ? "0" : "") + date.getMinutes());
+	format = format.replace(/m/g, date.getMinutes().toString());
+	format = format.replace(/ss/g, ((date.getSeconds() <= 9) ? "0" : "") + date.getSeconds());
+	format = format.replace(/s/g, date.getSeconds().toString());
+
+	return format;
+}
+
+/// <function container="Fit.Date" name="Parse" access="public" static="true" returns="Date">
+/// 	<description>
+/// 		Parse date as string into an instance of Date - example: 18-09/2016 17:03:21
+/// 	</description>
+/// 	<param name="strDate" type="string"> Date as string </param>
+/// 	<param name="format" type="string">
+/// 		Specify date format used to allow parser to determine which parts of the string
+/// 		is Year, Month, Day, etc. The same variables used for Fit.Date.Format
+/// 		can be used, except for W (week).
+/// 		Since the parser do not need to know the length of the different parts that
+/// 		makes up the Date, one can simply use the shorter variable format: Y, M, D, h, m, s.
+/// 		Be aware that the Parse function does not support a Year represented by a
+/// 		2 digit value, since it will be impossible to determine which century it belongs to.
+/// 		Example: D-M/Y h:m:s
+/// 	</param>
+/// </function>
+Fit.Date.Parse = function(strDate, format)
+{
+	Fit.Validation.ExpectString(strDate);
+	Fit.Validation.ExpectString(format);
+
+	// Extract numbers from string date
+
+	var regex = /\d+/g;
+	var match = null;
+	var matches = [];
+
+	while ((match = regex.exec(strDate)) !== null)
+	{
+		Fit.Array.Add(matches, match[0]);
+	}
+
+	// Construct array with supported date parts
+
+	var date = new Date(); //new Date(0); // Jan 01 1970 01:00:00
+
+	var parts =
+	[
+		{ Name: "Year", Key: "Y", Index: -1, Value: date.getFullYear() },
+		{ Name: "Month", Key: "M", Index: -1, Value: date.getMonth() + 1 },
+		{ Name: "Day", Key: "D", Index: -1, Value: date.getDate() },
+		{ Name: "Hours", Key: "h", Index: -1, Value: date.getHours() },
+		{ Name: "Minutes", Key: "m", Index: -1, Value: date.getMinutes() },
+		{ Name: "Seconds", Key: "s", Index: -1, Value: date.getSeconds() }
+	];
+
+	// Create getter that allows us to retrieve date part value by its Key
+
+	parts.getVal = function(key/*, asString*/)
+	{
+		var res = null;
+
+		Fit.Array.ForEach(this, function(part)
+		{
+			if (key === part.Key)
+			{
+				res = part.Value;
+				return false;
+			}
+		});
+
+		return res;
+	}
+
+	// Determine where various date parts are found in date string
+
+	Fit.Array.ForEach(parts, function(part)
+	{
+		part.Index = format.indexOf(part.Key);
+	});
+
+	// Sort date parts accordingly to order in date string
+
+	parts.sort(function(a, b)
+	{
+		return ((a.Index !== -1) ? a.Index : 999999) - ((b.Index !== -1) ? b.Index : 999999);
+	});
+
+	// Update date part values previously parsed out from date string using RegEx
+
+	var idx = -1;
+
+	Fit.Array.ForEach(parts, function(part)
+	{
+		if (part.Index !== -1)
+		{
+			idx++;
+
+			if (idx > matches.length - 1)
+				throw "InvalidDateFormat - " + part.Name + " not found in value";
+
+			part.Value = parseInt(matches[idx], 10); // Radix (10) set to prevent some implementations of ECMAScript (e.g. on IE8) to intepret the value as octal (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt)
+
+			if (part.Key === "M")
+				part.Value = part.Value - 1; // Month is zero-based
+		}
+	});
+
+	if (parts.getVal("Y").toString().length !== 4)
+		throw "InvalidDateFormat - Year must be defined with four digits";
+
+	var dt = new Date(parts.getVal("Y"), parts.getVal("M"), parts.getVal("D", true), 0, 0, 0);
+
+	dt.setHours(parseInt(parts.getVal("h"), 10));
+	dt.setMinutes(parseInt(parts.getVal("m"), 10));
+	dt.setSeconds(parseInt(parts.getVal("s"), 10));
+
+	return dt;
+}
+
+/// <function container="Fit.Date" name="GetWeek" access="public" static="true" returns="integer">
+/// 	<description> Get ISO 8601 week number from date </description>
+/// 	<param name="date" type="Date"> Date to get week number from </param>
+/// </function>
+Fit.Date.GetWeek = function(date) // ISO 8601 - use MomentJS for wider support!
+{
+	Fit.Validation.ExpectDate(date);
+
+	// https://en.wikipedia.org/wiki/Date_and_time_representation_by_country
+	// https://en.wikipedia.org/wiki/Week#Week_numbering
+	// http://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php/6117889#6117889 (ISO 8601)
+
+	var d = new Date(date.getTime()); // Copy date - do not modify original
+
+	d.setHours(0, 0, 0); // Set hours, minutes, and seconds
+	d.setDate(d.getDate() + 4 - (d.getDay() || 7)); // Set to nearest Thursday (make Sunday day no. 7 instead of 0)
+
+	var yearStart = new Date(d.getFullYear(), 0, 1);
+	var week = Math.ceil((((d.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000)) + 1) / 7);
+
+	return week;
+
+	// http://javascript.about.com/library/blweekyear.htm
+	//var janFirst = new Date(date.getFullYear(), 0, 1);
+	//return Math.ceil((((date - janFirst) / 86400000) + janFirst.getDay() + ((useIso8601 !== true) ? 1 : 0) ) / 7);
+}
+
+
+// =====================================
+// Color
+// =====================================
+
+Fit.Color = {};
+
+/// <function container="Fit.Color" name="RgbToHex" access="public" static="true" returns="string">
+/// 	<description> Convert RGB colors into HEX color string - returns Null in case of invalid RGB values </description>
+/// 	<param name="r" type="integer"> Color index for red </param>
+/// 	<param name="g" type="integer"> Color index for green </param>
+/// 	<param name="b" type="integer"> Color index for blue </param>
+/// </function>
+Fit.Color.RgbToHex = function(r, g, b)
+{
+	Fit.Validation.ExpectNumber(r);
+	Fit.Validation.ExpectNumber(g);
+	Fit.Validation.ExpectNumber(b);
+
+	if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+		return null;
+
+    var rHex = r.toString(16);
+    var gHex = g.toString(16);
+    var bHex = b.toString(16);
+
+    return ("#" + ((rHex.length === 1) ? "0" : "") + rHex + ((gHex.length === 1) ? "0" : "") + gHex + ((bHex.length === 1) ? "0" : "") + bHex).toUpperCase();
+}
+
+/// <function container="Fit.Color" name="HexToRgb" access="public" static="true" returns="string">
+/// 	<description> Convert HEX color string into RGB color string - returns Null in case of invalid HEX value </description>
+/// 	<param name="hex" type="string"> HEX color string, e.g. #C0C0C0 (hash symbol is optional) </param>
+/// </function>
+Fit.Color.HexToRgb = function(hex)
+{
+	Fit.Validation.ExpectString(hex);
+
+	var rgb = Fit.Color.ParseHex(hex);
+
+	if (rgb === null)
+		return null;
+
+	return "rgb(" + rgb.Red + ", " + rgb.Green + ", " + rgb.Blue + ")";
+}
+
+/// <function container="Fit.Color" name="ParseHex" access="public" static="true" returns="object">
+/// 	<description> Convert HEX color string into RGB color object, e.g. { Red: 150, Green: 30, Blue: 185 } - returns Null in case of invalid HEX value </description>
+/// 	<param name="hex" type="string"> HEX color string, e.g. #C0C0C0 (hash symbol is optional) </param>
+/// </function>
+Fit.Color.ParseHex = function(hex)
+{
+	Fit.Validation.ExpectString(hex);
+
+	var result = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+
+	if (result === null)
+		return null;
+
+	return { Red: parseInt(result[1], 16), Green: parseInt(result[2], 16), Blue: parseInt(result[3], 16) };
+}
+
+/// <function container="Fit.Color" name="ParseRgb" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Parses RGB(A) string and turns result into a RGB(A) color object, e.g.
+/// 		{ Red: 100, Green: 100, Blue: 100, Alpha: 0.3 } - returns Null in case of invalid value.
+/// 	</description>
+/// 	<param name="val" type="string"> RGB(A) color string, e.g. rgba(100, 100, 100, 0.3) or simply 100,100,200,0.3 </param>
+/// </function>
+Fit.Color.ParseRgb = function(val)
+{
+	Fit.Validation.ExpectString(val);
+
+	// Parse colors from rgb[a](r, g, b[, a]) string
+	var result = val.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(\s*,\s*(\d*.*\d+))*/); // http://regex101.com/r/rZ7rO2/9
+
+	if (result === null)
+		return null;
+
+	var c = {};
+	c.Red = parseInt(result[1], 10);
+	c.Green = parseInt(result[2], 10);
+	c.Blue = parseInt(result[3], 10);
+	c.Alpha = ((result[5] !== undefined) ? parseFloat(result[5]) : 1.00);
+
+	return c;
 }

@@ -4,7 +4,7 @@
 Fit.Validation = {};
 
 Fit._internal.Validation = {};
-Fit._internal.Validation.DebugMode = true; // TODO: When ready for production: Remove or set False!
+Fit._internal.Validation.DebugMode = true;
 Fit._internal.Validation.Clone = null;
 
 // ==========================================================
@@ -175,7 +175,7 @@ Fit.Validation.ExpectCollection = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((val instanceof NodeList) === false && (window.StaticNodeList && (val instanceof StaticNodeList) === false) && (val instanceof HTMLCollection) === false && (val instanceof Array) === false)
+	if (Fit._internal.Validation.IsCollectionType(val) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a valid collection");
 }
 
@@ -331,10 +331,10 @@ Fit.Validation.ThrowError = function(msg)
 	{
 		var stackTrace = Fit.Validation.GetStackTrace();
 		alert("ThrowError: " + msg + ((stackTrace !== "") ? "\n\n" : "") + stackTrace);
-	}
 
-	if (window.console && console.trace)
-		console.trace();
+		if (window.console && console.trace)
+			console.trace();
+	}
 
 	throw new Error(msg); // Never change this behaviour - we should always re-throw the error to terminate execution
 }
@@ -385,5 +385,19 @@ Fit.Validation.Enabled = function(val)
 	return (Fit._internal.Validation.DebugMode === true);
 }
 
-if (Fit._internal.Validation.DebugMode !== true)
-	Fit.Validation.Enabled(false);
+// ==========================================================
+// Internal
+// ==========================================================
+
+Fit._internal.Validation.IsCollectionType = function(val) // Used by Fit.Validation and Fit.Array
+{
+	if (!window.StaticNodeList)
+		window.StaticNodeList = function() {};
+	if (!window.FileList)
+		window.FileList = function() {};
+
+	if ((val instanceof NodeList) === false && (val instanceof StaticNodeList) === false && (val instanceof FileList) === false && (val instanceof HTMLCollection) === false && (val instanceof Array) === false)
+		return false;
+
+	return true;
+}
