@@ -67,18 +67,11 @@
     -moz-user-select: none;
     -ms-user-select: none;
 }
-.FitDragDropDraggable:hover
-{
-    border-color: blue !important;
-}
 
 .FitDragDropDraggable.FitDragDropDragging
 {
     opacity: 0.6;
     z-index: 99999;
-}
 
-.FitDragDropDropzoneActive
-{
-    background-color: red !important;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
 }

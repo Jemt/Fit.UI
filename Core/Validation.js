@@ -193,12 +193,12 @@ Fit.Validation.ExpectRegExp = function(val, allowNotSet)
 		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of RegExp");
 }
 
-/// <function container="Fit.Validation" name="ExpectDomElement" access="public" static="true">
+/// <function container="Fit.Validation" name="ExpectElementNode" access="public" static="true">
 /// 	<description> Throws error if passed object is not an instance of Element </description>
 /// 	<param name="val" type="object"> Object to validate </param>
 /// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
 /// </function>
-Fit.Validation.ExpectDomElement = function(val, allowNotSet)
+Fit.Validation.ExpectElementNode = function(val, allowNotSet) // DOMElement
 {
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
@@ -206,20 +206,63 @@ Fit.Validation.ExpectDomElement = function(val, allowNotSet)
 	if ((val instanceof Element) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a DOMElement");
 }
+Fit.Validation.ExpectDomElement = Fit.Validation.ExpectElementNode; // Backward compatibility
 
-/// <function container="Fit.Validation" name="ExpectContentNode" access="public" static="true">
-/// 	<description> Throws error if passed object is not an instance of Element or Text </description>
+/// <function container="Fit.Validation" name="ExpectTextNode" access="public" static="true">
+/// 	<description> Throws error if passed object is not an instance of Text </description>
 /// 	<param name="val" type="object"> Object to validate </param>
 /// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
 /// </function>
-Fit.Validation.ExpectContentNode = function(val, allowNotSet)
+Fit.Validation.ExpectTextNode = function(val, allowNotSet) // DOMText
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof Text) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not a Text node");
+}
+
+/// <function container="Fit.Validation" name="ExpectCommentNode" access="public" static="true">
+/// 	<description> Throws error if passed object is not an instance of Comment </description>
+/// 	<param name="val" type="object"> Object to validate </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectCommentNode = function(val, allowNotSet) // DOMComment
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof Comment) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not a Comment node");
+}
+
+/// <function container="Fit.Validation" name="ExpectNode" access="public" static="true">
+/// 	<description> Throws error if passed object is not an instance of Element, Text, or Comment </description>
+/// 	<param name="val" type="object"> Object to validate </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectNode = function(val, allowNotSet) // DOMNode
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if ((val instanceof Element) === false && (val instanceof Text) === false && (val instanceof Comment) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not a Node (Element, Text, or Comment)");
+}
+
+// <function container="Fit.Validation" name="ExpectContentNode" access="public" static="true">
+// 	<description> Throws error if passed object is not an instance of Element or Text </description>
+// 	<param name="val" type="object"> Object to validate </param>
+// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+// </function>
+/*Fit.Validation.ExpectContentNode = function(val, allowNotSet)
 {
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
 	if ((val instanceof Element) === false && (val instanceof Text) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a Content Node (Element or Text)");
-}
+}*/
 
 /// <function container="Fit.Validation" name="ExpectWindow" access="public" static="true">
 /// 	<description> Throws error if passed object is not an instance of Window </description>

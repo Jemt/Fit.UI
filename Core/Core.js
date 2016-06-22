@@ -23,6 +23,10 @@ Fit.Core = {};
 ///
 /// 		Notice that calling just Extend(..) without calling Apply() on the object returned,
 /// 		will not cause extension to occure. Apply() must be called, with or without parameters.
+///
+/// 		Notice that Fit.UI supports multiple inheritance. Be careful not to extend from multiple
+/// 		classes implementing functions with identical names, or at least be aware that the last
+/// 		class from which the derivative extends, takes precedence.
 /// 	</description>
 /// 	<param name="subInstance" type="object"> Instance of sub class to extend </param>
 /// 	<param name="superType" type="function"> Class (function) to extend from </param>
@@ -31,6 +35,12 @@ Fit.Core.Extend = function(subInstance, superType)
 {
 	Fit.Validation.ExpectIsSet(subInstance);
 	Fit.Validation.ExpectFunction(superType);
+
+	// Notice that we support multiple inheritance. For that reason we
+	// cannot do something like the code below to support instanceof:
+	// Human.prototype = Object.create(Creature.prototype);
+	// Human.prototype.constructor = Creature;
+	// As an alternative to instanceof, use Fit.Core.InstanceOf(..).
 
 	var binder =
 	{

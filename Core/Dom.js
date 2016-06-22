@@ -157,11 +157,11 @@ Fit.Dom.GetInnerWidth = function(elm) // Backward compatibility
 
 /// <function container="Fit.Dom" name="IsRooted" access="public" static="true" returns="boolean">
 /// 	<description> Returns True if element is rooted in document (appended to body), otherwise False </description>
-/// 	<param name="elm" type="DOMElement"> Element to check </param>
+/// 	<param name="elm" type="DOMNode"> Element to check </param>
 /// </function>
 Fit.Dom.IsRooted = function(elm)
 {
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
 
 	var parent = elm.parentElement;
 	while (parent !== null)
@@ -176,27 +176,27 @@ Fit.Dom.IsRooted = function(elm)
 }
 
 /// <function container="Fit.Dom" name="InsertBefore" access="public" static="true">
-/// 	<description> Insert DOMElement before another DOMElement </description>
-/// 	<param name="target" type="DOMElement"> Element to insert new element before </param>
-/// 	<param name="newElm" type="DOMElement"> Element to insert before target element </param>
+/// 	<description> Insert DOMNode before another DOMNode </description>
+/// 	<param name="target" type="DOMNode"> Element to insert new element before </param>
+/// 	<param name="newElm" type="DOMNode"> Element to insert before target element </param>
 /// </function>
 Fit.Dom.InsertBefore = function(target, newElm)
 {
-	Fit.Validation.ExpectDomElement(target);
-	Fit.Validation.ExpectDomElement(newElm);
+	Fit.Validation.ExpectNode(target);
+	Fit.Validation.ExpectNode(newElm);
 
 	target.parentElement.insertBefore(newElm, target);
 }
 
 /// <function container="Fit.Dom" name="InsertAfter" access="public" static="true">
-/// 	<description> Insert DOMElement after another DOMElement </description>
-/// 	<param name="target" type="DOMElement"> Element to insert new element after </param>
-/// 	<param name="newElm" type="DOMElement"> Element to insert after target element </param>
+/// 	<description> Insert DOMNode after another DOMNode </description>
+/// 	<param name="target" type="DOMNode"> Element to insert new element after </param>
+/// 	<param name="newElm" type="DOMNode"> Element to insert after target element </param>
 /// </function>
 Fit.Dom.InsertAfter = function(target, newElm)
 {
-	Fit.Validation.ExpectDomElement(target);
-	Fit.Validation.ExpectDomElement(newElm);
+	Fit.Validation.ExpectNode(target);
+	Fit.Validation.ExpectNode(newElm);
 
 	if (target.nextSibling)
 		target.parentElement.insertBefore(newElm, target.nextSibling);
@@ -205,16 +205,22 @@ Fit.Dom.InsertAfter = function(target, newElm)
 }
 
 /// <function container="Fit.Dom" name="InsertAt" access="public" static="true">
-/// 	<description> Insert DOMElement at given position </description>
+/// 	<description>
+/// 		Insert DOMNode at given position.
+/// 		Notice that position is relative to contained DOM Elements.
+/// 		Text and Comment nodes are ignored.
+/// 	</description>
 /// 	<param name="container" type="DOMElement"> Container to insert element into </param>
 /// 	<param name="position" type="integer"> Position (index) to insert element at </param>
-/// 	<param name="newElm" type="DOMElement"> Element to insert </param>
+/// 	<param name="newElm" type="DOMNode"> Element to insert </param>
 /// </function>
 Fit.Dom.InsertAt = function(container, position, newElm)
 {
 	Fit.Validation.ExpectDomElement(container);
 	Fit.Validation.ExpectInteger(position);
-	Fit.Validation.ExpectDomElement(newElm);
+	Fit.Validation.ExpectNode(newElm);
+
+	// Notice: InsertAt does not allow insertion based on childNodes as it is unreliable on Legacy IE.
 
 	if (container.children.length === 0 || container.children.length - 1 < position)
 	{
@@ -231,13 +237,13 @@ Fit.Dom.InsertAt = function(container, position, newElm)
 
 /// <function container="Fit.Dom" name="Replace" access="public" static="true">
 /// 	<description> Replace element with another one </description>
-/// 	<param name="oldElm" type="object"> Element to replace (Element or Text) </param>
-/// 	<param name="newElm" type="object"> Replacement element (Element or Text) </param>
+/// 	<param name="oldElm" type="DOMNode"> Element to replace (Element, Text, or Comment) </param>
+/// 	<param name="newElm" type="DOMNode"> Replacement element (Element, Text, or Comment) </param>
 /// </function>
 Fit.Dom.Replace = function(oldElm, newElm) // http://jsfiddle.net/Jemt/eu74o984/
 {
-	Fit.Validation.ExpectContentNode(oldElm);
-	Fit.Validation.ExpectContentNode(newElm);
+	Fit.Validation.ExpectNode(oldElm);
+	Fit.Validation.ExpectNode(newElm);
 
 	var container = oldElm.parentElement;
 	container.replaceChild(newElm, oldElm);
@@ -246,23 +252,23 @@ Fit.Dom.Replace = function(oldElm, newElm) // http://jsfiddle.net/Jemt/eu74o984/
 /// <function container="Fit.Dom" name="Add" access="public" static="true">
 /// 	<description> Add element to container </description>
 /// 	<param name="container" type="DOMElement"> Add element to this container </param>
-/// 	<param name="elm" type="object"> Element or Text node to add to container </param>
+/// 	<param name="elm" type="DOMNode"> Element, Text, or Comment to add to container </param>
 /// </function>
 Fit.Dom.Add = function(container, elm)
 {
 	Fit.Validation.ExpectDomElement(container);
-	Fit.Validation.ExpectContentNode(elm);
+	Fit.Validation.ExpectNode(elm);
 
 	container.appendChild(elm);
 }
 
 /// <function container="Fit.Dom" name="Remove" access="public" static="true">
-/// 	<description> Remove DOMElement from its container element </description>
-/// 	<param name="elm" type="DOMElement"> DOMElement to remove </param>
+/// 	<description> Remove DOMNode from its container element </description>
+/// 	<param name="elm" type="DOMNode"> DOMNode to remove </param>
 /// </function>
 Fit.Dom.Remove = function(elm)
 {
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
 
 	if (elm.parentElement === null)
 		return; // Element not rooted
@@ -314,11 +320,12 @@ Fit.Dom.Data = function(elm, name, value)
 	return Fit.Dom.Attribute(elm, "data-" + name, value);
 }
 
-/// <function container="Fit.Dom" name="CreateElement" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="CreateElement" access="public" static="true" returns="DOMNode">
 /// 	<description>
 /// 		Create element with the specified HTML content.
 /// 		HTML content is (by default) wrapped in a &lt;div&gt; if it produced multiple elements.
 /// 		If content on the other hand produces only one outer element, that particular element is returned.
+/// 		It is possible to construct DOM objects of type Element, Text, and Comment.
 /// 		The container type used to wrap multiple elements can be changed using the containerTagName argument.
 /// 	</description>
 /// 	<param name="html" type="string"> HTML element to create DOMElement from </param>
@@ -395,8 +402,11 @@ Fit.Dom.Text = function(elm, value)
 }
 
 /// <function container="Fit.Dom" name="GetIndex" access="public" static="true" returns="integer">
-/// 	<description> Get element position within parent element </description>
-/// 	<param name="elm" type="DOMElement"> DOMElement to get index for </param>
+/// 	<description>
+/// 		Get element position within parent element.
+/// 		Notice that Text and Comment nodes are ignored.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get index for </param>
 /// </function>
 Fit.Dom.GetIndex = function(elm)
 {
@@ -420,11 +430,11 @@ Fit.Dom.GetIndex = function(elm)
 /// 		HTMLElement is at level 0, HTMLBodyElement is at level 1,
 /// 		first element in HTMLBodyElement is at level 2, and so forth.
 /// 	</description>
-/// 	<param name="elm" type="DOMElement"> Element to get depth in DOM for </param>
+/// 	<param name="elm" type="DOMNode"> Element to get depth in DOM for </param>
 /// </function>
 Fit.Dom.GetDepth = function(elm)
 {
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
 
     var i = 0;
     var parent = elm.parentElement;
@@ -441,12 +451,12 @@ Fit.Dom.GetDepth = function(elm)
 /// <function container="Fit.Dom" name="Contained" access="public" static="true" returns="boolean">
 /// 	<description> Check whether given element is found in given container at any given level in object hierarchy </description>
 /// 	<param name="container" type="DOMElement"> Container expected to contain element </param>
-/// 	<param name="elm" type="DOMElement"> Element expected to be found in container's object hierarchy </param>
+/// 	<param name="elm" type="DOMNode"> Element expected to be found in container's object hierarchy </param>
 /// </function>
 Fit.Dom.Contained = function(container, elm)
 {
 	Fit.Validation.ExpectDomElement(container);
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
 
     var parent = elm.parentElement;
 
@@ -467,11 +477,24 @@ Fit.Dom.Contained = function(container, elm)
 /// 		in DOM and is visible. Returns False if not rooted, or display:none has been set
 /// 		on element or any of its ancestors.
 /// 	</description>
-/// 	<param name="elm" type="DOMElement"> Element to check visibility for </param>
+/// 	<param name="elm" type="DOMNode"> Element to check visibility for </param>
 /// </function>
 Fit.Dom.IsVisible = function(elm)
 {
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
+
+	if (elm.nodeType === 8)
+		return false; // Comments are not visual, hence not visible
+
+	if (elm.nodeType === 3)
+	{
+		// Check parent element if a Text element is passed
+
+		if (elm.parentElement === null)
+			return false; // Not rooted
+
+		elm = elm.parentElement;
+	}
 
 	// Determine visibility quickly using offsetParent if possible.
 	// Notice that offsetParent is always Null for an element with
@@ -504,14 +527,20 @@ Fit.Dom.IsVisible = function(elm)
 /// 		Element passed will be returned if hidden itself.
 /// 		Returns Null if element is visible, or has not been rooted in DOM yet.
 /// 	</description>
-/// 	<param name="elm" type="DOMElement"> Element to get concealer for </param>
+/// 	<param name="elm" type="DOMNode"> Element to get concealer for </param>
 /// </function>
 Fit.Dom.GetConcealer = function(elm)
 {
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
+
+	if (elm.nodeType === 8)
+		return elm; // Comments are not visual, hence not visible
 
 	if (Fit.Dom.IsVisible(elm) === true)
 		return null; // Element is not concealed - it is visible and rooted in DOM
+
+	if (elm.nodeType === 3)
+		elm = elm.parentElement; // Check parent element if a Text element is passed
 
 	// Element is hidden or not rooted in DOM.
 	// Traverse DOM bottom-up to find container hiding element.
@@ -529,13 +558,13 @@ Fit.Dom.GetConcealer = function(elm)
 }
 
 /// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">
-/// 	<description> Returns first parent of specified type for a given DOMElement if found, otherwise Null </description>
-/// 	<param name="element" type="DOMElement"> DOMElement to find parent for </param>
+/// 	<description> Returns first parent of specified type for a given element if found, otherwise Null </description>
+/// 	<param name="element" type="DOMNode"> Element to find parent for </param>
 /// 	<param name="parentType" type="string"> Tagname of parent element to look for </param>
 /// </function>
 Fit.Dom.GetParentOfType = function(element, parentType)
 {
-	Fit.Validation.ExpectDomElement(element);
+	Fit.Validation.ExpectNode(element);
 	Fit.Validation.ExpectStringValue(parentType);
 
     var parent = element.parentElement;
@@ -553,12 +582,12 @@ Fit.Dom.GetParentOfType = function(element, parentType)
 
 /// <function container="Fit.Dom" name="Wrap" access="public" static="true">
 /// 	<description> Wraps element in container element while preserving position in DOM </description>
-/// 	<param name="elementToWrap" type="DOMElement"> Element to wrap </param>
+/// 	<param name="elementToWrap" type="DOMNode"> Element to wrap </param>
 /// 	<param name="container" type="DOMElement"> Container to wrap element within </param>
 /// </function>
 Fit.Dom.Wrap = function(elementToWrap, container)
 {
-	Fit.Validation.ExpectDomElement(elementToWrap);
+	Fit.Validation.ExpectNode(elementToWrap);
 	Fit.Validation.ExpectDomElement(container);
 
 	var parent = elementToWrap.parentElement;
@@ -659,11 +688,11 @@ Fit.Dom.GetInnerPosition = function(elm, parent)
 /// 		for nested scrollable elements.
 /// 		Object returned contains an X and Y property with the desired integer values (pixels).
 /// 	</description>
-/// 	<param name="elm" type="DOMElement"> Element to get scroll position for </param>
+/// 	<param name="elm" type="DOMNode"> Element to get scroll position for </param>
 /// </function>
 Fit.Dom.GetScrollPosition = function(elm)
 {
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
 
 	// Get number of pixels specified element's container(s)
 	// have been scrolled. This gives us the total scroll value
@@ -674,6 +703,9 @@ Fit.Dom.GetScrollPosition = function(elm)
 	// scrollY = mouseYviewport + GetScrollPosition(elm).Y;
 
 	var pos = { X: 0, Y: 0 };
+
+	if (elm.nodeType !== 1) // Text or Comment element which do not have scrollLeft and scrollTop properties
+		elm = elm.parentElement;
 
 	while (elm)
 	{

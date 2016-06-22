@@ -1,31 +1,21 @@
 Fit.DragDrop = {};
 
-/*
-
-TODO: Ryd op i Draggable og Dropzone!
-      Properties på objekt i _internal.active og objekter i _internal.dropzones
-      bør være instanser af Draggable og DropZone, som blot eksponerer en funktion
-      der giver adgang til relevante properties. Saml det sammen!
-
-      Performance-test: Hvordan fungerer det med 3000 draggable elementer og 1000 dropzones?
-
-*/
-
-
-
-
-
 // Draggable
 
 /// <function container="Fit.DragDrop.Draggable" name="Draggable" access="public">
 /// 	<description> Constructor - create instance of Draggable class </description>
 /// 	<param name="domElm" type="DOMElement"> Element to turn into draggable object </param>
+/// 	<param name="domTriggerElm" type="DOMElement" default="undefined"> Element that triggers dragging (optional) </param>
 /// </function>
-Fit.DragDrop.Draggable = function(domElm)
+Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 {
+	Fit.Validation.ExpectElementNode(domElm);
+	Fit.Validation.ExpectElementNode(domTriggerElm, true);
+
     // Private properties
 
     var elm = domElm;
+	var trgElm = (domTriggerElm ? domTriggerElm : null);
     var me = this;
 
     var onDragStart = null;
@@ -40,7 +30,7 @@ Fit.DragDrop.Draggable = function(domElm)
 
         // Mouse down
 
-        Fit.Events.AddHandler(elm, "mousedown", function(e)
+        Fit.Events.AddHandler(((trgElm !== null) ? trgElm : elm), "mousedown", function(e)
         {
             var ev = e || window.event;
 
@@ -98,31 +88,30 @@ Fit.DragDrop.Draggable = function(domElm)
             // the dropzones must be added (turned into dropzones) in the same order as they appear
             // visually.
 
-            if (Fit.Dom.HasClass(elm, "FitDragDropDropzone") === true)
+            if (Fit.Dom.HasClass(elm, "FitDragDropDropZone") === true)
             {
                 // Find draggable dropzone in dropzones collection
-                var draggableDropzone = null;
-                Fit.Array.ForEach(Fit.DragDrop.Dropzone._internal.dropzones, function(dzState)
+                var draggableDropZone = null;
+                Fit.Array.ForEach(Fit.DragDrop.DropZone._internal.dropzones, function(dzState)
                 {
-                    if (dzState.Dropzone.GetElement() === elm)
+                    if (dzState.DropZone.GetElement() === elm)
                     {
-                        draggableDropzone = dzState;
+                        draggableDropZone = dzState;
                         return false;
                     }
                 });
 
                 // Move dropzone to end of collection
-                Fit.Array.Remove(Fit.DragDrop.Dropzone._internal.dropzones, draggableDropzone);
-                Fit.Array.Add(Fit.DragDrop.Dropzone._internal.dropzones, draggableDropzone);
+                Fit.Array.Remove(Fit.DragDrop.DropZone._internal.dropzones, draggableDropZone);
+                Fit.Array.Add(Fit.DragDrop.DropZone._internal.dropzones, draggableDropZone);
             }
 
             if (state.Events.OnDragStart)
                 state.Events.OnDragStart(elm);
 
-            // NECESSARY?
-            if (ev.preventDefault)
+            /*if (ev.preventDefault)
                 ev.preventDefault();
-            ev.cancelBubble = true;
+            ev.cancelBubble = true;*/
         });
 
         // Mouse Up
@@ -141,27 +130,33 @@ Fit.DragDrop.Draggable = function(domElm)
                 var draggableState = Fit.DragDrop.Draggable._internal.active;
                 var draggable = Fit.DragDrop.Draggable._internal.active.Draggable;
 
-                var dropzoneState = Fit.DragDrop.Dropzone._internal.active
-                var dropzone = (dropzoneState !== null ? dropzoneState.Dropzone : null);
+                var dropzoneState = Fit.DragDrop.DropZone._internal.active
+                var dropzone = (dropzoneState !== null ? dropzoneState.DropZone : null);
 
                 // Handle draggable
 
                 Fit.Dom.RemoveClass(draggable.GetElement(), "FitDragDropDragging");
                 Fit.DragDrop.Draggable._internal.active = null;
 
-                if (draggableState.Events.OnDragStop)
-                    draggableState.Events.OnDragStop(draggable);
+                //if (draggableState.Events.OnDragStop)
+                //    draggableState.Events.OnDragStop(draggable);
 
                 // Handle active dropzone
 
                 if (dropzoneState !== null)
                 {
-                    Fit.Dom.RemoveClass(dropzone.GetElement(), "FitDragDropDropzoneActive");
-                    Fit.DragDrop.Dropzone._internal.active = null;
+                    Fit.Dom.RemoveClass(dropzone.GetElement(), "FitDragDropDropZoneActive");
+                    Fit.DragDrop.DropZone._internal.active = null;
 
                     if (dropzoneState.OnDrop)
                         dropzoneState.OnDrop(dropzone, draggable);
                 }
+
+				// Fire OnDragStop after OnDrop to make sure OnDragStop can act
+				// depending on whether draggable was dropped on a dropzone or not.
+
+				if (draggableState.Events.OnDragStop)
+                    draggableState.Events.OnDragStop(draggable);
 
                 // Restore OnSelectStart event
                 document.onselectstart = draggableState.OnSelectStart;
@@ -237,16 +232,16 @@ Fit.DragDrop.Draggable = function(domElm)
                 var dropZoneY = -1;
 
                 // State objects
-                var previouslyActiveDropzone = Fit.DragDrop.Dropzone._internal.active;
+                var previouslyActiveDropZone = Fit.DragDrop.DropZone._internal.active;
                 var dropzoneActive = null;
 
                 // Find active dropzone.
                 // NOTICE: If dropzones are floated on top of each other, make sure they are added to the
                 // internal dropzones collection in order of appearance to make sure the correct dropzone
                 // is turned active.
-                Fit.Array.ForEach(Fit.DragDrop.Dropzone._internal.dropzones, function(dzState)
+                Fit.Array.ForEach(Fit.DragDrop.DropZone._internal.dropzones, function(dzState)
                 {
-                    dropzone = dzState.Dropzone;
+                    dropzone = dzState.DropZone;
                     dropzoneElement = dropzone.GetElement();
 
                     pos = Fit.Dom.GetPosition(dropzoneElement, true);
@@ -254,39 +249,38 @@ Fit.DragDrop.Draggable = function(domElm)
                     dropZoneY = pos.Y;
 
                     var dropzoneFound = (dropzoneActive === null);
-                    var dropzoneDeeperThanPreviouslyFound = (dropzoneActive === null || Fit.Dom.GetDepth(dropzoneElement) > Fit.Dom.GetDepth(dropzoneActive.Dropzone.GetElement()));
+                    var dropzoneDeeperThanPreviouslyFound = (dropzoneActive === null || Fit.Dom.GetDepth(dropzoneElement) > Fit.Dom.GetDepth(dropzoneActive.DropZone.GetElement()));
                     var dropzoneCurrentlyBeingDragged = (Fit.Dom.HasClass(dropzoneElement, "FitDragDropDragging") === true);
-                    var draggableHoveringDropzone = (mouseXviewport > dropZoneX && mouseXviewport < (dropZoneX + dropzoneElement.offsetWidth) && mouseYviewport > dropZoneY && mouseYviewport < (dropZoneY + dropzoneElement.offsetHeight));
+                    var draggableHoveringDropZone = (mouseXviewport > dropZoneX && mouseXviewport < (dropZoneX + dropzoneElement.offsetWidth) && mouseYviewport > dropZoneY && mouseYviewport < (dropZoneY + dropzoneElement.offsetHeight));
 
-                    if ((dropzoneFound === false || dropzoneDeeperThanPreviouslyFound === true) && dropzoneCurrentlyBeingDragged === false && draggableHoveringDropzone === true)
+                    if ((dropzoneFound === false || dropzoneDeeperThanPreviouslyFound === true) && dropzoneCurrentlyBeingDragged === false && draggableHoveringDropZone === true)
                     {
                         dropzoneActive = dzState;
                     }
                 });
 
                 // Leave previously active dropzone if no longer active
-                if (previouslyActiveDropzone !== null && dropzoneActive !== previouslyActiveDropzone)
+                if (previouslyActiveDropZone !== null && dropzoneActive !== previouslyActiveDropZone)
                 {
-                    Fit.Dom.RemoveClass(previouslyActiveDropzone.Dropzone.GetElement(), "FitDragDropDropzoneActive");
-                    Fit.DragDrop.Dropzone._internal.active = null;
+                    Fit.Dom.RemoveClass(previouslyActiveDropZone.DropZone.GetElement(), "FitDragDropDropZoneActive");
+                    Fit.DragDrop.DropZone._internal.active = null;
 
-                    if (previouslyActiveDropzone.OnLeave)
-                        previouslyActiveDropzone.OnLeave(previouslyActiveDropzone.Dropzone);
+                    if (previouslyActiveDropZone.OnLeave)
+                        previouslyActiveDropZone.OnLeave(previouslyActiveDropZone.DropZone);
                 }
 
                 // Mark dropzone active if not already done
-                if (dropzoneActive !== null && dropzoneActive !== previouslyActiveDropzone)
+                if (dropzoneActive !== null && dropzoneActive !== previouslyActiveDropZone)
                 {
-                    Fit.Dom.AddClass(dropzoneActive.Dropzone.GetElement(), "FitDragDropDropzoneActive");
-                    Fit.DragDrop.Dropzone._internal.active = dropzoneActive;
+                    Fit.Dom.AddClass(dropzoneActive.DropZone.GetElement(), "FitDragDropDropZoneActive");
+                    Fit.DragDrop.DropZone._internal.active = dropzoneActive;
 
                     if (dropzoneActive.OnEnter)
-                        dropzoneActive.OnEnter(dropzoneActive.Dropzone);
+                        dropzoneActive.OnEnter(dropzoneActive.DropZone);
                 }
             });
         }
     }
-    init();
 
     // Public
 
@@ -300,16 +294,17 @@ Fit.DragDrop.Draggable = function(domElm)
         elm.style.top = "";
     }
 
-	/// <function container="Fit.DragDrop.Draggable" name="GetElement" access="public" returns="DOMElement">
+	/// <function container="Fit.DragDrop.Draggable" name="GetDomElement" access="public" returns="DOMElement">
 	/// 	<description> Get draggable DOM element </description>
 	/// </function>
-    this.GetElement = function()
+    this.GetDomElement = function()
     {
         return elm;
     }
 
+	this.GetElement = this.GetDomElement; // Backward compatibility
+
     // Event handling
-	// TODO: Allow multiple event handlers !!!
 
     /// <function container="Fit.DragDrop.Draggable" name="OnDragStart" access="public">
 	/// 	<description> Add event handler which gets fired when dragging starts </description>
@@ -317,6 +312,7 @@ Fit.DragDrop.Draggable = function(domElm)
 	/// </function>
 	this.OnDragStart = function(cb)
     {
+		Fit.Validation.ExpectFunction(cb);
         onDragStart = cb;
     }
 
@@ -326,6 +322,7 @@ Fit.DragDrop.Draggable = function(domElm)
 	/// </function>
     this.OnDragging = function(cb)
     {
+		Fit.Validation.ExpectFunction(cb);
         onDragging = cb;
     }
 
@@ -335,8 +332,11 @@ Fit.DragDrop.Draggable = function(domElm)
 	/// </function>
 	this.OnDragStop = function(cb)
     {
+		Fit.Validation.ExpectFunction(cb);
         onDragStop = cb;
     }
+
+	init();
 }
 Fit.DragDrop.Draggable._internal =
 {
@@ -349,19 +349,21 @@ Fit.DragDrop.Draggable._internal =
     active: null
 }
 
-// Dropzone
+// DropZone
 
-/// <function container="Fit.DragDrop.Dropzone" name="Dropzone" access="public">
-/// 	<description> Constructor - create instance of Dropzone class </description>
+/// <function container="Fit.DragDrop.DropZone" name="DropZone" access="public">
+/// 	<description> Constructor - create instance of DropZone class </description>
 /// 	<param name="domElm" type="DOMElement"> Element to turn into dropzone object </param>
 /// </function>
-Fit.DragDrop.Dropzone = function(domElm)
+Fit.DragDrop.DropZone = function(domElm)
 {
+	Fit.Validation.ExpectElementNode(domElm);
+
     var elm = domElm;
 
     var cfg =
     {
-        Dropzone: this,
+        DropZone: this,
         OnEnter: null,
         OnDrop: null,
         OnLeave: null
@@ -369,50 +371,55 @@ Fit.DragDrop.Dropzone = function(domElm)
 
     function init()
     {
-        Fit.Dom.AddClass(elm, "FitDragDropDropzone");
-        Fit.DragDrop.Dropzone._internal.dropzones.push(cfg);
+        Fit.Dom.AddClass(elm, "FitDragDropDropZone");
+        Fit.DragDrop.DropZone._internal.dropzones.push(cfg);
     }
-    init();
 
-	/// <function container="Fit.DragDrop.Dropzone" name="GetElement" access="public" returns="DOMElement">
+	/// <function container="Fit.DragDrop.DropZone" name="GetDomElement" access="public" returns="DOMElement">
 	/// 	<description> Get dropzone DOM element </description>
 	/// </function>
-    this.GetElement = function()
+    this.GetDomElement = function()
     {
         return elm;
     }
 
-	// Event handling
-	// TODO: Allow multiple event handlers !!!
+	this.GetElement = this.GetDomElement; // Backward compatibility
 
-    /// <function container="Fit.DragDrop.Dropzone" name="OnEnter" access="public">
+	// Event handling
+
+    /// <function container="Fit.DragDrop.DropZone" name="OnEnter" access="public">
 	/// 	<description> Add event handler which gets fired when draggable enters dropzone, ready to be dropped </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Dropzone is passed to function </param>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of DropZone is passed to function </param>
 	/// </function>
 	this.OnEnter = function(cb)
     {
+		Fit.Validation.ExpectFunction(cb);
         cfg.OnEnter = cb;
     }
 
-    /// <function container="Fit.DragDrop.Dropzone" name="OnDrop" access="public">
+    /// <function container="Fit.DragDrop.DropZone" name="OnDrop" access="public">
 	/// 	<description> Add event handler which gets fired when draggable is dropped on dropzone </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Dropzone and Draggable is passed to function (in that order) </param>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of DropZone and Draggable is passed to function (in that order) </param>
 	/// </function>
 	this.OnDrop = function(cb)
     {
+		Fit.Validation.ExpectFunction(cb);
         cfg.OnDrop = cb;
     }
 
-	/// <function container="Fit.DragDrop.Dropzone" name="OnLeave" access="public">
+	/// <function container="Fit.DragDrop.DropZone" name="OnLeave" access="public">
 	/// 	<description> Add event handler which gets fired when draggable leaves dropzone </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Dropzone is passed to function </param>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of DropZone is passed to function </param>
 	/// </function>
     this.OnLeave = function(cb)
     {
+		Fit.Validation.ExpectFunction(cb);
         cfg.OnLeave = cb;
     }
+
+	init();
 }
-Fit.DragDrop.Dropzone._internal =
+Fit.DragDrop.DropZone._internal =
 {
     dropzones: [],
     active: null
