@@ -537,6 +537,8 @@ Fit.Controls.FilePicker = function(ctlId)
 			}
 			else // Legacy control
 			{
+				var enforcedOnModernBrowser = (Fit.Browser.GetInfo().Name !== "MSIE" || Fit.Browser.GetInfo().Version > 8);
+
 				var picker = file.Input;
 
 				var iFrame = null;
@@ -550,8 +552,15 @@ Fit.Controls.FilePicker = function(ctlId)
 				iFrame = document.createElement("iframe");
 				iFrame.name = "iFrame" + Fit.Data.CreateGuid();
 				iFrame.style.display = "none";
-				Fit.Dom.InsertAfter(picker, iFrame);
-				iFrame.onload = function(e) // Must be registered AFTER rooting iFrame in DOM, to prevent WebKit/Chrome from firing OnLoad multiple times
+
+				if (enforcedOnModernBrowser === true)
+				{
+					// When Legacy Mode is enforced in modern browsers, the OnLoad handler MUST be registered
+					// AFTER rooting iFrame in DOM, to prevent WebKit/Chrome from firing OnLoad multiple times.
+					Fit.Dom.InsertAfter(picker, iFrame);
+				}
+
+				Fit.Events.AddHandler(iFrame, "load", function(e)
 				{
 					// Read server response
 
@@ -578,7 +587,14 @@ Fit.Controls.FilePicker = function(ctlId)
 
 					if (completed.length === filesToUpload.length)
 						fireEvent(onCompletedHandlers);
-				};
+				});
+
+				if (enforcedOnModernBrowser === false)
+				{
+					// On IE8 the OnLoad handler MUST be registered BEFORE
+					// rooting iFrame in DOM, otherwise it will not be fired.
+					Fit.Dom.InsertAfter(picker, iFrame);
+				}
 
 				// Create form used to upload current file - data is posted to hidden iFrame created above
 

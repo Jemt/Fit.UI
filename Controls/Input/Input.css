@@ -6,6 +6,7 @@ div.FitUiControlInput textarea
 	padding: 1px;
 	margin: 0px;
 	text-align: inherit;
+	font-size: inherit;
 	border: 1px solid #909090;
 	display: block; /* Remove annoying spacing above input when outline is applied (when value is invalid) */
 }

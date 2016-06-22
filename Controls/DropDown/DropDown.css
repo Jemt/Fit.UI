@@ -159,6 +159,37 @@ div.FitUiControlDropDown[data-valid="false"] div.FitUiControlDropDownPicker
 	border-top-color: red;
 }
 
+/* Drag and drop */
+
+div.FitUiControlDropDownItems > span.FitDragDropDragging input
+{
+	visibility: hidden;
+}
+
+div.FitUiControlDropDownItems > span[data-dropping]
+{
+	position: relative;
+}
+div.FitUiControlDropDownItems > span[data-dropping="left"] > span:before,
+div.FitUiControlDropDownItems > span[data-dropping="right"] > span:after
+{
+	content: "";
+    display: inline-block;
+    background: red;
+    position: absolute;
+	top: 0px;
+	bottom: 0px;
+	width: 2px;
+}
+div.FitUiControlDropDownItems > span[data-dropping="left"] > span:before
+{
+	left: -1px;
+}
+div.FitUiControlDropDownItems > span[data-dropping="right"] > span:after
+{
+	right: -1px;
+}
+
 /* PickerBase */
 
 div.FitUiControlDropDownPicker > *

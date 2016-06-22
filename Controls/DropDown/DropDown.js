@@ -1,37 +1,3 @@
-// TODO - potentiale and fairly easy improvements:
-//  - Indexed collection of selected nodes for quick retrivale and lookup
-//  - Shared event handlers rather than creating new ones for every single item (input fields + delete button)
-//  - Inputs should register an _internal.Left and _internal.Right attribute revealing position, to replace expensive Fit.Dom.GetIndex(..) = 0 or 2
-//  - Font formatting is very hardcoded, and it will not scale properly to general font size on page
-
-//{ Drag and Drop
-/*
-// Drag and drop support (quick and dirty):
-Fit.Array.ForEach(document.querySelectorAll("div.FitUiControlDropDown > div:first-child > span"), function(elm)
-{
-    var d = new Fit.DragDrop.Draggable(elm);
-    d.OnDragStop(function(dObj)
-    {
-        dObj.Reset();
-    });
-});
-Fit.Array.ForEach(document.querySelectorAll("div.FitUiControlDropDown > div:first-child > span > input"), function(elm)
-{
-    var dz = new Fit.DragDrop.Dropzone(elm);
-    dz.OnDrop(function(dzObj, dObj)
-    {
-        var dz = dzObj.GetElement();
-        var d = dObj.GetElement();
-
-        if (Fit.Dom.GetIndex(dz) === 0) // Left input
-            Fit.Dom.InsertBefore(dz.parentElement, d);
-        else // Right input
-            Fit.Dom.InsertAfter(dz.parentElement, d);
-    });
-});
-*/
-//}
-
 /// <container name="Fit.Controls.DropDown">
 /// 	Drop Down Menu control allowing for single and multi selection.
 /// 	Supports data selection using any control extending from Fit.Controls.PickerBase.
@@ -68,6 +34,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var tabOrderObserverId = -1;				// Observer (ID) responsible for updating tab flow when control becomes visible
 	var partiallyHidden = null;					// Reference to item partially hidden (only used in Single Selection Mode where word wrapping is disabled)
 	var clickHandlerId = -1;					// Event (ID) responsible for closing drop down when user clicks outside of control
+	var dropZone = null;						// Active DropZone (drag and drop support)
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -739,6 +706,17 @@ Fit.Controls.DropDown = function(ctlId)
 				});
 			}
 		}
+
+		// Drag and Drop
+
+		var drg = new Fit.DragDrop.Draggable(container, item);
+		drg.OnDragStop(onDragStop);
+		drg.OnDragging(onDragging);
+
+		var drp = new Fit.DragDrop.DropZone(container);
+		drp.OnDrop(onDrop);
+		drp.OnEnter(onDropZoneEnter);
+		drp.OnLeave(onDropZoneLeave);
 
 		// Focus input control
 
@@ -1581,6 +1559,67 @@ Fit.Controls.DropDown = function(ctlId)
 					item.nextSibling.tabIndex = 0; // Fully visible - part of tab flow
 			});
 		}
+	}
+
+	function onDragStop(draggable)
+	{
+		draggable.Reset();
+	}
+
+	function onDragging(draggable)
+	{
+		if (dropZone === null)
+			return;
+
+		var pointerPos = Fit.Events.GetPointerState().Coordinates.ViewPort;
+		var elmPos = Fit.Dom.GetPosition(dropZone.GetDomElement(), true);
+
+		if (elmPos.X + (dropZone.GetDomElement().offsetWidth / 2) < pointerPos.X) // Drop on right side
+		{
+			Fit.Dom.Data(dropZone.GetDomElement(), "dropping", "right");
+		}
+		else // Drop on left side
+		{
+			Fit.Dom.Data(dropZone.GetDomElement(), "dropping", "left");
+		}
+
+		me._internal.Repaint();
+	}
+
+	function onDrop(dropzone, draggable)
+	{
+		var fireChange = false;
+
+		if (Fit.Dom.Data(dropzone.GetDomElement(), "dropping") === "right" && dropzone.GetDomElement() !== draggable.GetDomElement().previousSibling)
+		{
+			Fit.Dom.InsertAfter(dropzone.GetDomElement(), draggable.GetDomElement());
+			fireChange = true;
+		}
+		else if (Fit.Dom.Data(dropzone.GetDomElement(), "dropping") === "left" && dropzone.GetDomElement().previousSibling !== draggable.GetDomElement())
+		{
+			Fit.Dom.InsertBefore(dropzone.GetDomElement(), draggable.GetDomElement());
+			fireChange = true;
+		}
+
+		Fit.Dom.Data(dropZone.GetDomElement(), "dropping", null);
+		dropZone = null;
+
+		me._internal.Repaint();
+
+		if (fireChange === true)
+			fireOnChange();
+	}
+
+	function onDropZoneEnter(dropzone)
+	{
+		dropZone = dropzone;
+	}
+
+	function onDropZoneLeave(dropzone)
+	{
+		Fit.Dom.Data(dropzone.GetDomElement(), "dropping", null);
+		dropZone = null;
+		me._internal.Repaint();
 	}
 
 	function decodeReserved(str)
