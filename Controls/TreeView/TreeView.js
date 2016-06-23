@@ -48,6 +48,7 @@ Fit.Controls.TreeView = function(ctlId)
 	var selectable = false;
 	var multiSelect = false;
 	var showSelectAll = false;
+	var allowDeselect = false;
 
 	var selected = createInternalCollection();
 	var selectedOrg = [];
@@ -109,7 +110,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 				// Deselect selected node if Multi Selection is not enabled
 				if (multiSelect === false && selected.length > 0)
-					executeWithNoOnChange(function() { selected[0].Selected(false) });
+					executeWithNoOnChange(function() { selected[0].Selected(false); });
 
 				// Add node to internal selection
 				Fit.Array.Add(selected, node);
@@ -443,6 +444,7 @@ Fit.Controls.TreeView = function(ctlId)
 			selectable = val;
 			multiSelect = ((multi === true) ? true : false);
 			showSelectAll = ((showSelAll === true) ? true : false);
+			allowDeselect = multi;
 
 			me._internal.Data("selectable", selectable.toString());
 			me._internal.Data("multiselect", multiSelect.toString());
@@ -459,7 +461,7 @@ Fit.Controls.TreeView = function(ctlId)
 					if (n === rootNode)
 						return; // Skip root node itself
 
-					n.Selectable(selectable, multiSelect, showSelectAll)
+					n.Selectable(selectable, multiSelect, showSelectAll);
 					n.Selected(false);
 				});
 			});
@@ -562,6 +564,26 @@ Fit.Controls.TreeView = function(ctlId)
 
 		if (changed === true)
 			me._internal.FireOnChange();
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="AllowDeselect" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether user is allowed to deselect nodes.
+	/// 		By default the user cannot deselect nodes in Single Selection Mode,
+	/// 		while this is allowed in Multi Selection Mode.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, changes behaviour to specified value </param>
+	/// </function>
+	this.AllowDeselect = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			allowDeselect = val;
+		}
+
+		return allowDeselect;
 	}
 
 	// See documentation on ControlBase
@@ -1212,6 +1234,9 @@ Fit.Controls.TreeView = function(ctlId)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
 
+		if (node.Selected() === true && allowDeselect === false)
+			return;
+
 		// TreeViewNodeInterface now takes care of deselecting an existing node if in Single Selection Mode,
 		// but prevents selection change if currently selected node is non-selectable (read only).
 		// See Select and FireSelect functions on TreeViewNodeInterface for details.
@@ -1662,7 +1687,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	{
 		if (!elmLi.parentElement)
 			return null; // Not rooted in another node yet
-		if (!elmLi.parentElement.parentElement._internal)
+		if (!elmLi.parentElement.parentElement._internal || !elmLi.parentElement.parentElement._internal.TreeView) // Notice: _internal may have been set by e.g. Fit.Events.AddHandler
 			return null; // Rooted, but not in another node - most likely rooted in TreeView UL container
 		if (elmLi.parentElement.parentElement._internal.Node.Value() === "TREEVIEW_ROOT_NODE")
 			return null; // Indicate top by returning Null when root node is reached
@@ -1939,7 +1964,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		}
 
 		// Dispose private members
-		elmLi = elmUl = cmdToggle = lblTitle = childrenIndexed = childrenArray = lastChild = selectable = chkSelect = chkSelectAll = null;
+		me = elmLi = elmUl = cmdToggle = chkSelectAll = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = null;
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="GetDomElement" access="public" returns="DOMElement">

@@ -12,6 +12,7 @@ Fit.Controls.WSContextMenu = function()
 
 	var me = this;
 	var url = null;
+	var jsonpCallback = null;
 
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
@@ -113,7 +114,7 @@ Fit.Controls.WSContextMenu = function()
 	/// 		]
 	/// 		Only Value is required. Children is a collection of items with the same format as described above.
 	/// 	</description>
-	/// 	<param name="wsUrl" type="string"> WebService URL - e.g. http://server/ws/data.asxm/GetItems </param>
+	/// 	<param name="wsUrl" type="string" default="undefined"> If defined, updates WebService URL (e.g. http://server/ws/data.asxm/GetItems) </param>
 	/// </function>
 	this.Url = function(wsUrl)
 	{
@@ -125,6 +126,25 @@ Fit.Controls.WSContextMenu = function()
 		}
 
 		return url;
+	}
+
+	/// <function container="Fit.Controls.WSContextMenu" name="JsonpCallback" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
+	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// </function>
+	this.JsonpCallback = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true || val === null)
+		{
+			jsonpCallback = val;
+		}
+
+		return jsonpCallback;
 	}
 
 	// ============================================
@@ -197,7 +217,22 @@ Fit.Controls.WSContextMenu = function()
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to get data, no WebService URL has been specified");
 
-		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.JsonRequest(url));
+		// Determine request method
+
+		var request = null;
+
+		if (jsonpCallback !== null)
+		{
+			request = new Fit.Http.JsonpRequest(url, jsonpCallback);
+		}
+		else if (url.toLowerCase().indexOf(".asmx/") === -1)
+		{
+			request = new Fit.Http.Request(url);
+		}
+		else
+		{
+			request = new Fit.Http.JsonRequest(url)
+		}
 
 		// Fire OnRequest
 
@@ -208,12 +243,10 @@ Fit.Controls.WSContextMenu = function()
 		if (fireEventHandlers(onRequestHandlers, eventArgs) === false)
 			return;
 
-		// Set request callbacks
+		// Define request callbacks
 
-		request.OnSuccess(function(req)
+		var onSuccess = function(children)
 		{
-			var children = request.GetResponseJson();
-
 			// Fire OnResponse
 
 			eventArgs.Children = ((children instanceof Array) ? children : []);
@@ -226,12 +259,41 @@ Fit.Controls.WSContextMenu = function()
 			// Fire OnPopulated
 
 			fireEventHandlers(onPopulatedHandlers, eventArgs);
-		});
+		};
 
-		request.OnFailure(function(req)
+		var onFailure = function(httpStatusCode)
 		{
-			Fit.Validation.ThrowError("Unable to load data for context menu - request failed with HTTP Status code " + request.GetHttpStatus())
-		});
+			Fit.Validation.ThrowError("Unable to load data for context menu - request failed with HTTP Status Code " + httpStatusCode)
+		};
+
+		// Register request callbacks
+
+		if (Fit.Core.InstanceOf(request, Fit.Http.JsonpRequest) === false)
+		{
+			request.OnSuccess(function(req)
+			{
+				var children = request.GetResponseJson();
+				onSuccess(children);
+			});
+
+			request.OnFailure(function(req)
+			{
+				onFailure(request.GetHttpStatus());
+			});
+		}
+		else
+		{
+			request.OnSuccess(function(req)
+			{
+				var children = req.GetResponse();
+				onSuccess(children);
+			});
+
+			request.OnTimeout(function()
+			{
+				onFailure("UNKNOWN (JSONP)");
+			});
+		}
 
 		// Invoke request
 

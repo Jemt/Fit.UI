@@ -5,6 +5,7 @@ Fit.Controls.WSListView = function(ctlId)
 
 	var me = this;
 	var url = null;
+	var jsonpCallback = null;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
 	var onAbortHandlers = [];
@@ -30,7 +31,7 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		Be aware that items are treated as a flat list, even when hierarchically structured using the Children property.
 	/// 		Items with Selectable set to False will simply be ignored (not shown) while children will still be added.
 	/// 	</description>
-	/// 	<param name="wsUrl" type="string"> WebService URL - e.g. http://server/ws/data.asxm/GetItems </param>
+	/// 	<param name="wsUrl" type="string" default="undefined"> If defined, updates WebService URL (e.g. http://server/ws/data.asxm/GetItems) </param>
 	/// </function>
 	this.Url = function(wsUrl)
 	{
@@ -42,6 +43,25 @@ Fit.Controls.WSListView = function(ctlId)
 		}
 
 		return url;
+	}
+
+	/// <function container="Fit.Controls.WSListView" name="JsonpCallback" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
+	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// </function>
+	this.JsonpCallback = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true || val === null)
+		{
+			jsonpCallback = val;
+		}
+
+		return jsonpCallback;
 	}
 
 	/// <function container="Fit.Controls.WSListView" name="Reload" access="public">
@@ -57,7 +77,7 @@ Fit.Controls.WSListView = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
-		me = url = onRequestHandlers = onResponseHandlers = onAbortHandlers = onPopulatedHandlers = null;
+		me = url = jsonpCallback = onRequestHandlers = onResponseHandlers = onAbortHandlers = onPopulatedHandlers = null;
 		base();
 	});
 
@@ -147,7 +167,22 @@ Fit.Controls.WSListView = function(ctlId)
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to get data, no WebService URL has been specified");
 
-		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.JsonRequest(url));
+		// Determine request method
+
+		var request = null;
+
+		if (jsonpCallback !== null)
+		{
+			request = new Fit.Http.JsonpRequest(url, jsonpCallback);
+		}
+		else if (url.toLowerCase().indexOf(".asmx/") === -1)
+		{
+			request = new Fit.Http.Request(url);
+		}
+		else
+		{
+			request = new Fit.Http.JsonRequest(url)
+		}
 
 		// Fire OnRequest
 
@@ -156,12 +191,10 @@ Fit.Controls.WSListView = function(ctlId)
 		if (fireEventHandlers(onRequestHandlers, eventArgs) === false)
 			return;
 
-		// Set request callbacks
+		// Define request callbacks
 
-		request.OnSuccess(function(req)
+		var onSuccess = function(data)
 		{
-			var data = request.GetResponseJson();
-
 			// Fire OnResponse
 
 			eventArgs.Items = ((data instanceof Array) ? data : []);
@@ -179,17 +212,51 @@ Fit.Controls.WSListView = function(ctlId)
 			// Fire OnPopulated
 
 			fireEventHandlers(onPopulatedHandlers, eventArgs);
-		});
+		}
 
-		request.OnFailure(function(req)
+		var onFailure = function(httpStatusCode)
 		{
-			Fit.Validation.ThrowError("Unable to get data - request failed with HTTP Status code " + request.GetHttpStatus())
-		});
+			Fit.Validation.ThrowError("Unable to get data - request failed with HTTP Status code " + httpStatusCode)
+		};
 
-		request.OnAbort(function(req)
+		var onAbort = function()
 		{
 			fireEventHandlers(onAbortHandlers, eventArgs);
-		});
+		}
+
+		// Register request callbacks
+
+		if (Fit.Core.InstanceOf(request, Fit.Http.JsonpRequest) === false)
+		{
+			request.OnSuccess(function(req)
+			{
+				var data = request.GetResponseJson();
+				onSuccess(data);
+			});
+
+			request.OnFailure(function(req)
+			{
+				onFailure(request.GetHttpStatus());
+			});
+
+			request.OnAbort(function(req)
+			{
+				onAbort();
+			});
+		}
+		else
+		{
+			request.OnSuccess(function(req)
+			{
+				var children = req.GetResponse();
+				onSuccess(children);
+			});
+
+			request.OnTimeout(function()
+			{
+				onFailure("UNKNOWN (JSONP)");
+			});
+		}
 
 		// Invoke request
 

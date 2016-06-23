@@ -24,6 +24,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 	var me = this;
 	var url = null;
+	var jsonpCallback = null;
 	var rootNode = null;
 	var preSelected = {};
 	var orgSelected = [];
@@ -360,7 +361,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		should be called to load these children when the given node is expanded.
 	/// 		Additionally Expanded:boolean can be set to initially display node as expanded.
 	/// 	</description>
-	/// 	<param name="wsUrl" type="string"> WebService URL - e.g. http://server/ws/data.asxm/GetNodes </param>
+	/// 	<param name="wsUrl" type="string" default="undefined"> If defined, updates WebService URL (e.g. http://server/ws/data.asxm/GetNodes) </param>
 	/// </function>
 	this.Url = function(wsUrl)
 	{
@@ -372,6 +373,25 @@ Fit.Controls.WSTreeView = function(ctlId)
 		}
 
 		return url;
+	}
+
+	/// <function container="Fit.Controls.WSTreeView" name="JsonpCallback" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
+	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// </function>
+	this.JsonpCallback = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true || val === null)
+		{
+			jsonpCallback = val;
+		}
+
+		return jsonpCallback;
 	}
 
 	/// <function container="Fit.Controls.WSTreeView" name="SelectAllMode" access="public" returns="Fit.Controls.WSTreeView.SelectAllMode">
@@ -410,7 +430,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		Fit.Validation.ExpectBoolean(showSelAll, true);
 
 		preSelected = {}; // Clear preselections to ensure same behaviour as TreeView.Selectable(..) which clear selections - avoid auto selection if nodes are loaded later
-		base(val, multi, showSelAll);
+		return base(val, multi, showSelAll);
 	});
 
 	// See documentation on ControlBase
@@ -655,7 +675,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	// See documentation on ControlBase
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		me = url = preSelected = orgSelected = loadDataOnInit = onRequestHandlers = onResponseHandlers = onPopulatedHandlers = baseRender = baseSelected = null;
+		me = url = jsonpCallback = preSelected = orgSelected = loadDataOnInit = onRequestHandlers = onResponseHandlers = onPopulatedHandlers = baseRender = baseSelected = null;
 
 		base();
 	});
@@ -839,7 +859,22 @@ Fit.Controls.WSTreeView = function(ctlId)
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to get data, no WebService URL has been specified");
 
-		var request = ((url.toLowerCase().indexOf(".asmx/") === -1) ? new Fit.Http.Request(url) : new Fit.Http.JsonRequest(url));
+		// Determine request method
+
+		var request = null;
+
+		if (jsonpCallback !== null)
+		{
+			request = new Fit.Http.JsonpRequest(url, jsonpCallback);
+		}
+		else if (url.toLowerCase().indexOf(".asmx/") === -1)
+		{
+			request = new Fit.Http.Request(url);
+		}
+		else
+		{
+			request = new Fit.Http.JsonRequest(url)
+		}
 
 		// Fire OnRequest
 
@@ -852,12 +887,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 		if (fireEventHandlers(onRequestHandlers, eventArgs) === false)
 			return false;
 
-		// Set request callbacks
+		// Define request callbacks
 
-		request.OnSuccess(function(req)
+		var onSuccess = function(children)
 		{
-			var children = request.GetResponseJson();
-
 			// Fire OnResponse
 
 			eventArgs.Children = ((children instanceof Array) ? children : []);
@@ -899,14 +932,14 @@ Fit.Controls.WSTreeView = function(ctlId)
 			// Fire OnPopulated
 
 			fireEventHandlers(onPopulatedHandlers, eventArgs);
-		});
+		}
 
-		request.OnFailure(function(req)
+		var onFailure = function(httpStatusCode)
 		{
-			Fit.Validation.ThrowError("Unable to get children for " + ((node !== null) ? "node '" + node.Title() + "'" : "root level") + " - request failed with HTTP Status code " + request.GetHttpStatus())
-		});
+			Fit.Validation.ThrowError("Unable to get children for " + ((node !== null) ? "node '" + node.Title() + "'" : "root level") + " - request failed with HTTP Status code " + httpStatusCode)
+		}
 
-		request.OnAbort(function(req)
+		var onAbort = function()
 		{
 			if (request._loadingIndicator !== undefined) // Loading indicator not set when requesting root nodes
 			{
@@ -920,7 +953,41 @@ Fit.Controls.WSTreeView = function(ctlId)
 			}
 
 			fireEventHandlers(onAbortHandlers, eventArgs);
-		});
+		};
+
+		// Register request callbacks
+
+		if (Fit.Core.InstanceOf(request, Fit.Http.JsonpRequest) === false)
+		{
+			request.OnSuccess(function(req)
+			{
+				var children = request.GetResponseJson();
+				onSuccess(children);
+			});
+
+			request.OnFailure(function(req)
+			{
+				onFailure(request.GetHttpStatus());
+			});
+
+			request.OnAbort(function(req)
+			{
+				onAbort();
+			});
+		}
+		else
+		{
+			request.OnSuccess(function(req)
+			{
+				var children = req.GetResponse();
+				onSuccess(children);
+			});
+
+			request.OnTimeout(function()
+			{
+				onFailure("UNKNOWN (JSONP)");
+			});
+		}
 
 		// Display loading indicator
 

@@ -85,6 +85,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		tree = new Fit.Controls.WSTreeView(ctlId + "__WSTreeView");
 		tree.Width(100, "%");
 		tree.Lines(true);
+		tree.AllowDeselect(true);
 		tree.OnRequest(function(sender, eventArgs)
 		{
 			if (fireEventHandlers(onRequestHandlers, tree, eventArgs) === false)
@@ -176,11 +177,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		HasChildren:boolean may be set to indicate that children are available server side and that WebService
 	/// 		should be called to load these children when the given node is expanded.
 	/// 	</description>
-	/// 	<param name="wsUrl" type="string"> WebService URL - e.g. http://server/ws/data.asxm/GetData </param>
+	/// 	<param name="wsUrl" type="string" default="undefined"> If defined, updates WebService URL (e.g. http://server/ws/data.asxm/GetData) </param>
 	/// </function>
 	this.Url = function(wsUrl)
 	{
-		Fit.Validation.ExpectString(wsUrl);
+		Fit.Validation.ExpectString(wsUrl, true);
 
 		if (Fit.Validation.IsSet(wsUrl) === true)
 		{
@@ -189,6 +190,26 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 
 		return list.Url();
+	}
+
+	/// <function container="Fit.Controls.WSDropDown" name="JsonpCallback" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
+	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// </function>
+	this.JsonpCallback = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true || val === null)
+		{
+			list.JsonpCallback(val);
+			tree.JsonpCallback(val);
+		}
+
+		return list.JsonpCallback();
 	}
 
 	/// <function container="Fit.Controls.WSDropDown" name="MultiSelectionMode" access="public" returns="boolean">
