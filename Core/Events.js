@@ -56,7 +56,11 @@ Fit.Events.AddHandler = function()
 
 	// Fire event function for onload event if document in window/iframe has already been loaded.
 	// Notice that no event argument is passed to function since we don't have one.
-	if (event.toLowerCase() === "load" && element.document && element.document.readyState === "complete")
+	if (event.toLowerCase() === "load" && element.nodeType === 9 && element.readyState === "complete") // Element is a Document (window.document or iframe.contentDocument)
+		eventFunction();
+	else if (event.toLowerCase() === "load" && element.contentDocument && element.contentDocument.readyState === "complete") // Element is an iFrame
+		eventFunction();
+	else if (event.toLowerCase() === "load" && element === window && Fit._internal.Events.OnReadyFired === true) // Element is the current Window instance
 		eventFunction();
 
 	return element._internal.Events.Handlers.length - 1;
@@ -267,7 +271,16 @@ Fit.Events.GetPointerState = function()
 	}
 
 	// Cloning to prevent external code from manipulating the object
-	return Fit.Core.Clone(Fit._internal.Events.Mouse);
+
+	var target = Fit._internal.Events.Mouse.Target;
+	Fit._internal.Events.Mouse.Target = null; // It is not possible to clone DOMElements with Fit.Core.Clone
+
+	var obj = Fit.Core.Clone(Fit._internal.Events.Mouse);
+
+	obj.Target = target;
+	Fit._internal.Events.Mouse.Target = target;
+
+	return obj;
 }
 
 // ==============================================
@@ -277,8 +290,9 @@ Fit.Events.GetPointerState = function()
 Fit._internal.Events = {};
 Fit._internal.Events.Browser = Fit.Browser.GetInfo();
 Fit._internal.Events.KeysDown = { Shift: false, Ctrl: false, Alt: false, Meta: false, KeyDown: -1, KeyUp: -1 };
-Fit._internal.Events.Mouse = { Buttons: { Primary: false, Secondary: false, Touch: false }, Coordinates: { ViewPort: { X: -1, Y: -1 }, Document: { X: -1, Y: -1 } } };
+Fit._internal.Events.Mouse = { Buttons: { Primary: false, Secondary: false, Touch: false }, Coordinates: { ViewPort: { X: -1, Y: -1 }, Document: { X: -1, Y: -1 } }, Target: null };
 Fit._internal.Events.OnReadyHandlers = [];
+Fit._internal.Events.OnDomReadyHandlers = [];
 
 // ==============================================
 // Keyboard tracking
@@ -342,16 +356,28 @@ Fit.Events.AddHandler(document, "mousedown", true, function(e)
 		Fit._internal.Events.Mouse.Buttons.Secondary = true;
 		Fit._internal.Events.Mouse.Buttons.Primary = false;
 	}
+
+	Fit._internal.Events.Mouse.Target = Fit.Events.GetTarget(ev);
 });
 Fit.Events.AddHandler(document, "mouseup", true, function(e)
 {
-	Fit._internal.Events.Mouse.Buttons.Primary = false;
-	Fit._internal.Events.Mouse.Buttons.Secondary = false;
+	setTimeout(function()
+	{
+		// OnContextMenu event usually fires before MouseUp, but on Firefox it fires after, so the
+		// button states are preserved a little longer to make them accessible to OnContextMenu handlers on Firefox.
+		Fit._internal.Events.Mouse.Buttons.Primary = false;
+		Fit._internal.Events.Mouse.Buttons.Secondary = false;
+
+		// OnClick event might fire after MouseUp (if mouse was not moved away from element on which
+		// MouseDown fired), so keep Target a little longer to make it accessible to OnClick handlers.
+		Fit._internal.Events.Mouse.Target = null;
+	}, 0);
 });
 Fit.Events.AddHandler(document, "mouseout", true, function(e)
 {
 	Fit._internal.Events.Mouse.Buttons.Primary = false;
 	Fit._internal.Events.Mouse.Buttons.Secondary = false;
+	Fit._internal.Events.Mouse.Target = null;
 });
 Fit.Events.AddHandler(document, "mousemove", function(e)
 {
@@ -661,4 +687,34 @@ Fit.Events.AddHandler(window, "load", function()
 	});
 
 	Fit.Array.Clear(Fit._internal.Events.OnReadyHandlers);
+});
+
+/// <function container="Fit.Events" name="OnDomReady" access="public" static="true">
+/// 	<description> Registers OnReady handler which gets fired when DOM is ready for manipulation, or if it is already ready </description>
+/// 	<param name="callback" type="function"> JavaScript function to register </param>
+/// </function>
+Fit.Events.OnDomReady = function(callback)
+{
+	Fit.Validation.ExpectFunction(callback);
+
+	if (Fit._internal.Events.OnDomReadyFired === true)
+	{
+		callback();
+	}
+	else
+	{
+		Fit._internal.Events.OnDomReadyHandlers.push(callback);
+	}
+}
+
+Fit.Events.AddHandler(document, "DOMContentLoaded", function()
+{
+	Fit._internal.Events.OnDomReadyFired = true;
+
+	Fit.Array.ForEach(Fit._internal.Events.OnDomReadyHandlers, function(handler)
+	{
+		handler();
+	});
+
+	Fit.Array.Clear(Fit._internal.Events.OnDomReadyHandlers);
 });

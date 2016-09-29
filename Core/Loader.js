@@ -32,6 +32,7 @@ Fit.Loader.LoadScript = function(src, callback)
 
 	var script = document.createElement("script");
 	script.type = "text/javascript";
+	script.charset = "UTF-8";
 
 	if (Fit.Validation.IsSet(callback) === true && (Fit.Browser.GetBrowser() !== "MSIE" || (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() >= 9)))
 	{

@@ -294,6 +294,22 @@ Fit.Date.Parse = function(strDate, format)
 	Fit.Validation.ExpectString(strDate);
 	Fit.Validation.ExpectString(format);
 
+	// Format validation
+
+	var regEx = format; // Example: D-M/Y h:m:s
+	regEx = regEx.replace(/Y{1,4}/, "\\d{4}");
+	regEx = regEx.replace(/M{1,2}/, "\\d{1,2}");
+	regEx = regEx.replace(/D{1,2}/, "\\d{1,2}");
+	regEx = regEx.replace(/h{1,2}/, "\\d{1,2}");
+	regEx = regEx.replace(/m{1,2}/, "\\d{1,2}");
+	regEx = regEx.replace(/s{1,2}/, "\\d{1,2}");
+	regEx = regEx.replace(/\//g, "\\/"); // Allow use of slash by escaping it (/ => \/)
+	regEx = "^" + regEx + "$";
+	var regExp = new RegExp(regEx);
+
+	if (regExp.test(strDate) === false)
+		throw "InvalidDateFormat - Value '" + strDate + "' does not match format '" + format + "'";
+
 	// Extract numbers from string date
 
 	var regex = /\d+/g;
@@ -366,13 +382,21 @@ Fit.Date.Parse = function(strDate, format)
 
 			part.Value = parseInt(matches[idx], 10); // Radix (10) set to prevent some implementations of ECMAScript (e.g. on IE8) to intepret the value as octal (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt)
 
+			if (part.Key === "Y" && part.Value < 1000) // In case value was specified as e.g. 0001 or 0111
+				throw "InvalidDataFormat - value '" + part.Value + "' is not valid for '" + part.Name + "'";
+			if (part.Key === "M" && (part.Value < 0 || part.Value > 12))
+				throw "InvalidDataFormat - value '" + part.Value + "' is not valid for '" + part.Name + "'";
+			if (part.Key === "D" && (part.Value < 0 || part.Value > 31))
+				throw "InvalidDataFormat - value '" + part.Value + "' is not valid for '" + part.Name + "'";
+			if (part.Key === "h" && (part.Value < 0 || part.Value > 23))
+				throw "InvalidDataFormat - value '" + part.Value + "' is not valid for '" + part.Name + "'";
+			if ((part.Key === "m" || part.Key === "s") && (part.Value < 0 || part.Value > 59))
+				throw "InvalidDataFormat - value '" + part.Value + "' is not valid for '" + part.Name + "'";
+
 			if (part.Key === "M")
 				part.Value = part.Value - 1; // Month is zero-based
 		}
 	});
-
-	if (parts.getVal("Y").toString().length !== 4)
-		throw "InvalidDateFormat - Year must be defined with four digits";
 
 	var dt = new Date(parts.getVal("Y"), parts.getVal("M"), parts.getVal("D", true), 0, 0, 0);
 

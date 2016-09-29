@@ -1,3 +1,30 @@
+(function() // Terminate script if browser is not capable of running Fit.UI
+{
+	if (!window.JSON || !window.NodeList) // JSON and NodeList are not available on IE7 and older
+	{
+		if (navigator.userAgent.indexOf("MSIE") > -1)
+			throw new Error("Browser not supported - Internet Explorer 8 or newer is required - make sure Compatibility View is not enabled");
+		else
+			throw new Error("Browser not supported");
+	}
+
+	return true;
+})();
+
+(function() // Prevent Legacy IE from choking if e.g. console.log(..) is called without developer tools open
+{
+	if (!window.console)
+		window.console = {};
+
+	var shims = [ "log", "debug", "info", "error", "warn", "trace" ];
+
+	for (var i = 0 ; i < shims.length ; i++)
+	{
+		if (!console[shims[i]])
+			console[shims[i]] = function() {};
+	}
+})();
+
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS
 /// </container>
@@ -124,7 +151,19 @@ Fit.Core.CreateOverride = function(originalFunction, newFunction)
 
 		try // Make sure we can clean up globally accessible base function in case of errors
 		{
-			result = newFunction.apply(this, arguments);
+			// The arguments variable is actually not an ordinary array
+			// (see https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments).
+			// Browsers implementing ECMAScript prior to version 5 (e.g. IE8) require apply(..) to be
+			// called with an ordinary array containing the arguments.
+			var args = [];
+
+			for (var i = 0 ; i < arguments.length ; i++)
+				args[i] = arguments[i];
+
+			if (args.length > 0)
+				result = newFunction.apply(this, args);
+			else
+				result = newFunction.apply(this);
 		}
 		catch (err)
 		{

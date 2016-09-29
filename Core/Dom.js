@@ -2,6 +2,7 @@
 /// 	DOM (Document Object Model) manipulation and helper functionality
 /// </container>
 Fit.Dom = {};
+Fit._internal.Dom = {};
 
 // ==========================================================
 // CSS
@@ -71,7 +72,10 @@ Fit.Dom.HasClass = function(elm, cls)
 /// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string">
 /// 	<description>
 /// 		Get style value applied after stylesheets have been loaded.
-/// 		An empty string may be returned if style has not been defined, or Null if style does not exist.
+/// 		An empty string or null may be returned if style has not been defined or does not exist.
+/// 		Make sure not to use shorthand properties (e.g. border-color or padding) as some browsers are
+/// 		not capable of calculating these - use the fullly qualified property name (e.g. border-left-color
+/// 		or padding-left).
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element which contains desired CSS style value </param>
 /// 	<param name="style" type="string"> CSS style property name </param>
@@ -103,7 +107,26 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 			});
 		}
 
-        res = elm.currentStyle[style];
+        res = elm.currentStyle[style]; // Might return strings rather than useful values - e.g. "3em" or "medium"
+
+		// IE Computed Style fix by Dean Edwards - http://disq.us/p/myl99x
+		// Transform values such as 2em or 4pt to actual pixel values.
+
+		if (res !== undefined && res !== null && /^\d+/.test(res) === true && res.toLowerCase().indexOf("px") === -1) // Non-pixel numeric value
+		{
+			// Save original value
+			var orgLeft = elm.style.left;
+
+			// Calculate pixel value
+			var runtimeStyle = elm.runtimeStyle.left;
+			elm.runtimeStyle.left = elm.currentStyle.left;
+			elm.style.left = ((style === "fontSize") ? "1em" : res || 0); // Throws error for a value such as "medium"
+			res = elm.style.pixelLeft + "px";
+
+			// Restore value
+			elm.style.left = orgLeft;
+			elm.runtimeStyle.left = runtimeStyle;
+		}
 	}
 
     return (res !== undefined ? res : null);
@@ -120,25 +143,23 @@ Fit.Dom.GetInnerDimensions = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
 
-	var px = function(val) { return (val ? parseInt(val) : 0); }
-
 	var width = elm.offsetWidth;
 	var height = elm.offsetHeight;
 
 	if (width !== 0) // Width is 0 if element is either not visible, or truly 0px
 	{
-		width -= px(Fit.Dom.GetComputedStyle(elm, "padding-left"));
-		width -= px(Fit.Dom.GetComputedStyle(elm, "padding-right"));
-		width -= px(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
-		width -= px(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-left"));
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-right"));
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
 	}
 
 	if (height !== 0) // Height is 0 if element is either not visible, or truly 0px
 	{
-		height -= px(Fit.Dom.GetComputedStyle(elm, "padding-top"));
-		height -= px(Fit.Dom.GetComputedStyle(elm, "padding-bottom"));
-		height -= px(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
-		height -= px(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-top"));
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-bottom"));
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
 	}
 
 	return { X: Math.floor(width), Y: Math.floor(height) };
@@ -557,6 +578,31 @@ Fit.Dom.GetConcealer = function(elm)
 	return null; // Not rooted in DOM yet
 }
 
+/// <function container="Fit.Dom" name="GetFocused" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Returns element currently focused. If no element is focused, the document body is returned.
+/// 		Null will be returned if the document has not been loaded yet.
+/// 	</description>
+/// </function>
+Fit.Dom.GetFocused = function()
+{
+	var focused = null;
+
+	try // Legacy IE is buggy (https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement)
+	{
+		focused = document.activeElement;
+
+		if (!focused.nodeType) // IE11 returns an empty object when running in an iFrame (http://fiddle.jshell.net/Jemt/dL9q6b2d/6/)
+			focused = document.body;
+	}
+	catch (err)
+	{
+		focused = document.body;
+	}
+
+	return focused;
+}
+
 /// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">
 /// 	<description> Returns first parent of specified type for a given element if found, otherwise Null </description>
 /// 	<param name="element" type="DOMNode"> Element to find parent for </param>
@@ -611,63 +657,79 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 // integers/longs, but browsers are moving to floats for smoother
 // animation and scrolling, and for more accurate positioning.
 // https://code.google.com/p/chromium/issues/detail?id=323935
-// For consistency we use Math.floor to make sure integers are
+// For consistency we use Math.round/floor to make sure integers are
 // always returned on both modern and legacy browsers.
 
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
 /// 	<description>
-/// 		Get element position.
-/// 		Object returned contains an X and Y property with the desired integer values (pixels).
+/// 		Get position for visible element.
+/// 		Object returned contains an X and Y property
+/// 		with the desired integer values (pixels).
+/// 		Null will be returned if element is not visible.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get position for </param>
 /// 	<param name="relativeToViewport" type="boolean" default="false">
-/// 		Set False to get element position relative to viewport rather than to document which may exceed the viewport
+/// 		Set True to get element position relative to viewport rather than to document which may exceed the viewport
 /// 	</param>
 /// </function>
-Fit.Dom.GetPosition = function(elm, relativeToViewport)
+Fit.Dom.GetPosition = function(elm, relativeToViewport) { return Fit._internal.Dom.GetPosition(elm, relativeToViewport); }
+Fit._internal.Dom.GetPosition = function(elm, relativeToViewport, internalKeepMargin)
 {
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectBoolean(relativeToViewport, true);
+	Fit.Validation.ExpectBoolean(internalKeepMargin, true);
 
-	// Return position within viewport
-
-	if (relativeToViewport === true)
-	{
-		var res = elm.getBoundingClientRect(); // DOMRect object with float properties
-		return { X: Math.floor(res.left), Y: Math.floor(res.top) };
-	}
-
-	// Return position within document.
-	// NOTICE: Does not substract any scrolling! Use Fit.Dom.GetScrollPosition(..)
-	// to calculate the amount of pixels a given element has been scrolled.
+	if (Fit.Dom.IsVisible(elm) === false)
+		return null;
 
 	var pos = { X: 0, Y: 0 };
 
-	while (elm)
+	// Get position relative to viewport
+	var rect = elm.getBoundingClientRect(); // Might contain floating point values
+	pos.X = rect.left;
+	pos.Y = rect.top;
+
+	// Substract margin as positioning is done where margin starts
+	if (internalKeepMargin !== true)
 	{
-		pos.X += elm.offsetLeft;
-		pos.Y += elm.offsetTop;
-		elm = elm.offsetParent;
+		pos.X -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "margin-left"));
+		pos.Y -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "margin-top"));
 	}
 
-	pos.X = Math.floor(pos.X);
-	pos.Y = Math.floor(pos.Y);
+	if (relativeToViewport === true)
+	{
+		pos.X = Math.round(pos.X);
+		pos.Y = Math.round(pos.Y);
+		return pos;
+	}
+
+	// Add scroll to get position relative to document
+	pos.X += window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+	pos.Y += window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+	pos.X = Math.round(pos.X);
+	pos.Y = Math.round(pos.Y);
 
 	return pos;
 }
 
-/// <function container="Fit.Dom" name="GetInnerPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetInnerDistance" access="public" static="true" returns="object">
 /// 	<description>
-/// 		Get element position relative to a parent or ancestor.
+/// 		Get distance from element to any given parent or ancestor.
 /// 		Object returned contains an X and Y property with the desired integer values (pixels).
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get position for </param>
 /// 	<param name="parent" type="DOMElement"> Parent or ancestor element to measure distance within </param>
 /// </function>
-Fit.Dom.GetInnerPosition = function(elm, parent)
+Fit.Dom.GetInnerDistance = function(elm, parent)
 {
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectDomElement(parent);
+
+	// Notice that the distance returned is not suitable for positioning since this
+	// is done relative to the offsetParent (positioned parent), and the code below
+	// does not take margin and borders into account which affects positioning.
+	// Use GetRelativePosition(..) instead if actual position coordinates are needed.
 
 	var x = elm.offsetLeft;
 	var y = elm.offsetTop;
@@ -678,10 +740,75 @@ Fit.Dom.GetInnerPosition = function(elm, parent)
 		y += elm.offsetTop;
 	}
 
-	return { X: Math.floor(x), Y: Math.floor(y) };
+	return { X: Math.round(x), Y: Math.round(y) };
 }
 
-/// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetRelativePosition" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Get element position relative to a positioned parent or ancestor (offsetParent).
+/// 		Coordinates returned are relative to document if no positioned parent or ancestor is found.
+/// 		For an element with position:fixed coordinates relative to the document is returned.
+/// 		Object returned contains an X and Y property with the desired integer values (pixels).
+/// 		Notice that Null is returned in case element is not rooted yet (added to DOM) or invisible.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get position for </param>
+/// </function>
+Fit.Dom.GetRelativePosition = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	if (Fit.Dom.GetComputedStyle(elm, "position") === "fixed")
+	{
+		return Fit.Dom.GetPosition(elm); // Page scroll and element margin has already been added and substracted
+	}
+
+	// Make sure offsetParent is available, which will not be the cause if element is not
+	// rooted, hidden using display:none, or has position:fixed (the latter is handled above).
+	if (Fit.Dom.IsVisible(elm) === false)
+		return null;
+
+	var pos = Fit.Dom.GetPosition(elm); // Page scroll and element margin has already been added and substracted
+
+	// Get actual offsetParent.
+	// For an element without a positioned parent, the offsetParent
+	// is most often the body element, but for elements in e.g. a table,
+	// the immediate offsetParent is the td element, and the td's offsetParent
+	// is the table element. So we need to walk up the hierarchy until
+	// we either find a positioned parent or reach the body element.
+	// https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetParent
+
+	var offsetParent = elm.offsetParent;
+	while (offsetParent !== null && Fit.Dom.GetComputedStyle(offsetParent, "position") === "static" /*&& offsetParent !== document.body && offsetParent !== document.documentElement*/)
+	{
+		offsetParent = offsetParent.offsetParent;
+	}
+	offsetParent = offsetParent || document.documentElement;
+
+	if (offsetParent !== document.documentElement)
+	{
+		var offsetParentPos = Fit._internal.Dom.GetPosition(offsetParent, false, true);
+
+		if ((Fit.Browser.GetInfo().Name === "Firefox" && offsetParent.tagName === "TABLE")
+			|| (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version >= 10 && offsetParent.tagName === "TABLE")
+			|| (Fit.Browser.GetInfo().Name === "Edge" && offsetParent.tagName === "TABLE"))
+		{
+			pos.X = pos.X - offsetParentPos.X;
+			pos.Y = pos.Y - offsetParentPos.Y;
+		}
+		else
+		{
+			pos.X = pos.X - (offsetParentPos.X + Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(offsetParent, "border-left-width")));
+			pos.Y = pos.Y - (offsetParentPos.Y + Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(offsetParent, "border-top-width")));
+		}
+
+		//pos.X = pos.X - (offsetParent.offsetLeft + Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(offsetParent, "border-left-width")));
+		//pos.Y = pos.Y - (offsetParent.offsetTop + Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(offsetParent, "border-top-width")));
+	}
+
+	return pos;
+}
+
+/// <function container="Fit.Dom" name="GetScrollPosition" access="public" static="true" returns="object">
 /// 	<description>
 /// 		Get number of pixels specified element's container(s)
 /// 		have been scrolled. This gives us the total scroll value
@@ -722,9 +849,7 @@ Fit.Dom.GetScrollPosition = function(elm)
 
 // Internal members
 
-Fit._internal.Dom = {};
-
-Fit._internal.Dom.IsOffsetParentSupported = function()
+Fit._internal.Dom.IsOffsetParentSupported = function() // Returns True if offsetParent can be used to determine whether an element is visible or not
 {
 	if (Fit._internal.Dom.OffsetParentSupported === undefined)
 	{
@@ -737,7 +862,19 @@ Fit._internal.Dom.IsOffsetParentSupported = function()
 		Fit.Dom.Add(parent, child);
 
 		Fit._internal.Dom.OffsetParentSupported = (child.offsetParent === null); // If supported, offsetParent should return Null (will return <body> on e.g. IE9-10)
+
+		Fit.Dom.Remove(parent);
 	}
 
 	return Fit._internal.Dom.OffsetParentSupported;
+}
+
+Fit._internal.Dom.GetPx = function(val)
+{
+	val = (val ? parseInt(val) : 0);
+
+	if (isNaN(val) === true) // E.g. if val was "auto"
+		val = 0;
+
+	return val;
 }

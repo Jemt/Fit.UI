@@ -34,6 +34,9 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
         {
             var ev = e || window.event;
 
+			if (Fit.DragDrop.Draggable._internal.active !== null)
+				return; // Skip - current element is a draggable parent to which event propagated
+
             Fit.Dom.AddClass(elm, "FitDragDropDragging");
 
             // Mouse position in viewport
@@ -243,6 +246,9 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
                 {
                     dropzone = dzState.DropZone;
                     dropzoneElement = dropzone.GetElement();
+
+					if (Fit.Dom.IsVisible(dropzoneElement) === false)
+						return; // Skip - dropzone not currently visible
 
                     pos = Fit.Dom.GetPosition(dropzoneElement, true);
                     dropZoneX = pos.X;

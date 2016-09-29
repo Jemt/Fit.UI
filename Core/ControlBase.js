@@ -102,6 +102,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 		me._internal.Data("focused", "false");
 		me._internal.Data("valid", "true");
+		me._internal.Data("dirty", "false");
 
 		// Add hidden inputs which are automatically populated with
 		// control value and state information when control is updated.
@@ -126,6 +127,8 @@ Fit.Controls.ControlBase = function(controlId)
 			txtValue.value = sender.Value().toString();
 			txtDirty.value = ((sender.IsDirty() === true) ? "1" : "0");
 			txtValid.value = ((sender.IsValid() === true) ? "1" : "0");
+
+			me._internal.Data("dirty", ((sender.IsDirty() === true) ? "true" : "false"));
 
 			if (blockAutoPostBack === false && me.AutoPostBack() === true && document.forms.length > 0)
 			{

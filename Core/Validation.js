@@ -439,8 +439,26 @@ Fit._internal.Validation.IsCollectionType = function(val) // Used by Fit.Validat
 	if (!window.FileList)
 		window.FileList = function() {};
 
-	if ((val instanceof NodeList) === false && (val instanceof StaticNodeList) === false && (val instanceof FileList) === false && (val instanceof HTMLCollection) === false && (val instanceof Array) === false)
+	if (val === null || val === undefined)
 		return false;
+	else if (val instanceof Array)
+		return true;
+	else if (val instanceof NodeList)
+		return true;
+	else if (val instanceof StaticNodeList)
+		return true;
+	else if (val instanceof HTMLCollection)
+		return true;
+	else if (val instanceof FileList)
+		return true;
+	else if (val.callee && val.length !== null && val.length !== undefined) // Arguments array - https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
+		return true;
 
-	return true;
+	return false;
+
+	/*if (val === null || val === undefined)
+		return false;
+	if ((val instanceof NodeList) === false && (val instanceof StaticNodeList) === false && (val instanceof FileList) === false && (val instanceof HTMLCollection) === false && (val instanceof Array) === false && (!val.callee && (val.length === undefined || val.length === null)))
+		return false;
+	return true;*/
 }

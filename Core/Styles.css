@@ -20,18 +20,52 @@
 }
 .FitUiControl[data-valid="false"][data-errormessage]:hover:after
 {
+	/* Legacy IE */
+
 	content: attr(data-errormessage);
-	box-shadow: 0px 0px 5px 0px #797979;
-	border-radius: 2px;
+	border: 1px solid #333333;
+	border-radius: 3px;
 	background-color: #FEFFDD;
-	padding: 0.75em;
+	padding: 0.65em;
+	font-size: 0.9em;
 	white-space: pre-line;
 	position: absolute;
-	margin-top: 0.2em;
+	margin-top: 1px;
 	z-index: 999;
 
 	/* Fix if control is aligned to the right */
-	left: 0px;
+	text-align: left;
+}
+.FitUiControl[data-valid="false"][data-errormessage]:not(#LegacyIE):hover:after
+{
+	/* Undo above on modern browsers */
+
+	content: "";
+	display: none;
+}
+.FitUiControl[data-valid="false"][data-errormessage][data-focused="false"]:not(#LegacyIE):hover:before,
+.FitUiControl[data-valid="false"][data-errormessage][data-focused="true"]:not(#LegacyIE):before
+{
+	/* Modern browsers - placed above control (requires support for transform) */
+
+	content: attr(data-errormessage);
+	border-radius: 3px;
+	background-color: #FEFFDD;
+	box-shadow: 0px 0px 6px 0px #A1A1A1;
+	padding: 0.65em;
+	font-size: 0.9em;
+	white-space: pre-line;
+	position: absolute;
+	box-sizing: border-box;
+	-webkit-transform: translateY(-100%);
+	-moz-transform: translateY(-100%);
+	-ms-transform: translateY(-100%);
+	-o-transform: translateY(-100%);
+	transform: translateY(-100%);
+	margin-top: -3px;
+	z-index: 999;
+
+	/* Fix if control is aligned to the right */
 	text-align: left;
 }
 
