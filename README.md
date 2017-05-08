@@ -65,3 +65,8 @@ http://fiddle.jshell.net/zc99y8u1/4/embedded/result/light/
 # API Documentation
 
 Fit.UI has been thoroughly documented: http://codemagic.dk/FlowIT/GUI/SimpleDocs.html
+
+# Partners
+
+<a href="https://browserstack.com"><img src="https://sitemagic.org/files/images/partners/browserstack-smaller.png"></a><br>
+Quality Assurance and Testing using BrowserStack.
