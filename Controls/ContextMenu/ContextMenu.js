@@ -25,6 +25,8 @@ Fit.Controls.ContextMenu = function()
 
 	function init()
 	{
+		Fit._internal.Core.EnsureStyles();
+		
 		Fit.Dom.Data(tree.GetDomElement(), "keynav", "false");				// True when navigating using keyboard
 		Fit.Dom.Data(tree.GetDomElement(), "sticky", "false");				// True when user toggles node
 		Fit.Dom.Data(tree.GetDomElement(), "viewportcollision", "false");	// True when context menu collides with viewport boundaries
@@ -150,7 +152,9 @@ Fit.Controls.ContextMenu = function()
 
 				if (links.length === 1 && Fit.Dom.GetParentOfType(links[0], "li") === node.GetDomElement())
 				{
-					links[0].click();
+					if (links[0] !== Fit.Events.GetPointerState().Target)
+						links[0].click();
+
 					me.Hide();
 				}
 				else
@@ -336,6 +340,7 @@ Fit.Controls.ContextMenu = function()
 
 	/// <function container="Fit.Controls.ContextMenu" name="DetectBoundaries" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether boundary/collision detection is enabled or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables collision detection (default), False disables it </param>
 	/// </function>
 	this.DetectBoundaries = function(val)
 	{
@@ -469,7 +474,7 @@ Fit.Controls.ContextMenu = function()
 
 		if (Fit.Validation.IsSet(value) === true)
 		{
-			prevFocused = document.activeElement;
+			prevFocused = Fit.Dom.GetFocused();
 		}
 
 		return tree.Focused(value);
@@ -704,8 +709,8 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return node.Selectable(val);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="GetDomElement" access="public" returns="DOMElement">
-	/// 	<description> Get DOMElement representing context menu </description>
+	/// <function container="Fit.Controls.ContextMenu.Item" name="GetDomElement" access="public" returns="DOMElement">
+	/// 	<description> Get DOMElement representing context menu item </description>
 	/// </function>
 	this.GetDomElement = function()
 	{

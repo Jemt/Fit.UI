@@ -159,7 +159,7 @@ Fit.Controls.WSContextMenu = function()
 	/// 		Sender (Fit.Controls.WSContextMenu) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSContextMenu instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -177,7 +177,7 @@ Fit.Controls.WSContextMenu = function()
 	/// 		Sender (Fit.Controls.WSContextMenu) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSContextMenu instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Children: JSON items received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -195,7 +195,7 @@ Fit.Controls.WSContextMenu = function()
 	/// 		Sender (Fit.Controls.WSContextMenu) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSContextMenu instance
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Children: JSON items received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -225,10 +225,10 @@ Fit.Controls.WSContextMenu = function()
 		{
 			request = new Fit.Http.JsonpRequest(url, jsonpCallback);
 		}
-		else if (url.toLowerCase().indexOf(".asmx/") === -1)
+		/*else if (url.toLowerCase().indexOf(".asmx/") === -1)
 		{
 			request = new Fit.Http.Request(url);
-		}
+		}*/
 		else
 		{
 			request = new Fit.Http.JsonRequest(url)

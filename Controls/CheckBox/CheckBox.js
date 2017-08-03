@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.CheckBox">
+/// <container name="Fit.Controls.CheckBox" extends="Fit.Controls.ControlBase">
 /// 	Simple CheckBox control.
 /// 	Extending from Fit.Controls.ControlBase.
 /// </container>
@@ -83,7 +83,7 @@ Fit.Controls.CheckBox = function(ctlId)
 		}
 
 		// Fit.Dom.Contained(..) portion added to support IE which incorrectly assigns focus to contained elements, even though tabIndex is not set
-		return (document.activeElement === me.GetDomElement() || (document.activeElement && Fit.Dom.Contained(me.GetDomElement(), document.activeElement)));
+		return (Fit.Dom.GetFocused() === me.GetDomElement() || (Fit.Dom.GetFocused() && Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused())));
 	}
 
 	// See documentation on ControlBase
@@ -237,13 +237,13 @@ Fit.Controls.CheckBox = function(ctlId)
 			// Unfortunately this results in focus being lost if
 			// control had focus, so we have to restore it as well.
 
-			var focused = document.activeElement;
+			var focused = Fit.Dom.GetFocused();
 
 			var elm = document.createElement("");
 			Fit.Dom.Replace(checkbox, elm);
 			Fit.Dom.Replace(elm, checkbox);
 
-			if (document.activeElement !== focused)
+			if (Fit.Dom.GetFocused() !== focused)
 				focused.focus();
 		}
 	}

@@ -5,7 +5,7 @@ div.FitUiControlContextMenu.FitUiControlTreeView
 	color: #333333;
 	padding: 10px;
 	position: absolute; /* top/left set using JS */
-	z-index: 999999;
+	z-index: 1000;
 	cursor: pointer; /* Prevent arrow being shown between items (padding) */
 }
 
@@ -61,7 +61,7 @@ div.FitUiControlContextMenu.FitUiControlTreeView
 	{
 		display: inline-block;
 		position: absolute;
-		z-index: 999999;
+		z-index: 1000;
 
 		border: 1px solid #A9A9A9;
 		background-color: #FFFFFF;

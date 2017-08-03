@@ -39,6 +39,8 @@ Fit.Controls.Button = function(controlId)
 
 	function init()
 	{
+		Fit._internal.Core.EnsureStyles();
+
 		element = document.createElement("div");
 
 		if (id !== null)
@@ -180,7 +182,7 @@ Fit.Controls.Button = function(controlId)
 		}
 
 		// Fit.Dom.Contained(..) portion added to support IE which incorrectly assigns focus to contained elements, even though tabIndex is not set
-		return (document.activeElement === element || (document.activeElement && Fit.Dom.Contained(element, document.activeElement)));
+		return (Fit.Dom.GetFocused() === element || (Fit.Dom.GetFocused() && Fit.Dom.Contained(element, Fit.Dom.GetFocused())));
 	}
 
 	/// <function container="Fit.Controls.Button" name="Width" access="public" returns="object">

@@ -20,6 +20,8 @@ Fit.Controls.Dialog = function()
 
 	function init()
 	{
+		Fit._internal.Core.EnsureStyles();
+		
 		dialog = document.createElement("div");
 		Fit.Dom.AddClass(dialog, "FitUiControl");
 		Fit.Dom.AddClass(dialog, "FitUiControlDialog");
@@ -42,7 +44,7 @@ Fit.Controls.Dialog = function()
 
 			if (modal === true && buttons.children.length > 0 && ev.keyCode === 9) // Tab key
 			{
-				var buttonFocused = document.activeElement;
+				var buttonFocused = Fit.Dom.GetFocused();
 
 				if (ev.shiftKey === false)
 				{
@@ -70,13 +72,13 @@ Fit.Controls.Dialog = function()
 			if (me === null)
 				return; // Dialog was disposed when a button was clicked
 
-			if (buttons.children.length > 0 && (document.activeElement === null || Fit.Dom.Contained(dialog, document.activeElement) === false))
+			if (buttons.children.length > 0 && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
 				buttons.children[0].focus();
 		});
 
 		Fit.Events.AddHandler(layer, "click", function(e)
 		{
-			if (buttons.children.length > 0 && (document.activeElement === null || Fit.Dom.Contained(dialog, document.activeElement) === false))
+			if (buttons.children.length > 0 && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
 				buttons.children[0].focus();
 		});
 	}

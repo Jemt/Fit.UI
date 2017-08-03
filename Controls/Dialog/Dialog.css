@@ -13,7 +13,7 @@ div.FitUiControlDialog
 	left: 0px;
 	right: 0px;
 	margin: 0 auto;
-	z-index: 99999;
+	z-index: 1200;
 }
 div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below */
 {
@@ -76,7 +76,7 @@ div.FitUiControlDialogModalLayer
 	bottom: 0px;
 	left: 0px;
 	right: 0px;
-	z-index: 9999;
+	z-index: 1100;
 
 	background-color: #333333;
 	opacity: 0.5;
