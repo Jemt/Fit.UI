@@ -30,6 +30,11 @@ Fit.Loader.LoadScript = function(src, callback)
 	Fit.Validation.ExpectStringValue(src);
 	Fit.Validation.ExpectFunction(callback, true);
 
+	// Scripts injected always load as if they had the async attribute
+	// set, so we will not cause the parser to stall using this approach.
+	// It is completely non-blocking while the script loads.
+	// https://developer.mozilla.org/en/docs/Web/HTML/Element/script
+
 	var script = document.createElement("script");
 	script.type = "text/javascript";
 	script.charset = "UTF-8";
@@ -53,6 +58,12 @@ Fit.Loader.LoadScript = function(src, callback)
 	}
 
 	script.src = src;
+
+	// NOTICE: Scripts loaded this way will NOT be able to reliably resolve their own
+	// script block using something like this: document.scripts[document.scripts.length - 1].
+	// The reason is of couse that scripts are loaded async., and multiple script blocks
+	// may have been defined after LoadScript(..) was initially invoked.
+
 	document.getElementsByTagName("head")[0].appendChild(script);
 }
 

@@ -1,3 +1,26 @@
+/*
+
+Stacking context, Z-index:
+
+ - Error indicator			: 500
+ - Calendar					: 1000
+ - Context menu				: 1000
+ - Drop down				: 1000
+ - Dialog					: 1200
+   - Modal BG layer			: 1100
+ - Dragging					: 99999
+
+*/
+
+.FitUiStyleCheck
+{
+	position: fixed;
+	top: -100px;
+	left: -100px;
+	width: 20px;
+	height: 20px;
+}
+
 /* ControlBase */
 
 .FitUiControl
@@ -11,6 +34,11 @@
 .FitUiControl, .FitUiControl * /* A bit aggressive, but makes sure sizing is done properly */
 {
 	box-sizing: border-box;
+}
+
+.FitUiControl input:-ms-input-placeholder
+{
+	color: silver; /* Make it possible to distinguish placeholder values from actual text values in IE */
 }
 
 /* Validation error (value validation) */
@@ -31,7 +59,7 @@
 	white-space: pre-line;
 	position: absolute;
 	margin-top: 1px;
-	z-index: 999;
+	z-index: 500;
 
 	/* Fix if control is aligned to the right */
 	text-align: left;
@@ -63,7 +91,7 @@
 	-o-transform: translateY(-100%);
 	transform: translateY(-100%);
 	margin-top: -3px;
-	z-index: 999;
+	z-index: 500;
 
 	/* Fix if control is aligned to the right */
 	text-align: left;

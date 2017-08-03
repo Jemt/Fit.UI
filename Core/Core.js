@@ -1,4 +1,4 @@
-(function() // Terminate script if browser is not capable of running Fit.UI
+;(function() // Terminate script if browser is not capable of running Fit.UI
 {
 	if (!window.JSON || !window.NodeList) // JSON and NodeList are not available on IE7 and older
 	{
@@ -11,7 +11,7 @@
 	return true;
 })();
 
-(function() // Prevent Legacy IE from choking if e.g. console.log(..) is called without developer tools open
+;(function() // Prevent Legacy IE from choking if e.g. console.log(..) is called without developer tools open
 {
 	if (!window.console)
 		window.console = {};
@@ -25,10 +25,11 @@
 	}
 })();
 
+
 /// <container name="Fit.Core">
 /// 	Core features extending the capabilities of native JS
 /// </container>
-Fit = {};
+var Fit = {};
 Fit.Core = {};
 
 /// <function container="Fit.Core" name="Extend" access="public" static="true">
@@ -390,17 +391,45 @@ Fit.Core.Clone = function(obj)
 
 // INTERNAL
 
-Fit._internal = {};
+Fit._internal = { Core: {} };
 
-(function()
+Fit._internal.Core.EnsureStyles = function()
+{
+	if (Fit._internal.Core.StylesEnsured === true)
+		return;
+
+	Fit._internal.Core.StylesEnsured = true;
+
+	var elm = Fit.Dom.CreateElement("<div class='FitUiStyleCheck'></div>");
+	Fit.Dom.Add(document.body, elm);
+
+	if (Fit.Dom.GetComputedStyle(elm, "width") !== "20px")
+	{
+		Fit.Browser.Log("Lazy loading Fit.UI stylesheet. It is recommended to add a stylesheet reference to Fit.UI.min.css to prevent temporarily unstyled content.");
+		Fit.Loader.LoadStyleSheet(Fit.GetUrl() + "/Fit.UI.min.css");
+	}
+
+	Fit.Dom.Remove(elm);
+}
+
+;(function()
 {
 	// Find Base URL - e.g. http://server.com/libs/fitui
+
 	var src = document.scripts[document.scripts.length - 1].src;
+
+	if (!src)
+	{
+		// Fit.UI was loaded dynamically as a module or bundled with e.g. WebPack.
+		src = location.href;
+	}
+
 	Fit._internal.BaseUrl = src.substring(0, src.lastIndexOf("/"));
 
-	// Calculate Base Path - e.g. /libs/fitui
+	// Calculate Base Path - e.g. / (unlikely scenario having Fit.UI located at the root though) or /libs/fitui
+
 	var path = Fit._internal.BaseUrl.replace("http://", "").replace("https://", "");
-	Fit._internal.BasePath = path.substring(path.indexOf("/"));
+	Fit._internal.BasePath = ((path.indexOf("/") !== -1) ? path.substring(path.indexOf("/")) : "/");
 })();
 
 /// <function container="Fit" name="GetUrl" access="public" static="true" returns="string">
@@ -408,6 +437,9 @@ Fit._internal = {};
 /// </function>
 Fit.GetUrl = function()
 {
+	if (Fit._internal.BaseUrlOverride !== undefined)
+		return Fit._internal.BaseUrlOverride;
+
 	return Fit._internal.BaseUrl;
 }
 
@@ -416,5 +448,58 @@ Fit.GetUrl = function()
 /// </function>
 Fit.GetPath = function()
 {
+	if (Fit._internal.BasePathOverride !== undefined)
+		return Fit._internal.BasePathOverride;
+
 	return Fit._internal.BasePath;
+}
+
+/// <function container="Fit" name="SetPath" access="public" static="true">
+/// 	<description>
+/// 		Set path to Fit.UI on server - e.g. libs/fitui.
+/// 		This may be necessary if Fit.UI is loaded dynamically
+/// 		using RequireJS or bundled using e.g. WebPack.
+/// 		Changing the path affects the return value of both
+/// 		GetUrl() and GetPath(), and from where Fit.UI will
+/// 		load resources dynamically.
+/// 	</description>
+/// 	<param name="basePath" type="string"> Absolute or relative path to folder containing Fit.UI </param>
+/// </function>
+Fit.SetPath = function(basePath)
+{
+	Fit.Validation.ExpectStringValue(basePath);
+
+	// Remove trailing slash if found
+	if (basePath !== "/" && basePath.lastIndexOf("/") === basePath.length - 1)
+	{
+		basePath = basePath.substring(0, basePath.length - 1);
+	}
+
+	if (basePath.indexOf("/") === 0) // Absolute path
+	{
+		// location.origin not supported before IE11, and it's even buggy on Windows 10 - https://developer.mozilla.org/en-US/docs/Web/API/Window/location
+		var origin = location.href.substring(0, location.href.length - location.pathname.length);
+
+		if (basePath === "/") // Root (unlikely scenario having Fit.UI located at the root though)
+		{
+			// Both GetPath() and GetUrl() return values without trailing slashes.
+			// E.g. libs/fitui and http://host/libs/fitui.
+			// However, when installed to the root, this is indicated by a slash returned
+			// from GetPath() while GetUrl() keeps returning a URL without a trailing slash.
+			// E.g. / and http://host.
+
+			Fit._internal.BasePathOverride = "/";	// /
+			Fit._internal.BaseUrlOverride = origin;	// http://host
+		}
+		else
+		{
+			Fit._internal.BasePathOverride = basePath;			// /libs/fitui
+			Fit._internal.BaseUrlOverride = origin + basePath;	// /http://host/libs/fitui
+		}
+	}
+	else // Relative
+	{
+		Fit._internal.BasePathOverride = ((Fit._internal.BasePath !== "/") ? Fit._internal.BasePath : "") + "/" + basePath;
+		Fit._internal.BaseUrlOverride = Fit._internal.BaseUrl + "/" + basePath;
+	}
 }

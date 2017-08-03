@@ -76,6 +76,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var height = { Value: -1, Unit: "px" };
 	var scope = null;
 	var required = false;
+	var orgDirtyFunction = null;
 	var validationExpr = null;
 	var validationError = null;
 	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation, 2 = Callback validation
@@ -95,6 +96,8 @@ Fit.Controls.ControlBase = function(controlId)
 
 	function init()
 	{
+		Fit._internal.Core.EnsureStyles();
+
 		container = document.createElement("div");
 		container.id = id;
 		container.style.width = width.Value + width.Unit;
@@ -124,11 +127,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 		me.OnChange(function(sender)
 		{
-			txtValue.value = sender.Value().toString();
-			txtDirty.value = ((sender.IsDirty() === true) ? "1" : "0");
-			txtValid.value = ((sender.IsValid() === true) ? "1" : "0");
-
-			me._internal.Data("dirty", ((sender.IsDirty() === true) ? "true" : "false"));
+			updateInternalState();
 
 			if (blockAutoPostBack === false && me.AutoPostBack() === true && document.forms.length > 0)
 			{
@@ -330,7 +329,10 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Scope" access="public" returns="string">
-	/// 	<description> Get/set scope to which control belongs - this is used to validate multiple controls at once using Fit.Controls.ValidateAll(scope) </description>
+	/// 	<description>
+	/// 		Get/set scope to which control belongs - this is used to validate multiple
+	/// 		controls at once using Fit.Controls.ValidateAll(scope) or Fit.Controls.DirtyCheckAll(scope).
+	/// 	</description>
 	/// 	<param name="val" type="string" default="undefined"> If defined, control scope is updated </param>
 	/// </function>
 	this.Scope = function(val)
@@ -346,6 +348,37 @@ Fit.Controls.ControlBase = function(controlId)
 		}
 
 		return scope;
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="AlwaysDirty" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether control is always considered dirty. This
+	/// 		comes in handy when programmatically changing a value of a control on behalf
+	/// 		of the user. Some applications may choose to only save values from dirty controls.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, Always Dirty is enabled/disabled </param>
+	/// </function>
+	this.AlwaysDirty = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && orgDirtyFunction === null)
+			{
+				orgDirtyFunction = this.IsDirty;
+				this.IsDirty = function() { return true; };
+				updateInternalState()
+			}
+			else if (val === false && orgDirtyFunction !== null)
+			{
+				this.IsDirty = orgDirtyFunction;
+				orgDirtyFunction = null;
+				updateInternalState()
+			}
+		}
+
+		return (orgDirtyFunction !== null);
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Render" access="public">
@@ -550,6 +583,15 @@ Fit.Controls.ControlBase = function(controlId)
 		}, 0);
 	}
 
+	function updateInternalState()
+	{
+		txtValue.value = me.Value().toString(); // TBD: Why .toString() ? It always returns a string!
+		txtDirty.value = ((me.IsDirty() === true) ? "1" : "0");
+		txtValid.value = ((me.IsValid() === true) ? "1" : "0");
+
+		me._internal.Data("dirty", ((me.IsDirty() === true) ? "true" : "false"));
+	}
+
 	// Private members (must be public in order to be accessible to controls extending from ControlBase)
 
 	this._internal = (this._internal ? this._internal : {});
@@ -696,7 +738,7 @@ Fit.Controls.ControlBase = function(controlId)
 // Public static
 // ============================================
 
-/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="Fit.Controls.ControlBase">
+/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="object">
 /// 	<description> Get control by unique Control ID - returns Null if not found </description>
 /// 	<param name="id" type="string"> Unique Control ID </param>
 /// </function>
@@ -711,7 +753,7 @@ Fit.Controls.Find = function(id)
 /// 		Validate all controls - either all controls on page, or within specified scope.
 /// 		Returns True if all controls contain valid values, otherwise False.
 /// 	</description>
-/// 	<param name="id" type="scope" default="undefined">
+/// 	<param name="scope" type="string" default="undefined">
 /// 		If specified, validate controls only within this scope.
 /// 		See Fit.Controls.ControlBase.Scope(..)
 /// 		for details on configurering scoped validation.
@@ -737,6 +779,43 @@ Fit.Controls.ValidateAll = function(scope)
 
 		if (control.IsValid() === false)
 			result = false;
+	});
+
+	return result;
+}
+
+/// <function container="Fit.Controls" name="DirtyCheckAll" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Check dirty state for all controls - either all controls on page, or within specified scope.
+/// 		Returns True if one or more controls are dirty, otherwise False.
+/// 	</description>
+/// 	<param name="scope" type="string" default="undefined">
+/// 		If specified, dirty check controls only within this scope.
+/// 		See Fit.Controls.ControlBase.Scope(..)
+/// 		for details on configurering scoped validation.
+/// 	</param>
+/// </function>
+Fit.Controls.DirtyCheckAll = function(scope)
+{
+	Fit.Validation.ExpectStringValue(scope, true);
+
+	var result = false;
+
+	Fit.Array.ForEach(Fit._internal.ControlBase.Controls, function(controlId)
+	{
+		var control = Fit._internal.ControlBase.Controls[controlId];
+
+		if (Fit.Core.InstanceOf(control, Fit.Controls.ControlBase) === false)
+			return;
+
+		if (Fit.Validation.IsSet(scope) === true && control.Scope() !== scope)
+			return;
+
+		if (control.IsDirty() === true)
+		{
+			result = true;
+			return false; // Break loop
+		}
 	});
 
 	return result;

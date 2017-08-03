@@ -124,17 +124,20 @@ Fit.Browser.GetVersion = function()
 
 /// <function container="Fit.Browser" name="GetQueryString" access="public" static="true" returns="object">
 /// 	<description>
-/// 		Returns query string object contain the following properties:
+/// 		Returns query string object containing the following properties:
 /// 		 - Url:string (Full URL)
 /// 		 - Parameters:object (associative object array with URL parameters as keys)
 /// 		 - Anchor:string (anchor if set, otherwise Null)
 /// 	</description>
+/// 	<param name="alternativeUrl" type="string" default="undefined"> Alternative URL to parse </param>
 /// </function>
-Fit.Browser.GetQueryString = function()
+Fit.Browser.GetQueryString = function(alternativeUrl)
 {
+	Fit.Validation.ExpectString(alternativeUrl, true);
+
 	var qs = { Url: null, Parameters: {}, Anchor: null };
 
-	var url = location.href;
+	var url = ((alternativeUrl !== undefined) ? alternativeUrl : location.href);
 	var params = ((url.indexOf("?") > -1) ? url.split("?")[1] : "");
 	var anchor = null;
 
@@ -147,7 +150,17 @@ Fit.Browser.GetQueryString = function()
 	Fit.Array.ForEach(((params !== "") ? params.split("&") : []), function(p)
 	{
 		var keyval = p.split("=");
-		qs.Parameters[keyval[0]] = ((keyval.length > 1) ? decodeURIComponent(keyval[1]) : "");
+
+		try
+		{
+			// Notice: decodeURIComponent(..) throws an error in case invalid encoding is used
+			qs.Parameters[keyval[0]] = ((keyval.length > 1) ? decodeURIComponent(keyval[1]) : "");
+		}
+		catch (err)
+		{
+			// An error occurred decoding parameter - use raw value instead
+			qs.Parameters[keyval[0]] = ((keyval.length > 1) ? keyval[1] : "");
+		}
 	});
 
 	return qs;

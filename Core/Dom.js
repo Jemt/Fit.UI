@@ -206,6 +206,9 @@ Fit.Dom.InsertBefore = function(target, newElm)
 	Fit.Validation.ExpectNode(target);
 	Fit.Validation.ExpectNode(newElm);
 
+	if (target.parentElement === null)
+		Fit.Validation.ThrowError("Unable to insert element - target is not rooted");
+
 	target.parentElement.insertBefore(newElm, target);
 }
 
@@ -218,6 +221,9 @@ Fit.Dom.InsertAfter = function(target, newElm)
 {
 	Fit.Validation.ExpectNode(target);
 	Fit.Validation.ExpectNode(newElm);
+
+	if (target.parentElement === null)
+		Fit.Validation.ThrowError("Unable to insert element - target is not rooted");
 
 	if (target.nextSibling)
 		target.parentElement.insertBefore(newElm, target.nextSibling);
@@ -265,6 +271,9 @@ Fit.Dom.Replace = function(oldElm, newElm) // http://jsfiddle.net/Jemt/eu74o984/
 {
 	Fit.Validation.ExpectNode(oldElm);
 	Fit.Validation.ExpectNode(newElm);
+
+	if (oldElm.parentElement === null)
+		Fit.Validation.ThrowError("Unable to replace element - not rooted");
 
 	var container = oldElm.parentElement;
 	container.replaceChild(newElm, oldElm);
@@ -592,7 +601,7 @@ Fit.Dom.GetFocused = function()
 	{
 		focused = document.activeElement;
 
-		if (!focused.nodeType) // IE11 returns an empty object when running in an iFrame (http://fiddle.jshell.net/Jemt/dL9q6b2d/6/)
+		if (!focused.nodeType) // IE11 returns an empty object when running in an iFrame (http://fiddle.jshell.net/Jemt/dL9q6b2d/6/embedded/result,js)
 			focused = document.body;
 	}
 	catch (err)
@@ -627,7 +636,7 @@ Fit.Dom.GetParentOfType = function(element, parentType)
 }
 
 /// <function container="Fit.Dom" name="Wrap" access="public" static="true">
-/// 	<description> Wraps element in container element while preserving position in DOM </description>
+/// 	<description> Wraps element in container element while preserving position in DOM if rooted </description>
 /// 	<param name="elementToWrap" type="DOMNode"> Element to wrap </param>
 /// 	<param name="container" type="DOMElement"> Container to wrap element within </param>
 /// </function>
@@ -640,6 +649,9 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 	var nextSibling = elementToWrap.nextSibling;
 
 	container.appendChild(elementToWrap); // Causes elementToWrap to be removed from existing container
+
+	if (parent === null)
+		return; // Not rooted
 
 	if (nextSibling === null)
 		parent.appendChild(container);

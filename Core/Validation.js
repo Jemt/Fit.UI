@@ -318,6 +318,9 @@ Fit.Validation.ExpectEvent = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
+	if (!window.MSEventObj)
+		window.MSEventObj = function() {};
+
 	// IE9 and above: window.event is now of type MSEventObj (legacy),
 	// while an actual Event instance is passed to handlers as specified by W3C.
 	if ((val instanceof Event) === false && (val instanceof MSEventObj) === false)
@@ -450,6 +453,10 @@ Fit._internal.Validation.IsCollectionType = function(val) // Used by Fit.Validat
 	else if (val instanceof HTMLCollection)
 		return true;
 	else if (val instanceof FileList)
+		return true;
+	else if (val instanceof StyleSheetList)
+		return true;
+	else if (val instanceof CSSRuleList)
 		return true;
 	else if (val.callee && val.length !== null && val.length !== undefined) // Arguments array - https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
 		return true;

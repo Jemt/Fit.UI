@@ -46,9 +46,29 @@ Fit.Events.AddHandler = function()
 	Fit.Validation.ExpectFunction(eventFunction);
 
 	if (element.addEventListener) // W3C
+	{
 		element.addEventListener(event, eventFunction, useCapture);
+	}
 	else if (element.attachEvent) // IE
-		element.attachEvent("on" + event, eventFunction);
+	{
+		if (event.toLowerCase() === "domcontentloaded" && Fit._internal.Events.Browser.Name === "MSIE" && Fit._internal.Events.Browser.Version === 8)
+		{
+			// DOMContentLoaded not supported on IE8.
+			// Using OnReadyStateChange to achieve similar behaviour.
+
+			element.attachEvent("onreadystatechange", function(e)
+			{
+				if (element.readyState === "complete")
+				{
+					eventFunction(e); // NOTICE: Event argument not identical to argument passed to modern browsers using the real DOMContentLoaded event!
+				}
+			});
+		}
+		else
+		{
+			element.attachEvent("on" + event, eventFunction);
+		}
+	}
 
 	element._internal = element._internal || {};
 	element._internal.Events = element._internal.Events || { Handlers: [] };
@@ -180,8 +200,8 @@ Fit.Events.StopPropagation = function(e)
 
 	var ev = e || window.event;
 
-	if (ev.StopPropagation)
-		ev.StopPropagation();
+	if (ev.stopPropagation)
+		ev.stopPropagation();
 	ev.cancelBubble = true;
 	return false;
 }

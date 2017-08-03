@@ -47,7 +47,7 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 	}
 	else if (typeof(obj) === "object")
 	{
-		for (var i in obj) // Object array is not vulnerable to changes in callback - properties removed or added is not iterated
+		for (var i in obj) // Object array is not vulnerable to changes in callback - properties removed or added are not iterated
 			if (callback(i) === false)
 				return false;
 	}
@@ -186,7 +186,7 @@ Fit.Array.Insert = function(arr, idx, obj) // obj not validated - passing any ob
 /// <function container="Fit.Array" name="Merge" access="public" static="true">
 /// 	<description> Merge/join two arrays </description>
 /// 	<param name="arr1" type="array"> Array 1 to merge with array 2 </param>
-/// 	<param name="arr1" type="array"> Array 2 to merge with array 1 </param>
+/// 	<param name="arr2" type="array"> Array 2 to merge with array 1 </param>
 /// </function>
 Fit.Array.Merge = function(arr1, arr2)
 {

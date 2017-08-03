@@ -26,6 +26,8 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
     function init()
     {
+		Fit._internal.Core.EnsureStyles();
+
         Fit.Dom.AddClass(elm, "FitDragDropDraggable");
 
         // Mouse down
@@ -377,6 +379,7 @@ Fit.DragDrop.DropZone = function(domElm)
 
     function init()
     {
+		Fit._internal.Core.EnsureStyles();
         Fit.Dom.AddClass(elm, "FitDragDropDropZone");
         Fit.DragDrop.DropZone._internal.dropzones.push(cfg);
     }
