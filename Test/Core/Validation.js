@@ -1,4 +1,5 @@
-function createUnitTest(validationType, validationCallback, validTypes, extra)
+UnitTestHelper.Validation = {};
+UnitTestHelper.Validation.CreateUnitTest = function(validationType, validationCallback, validTypes, extra)
 {
 	Fit.Array.ForEach(UnitTestHelper.TestValues, function(testObj)
 	{
@@ -31,22 +32,24 @@ function createUnitTest(validationType, validationCallback, validTypes, extra)
 	});
 }
 
-createUnitTest("ExpectNumber", Fit.Validation.ExpectNumber, [ "integer", "float" ]);
-createUnitTest("ExpectInteger", Fit.Validation.ExpectInteger, [ "integer" ]);
-createUnitTest("ExpectString", Fit.Validation.ExpectString, [ "string" ]);
-createUnitTest("ExpectBoolean", Fit.Validation.ExpectBoolean, [ "boolean" ]);
-createUnitTest("ExpectDate", Fit.Validation.ExpectDate, [ "date" ]);
-createUnitTest("ExpectArray", Fit.Validation.ExpectArray, [ "string[]", "integer[]", "float[]", "object[]", "Fit.Controls.ControlBase[]" ]);
-createUnitTest("ExpectTypeArray (string)", Fit.Validation.ExpectTypeArray, [ "string[]" ], Fit.Validation.ExpectString);
-createUnitTest("ExpectTypeArray (integer)", Fit.Validation.ExpectTypeArray, [ "integer[]" ], Fit.Validation.ExpectInteger);
-createUnitTest("ExpectTypeArray (number)", Fit.Validation.ExpectTypeArray, [ "integer[]", "float[]" ], Fit.Validation.ExpectNumber);
-createUnitTest("ExpectInstanceArray", Fit.Validation.ExpectInstanceArray, [ "Fit.Controls.ControlBase[]" ], Fit.Controls.ControlBase);
-createUnitTest("ExpectCollection", Fit.Validation.ExpectCollection, [ "string[]", "integer[]", "float[]", "object[]", "Fit.Controls.ControlBase[]", "NodeList", "HTMLCollection" ]);
-createUnitTest("ExpectRegExp", Fit.Validation.ExpectRegExp, [ "RegExp" ]);
-createUnitTest("ExpectDomElement", Fit.Validation.ExpectDomElement, [ "DOMElement" ]);
-createUnitTest("ExpectContentNode", Fit.Validation.ExpectContentNode, [ "DOMElement", "TextNode" ]);
-createUnitTest("ExpectWindow", Fit.Validation.ExpectWindow, [ "window" ]);
-createUnitTest("ExpectFunction", Fit.Validation.ExpectFunction, [ "function" ]);
-createUnitTest("ExpectInstance", Fit.Validation.ExpectInstance, [ "Fit.Controls.ControlBase" ], Fit.Controls.ControlBase);
+UnitTestHelper.Validation.CreateUnitTest("ExpectNumber", Fit.Validation.ExpectNumber, [ "integer", "float" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectInteger", Fit.Validation.ExpectInteger, [ "integer" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectString", Fit.Validation.ExpectString, [ "string" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectBoolean", Fit.Validation.ExpectBoolean, [ "boolean" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectDate", Fit.Validation.ExpectDate, [ "date" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectArray", Fit.Validation.ExpectArray, [ "string[]", "integer[]", "float[]", "object[]", "Fit.Controls.ControlBase[]" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectTypeArray (string)", Fit.Validation.ExpectTypeArray, [ "string[]" ], Fit.Validation.ExpectString);
+UnitTestHelper.Validation.CreateUnitTest("ExpectTypeArray (integer)", Fit.Validation.ExpectTypeArray, [ "integer[]" ], Fit.Validation.ExpectInteger);
+UnitTestHelper.Validation.CreateUnitTest("ExpectTypeArray (number)", Fit.Validation.ExpectTypeArray, [ "integer[]", "float[]" ], Fit.Validation.ExpectNumber);
+UnitTestHelper.Validation.CreateUnitTest("ExpectInstanceArray", Fit.Validation.ExpectInstanceArray, [ "Fit.Controls.ControlBase[]" ], Fit.Controls.ControlBase);
+UnitTestHelper.Validation.CreateUnitTest("ExpectCollection", Fit.Validation.ExpectCollection, [ "string[]", "integer[]", "float[]", "object[]", "Fit.Controls.ControlBase[]", "NodeList", "HTMLCollection" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectRegExp", Fit.Validation.ExpectRegExp, [ "RegExp" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectElementNode", Fit.Validation.ExpectDomElement, [ "DOMElement" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectCommentNode", Fit.Validation.ExpectCommentNode, [ "CommentNode" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectTextNode", Fit.Validation.ExpectTextNode, [ "TextNode" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectNode", Fit.Validation.ExpectNode, [ "DOMElement", "TextNode", "CommentNode" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectWindow", Fit.Validation.ExpectWindow, [ "window" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectFunction", Fit.Validation.ExpectFunction, [ "function" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectInstance", Fit.Validation.ExpectInstance, [ "Fit.Controls.ControlBase" ], Fit.Controls.ControlBase);
 
 // Not covered: ExpectEventTarget, ExpectEvent, ExpectIsSet

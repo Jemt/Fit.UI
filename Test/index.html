@@ -8,6 +8,28 @@
 	<link rel="stylesheet" type="text/css" href="http://codemagic.dk/FlowIT/GUI/Fit.UI.css">
 	<script src="https://code.jquery.com/qunit/qunit-1.23.0.js"></script>
 	<script src="../Fit.UI.js"></script>
+	<!--script src="https://code.jquery.com/jquery-3.1.0.js"></script--> <!-- DISABLE THIS! For comparing results with Fit.UI during debugging! -->
+	<!--script src="https://code.jquery.com/jquery-1.12.4.js"></script--> <!-- DISABLE THIS! For comparing results with Fit.UI during debugging! -->
+
+	<style type="text/css">
+
+	/* Qunit scrolls page as results pour in - this behaviour might break tests temporarily manipulating the DOM */
+	html, body
+	{
+		margin: 0px;
+		padding: 0px;
+		width: 100%;
+		height: 100%;
+	}
+	#qunit
+	{
+		position: absolute;
+		height: 100%;
+		width: 100%;
+		overflow: auto;
+	}
+
+	</style>
 
 	<script type="text/javascript">
 		Fit._internal.Validation.DebugMode = false; // Only suppresses any alerts - type checking remains enabled
@@ -86,30 +108,33 @@
 
 	<script type="text/javascript">
 		var qs = Fit.Browser.GetQueryString();
-		var targets = [ "Core/Validation", "Core/Core", "Core/Array", "Core/Cookies", "Controls/Input", "Controls/TreeView" ];
+		var targets = [ "Core/Validation", "Core/Core", "Core/Array", "Core/Cookies", "Core/Data", "Core/Dom", "Controls/Input", "Controls/TreeView" ];
 		Tests = {};
 
-		Fit.Loader.LoadScripts([ { source: "Common.js" }, { source: "ControlBase.js" } ], function(configs)
+		Fit.Loader.LoadStyleSheets([ { source: "Common.css" } ], function(styles)
 		{
-			Fit.Array.ForEach(targets, function(target)
+			Fit.Loader.LoadScripts([ { source: "Common.js" }, { source: "ControlBase.js" } ], function(scripts)
 			{
-				if (qs.Parameters["Test"] === undefined || qs.Parameters["Test"] === target)
+				Fit.Array.ForEach(targets, function(target)
 				{
-					Fit.Loader.LoadScript(target + ".js", function(src)
+					if (qs.Parameters["Test"] === undefined || qs.Parameters["Test"] === target)
 					{
-						var testCases = Tests; // Tests defined in test case file (globally accessible)
-						Tests = {};
+						Fit.Loader.LoadScript(target + ".js", function(src)
+						{
+							var testCases = Tests; // Tests defined in test case file (globally accessible)
+							Tests = {};
 
-						executeTestCases(target, testCases);
-					});
-				}
+							executeTestCases(target, testCases);
+						});
+					}
+				});
 			});
 		});
 	</script>
 </head>
 <body>
 
-<div id="qunit"></div>
+<div id="qunit">Executing - please wait ..</div>
 
 </body>
 </html>

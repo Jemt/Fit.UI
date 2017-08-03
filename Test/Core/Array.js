@@ -10,7 +10,7 @@ Tests.ForEach = function()
 	{
 		var arr = [ 1, 2, 3, 4, 5 ];
 		var objArr = { a: 1, b: 2, c: 3, d: 4, e:5 };
-		var nodes = ArrayHelper.CreateList().children;
+		var nodes = UnitTestHelper.Array.CreateList().children;
 		var total = 0;
 
 		Fit.Array.ForEach(arr, function(val)
@@ -77,7 +77,7 @@ Tests.Count = function()
 	{
 		var arr = [ 1, 2, 3, 4, 5 ];
 		var objArr = { a: 1, b: 2, c: 3, d: 4, e:5 };
-		var nodes = ArrayHelper.CreateList().children;
+		var nodes = UnitTestHelper.Array.CreateList().children;
 		var total = 0;
 
 		resultArray += Fit.Array.Count(arr);
@@ -511,8 +511,8 @@ Tests.ToArray = function()
 	]
 }
 
-ArrayHelper = {};
-ArrayHelper.CreateList = function()
+UnitTestHelper.Array = {};
+UnitTestHelper.Array.CreateList = function()
 {
 	function createListItem(val)
 	{

@@ -6,7 +6,7 @@ Tests.SetGet = function()
 
 	this.Execute = function()
 	{
-		var cookies = CookiesHelper.GetCookieStore();
+		var cookies = UnitTestHelper.Cookies.GetCookieStore();
 		cookies.Set("A", testValue);		// Session cookie
 		cookies.Set("B", testValue, 1);		// Expires in 1 seconds
 		Fit.Cookies.Set(cookies.Prefix() + "C", testValue, 5000, cookies.Path() + "/sub/sub"); // Alternative path
@@ -20,7 +20,7 @@ Tests.SetGet = function()
 			Expected: testValue,
 			GetResult: function()
 			{
-				var cookies = CookiesHelper.GetCookieStore();
+				var cookies = UnitTestHelper.Cookies.GetCookieStore();
 				return cookies.Get("A");
 			}
 		},
@@ -29,7 +29,7 @@ Tests.SetGet = function()
 			Expected: null,
 			GetResult: function()
 			{
-				var cookies = CookiesHelper.GetCookieStore();
+				var cookies = UnitTestHelper.Cookies.GetCookieStore();
 				return cookies.Get("B");
 			}
 		},
@@ -38,7 +38,7 @@ Tests.SetGet = function()
 			Expected: null,
 			GetResult: function()
 			{
-				var cookies = CookiesHelper.GetCookieStore();
+				var cookies = UnitTestHelper.Cookies.GetCookieStore();
 				return Fit.Cookies.Get(cookies.Prefix() + "C");
 			}
 		}
@@ -52,7 +52,7 @@ Tests.SetGet = function()
 
 			this.Execute = function()
 			{
-				var cookies = CookiesHelper.GetCookieStore();
+				var cookies = UnitTestHelper.Cookies.GetCookieStore();
 				cookies.Remove("A");
 			}
 
@@ -63,7 +63,7 @@ Tests.SetGet = function()
 					Expected: true,
 					GetResult: function()
 					{
-						var cookies = CookiesHelper.GetCookieStore();
+						var cookies = UnitTestHelper.Cookies.GetCookieStore();
 						return (cookies.Get("A") === null);
 					}
 				}
@@ -72,8 +72,8 @@ Tests.SetGet = function()
 	}
 }
 
-CookiesHelper = {};
-CookiesHelper.GetCookieStore = function()
+UnitTestHelper.Cookies = {};
+UnitTestHelper.Cookies.GetCookieStore = function()
 {
 	var cookies = new Fit.Cookies();
 	cookies.Prefix("FitUiUnitTest");

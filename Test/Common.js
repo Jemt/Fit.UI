@@ -6,7 +6,7 @@ UnitTestHelper = {};
 
 ;(function()
 {
-	// Generate various DOM element useful for testing.
+	// Generate various DOM elements useful for testing.
 	// These are selected using querySelector[All](..)
 	// further down.
 
@@ -190,6 +190,10 @@ UnitTestHelper.TestValues =
 	{
 		Type: "TextNode",
 		Values: [ document.createTextNode("Hello world") ]
+	},
+	{
+		Type: "CommentNode",
+		Values: [ document.createComment("Hello world") ]
 	},
 	{
 		Type: "Fit.Controls.ControlBase",

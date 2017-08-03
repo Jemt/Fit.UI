@@ -7,8 +7,8 @@ Tests.Extend = function()
 
 	this.Execute = function()
 	{
-		dog = new CoreHelper.Dog("Pluto");
-		cat = new CoreHelper.Cat("Figaro");
+		dog = new UnitTestHelper.Core.Dog("Pluto");
+		cat = new UnitTestHelper.Core.Cat("Figaro");
 	}
 
 	this.Assertions =
@@ -18,7 +18,7 @@ Tests.Extend = function()
 			Expected: true,
 			GetResult: function()
 			{
-				return (Fit.Core.Extends(dog, CoreHelper.Animal) === true && Fit.Core.Extends(cat, CoreHelper.Animal) === true );
+				return (Fit.Core.Extends(dog, UnitTestHelper.Core.Animal) === true && Fit.Core.Extends(cat, UnitTestHelper.Core.Animal) === true );
 			}
 		},
 		{
@@ -50,7 +50,7 @@ Tests.Extend = function()
 			Expected: true,
 			GetResult: function()
 			{
-				return (Fit.Core.InstanceOf(dog, CoreHelper.Dog) === true && Fit.Core.InstanceOf(dog, CoreHelper.Animal) === true && Fit.Core.InstanceOf(dog, CoreHelper.Cat) === false);
+				return (Fit.Core.InstanceOf(dog, UnitTestHelper.Core.Dog) === true && Fit.Core.InstanceOf(dog, UnitTestHelper.Core.Animal) === true && Fit.Core.InstanceOf(dog, UnitTestHelper.Core.Cat) === false);
 			}
 		},
 		{
@@ -58,7 +58,7 @@ Tests.Extend = function()
 			Expected: true,
 			GetResult: function()
 			{
-				return (Fit.Core.InstanceOf(cat, CoreHelper.Cat) === true && Fit.Core.InstanceOf(cat, CoreHelper.Animal) === true && Fit.Core.InstanceOf(cat, CoreHelper.Dog) === false);
+				return (Fit.Core.InstanceOf(cat, UnitTestHelper.Core.Cat) === true && Fit.Core.InstanceOf(cat, UnitTestHelper.Core.Animal) === true && Fit.Core.InstanceOf(cat, UnitTestHelper.Core.Dog) === false);
 			}
 		}
 	]
@@ -76,10 +76,10 @@ Tests.Compare = function()
 		var f1 = function() { alert("Hello"); }
 		var f2 = f1;
 
-		obj1 = CoreHelper.CreateTestObject();
+		obj1 = UnitTestHelper.Core.CreateTestObject();
 		obj1.arr3[6].x.hapsen = f1;
 
-		obj2 = CoreHelper.CreateTestObject();
+		obj2 = UnitTestHelper.Core.CreateTestObject();
 		obj2.arr3[6].x.hapsen = f2;
 
 		/*obj1 =
@@ -114,7 +114,7 @@ Tests.Compare = function()
 	this.Assertions =
 	[
 		{
-			Message: "IsEqual consideres two complex object structures identical",
+			Message: "IsEqual considers two complex object structures identical",
 			Expected: true,
 			GetResult: function()
 			{
@@ -193,7 +193,7 @@ Tests.Clone = function()
 
 	this.Execute = function()
 	{
-		obj1 = CoreHelper.CreateTestObject();
+		obj1 = UnitTestHelper.Core.CreateTestObject();
 		obj1.arr3[6].x.hapsen = function() { return "ABC-123321-DEF"; };
 
 		obj2 = Fit.Core.Clone(obj1);
@@ -220,28 +220,29 @@ Tests.Clone = function()
 	]
 }
 
-CoreHelper = {};
 
-CoreHelper.CreateTestObject = function()
+UnitTestHelper.Core = {};
+
+UnitTestHelper.Core.CreateTestObject = function()
 {
 	var obj =
 	{
 		str: "Hello world",
 		num: 123,
 		dec: 123.321,
-		date: new Date("2014-12-01 13:02:23"),
+		date: new Date(2014, 11, 1, 13, 02, 23),
 		bool: true,
 		bool2: false,
 		arr: [100, 200, 250, 400],
 		arr2: ["Hello", "world"],
-		arr3: [123, "hello", true, false, new Date("1990-01-20"), [1,2,3], { x: { "hello": new Array(1,2,3) } }],
-		obj: { a: 123, b: 123.321, c: true, d: false, e: new Date("1993-06-25"), f: "hello", g: null, h: undefined }
+		arr3: [123, "hello", true, false, new Date(1990, 0, 20), [1,2,3], { x: { "hello": new Array(1,2,3) } }],
+		obj: { a: 123, b: 123.321, c: true, d: false, e: new Date(1993, 5, 25), f: "hello", g: null, h: undefined }
 	}
 
 	return obj;
 }
 
-CoreHelper.Animal = function(name)
+UnitTestHelper.Core.Animal = function(name)
 {
 	var me = this;
 	this.Sound = "";
@@ -255,15 +256,15 @@ CoreHelper.Animal = function(name)
 	}
 }
 
-CoreHelper.Dog = function(name)
+UnitTestHelper.Core.Dog = function(name)
 {
-	Fit.Core.Extend(this, CoreHelper.Animal).Apply(name);
+	Fit.Core.Extend(this, UnitTestHelper.Core.Animal).Apply(name);
 	this.Sound = "Woof Woof"
 }
 
-CoreHelper.Cat = function(name)
+UnitTestHelper.Core.Cat = function(name)
 {
-	Fit.Core.Extend(this, CoreHelper.Animal).Apply(name);
+	Fit.Core.Extend(this, UnitTestHelper.Core.Animal).Apply(name);
 	this.Sound = "Miaaaauuu *prrr*";
 	this.MakeNoise = Fit.Core.CreateOverride(this.MakeNoise, function()
 	{
