@@ -142,7 +142,7 @@ div.FitUiControlDropDownPicker /* Picker container (drop down) */
 
 	position: absolute;
 	width: 100%;
-	z-index: 100;
+	z-index: 1000;
 }
 
 /* Error indication */
@@ -188,6 +188,11 @@ div.FitUiControlDropDownItems > span[data-dropping="left"] > span:before
 div.FitUiControlDropDownItems > span[data-dropping="right"] > span:after
 {
 	right: -1px;
+}
+
+div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems > span.FitDragDropDraggable
+{
+	cursor: text; /* Do not reveal that item is draggable in Single Selection Mode */
 }
 
 /* PickerBase */

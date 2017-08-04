@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.DropDown">
+/// <container name="Fit.Controls.DropDown" extends="Fit.Controls.ControlBase">
 /// 	Drop Down Menu control allowing for single and multi selection.
 /// 	Supports data selection using any control extending from Fit.Controls.PickerBase.
 /// 	This control is extending from Fit.Controls.ControlBase.
@@ -359,14 +359,14 @@ Fit.Controls.DropDown = function(ctlId)
 				c.value = "";
 				c.value = v;
 			}
-			else if (val === false && txtActive === document.activeElement)
+			else if (val === false && txtActive === Fit.Dom.GetFocused())
 			{
 				me.CloseDropDown();
 				txtActive.blur();
 			}
 		}
 
-		return (txtActive === document.activeElement);
+		return (txtActive === Fit.Dom.GetFocused());
     }
 
 	// See documentation on ControlBase
@@ -375,7 +375,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// This will destroy control - it will no longer work!
 
 		if (picker !== null)
-			picker.Dispose();
+			picker.Destroy();
 
 		Fit.Events.RemoveHandler(document, clickHandlerId);
 
@@ -882,8 +882,7 @@ Fit.Controls.DropDown = function(ctlId)
 				return; // Picker prevented selection from being removed
 		}
 
-        var changed = false;
-		var wasFocused = focusAssigned; // Removing an input from DOM causes OnBlur to fire, which sets focusAssigned to False
+		var found = null;
 		var txt = null;
 
 		Fit.Array.ForEach(getSelectionElements(), function(selection)
@@ -893,30 +892,32 @@ Fit.Controls.DropDown = function(ctlId)
 				if (me.MultiSelectionMode() === true && selection.parentElement.nextSibling !== null && selection.parentElement.nextSibling !== txtPrimary)
                     txt = selection.parentElement.nextSibling.children[0];
 
-				Fit.Dom.Remove(selection.parentElement);
-                changed = true;
-
+				found = selection.parentElement;
                 return false;
             }
         });
 
-		focusAssigned = wasFocused; // Restore focusAssigned to make sure focusInput(..) works
+		if (found === null)
+			return;
+
+		if (me.MultiSelectionMode() === false)
+			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
+		else
+			focusInput(((txt !== null) ? txt : txtPrimary));
+
+		Fit.Dom.Remove(found);
 
 		if (me.MultiSelectionMode() === false)
 		{
 			optimizeTabOrder();
-			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
 		}
 		else
 		{
 			if (getSelectionElements().length === 0)
 				optimizeTabOrder(); // Make sure txtPrimary can receive focus using Tab or Shift+Tab
-
-			focusInput(((txt !== null) ? txt : txtPrimary));
 		}
 
-        if (changed === true)
-            fireOnChange();
+		fireOnChange();
     }
 
     // Controlling input field
@@ -1269,12 +1270,18 @@ Fit.Controls.DropDown = function(ctlId)
             }
             else if (ev.keyCode === 27) // Escape
             {
+				if (Fit.Browser.GetInfo().Name === "MSIE")
+					Fit.Events.PreventDefault(ev); // Do not clear input on IE
+
                 me.CloseDropDown();
             }
             else if (ev.keyCode === 8) // Backspace - remove selection
             {
                 if (txt.value.length === 0)
                 {
+					if (Fit.Browser.GetInfo().Name === "MSIE")
+						Fit.Events.PreventDefault(ev); // Do not navigate back on IE when backspace is pressed within input being removed
+
                     var toRemove = null;
 
 					if (txt !== txtPrimary && Fit.Dom.GetIndex(txt) === 2) // Right input
@@ -1286,14 +1293,7 @@ Fit.Controls.DropDown = function(ctlId)
 
                     if (toRemove !== null)
                     {
-						// Update focus if input in item being removed has focus
-
-                        if (toRemove.previousSibling !== null)
-                            focusInput(toRemove.previousSibling.children[2]); // Focus right input in selection that comes before
-						else if (toRemove.nextSibling.tagName === "SPAN")
-                            focusInput(toRemove.nextSibling.children[0]); // Focus left input in selection that comes after (no more selection to the left of selection being removed)
-
-                        me.RemoveSelection(decode(Fit.Dom.Data(toRemove.children[1], "value")));
+						me.RemoveSelection(decode(Fit.Dom.Data(toRemove.children[1], "value")));
                     }
                 }
                 else
@@ -1321,13 +1321,6 @@ Fit.Controls.DropDown = function(ctlId)
 
                     if (toRemove !== null)
                     {
-						// Update focus if input in item being removed has focus
-
-						if (toRemove.nextSibling.tagName === "SPAN")
-							focusInput(toRemove.nextSibling.children[0]); // Focus left input in selection that comes after
-                        else
-                            focusInput(txtPrimary);
-
                         me.RemoveSelection(decode(Fit.Dom.Data(toRemove.children[1], "value")));
                     }
                 }
@@ -1411,7 +1404,7 @@ Fit.Controls.DropDown = function(ctlId)
 		var newWidth = (((value !== "") ? spanFitWidth.offsetWidth : 0) + txtCssWidth);
 
 		// Make sure new input width does not exceed width of drop down control
-		var offsetLeft = Fit.Dom.GetInnerPosition(input, itemContainer).X;
+		var offsetLeft = Fit.Dom.GetInnerDistance(input, itemContainer).X;
 		var innerWidth = Fit.Dom.GetInnerWidth(itemContainer);
 		newWidth = ((offsetLeft + newWidth > innerWidth) ? innerWidth - offsetLeft : newWidth);
 

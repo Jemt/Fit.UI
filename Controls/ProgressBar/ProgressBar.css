@@ -3,6 +3,7 @@ div.FitUiControlProgressBar
 	border: 1px solid #808080;
 	border-radius: 3px;
 	white-space: nowrap;
+	vertical-align: bottom;
 	overflow: hidden;
 	cursor: default;
 
@@ -16,6 +17,7 @@ div.FitUiControlProgressBarStatus
 {
 	overflow: visible;
 	width: 0%;
+	height: 100%;
 
 	background: rgb(191,210,85); /* #BFD255 */
 	background: -webkit-linear-gradient(rgba(191,210,85,1) 0%, rgba(142,185,42,1) 50%, rgba(114,170,0,1) 51%, rgba(158,203,45,1) 100%);

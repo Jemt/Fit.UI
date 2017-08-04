@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.Input">
+/// <container name="Fit.Controls.Input" extends="Fit.Controls.ControlBase">
 /// 	Input control which allows for one or multiple lines of
 /// 	text, and features a Design Mode for rich HTML content.
 /// 	Extending from Fit.Controls.ControlBase.
@@ -33,7 +33,9 @@ Fit.Controls.Input = function(ctlId)
 	function init()
 	{
 		input = document.createElement("input");
+		input.type = "text";
 		input.autocomplete = "off";
+		input.spellcheck = true;
 		input.onkeyup = function()
 		{
 			if (me.Value() !== preVal)
@@ -76,7 +78,7 @@ Fit.Controls.Input = function(ctlId)
 				elm.blur();
 		}
 
-		return (document.activeElement === elm);
+		return (Fit.Dom.GetFocused() === elm);
 	}
 
 	// See documentation on ControlBase
@@ -178,6 +180,22 @@ Fit.Controls.Input = function(ctlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.Input" name="CheckSpelling" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control should have spell checking enabled (default) or disabled </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, true enables spell checking while false disables it </param>
+	/// </function>
+	this.CheckSpelling = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			input.spellcheck = val;
+		}
+
+		return input.spellcheck;
+	}
+
 	/// <function container="Fit.Controls.Input" name="Type" access="public" returns="Fit.Controls.Input.Type">
 	/// 	<description> Get/set input type (e.g. Text, Password, Email, etc.) </description>
 	/// 	<param name="val" type="Fit.Controls.Input.Type" default="undefined"> If defined, input type is changed to specified value </param>
@@ -215,7 +233,7 @@ Fit.Controls.Input = function(ctlId)
 					input.type = "password";
 				else if (val === Fit.Controls.Input.Type.PhoneNumber)
 					input.type = "tel";
-				if (val === Fit.Controls.Input.Type.Text)
+				else if (val === Fit.Controls.Input.Type.Text)
 					input.type = "text";
 				else if (val === Fit.Controls.Input.Type.Time)
 					input.type = "time";
@@ -271,9 +289,8 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.RemoveDomElement(oldInput);
 
 				input = document.createElement("textarea");
-				input.name = me.GetId();
-				input.type = "text";
 				input.value = oldInput.value;
+				input.spellcheck = oldInput.spellcheck;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -301,8 +318,9 @@ Fit.Controls.Input = function(ctlId)
 
 				input = document.createElement("input");
 				input.autocomplete = "off";
-				input.name = me.GetId();
+				input.type = "text";
 				input.value = oldInput.value;
+				input.spellcheck = oldInput.spellcheck;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -438,7 +456,9 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (val === true && designEditor === null)
+			var designMode = (me._internal.Data("designmode") === "true");
+
+			if (val === true && designMode === false)
 			{
 				if (me.MultiLine() === true)
 					wasMultiLineBefore = true;
@@ -462,7 +482,7 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.Data("designmode", "true");
 				repaint();
 			}
-			else if (val === false && designEditor !== null)
+			else if (val === false && designMode === true)
 			{
 				designEditor.destroy(); // Editor content automatically synchronized to input control when destroyed
 				designEditor = null;
@@ -475,7 +495,7 @@ Fit.Controls.Input = function(ctlId)
 			}
 		}
 
-		return (designEditor !== null);
+		return (me._internal.Data("designmode") === "true");
 	}
 
 	// ============================================
@@ -514,6 +534,8 @@ Fit.Controls.Input = function(ctlId)
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
+			skin: ((Fit.Validation.IsSet(Fit._internal.ControlBase.Controls.Input.DefaultSkin) === true) ? Fit._internal.ControlBase.Controls.Input.DefaultSkin : "moono"),
+			language: ((Fit.Browser.GetInfo().Language === "da") ? "da" : "en"), // TODO: Ship with all language files and remove this entry to have CKEditor default to browser language
 			extraPlugins: "justify,pastefromword",
 			toolbar:
 			[
@@ -681,3 +703,6 @@ Fit.Controls.Input.Type =
 
 	Unknown: "Unknown"
 }
+
+Fit._internal.ControlBase.Controls.Input = {};
+Fit._internal.ControlBase.Controls.Input.DefaultSkin = null; // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created

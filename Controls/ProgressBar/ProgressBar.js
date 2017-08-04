@@ -35,6 +35,8 @@ Fit.Controls.ProgressBar = function(controlId)
 
 	function init()
 	{
+		Fit._internal.Core.EnsureStyles();
+		
 		element = document.createElement("div");
 
 		if (id !== null)

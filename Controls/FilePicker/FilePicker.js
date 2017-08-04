@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.FilePicker">
+/// <container name="Fit.Controls.FilePicker" extends="Fit.Controls.ControlBase">
 /// 	Control allowing for files to be selected locally and uploaded asynchronously.
 /// 	Extending from Fit.Controls.ControlBase.
 /// </container>
@@ -178,7 +178,7 @@ Fit.Controls.FilePicker = function(ctlId)
 			}
 		}
 
-		return (document.activeElement === input);
+		return (Fit.Dom.GetFocused() === input);
 	}
 
 	// See documentation on ControlBase

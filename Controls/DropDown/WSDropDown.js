@@ -1,3 +1,13 @@
+/// <container name="Fit.Controls.WSDropDown" extends="Fit.Controls.DropDown">
+/// 	WebService enabled Drop Down Menu control allowing for single and multi selection.
+/// 	Supports data selection using any control extending from Fit.Controls.PickerBase.
+/// 	This control is extending from Fit.Controls.DropDown.
+/// </container>
+
+/// <function container="Fit.Controls.WSDropDown" name="WSDropDown" access="public">
+/// 	<description> Create instance of WSDropDown control </description>
+/// 	<param name="ctlId" type="string"> Unique control ID </param>
+/// </function>
 Fit.Controls.WSDropDown = function(ctlId)
 {
 	Fit.Validation.ExpectStringValue(ctlId);

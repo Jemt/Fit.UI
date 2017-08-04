@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.ListView">
+/// <container name="Fit.Controls.ListView" extends="Fit.Controls.PickerBase">
 /// 	Picker control which allows for entries
 /// 	to be selected in the DropDown control.
 /// </container>
@@ -23,6 +23,8 @@ Fit.Controls.ListView = function(controlId)
 
 	function init()
 	{
+		Fit._internal.Core.EnsureStyles();
+		
 		list = document.createElement("div");
 		list.tabIndex = "0";
 		Fit.Dom.AddClass(list, "FitUiControlListView");
@@ -173,7 +175,7 @@ Fit.Controls.ListView = function(controlId)
 	{
 		Fit.Validation.ExpectString(value);
 
-		Fit.Array.ForEach(list.children, function(child)
+		Fit.Array.ForEach(Fit.Array.Copy(list.children), function(child)
 		{
 			if (decode(Fit.Dom.Data(child, "value")) === value)
 			{

@@ -1,5 +1,5 @@
-div.FitUiControlInput input,
-div.FitUiControlInput textarea
+div.FitUiControlInput input[type="text"],
+div.FitUiControlInput textarea:first-child
 {
 	width: 100%;
 	height: 100%;
@@ -8,11 +8,17 @@ div.FitUiControlInput textarea
 	text-align: inherit;
 	font-size: inherit;
 	border: 1px solid #909090;
+	border-radius: 2px;
 	display: block; /* Remove annoying spacing above input when outline is applied (when value is invalid) */
+
+	/* Make it look decent on iOS Safari */
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
 }
 
 /* Hide clear button within input fields in IE */
-div.FitUiControlInput input::-ms-clear
+div.FitUiControlInput input[type="text"]::-ms-clear
 {
 	display: none;
 }
@@ -22,8 +28,8 @@ div.FitUiControlInput[data-valid="false"]
 {
 	outline: none;
 }
-div.FitUiControlInput[data-valid="false"] input,
-div.FitUiControlInput[data-valid="false"] textarea
+div.FitUiControlInput[data-valid="false"] input[type="text"],
+div.FitUiControlInput[data-valid="false"] textarea:first-child
 {
 	border-color: red;
 }
@@ -45,14 +51,14 @@ div.FitUiControlInput[data-maximizable="true"]
 }
 
 /* Remove outline when input has focus */
-div.FitUiControlInput input:focus,
-div.FitUiControlInput textarea:focus
+div.FitUiControlInput input[type="text"]:focus,
+div.FitUiControlInput textarea:first-child:focus
 {
 	outline: none;
 }
 
 /* Disable textarea resizing */
-div.FitUiControlInput textarea
+div.FitUiControlInput textarea:first-child
 {
 	resize: none;
 }
