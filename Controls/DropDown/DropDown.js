@@ -288,7 +288,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			orgSelection = [];
+			orgSelections = [];
 			var fireChange = (getSelectionElements().length > 0 || val !== ""); // Fire OnChange if current selections are cleared, and/or if new selections are set
 
 			me._internal.ExecuteWithNoOnChange(function()

@@ -94,7 +94,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		tree = new Fit.Controls.WSTreeView(ctlId + "__WSTreeView");
 		tree.Width(100, "%");
-		tree.Lines(true);
+		//tree.Lines(true); // DISABLED - lines do not scale with font size
 		tree.AllowDeselect(true);
 		tree.OnRequest(function(sender, eventArgs)
 		{

@@ -76,17 +76,79 @@ div.FitUiControlTreeView li ul li[data-state="collapsed"] > ul
 
 div.FitUiControlTreeView li ul li > input
 {
-	/* Take checkbox out of flow - should not affect node title indentation since it would
-	   cause nodes with checkboxes to be indented X pixels while nodes without checkboxes
-	   to be indented less pixels (in a mixed configuration). It would prevent nodes from
-	   aligning vertically.
-	   NOTICE: Unfortunately this prevents us from centering the checkbox vertically,
-	   resulting in checkbox sticking at the top of the node if a big font is being used.*/
+	/* Take checkbox out of flow to prevent it from affecting node title indentation.
+       This ensures that all node titles are neatly aligned, even when checkboxes
+       are enabled for some nodes, and not for others (mixed configuration). */
 	position: absolute;
 
-	/* Make it look decent in IE */
-	border: none;
-	width: 1.5em;
+	font-size: inherit;
+	width: 1em;
+	height: 1em;
+	top: 0.25em;
+	margin: 0px;
+	padding: 0px;
+}
+
+@media /* Wrapped in nested media queries to prevent targeting all versions of IE where the checkbox cannot be styled */
+{
+	@media
+	{
+		/* Make checkbox look identical across browsers */
+		/* Targeting only checkboxes since some apps are known to change
+		   the input type to radio, even though that's completely unsupported. */
+
+		div.FitUiControlTreeView li ul li > input[type="checkbox"]
+		{
+			appearance: none;
+			-moz-appearance: none; /* Firefox (version 54 required for checkbox styling) */
+			-webkit-appearance: none; /* Safari and Chrome */
+
+			/* Copied from Fit.UI checkbox control */
+			border: 1px solid #909090;
+			border-radius: 0.1em; /* 2px */
+			color: #333333;
+			background-color: #FFFFFF;
+
+			/* Copied from fa class (Font Awesome) */
+			display: inline-block;
+			font: normal normal normal 14px/1 FontAwesome;
+			font-size: inherit;
+			text-rendering: auto;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		div.FitUiControlTreeView li ul li[data-selectable="false"] > input[type="checkbox"]
+		{
+			background-color: #E8E8E8;
+		}
+
+		div.FitUiControlTreeView li ul li > input[type="checkbox"]:focus
+		{
+			outline: none;
+		}
+
+		/* This is a bit controversial since pseudo elements are not supported
+		   on form elements - it is only supported on containers. But this actually
+		   works on Chrome, Safari, and Firefox 54+.
+		   Microsoft has it in the backlog for Edge as well:
+		   https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11947102 */
+		div.FitUiControlTreeView li ul li > input[type="checkbox"]:checked:before
+		{
+			content: "\f00c";
+
+			/* Compensate for 1px border */
+			position: relative;
+			top: -1px;
+			left: -1px;
+		}
+
+		/* Disable styling on Edge which as of version 15 doesn't work well with the pseudo element.
+		   https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11947102
+		   MS Edge CSS work arounds:
+		   https://jeffclayton.wordpress.com/2015/04/07/css-hacks-for-windows-10-and-spartan-browser-preview */
+		_:-ms-lang(x), div.FitUiControlTreeView li ul li > input[type="checkbox"] { -webkit-appearance: checkbox; }
+	}
 }
 
 /* Node title */
@@ -97,7 +159,6 @@ div.FitUiControlTreeView li ul li > span
 }
 
 /* Indent node title if checkboxes are enabled.
-   This is done in px rather than em since the checkbox does not scale in size relative to font-size.
    Notice: Node title is ALWAYS indented if TreeView is in Multi Selection mode, to make sure node titles are always vertically aligned
            if some nodes have checkboxes, and some do not. It looks odd If all checkboxes are disabled, though, since it leaves a big gap.
            Node title is ALWAYS indented if TreeView is in Single Selection mode, and a checkbox is injected in front of node title to prevent
@@ -105,7 +166,7 @@ div.FitUiControlTreeView li ul li > span
 div.FitUiControlTreeView[data-multiselect="true"] li ul li > span,
 div.FitUiControlTreeView[data-multiselect="false"] li ul li > input + span
 {
-	margin-left: 22px;
+	margin-left: 1.25em;
 }
 
 /* Helper lines */

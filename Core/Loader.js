@@ -6,6 +6,139 @@
 /// </container>
 Fit.Loader = {};
 
+/// <function container="Fit.Loader" name="ExecuteScript" access="public" static="true">
+/// 	<description>
+/// 		Load client script on demand in a non-blocking manner.
+///
+/// 		ExecuteScript differs from LoadScript in the way code is loaded
+/// 		and executed. ExecuteScript loads the script using AJAX, meaning
+/// 		the script file either has to be located on the same domain as
+/// 		the application invoking ExecuteScript, or have the
+/// 		Access-Control-Allow-Origin header configured to allow file to be
+/// 		loaded from a foreign domain.
+/// 		The code loaded is injected into the virtual machine meaning debugging
+/// 		will not reveal from which file the code originated, although this
+/// 		information can be retrived by inspecting the call stack.
+/// 		ExecuteScript has the advantages that is allows for	both an OnSuccess
+/// 		and OnFailure handler, and it allows for objects to be passed to
+/// 		the executing script using the context parameter, which will
+/// 		cause the code to execute within its own contained scope (closure).
+/// 		The script will execute in the global scope if no context object is provided.
+///
+/// 		// Example of loading a JavaScript file, passing variables to it:
+///
+/// 		Fit.Loader.ExecuteScript(&quot;extensions/test/test.js&quot;, function(src)
+/// 		{
+/// 			&#160;&#160;&#160;&#160; alert(&quot;JavaScript &quot; + src + &quot; loaded and ready to be used!&quot;);
+/// 		},
+/// 		function(src)
+/// 		{
+/// 			&#160;&#160;&#160;&#160; alert(&quot;JavaScript &quot; + src + &quot; could NOT be loaded;);
+///
+/// 		}, { $: window.jQuery, mode: &quot;advanced&quot;, showData: &quot;users&quot; });
+/// 	</description>
+/// 	<param name="src" type="string"> Script source (path or URL) </param>
+/// 	<param name="onSuccess" type="function" default="undefined">
+/// 		Callback function fired when script has been successfully loaded and executed.
+/// 		The function takes the script source requested as an argument.
+/// 	</param>
+/// 	<param name="onFailure" type="function" default="undefined">
+/// 		Callback function fired if script could not be loaded or executed successfully.
+/// 		The function takes the script source requested as an argument.
+/// 	</param>
+/// 	<param name="context" type="object" default="undefined">
+/// 		Properties registered on the context object will be
+/// 		exposed as globally accessible objects for the executing script.
+/// 		Example: { jQuery: window.jQuery, $: window.jQuery }
+/// 		The script will execute in the global window scope if no
+/// 		context object is defined.
+/// 	</param>
+/// </function>
+Fit.Loader.ExecuteScript = function(src, onSuccess, onFailure, context)
+{
+	// Loading JS using AJAX and Eval versus a traditional script block
+	// like Fit.Loader.LoadScript(..) uses:
+	// The approach with AJAX allows us to expose both OnSuccess and
+	// OnFailure, even on legacy browsers. However, if a script fails
+	// or need debugging, it is not immediately obvious what file is
+	// being debugged since the code runs as "anonymous" code in the VM.
+	// One would have to investigate the call stack to reveal the source file.
+	// Also, the AJAX request will not allow scripts from remote locations
+	// to be loaded, unless the Access-Control-Allow-Origin header is configured.
+	// The best thing about using eval however, is the possibility of passing
+	// variables to the file being loaded using the context object.
+
+	Fit.Validation.ExpectStringValue(src);
+	Fit.Validation.ExpectFunction(onSuccess, true);
+	Fit.Validation.ExpectFunction(onFailure, true);
+
+	var r = new Fit.Http.Request(src);
+	r.OnSuccess(function(sender)
+	{
+		var js = r.GetResponseText();
+		var error = null;
+
+		if (Fit.Validation.IsSet(context) === false || context === window)
+		{
+			try
+			{
+				eval(js);
+			}
+			catch (err)
+			{
+				error = err;
+			}
+		}
+		else
+		{
+			// Execute in closure (execution scope).
+			// All variables registered on context object is made globally available to JS file.
+
+			var args = "";
+			var parms = "";
+			for (var prop in (context ? context : {}))
+			{
+				args += (args !== "" ? ", " : "") + prop;
+				parms += (parms !== "" ? ", " : "") + "this." + prop;
+			}
+
+			try
+			{
+				eval("(function() { (function(" + args + ") { " + js + " })(" + parms + "); })").call(context ? context : this); // https://jsfiddle.net/yut8fptm/
+			}
+			catch (err)
+			{
+				error = err;
+			}
+		}
+
+		if (error === null && Fit.Validation.IsSet(onSuccess) === true)
+		{
+			onSuccess(src);
+		}
+		else if (error !== null)
+		{
+			if (window.console)
+			{
+				console.log(error.message);
+				console.log(error.stack);
+				console.log(error);
+			}
+
+			Fit.Validation.IsSet(onFailure) === true
+				onFailure(src);
+		}
+	});
+	r.OnFailure(function(sender)
+	{
+		if (Fit.Validation.IsSet(onFailure) === true)
+		{
+			onFailure(src);
+		}
+	});
+	r.Start();
+}
+
 /// <function container="Fit.Loader" name="LoadScript" access="public" static="true">
 /// 	<description>
 /// 		Load client script on demand in a non-blocking manner.
@@ -29,6 +162,12 @@ Fit.Loader.LoadScript = function(src, callback)
 {
 	Fit.Validation.ExpectStringValue(src);
 	Fit.Validation.ExpectFunction(callback, true);
+
+	if (arguments.length > 2)
+	{
+		// One could easily confuse LoadScript with ExecuteScript - help the developer to choose the right function
+		Fit.Validation.ThrowError("Argument(s) do not match function signature - did you intend to use Fit.Loader.ExecuteScript instead ?");
+	}
 
 	// Scripts injected always load as if they had the async attribute
 	// set, so we will not cause the parser to stall using this approach.

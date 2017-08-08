@@ -1,6 +1,6 @@
 Fit.Controls = {};
-Fit._internal.ControlBase = {};
-Fit._internal.ControlBase.Controls = {};
+Fit._internal.Controls = {}
+Fit._internal.ControlBase = { Controls: {} };
 
 /// <container name="Fit.Controls.ControlBase">
 /// 	Class from which all UI Controls extend

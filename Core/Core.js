@@ -391,7 +391,7 @@ Fit.Core.Clone = function(obj)
 
 // INTERNAL
 
-Fit._internal = { Core: {} };
+Fit._internal = { Core: { VersionInfo: { Major: 1, Minor: 0, Patch: 0 } } };
 
 Fit._internal.Core.EnsureStyles = function()
 {
@@ -431,6 +431,20 @@ Fit._internal.Core.EnsureStyles = function()
 	var path = Fit._internal.BaseUrl.replace("http://", "").replace("https://", "");
 	Fit._internal.BasePath = ((path.indexOf("/") !== -1) ? path.substring(path.indexOf("/")) : "/");
 })();
+
+/// <function container="Fit" name="GetVersion" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Get Fit.UI version object containing the following properties:
+///			Major (integer), Minor (integer), Patch (integer), Version (string representing Major.Minor.Patch).
+/// 	</description>
+/// </function>
+Fit.GetVersion = function()
+{
+	var info = Fit.Core.Clone(Fit._internal.Core.VersionInfo);
+	info.Version = info.Major + "." + info.Minor + "." + info.Patch;
+
+	return info;
+}
 
 /// <function container="Fit" name="GetUrl" access="public" static="true" returns="string">
 /// 	<description> Get fully qualified URL to Fit.UI on server - e.g. http://server.com/libs/fitui </description>

@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.TreeView">
+/// <container name="Fit.Controls.TreeView" extends="Fit.Controls.PickerBase;Fit.Controls.ControlBase">
 /// 	TreeView control allowing data to be listed in a structured manner.
 /// 	Extending from Fit.Controls.PickerBase.
 /// 	Extending from Fit.Controls.ControlBase.
@@ -347,11 +347,11 @@ Fit.Controls.TreeView = function(ctlId)
 			focusNode(node);
 
 			// Toggle node if expand button was clicked
-			if (elm.tagName === "DIV")
+			if (elm === node.GetDomElement().children[0])
 				node.Expanded(!node.Expanded());
 
 			// Toggle selection or perform auto postback if node is selectable
-			if (elm.tagName !== "DIV" && node.Selectable() === true)
+			if (elm !== node.GetDomElement().children[0] && node.Selectable() === true)
 			{
 				toggleNodeSelection(node);
 			}
@@ -1266,7 +1266,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 			// Get node position and height
 
-			var nodePositionWithinControl = Fit.Dom.GetInnerPosition(activeNode.GetDomElement(), me.GetDomElement());
+			var nodePositionWithinControl = Fit.Dom.GetInnerDistance(activeNode.GetDomElement(), me.GetDomElement());
 			var nodeHeightWithoutChildren = -1;
 
 			var childrenContainer = ((activeNode.GetChildren().length > 0) ? activeNode.GetChildren()[0].GetDomElement().parentElement : null);
@@ -1301,7 +1301,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function getNodeFocused()
 	{
-		return ((document.activeElement && document.activeElement.tagName === "LI" && document.activeElement._internal && Fit.Dom.Contained(rootContainer, document.activeElement) === true) ? document.activeElement._internal.Node : null);
+		return ((Fit.Dom.GetFocused() && Fit.Dom.GetFocused().tagName === "LI" && Fit.Dom.GetFocused()._internal && Fit.Dom.Contained(rootContainer, Fit.Dom.GetFocused()) === true) ? Fit.Dom.GetFocused()._internal.Node : null);
 	}
 
 	function getNodeAbove(node, noLastOnExpand)
@@ -1673,11 +1673,11 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		{
 			if (val === true)
 				elmLi.focus();
-			else if (document.activeElement === elmLi)
+			else if (Fit.Dom.GetFocused() === elmLi)
 				elmLi.blur();
 		}
 
-		return (document.activeElement === elmLi);
+		return (Fit.Dom.GetFocused() === elmLi);
 	}
 
 	/// <function container="Fit.Controls.TreeView.Node" name="GetParent" access="public" returns="Fit.Controls.TreeView.Node">
