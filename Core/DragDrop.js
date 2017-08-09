@@ -197,8 +197,8 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
                 //var mouseXdocument = mouseXviewport + window.scrollX;
                 //var mouseYdocument = mouseYviewport + window.scrollY;
                 var scrollPos = Fit.Dom.GetScrollPosition(elm);
-                mouseXdocument = mouseXviewport + scrollPos.X;
-                mouseYdocument = mouseYviewport + scrollPos.Y;
+                var mouseXdocument = mouseXviewport + scrollPos.X;
+                var mouseYdocument = mouseYviewport + scrollPos.Y;
 
                 if (Fit.DragDrop.Draggable._internal.active.Positioning === "absolute")
                 {

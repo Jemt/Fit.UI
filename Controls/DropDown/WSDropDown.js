@@ -258,6 +258,8 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// See documentation on ControlBase
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
+		me.SetPicker(null);
+
 		list.Destroy();
 		tree.Destroy();
 

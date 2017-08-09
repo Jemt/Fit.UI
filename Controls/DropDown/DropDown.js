@@ -377,6 +377,11 @@ Fit.Controls.DropDown = function(ctlId)
 		if (picker !== null)
 			picker.Destroy();
 
+		if (Fit._internal.DropDown.Current === me)
+		{
+			Fit._internal.DropDown.Current = null;
+		}
+
 		Fit.Events.RemoveHandler(document, clickHandlerId);
 
 		me = itemContainer = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = partiallyHidden = clickHandlerId = dropZone = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;

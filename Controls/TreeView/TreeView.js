@@ -903,7 +903,11 @@ Fit.Controls.TreeView = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
-		rootNode.Dispose();
+		me._internal.ExecuteWithNoOnChange(function() // Prevent Dispose() on nodes from firing OnChange when they are removed from hierarchy
+		{
+			rootNode.Dispose();
+		});
+
 		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = hostControl = activeNode = isIe8 = null;
 		baseDispose();
 	}
