@@ -382,7 +382,7 @@ Fit.Date.Parse = function(strDate, format)
 
 			part.Value = parseInt(matches[idx], 10); // Radix (10) set to prevent some implementations of ECMAScript (e.g. on IE8) to intepret the value as octal (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt)
 
-			if (part.Key === "Y" && part.Value < 1000) // In case value was specified as e.g. 0001 or 0111
+			if (part.Key === "Y" && part.Value < 1000) // In case value was specified as e.g. 0001 or 0111. The Date(year, month, day, ...) implementation requires the year to be at least 3 digits which is odd, so let's restrict it to 4 which is more intuitive. More on the topic here: https://stackoverflow.com/questions/29968116/javascript-date-01-01-0001.
 				throw "InvalidDataFormat - value '" + part.Value + "' is not valid for '" + part.Name + "'";
 			if (part.Key === "M" && (part.Value < 0 || part.Value > 12))
 				throw "InvalidDataFormat - value '" + part.Value + "' is not valid for '" + part.Name + "'";

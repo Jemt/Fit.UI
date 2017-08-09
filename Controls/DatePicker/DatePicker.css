@@ -1,0 +1,146 @@
+div.FitUiControlDatePicker input[type="text"]
+{
+	/* Same look and feel as Fit.UI Input control */
+	width: 100%;
+	height: 100%;
+	padding: 1px;
+	margin: 0px;
+	font-size: inherit;
+	border: 1px solid #909090;
+	border-radius: 2px;
+	display: block; /* Remove annoying spacing above input when outline is applied (when value is invalid) */
+
+	/* Make it look decent on iOS Safari */
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+
+}
+
+/* Hide clear button within input fields in IE */
+div.FitUiControlDatePicker input[type="text"]::-ms-clear
+{
+	display: none;
+}
+
+/* Date picker with Time picker */
+div.FitUiControlDatePicker[data-time="true"] input[type="text"]
+{
+	display: inline-block;
+}
+div.FitUiControlDatePicker[data-time="true"] input[type="text"]:first-child
+{
+	width: 65%; /* Make sure to use the same value for input[type="date"] (mobile) */
+	border-right-style: none;
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+	text-align: left;
+}
+div.FitUiControlDatePicker[data-time="true"] input[type="text"] + input[type="text"]
+{
+	width: 35%; /* Make sure to use the same value for input[type="time"] (mobile) */
+	border-left-style: none;
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;
+	text-align: right;
+}
+
+/* Error indication */
+div.FitUiControlDatePicker[data-valid="false"]
+{
+	outline: none;
+}
+div.FitUiControlDatePicker[data-valid="false"] input[type="text"]
+{
+	border-color: red;
+}
+
+/* Remove outline when controls have focus */
+div.FitUiControlDatePicker input[type="text"]:focus,
+div.fitui-datepicker select:focus
+{
+	outline: none;
+}
+
+/* Calendar widget styles */
+
+div.fitui-datepicker
+{
+	margin-top: 1px;
+	z-index: 1000 !important; /* Using !important to override inline style */
+}
+
+td.fitui-datepicker-week-col
+{
+	font-weight: bold;
+}
+
+div.fitui-datepicker-header
+{
+	margin: -0.2em;
+	border: none;
+	border-bottom: 1px solid #E4E4E4;
+	border-radius: 0px;
+	background-color: #EAEAEA;
+}
+
+div.fitui-datepicker div.fitui-datepicker-title select /* Year/month pickers */
+{
+	margin: 1px;
+	padding: 0.05em 0.3em;
+	border: 1px solid #CECECE;
+
+	/* Common look and feel across all browsers */
+	 -moz-appearance: none;
+	-webkit-appearance: none;
+	appearance: none;
+	border-radius: 2px;
+}
+div.fitui-datepicker div.fitui-datepicker-title select::-ms-expand /* IE10+ */
+{
+	display: none;
+}
+
+div.fitui-widget-content a.fitui-state-default /* Day cells */
+{
+	border-color: #E4E4E4;
+	background: none;
+}
+div.fitui-widget-content a.fitui-state-default:hover
+{
+	background: #E6E6E6;
+}
+
+div.fitui-widget-content a.fitui-state-active /* Selected day */
+{
+	background: none;
+	color: #454545;
+	border-color: #E68383;
+}
+
+div.fitui-widget-content a.fitui-state-highlight /* Current day */
+{
+	color: #454545;
+	background-color: #D6EBFF;
+}
+
+/* Mobile */
+
+div.FitUiControlDatePicker input[type="date"],
+div.FitUiControlDatePicker input[type="time"]
+{
+	position: absolute;
+	top: 0px;
+	height: 100%;
+	opacity: 0; /* Make the mobile controls invisible but have them triggered when touched - remove this to test on Desktop */
+}
+div.FitUiControlDatePicker input[type="date"]
+{
+	left: 0px;
+	width: 65%;
+}
+div.FitUiControlDatePicker input[type="time"]
+{
+	right: 0px;
+	width: 35%;
+}

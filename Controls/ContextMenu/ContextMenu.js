@@ -26,7 +26,7 @@ Fit.Controls.ContextMenu = function()
 	function init()
 	{
 		Fit._internal.Core.EnsureStyles();
-		
+
 		Fit.Dom.Data(tree.GetDomElement(), "keynav", "false");				// True when navigating using keyboard
 		Fit.Dom.Data(tree.GetDomElement(), "sticky", "false");				// True when user toggles node
 		Fit.Dom.Data(tree.GetDomElement(), "viewportcollision", "false");	// True when context menu collides with viewport boundaries
