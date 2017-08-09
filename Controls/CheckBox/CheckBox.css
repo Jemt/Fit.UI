@@ -38,3 +38,12 @@ div.FitUiControlCheckBox[data-checked="false"] > div:before
 {
     visibility: hidden;
 }
+
+div.FitUiControlCheckBox[data-valid="false"]
+{
+	outline: none;
+}
+div.FitUiControlCheckBox[data-valid="false"] > div
+{
+	border-color: red;
+}

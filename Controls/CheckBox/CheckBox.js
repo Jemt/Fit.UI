@@ -185,6 +185,28 @@ Fit.Controls.CheckBox = function(ctlId)
 		base();
 	});
 
+	// Support for required checkbox - See documentation on ControlBase
+	this.IsValid = Fit.Core.CreateOverride(this.IsValid, function()
+	{
+		if (me.Required() === true && me.Checked() === false)
+		{
+			return false;
+		}
+
+		return base();
+	});
+
+	// Support for required checkbox - See documentation on ControlBase
+	this._internal.Validate = Fit.Core.CreateOverride(this._internal.Validate, function()
+	{
+		if (me.Required() === true && me.Checked() === false)
+		{
+			me._internal.Data("errormessage", Fit.Language.Translations.Required);
+		}
+
+		base();
+	});
+
 	// ============================================
 	// Public
 	// ============================================
