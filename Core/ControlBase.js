@@ -700,6 +700,7 @@ Fit.Controls.ControlBase = function(controlId)
 				me._internal.Data("errormessage", null);
 			}
 
+			updateInternalState(); // Make sure state posted to server is up to date (Dirty and Valid flags)
 			me._internal.Repaint();
 		}
 
