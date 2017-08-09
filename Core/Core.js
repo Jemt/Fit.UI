@@ -372,6 +372,10 @@ Fit.Core.Clone = function(obj)
 		{
 			return parseInt("");
 		}
+		else if (typeof(org) === "number" && org === Infinity) // Infinity is turned into Null - turn back into Infinity
+		{
+			return Infinity;
+		}
 		else if (org && typeof(org) === "object") // Recursively fix children (object/array)
 		{
 			for (var p in org)
