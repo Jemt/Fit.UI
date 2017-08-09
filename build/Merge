@@ -1,0 +1,87 @@
+#!/bin/bash
+
+echo "Merging files.."
+
+echo "" > Fit.UI.js
+
+# Wrap in module
+
+if [[ "$1" == "umd" || "$2" == "umd" ]] ; then
+	cat Merge_umd_start >> Fit.UI.js
+elif [[ "$1" == "ts" || "$2" == "ts" ]] ; then
+	echo "export var Fit = " >> Fit.UI.js
+fi
+
+if [[ "$1" == "umd" || "$2" == "umd" || "$1" == "ts" || "$2" == "ts" ]] ; then
+	echo "(function(){" >> Fit.UI.js
+fi
+
+# Merge core components first
+
+cat ../Core/Core.js >> Fit.UI.js
+cat ../Core/Validation.js >> Fit.UI.js
+cat ../Core/Styles.css > Fit.UI.css
+#cat ../Resources/FontAwesome/css/font-awesome.min.css >> Fit.UI.css
+cat ../Resources/FontAwesome/css/font-awesome.css >> Fit.UI.css
+cat ../Resources/JqueryUI-1.11.4.custom/jquery-ui.css >> Fit.UI.css
+
+for file in `ls ../Core/*js | grep -v Core/Core.js | grep -v Core/Validation.js | grep -v Core/json2.js`
+do
+	cat $file >> Fit.UI.js
+done
+
+# Merge UI controls
+
+for dir in `ls ../Controls`
+do
+	for file in `ls ../Controls/$dir/ | grep .js`
+	do
+		cat ../Controls/$dir/$file >> Fit.UI.js
+	done
+
+	for file in `ls ../Controls/$dir/ | grep .css`
+	do
+		cat ../Controls/$dir/$file >> Fit.UI.css
+	done
+done
+
+# Finalize module
+
+if [[ "$1" == "umd" || "$2" == "umd" ]] ; then
+	echo "return Fit;})();" >> Fit.UI.js
+	cat Merge_umd_end >> Fit.UI.js
+elif [[ "$1" == "ts" || "$2" == "ts" ]] ; then
+	echo "return Fit;})();" >> Fit.UI.js
+	echo "export default Fit;" >> Fit.UI.js
+fi
+
+# Copy to parent folder
+
+echo "Copying to parent folder.."
+
+cp Fit.UI.css ../
+cp Fit.UI.js ../
+
+# Minify JS and CSS
+
+if [[ "$1" == "minify" || "$2" == "minify" ]] ; then
+	echo "Minifying.."
+
+	curl -X POST -s --data-urlencode "input@Fit.UI.js" https://javascript-minifier.com/raw > Fit.UI.min.js
+	curl -X POST -s --data-urlencode "input@Fit.UI.css" https://cssminifier.com/raw > Fit.UI.min.css
+
+	cp Fit.UI.min.css ../
+	cp Fit.UI.min.js ../
+
+	echo "Minifying complete - please verify that Fit.UI.min.js and Fit.UI.min.css contains the minified code"
+fi
+
+# Create dist
+
+echo "Creating dist.."
+
+./CreateDist
+
+# Done
+
+echo "Done"

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ -d nightly ] ; then
+	rm nightly/ -R
+fi
+
+mkdir nightly
+mkdir -p nightly/Controls/TreeView
+
+cp ../Fit.UI.js nightly/
+cp ../Fit.UI.css nightly/
+cp ../Fit.UI.min.js nightly/
+cp ../Fit.UI.min.css nightly/
+cp ../Controls/TreeView/*.png nightly/Controls/TreeView
+cp ../Resources/ nightly/ -R
+#cp ../Examples/ nightly/ -R
+
+zip -r nightly-$(date +%F) nightly

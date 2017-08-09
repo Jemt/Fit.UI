@@ -1,0 +1,54 @@
+(function (factory)
+{
+	// UMD module (AMD, CommonJS, and Global).
+	// Good documentation on modules:
+	// http://2ality.com/2015/12/babel-commonjs.html
+	// http://davidbcalhoun.com/2014/what-is-amd-commonjs-and-umd
+
+	// CommonJS module.
+	// Enables support for bundlers such as WebPack.
+	if (typeof module === "object" && typeof module.exports === "object")
+	{
+		// Register module the same way Babel does:
+		// http://2ality.com/2015/12/babel-commonjs.html#how-babel-compiles-es6-modules-to-commonjs
+
+		var fit = factory();
+
+		// Export as one large module (Fit)
+		// module.exports.Fit = fit;
+
+		// Export each namespace of Fit.UI as individual modules (Array, Core, Dom, etc.)
+		// This way we can do this: import { Controls as c, Dom as d } from "fit-ui"
+		module.exports = fit;
+		// module.exports.default = fit; // DISABLED, breaks IE8
+
+		Object.defineProperty(module.exports, "__esModule", { value: true });
+	}
+
+	// AMD module for runtime loading.
+	// Usage: require(["libs/Fit.UI/Fit.UI.js"], function(fit) { console.log("Loaded", fit); });
+	// Make sure to load RequireJS first - demo: https://codepen.io/anon/pen/KvMGNa?editors=0010
+	else if (typeof define === "function" && define.amd)
+	{
+		define(["require", "exports"], factory);
+	}
+
+	// Global instance
+	else if (window)
+	{
+		var src = document.scripts[document.scripts.length-1].src;
+
+		if (src.indexOf('?') > -1)
+		{
+			// Add instance to custom global variable name
+			window[src.substring(src.indexOf('?')+1)] = factory();
+		}
+		else
+		{
+			window.Fit = factory();
+		}
+	}
+})(function()
+{
+	"use strict";
+	var fitInstance =
