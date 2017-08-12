@@ -93,9 +93,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 		var initialLoad = true;
 
 		tree = new Fit.Controls.WSTreeView(ctlId + "__WSTreeView");
+		tree.Selectable(true); // Make nodes selectable by default when added
 		tree.Width(100, "%");
 		//tree.Lines(true); // DISABLED - lines do not scale with font size
-		tree.AllowDeselect(true);
+		//tree.AllowDeselect(true); // DISABLED - AllowDeselect is True by default
 		tree.OnRequest(function(sender, eventArgs)
 		{
 			if (fireEventHandlers(onRequestHandlers, tree, eventArgs) === false)

@@ -47,8 +47,8 @@ Fit.Controls.TreeView = function(ctlId)
 
 	var selectable = false;
 	var multiSelect = false;
-	var showSelectAll = false;
-	var allowDeselect = false;
+	var showSelectAll = false; // TBD: Never implemented - can be achieved using ContextMenu. Remove or implement?
+	var allowDeselect = true;
 
 	var selected = createInternalCollection();
 	var selectedOrg = [];
@@ -431,7 +431,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables node selection, False disables it </param>
 	/// 	<param name="multi" type="boolean" default="false"> If defined, True enables node multi selection, False disables it </param>
-	/// 	<param name="showSelAll" type="boolean" default="false"> If defined, True enables Select All checkbox, False disables it </param>
+	/* 	<param name="showSelAll" type="boolean" default="false"> If defined, True enables Select All checkbox, False disables it </param> */
 	/// </function>
 	this.Selectable = function(val, multi, showSelAll)
 	{
@@ -444,7 +444,7 @@ Fit.Controls.TreeView = function(ctlId)
 			selectable = val;
 			multiSelect = ((multi === true) ? true : false);
 			showSelectAll = ((showSelAll === true) ? true : false);
-			allowDeselect = multi;
+			//allowDeselect = multi; // DISABLED - Selectable(..) should not change this behaviour!
 
 			me._internal.Data("selectable", selectable.toString());
 			me._internal.Data("multiselect", multiSelect.toString());
@@ -569,8 +569,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// <function container="Fit.Controls.TreeView" name="AllowDeselect" access="public" returns="boolean">
 	/// 	<description>
 	/// 		Get/set value indicating whether user is allowed to deselect nodes.
-	/// 		By default the user cannot deselect nodes in Single Selection Mode,
-	/// 		while this is allowed in Multi Selection Mode.
+	/// 		By default the user is allowed to deselect nodes.
 	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, changes behaviour to specified value </param>
 	/// </function>
@@ -1540,7 +1539,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	/// 	<description> Get/set value indicating whether user can change node selection state </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables node selection, False disables it </param>
 	/// 	<param name="showCheckbox" type="boolean" default="false"> If defined, True adds a selection checkbox, False removes it </param>
-	/// 	<param name="showSelectAll" type="boolean" default="false"> If defined, True adds a Select All checkbox useful for selecting all children, False removes it </param>
+	/* 	<param name="showSelectAll" type="boolean" default="false"> If defined, True adds a Select All checkbox useful for selecting all children, False removes it </param> */
 	/// </function>
 	this.Selectable = function(val, showCheckbox, showSelectAll)
 	{
@@ -1592,13 +1591,13 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return (chkSelect !== null);
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="HasSelectAll" access="public" returns="boolean">
-	/// 	<description> Get value indicating whether node has its Select All checkbox enabled </description>
-	/// </function>
+	/*<function container="Fit.Controls.TreeView.Node" name="HasSelectAll" access="public" returns="boolean">
+		<description> Get value indicating whether node has its Select All checkbox enabled </description>
+	</function>
 	this.HasSelectAll = function()
 	{
 		return false;
-	}
+	}*/
 
 	/// <function container="Fit.Controls.TreeView.Node" name="Selected" access="public" returns="boolean">
 	/// 	<description>
