@@ -21,7 +21,6 @@ fi
 cat ../Core/Core.js >> Fit.UI.js
 cat ../Core/Validation.js >> Fit.UI.js
 cat ../Core/Styles.css > Fit.UI.css
-#cat ../Resources/FontAwesome/css/font-awesome.min.css >> Fit.UI.css
 cat ../Resources/FontAwesome/css/font-awesome.css >> Fit.UI.css
 cat ../Resources/JqueryUI-1.11.4.custom/jquery-ui.css >> Fit.UI.css
 
