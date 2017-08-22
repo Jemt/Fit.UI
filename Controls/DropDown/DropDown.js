@@ -13,19 +13,19 @@ Fit.Controls.DropDown = function(ctlId)
 	Fit.Validation.ExpectStringValue(ctlId);
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
-    var me = this;								// Access to members from event handlers (where "this" may have a different meaning)
-    var itemContainer = null;					// Container for selected items and input fields
-    var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
-    var spanFitWidth = null;					// Span element used to calculate text width - used to dynamically control width of input fields
-    var txtPrimary = null;						// Primary input (search) field initially available
-    var txtCssWidth = -1;						// Width of input (search) field(s) - specified using CSS
-    var txtActive = null;						// Currently active input (search) field
+	var me = this;								// Access to members from event handlers (where "this" may have a different meaning)
+	var itemContainer = null;					// Container for selected items and input fields
+	var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
+	var spanFitWidth = null;					// Span element used to calculate text width - used to dynamically control width of input fields
+	var txtPrimary = null;						// Primary input (search) field initially available
+	var txtCssWidth = -1;						// Width of input (search) field(s) - specified using CSS
+	var txtActive = null;						// Currently active input (search) field
 	var txtEnabled = false;						// Flag indicating whether user can enter text
-    var dropDownMenu = null;					// Drop down menu element
-    var picker = null;							// Picker control within drop down menu
+	var dropDownMenu = null;					// Drop down menu element
+	var picker = null;							// Picker control within drop down menu
 	var orgSelections = [];						// Original selection set using Value(..) function - used to determine whether control is dirty
-    var invalidMessage = "Invalid selection";	// Mouse over text for invalid selections
-    var initialFocus = true;					// Flag indicating first focus of control
+	var invalidMessage = "Invalid selection";	// Mouse over text for invalid selections
+	var initialFocus = true;					// Flag indicating first focus of control
 	var maxHeight = { Value: 150, Unit: "px"};	// Picker max height (px)
 	var prevValue = "";							// Previous input value - used to determine whether OnChange should be fired
 	var focusAssigned = false;					// Boolean ensuring that control is only given focus when AddSelection is called, if user assigned focus to control
@@ -140,14 +140,14 @@ Fit.Controls.DropDown = function(ctlId)
 	// Public
 	// ============================================
 
-    // Error message
+	// Error message
 
 	/// <function container="Fit.Controls.DropDown" name="InvalidSelectionMessage" access="public" returns="string">
 	/// 	<description> Get/set mouse over text shown for invalid selections </description>
 	/// 	<param name="msg" type="string" default="undefined"> If defined, error message for invalid selections are set </param>
 	/// </function>
-    this.InvalidSelectionMessage = function(msg)
-    {
+	this.InvalidSelectionMessage = function(msg)
+	{
 		Fit.Validation.ExpectString(msg, true);
 
 		if (Fit.Validation.IsSet(msg) === true)
@@ -162,9 +162,9 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		return invalidMessage;
-    }
+	}
 
-    // Dimensions
+	// Dimensions
 
 	// See documentation on ControlBase
 	this.Width = Fit.Core.CreateOverride(this.Width, function(val, unit)
@@ -226,8 +226,8 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 	<param name="value" type="number" default="undefined"> If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content. </param>
 	/// 	<param name="unit" type="string" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
-    this.DropDownMaxHeight = function(value, unit)
-    {
+	this.DropDownMaxHeight = function(value, unit)
+	{
 		Fit.Validation.ExpectNumber(value, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
@@ -240,15 +240,15 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		return maxHeight;
-    }
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="DropDownMaxWidth" access="public" returns="object">
 	/// 	<description> Get/set max width of drop down - returns object with Value (number) and Unit (string) properties </description>
 	/// 	<param name="value" type="number" default="undefined"> If defined, max width is updated to specified value. A value of -1 forces drop down to use control width. </param>
 	/// 	<param name="unit" type="string" default="undefined"> If defined, max width is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
-    this.DropDownMaxWidth = function(value, unit)
-    {
+	this.DropDownMaxWidth = function(value, unit)
+	{
 		Fit.Validation.ExpectNumber(value, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
@@ -275,7 +275,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		return res;
-    }
+	}
 
 	// ControlBase interface
 
@@ -341,8 +341,8 @@ Fit.Controls.DropDown = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-    this.Focused = function(val)
-    {
+	this.Focused = function(val)
+	{
 		Fit.Validation.ExpectBoolean(val, true);
 
 		if (Fit.Validation.IsSet(val) === true)
@@ -367,7 +367,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		return (txtActive === Fit.Dom.GetFocused());
-    }
+	}
 
 	// See documentation on ControlBase
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
@@ -395,8 +395,8 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 	<description> Get/set flag indicating whether control allows for multiple selections </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables multi selection mode, False disables it </param>
 	/// </function>
-    this.MultiSelectionMode = function(val)
-    {
+	this.MultiSelectionMode = function(val)
+	{
 		Fit.Validation.ExpectBoolean(val, true);
 
 		if (Fit.Validation.IsSet(val) === true && me.MultiSelectionMode() !== val)
@@ -407,9 +407,9 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		return (me._internal.Data("multiselect") === "true");
-    }
+	}
 
-    // Controlling selections
+	// Controlling selections
 
 	var suppressUpdateItemSelectionState = false;
 	var suppressOnItemSelectionChanged = false;
@@ -550,14 +550,14 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 		GetSelections(true) can be used to retrive all items, including invalid selections.
 	/// 	</param>
 	/// </function>
-    this.AddSelection = function(title, value, valid)
-    {
+	this.AddSelection = function(title, value, valid)
+	{
 		Fit.Validation.ExpectString(title);
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(valid, true);
 
-        if (me.GetSelectionByValue(value) !== null)
-            return;
+		if (me.GetSelectionByValue(value) !== null)
+			return;
 
 		// Update picker control
 
@@ -596,7 +596,7 @@ Fit.Controls.DropDown = function(ctlId)
 				return; // Picker prevented selection from being added
 		}
 
-        // Clear selection if in Single Selection Mode
+		// Clear selection if in Single Selection Mode
 
 		if (me.MultiSelectionMode() === false)
 		{
@@ -629,28 +629,28 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Dom.AddClass(cmdDelete, "fa");
 		Fit.Dom.AddClass(cmdDelete, "fa-times");
 		cmdDelete.onclick = function(e)
-        {
-            me.RemoveSelection(decode(Fit.Dom.Data(cmdDelete.parentElement, "value")));
+		{
+			me.RemoveSelection(decode(Fit.Dom.Data(cmdDelete.parentElement, "value")));
 
 			focusInput(txtPrimary);
 
-            // Do not open drop down when an item is removed
-            Fit.Events.StopPropagation(e);
-        }
+			// Do not open drop down when an item is removed
+			Fit.Events.StopPropagation(e);
+		}
 
 		// Item container (left input, title box, right input)
-        var container = document.createElement("span");
+		var container = document.createElement("span");
 
 		// Input fields (left and right)
-        var searchLeft = createSearchField();
-        var searchRight = createSearchField();
+		var searchLeft = createSearchField();
+		var searchRight = createSearchField();
 
 		// Title box
-        var item = document.createElement("span");
+		var item = document.createElement("span");
 		Fit.Dom.Data(item, "value", encode(value)); // Value may contain special characters - encode to prevent value from breaking item
 
 		// Set CSS class and mouse over for invalid selection
-        if (valid === false)
+		if (valid === false)
 		{
 			Fit.Dom.Attribute(item, "title", invalidMessage);
 			Fit.Dom.AddClass(item, "FitUiControlDropDownInvalid");
@@ -667,7 +667,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Add new item
 
-        var before = null;
+		var before = null;
 
 		if (txtActive !== txtPrimary && me.MultiSelectionMode() === true && Fit.Dom.GetIndex(txtActive) === 0) // Left input
 			before = txtActive.parentElement;
@@ -676,11 +676,11 @@ Fit.Controls.DropDown = function(ctlId)
 		else
 			before = txtPrimary;
 
-        itemContainer.insertBefore(container, before);
+		itemContainer.insertBefore(container, before);
 
 		// Clear input control value
 
-        me.ClearInput();
+		me.ClearInput();
 
 		// Optimize tab order
 
@@ -725,12 +725,12 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Focus input control
 
-        if (me.MultiSelectionMode() === true)
-        {
+		if (me.MultiSelectionMode() === true)
+		{
 			// Make input to the right of newly added item active. This to make sure that
-            // the next item added appears to the right of the previously added item.
-            // If a left input field is selected, it remains focused, as the new element
-            // is added in front of the left input field.
+			// the next item added appears to the right of the previously added item.
+			// If a left input field is selected, it remains focused, as the new element
+			// is added in front of the left input field.
 			if (txtActive !== txtPrimary && Fit.Dom.GetIndex(txtActive) === 2)
 			{
 				if (searchRight.tabIndex !== -1) // Select right search field if not taken out of tab flow (see optimizeTabOrder(item) above)
@@ -738,7 +738,7 @@ Fit.Controls.DropDown = function(ctlId)
 				else if (container.nextSibling.tagName === "SPAN") // Right search field has been taken out of flow - use left search field in following item if found
 					focusInput(container.nextSibling.children[0]);
 			}
-        }
+		}
 		else
 		{
 			// Focus primary search field in Single Selection Mode, unless selected item is partially hidden,
@@ -751,14 +751,14 @@ Fit.Controls.DropDown = function(ctlId)
 		// Fire OnChange event
 
 		fireOnChange();
-    }
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="GetSelections" access="public" returns="array">
 	/// 	<description> Get selected items - returned array contain objects with Title (string), Value (string), and Valid (boolean) properties </description>
 	/// 	<param name="includeInvalid" type="boolean" default="false"> Flag indicating whether invalid selection should be included or not </param>
 	/// </function>
-    this.GetSelections = function(includeInvalid)
-    {
+	this.GetSelections = function(includeInvalid)
+	{
 		Fit.Validation.ExpectBoolean(includeInvalid, true);
 
 		var selections = Fit.Array.ToArray(itemContainer.children); // Convert NodeList to JS Array, since RemoveAt takes an instance of Array
@@ -767,21 +767,21 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Array.RemoveAt(selections, selections.length - 1);
 		Fit.Array.RemoveAt(selections, selections.length - 1);
 
-        var toReturn = [];
+		var toReturn = [];
 		Fit.Array.ForEach(selections, function(selection)
 		{
 			if (includeInvalid === true || Fit.Dom.HasClass(selection.children[1], "FitUiControlDropDownInvalid") === false)
 				Fit.Array.Add(toReturn, { Title: Fit.Dom.Text(selection.children[1]), Value: decode(Fit.Dom.Data(selection.children[1], "value")), Valid: !Fit.Dom.HasClass(selection.children[1], "FitUiControlDropDownInvalid") });
 		});
-        return toReturn;
-    }
+		return toReturn;
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="GetSelectionByValue" access="public" returns="object">
 	/// 	<description> Get selected item by value - returns object with Title (string), Value (string), and Valid (boolean) properties if found, otherwise Null is returned </description>
 	/// 	<param name="val" type="string"> Value of selected item to retrive </param>
 	/// </function>
-    this.GetSelectionByValue = function(val)
-    {
+	this.GetSelectionByValue = function(val)
+	{
 		Fit.Validation.ExpectString(val);
 
 		var found = null;
@@ -793,16 +793,16 @@ Fit.Controls.DropDown = function(ctlId)
 				return false; // Break loop
 			}
 		});
-        return found;
-    }
+		return found;
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="ClearSelections" access="public">
 	/// 	<description> Clear selections </description>
 	/// </function>
-    this.ClearSelections = function()
-    {
-        var selections = getSelectionElements();
-        var fireEvent = false;
+	this.ClearSelections = function()
+	{
+		var selections = getSelectionElements();
+		var fireEvent = false;
 		var wasFocused = focusAssigned; // Removing an input from DOM fires OnBlur which sets focusAssigned to False
 
 		me._internal.ExecuteWithNoOnChange(function() // picker.UpdateItemSelection results in OnChange being fired
@@ -839,16 +839,16 @@ Fit.Controls.DropDown = function(ctlId)
 		optimizeTabOrder();
 		focusInput(txtPrimary);
 
-        if (fireEvent === true)
-            fireOnChange();
-    }
+		if (fireEvent === true)
+			fireOnChange();
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="RemoveSelection" access="public">
 	/// 	<description> Remove selected item by value </description>
 	/// 	<param name="value" type="string"> Value of selected item to remove </param>
 	/// </function>
-    this.RemoveSelection = function(value)
-    {
+	this.RemoveSelection = function(value)
+	{
 		Fit.Validation.ExpectString(value);
 
 		// Update picker control.
@@ -891,16 +891,16 @@ Fit.Controls.DropDown = function(ctlId)
 		var txt = null;
 
 		Fit.Array.ForEach(getSelectionElements(), function(selection)
-        {
+		{
 			if (decode(Fit.Dom.Data(selection, "value")) === value)
-            {
+			{
 				if (me.MultiSelectionMode() === true && selection.parentElement.nextSibling !== null && selection.parentElement.nextSibling !== txtPrimary)
-                    txt = selection.parentElement.nextSibling.children[0];
+					txt = selection.parentElement.nextSibling.children[0];
 
 				found = selection.parentElement;
-                return false;
-            }
-        });
+				return false;
+			}
+		});
 
 		if (found === null)
 			return;
@@ -923,23 +923,23 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		fireOnChange();
-    }
+	}
 
-    // Controlling input field
+	// Controlling input field
 
 	/// <function container="Fit.Controls.DropDown" name="ClearInput" access="public">
 	/// 	<description> Clear text field </description>
 	/// </function>
-    this.ClearInput = function(input)
-    {
+	this.ClearInput = function(input)
+	{
 		Fit.Validation.ExpectInstance(input, HTMLInputElement, true);
 
-        var inp = ((Fit.Validation.IsSet(input) === true) ? input : txtActive);
+		var inp = ((Fit.Validation.IsSet(input) === true) ? input : txtActive);
 
 		if (inp.value === "")
 			return;
 
-        inp.value = "";
+		inp.value = "";
 		inp.style.width = "";
 
 		fireOnInputChanged("");
@@ -948,7 +948,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// which does not happen with IE and Firefox. Releasing JS thread using setTimeout solves the problem, but it will only work when input argument is passed,
 		// since txtActive may change during execution (e.g. if ClearInput is called from clearAllInputsButActive).
 		// Perhaps forcing a repaint using either zoom in CSS, or by temporarily assigning a CSS class, may also fix the problem.
-    }
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="SetInputValue" access="public">
 	/// 	<description>
@@ -958,8 +958,8 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 	</description>
 	/// 	<param name="val" type="string"> New value for text field </param>
 	/// </function>
-    this.SetInputValue = function(val)
-    {
+	this.SetInputValue = function(val)
+	{
 		Fit.Validation.ExpectString(val);
 
 		if (txtActive.value === val)
@@ -1010,7 +1010,7 @@ Fit.Controls.DropDown = function(ctlId)
 				});
 			}
 		}
-    }
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="GetInputValue" access="public" returns="string">
 	/// 	<description> Get input value </description>
@@ -1036,49 +1036,49 @@ Fit.Controls.DropDown = function(ctlId)
 		return txtEnabled;
 	}
 
-    // Controlling drop down menu
+	// Controlling drop down menu
 
 	/// <function container="Fit.Controls.DropDown" name="OpenDropDown" access="public">
 	/// 	<description> Open drop down menu </description>
 	/// </function>
-    this.OpenDropDown = function()
-    {
+	this.OpenDropDown = function()
+	{
 		if (dropDownMenu.style.display === "block")
 			return;
 
-        if (Fit._internal.DropDown.Current !== null && Fit._internal.DropDown.Current !== me)
-            Fit._internal.DropDown.Current.CloseDropDown();
+		if (Fit._internal.DropDown.Current !== null && Fit._internal.DropDown.Current !== me)
+			Fit._internal.DropDown.Current.CloseDropDown();
 
 		dropDownMenu.style.minWidth = me.GetDomElement().offsetWidth + "px"; // In case DropDownMaxWidth(..) is set - update every time drop down is opened in case viewport is resized and has changed control width
-        dropDownMenu.style.display = "block";
+		dropDownMenu.style.display = "block";
 
-        Fit._internal.DropDown.Current = me;
+		Fit._internal.DropDown.Current = me;
 
-        fireOnDropDownOpen();
-    }
+		fireOnDropDownOpen();
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="CloseDropDown" access="public">
 	/// 	<description> Close drop down menu </description>
 	/// </function>
-    this.CloseDropDown = function()
-    {
+	this.CloseDropDown = function()
+	{
 		if (dropDownMenu.style.display === "none")
 			return;
 
-        dropDownMenu.style.display = "none";
+		dropDownMenu.style.display = "none";
 
-        Fit._internal.DropDown.Current = null;
+		Fit._internal.DropDown.Current = null;
 
-        fireOnDropDownClose();
-    }
+		fireOnDropDownClose();
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="IsDropDownOpen" access="public" returns="boolean">
 	/// 	<description> Get flag indicating whether drop down is open or not </description>
 	/// </function>
-    this.IsDropDownOpen = function()
-    {
-        return (dropDownMenu.style.display === "block");
-    }
+	this.IsDropDownOpen = function()
+	{
+		return (dropDownMenu.style.display === "block");
+	}
 
 	// ============================================
 	// Events (OnChange defined on BaseControl)
@@ -1139,21 +1139,21 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Array.Add(onCloseHandlers, cb);
 	}
 
-    // ============================================
+	// ============================================
 	// Private
 	// ============================================
 
-    function createSearchField()
-    {
-        var txt = document.createElement("input");
-        txt.autocomplete = "off";
+	function createSearchField()
+	{
+		var txt = document.createElement("input");
+		txt.autocomplete = "off";
 
-        txt.onpaste = function(e)
-        {
+		txt.onpaste = function(e)
+		{
 			var orgValue = txt.value;
 
-            setTimeout(function() // Timeout to queue event to have pasted value available
-            {
+			setTimeout(function() // Timeout to queue event to have pasted value available
+			{
 				var pastedValue = txt.value;
 
 				if (fireOnPaste(txt.value) === true)
@@ -1168,27 +1168,27 @@ Fit.Controls.DropDown = function(ctlId)
 					if (txt.value === pastedValue)
 						txt.value = orgValue;
 				}
-            }, 0);
-        }
+			}, 0);
+		}
 
-        txt.onfocus = function(e)
-        {
+		txt.onfocus = function(e)
+		{
 			focusAssigned = true;
 
-            if (initialFocus === true)
-            {
-                initialFocus = false;
-                me.ClearInput(txtPrimary);
-            }
+			if (initialFocus === true)
+			{
+				initialFocus = false;
+				me.ClearInput(txtPrimary);
+			}
 
-            txtActive = txt;
+			txtActive = txt;
 			prevValue = txtActive.value;
 
 			clearAllInputsButActive();
 
 			if (picker !== null)
 				picker.SetEventDispatcher(txtActive);
-        }
+		}
 
 		txt.onblur = function(e)
 		{
@@ -1197,12 +1197,12 @@ Fit.Controls.DropDown = function(ctlId)
 
 		var timeOutId = null;
 
-        txt.onkeydown = function(e) // Fires continuously for any key pressed - both characters and e.g backspace/delete/arrows etc. Key press may be canceled (change has not yet occured)
-        {
+		txt.onkeydown = function(e) // Fires continuously for any key pressed - both characters and e.g backspace/delete/arrows etc. Key press may be canceled (change has not yet occured)
+		{
 			var ev = Fit.Events.GetEvent(e);
 
-            txtActive = txt;
-            clearAllInputsButActive();
+			txtActive = txt;
+			clearAllInputsButActive();
 
 			if (picker !== null)
 			{
@@ -1217,25 +1217,25 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 			}
 
-            if (ev.keyCode === 9) // Tab
-            {
-                if (ev.shiftKey === true) // Moving left
-                {
-                    if (me.GetSelections().length === 0)
-                    {
-                        me.CloseDropDown();
-                        return;
-                    }
-                    else if (txt !== txtPrimary && txt.parentElement.previousSibling === null)
-                    {
-                        me.CloseDropDown();
-                        return;
-                    }
+			if (ev.keyCode === 9) // Tab
+			{
+				if (ev.shiftKey === true) // Moving left
+				{
+					if (me.GetSelections().length === 0)
+					{
+						me.CloseDropDown();
+						return;
+					}
+					else if (txt !== txtPrimary && txt.parentElement.previousSibling === null)
+					{
+						me.CloseDropDown();
+						return;
+					}
 
-                    moveToInput("Prev");
-                }
-                else // Moving right
-                {
+					moveToInput("Prev");
+				}
+				else // Moving right
+				{
 					if (me.MultiSelectionMode() === false && partiallyHidden !== null)
 					{
 						// Let browser handle navigation - only left input control can receive focus at this point
@@ -1244,110 +1244,110 @@ Fit.Controls.DropDown = function(ctlId)
 						return;
 					}
 					else if (txt === txtPrimary)
-                    {
-                        me.CloseDropDown();
-                        return;
-                    }
+					{
+						me.CloseDropDown();
+						return;
+					}
 
-                    moveToInput("Next");
-                }
+					moveToInput("Next");
+				}
 
-                return false;
-            }
-            else if (ev.keyCode === 38) // Arrow up
-            {
-                me.OpenDropDown(); // Make sure it is opened
-            }
-            else if (ev.keyCode === 40) // Arrow down
-            {
-                me.OpenDropDown(); // Make sure it is opened
-            }
-            else if (ev.keyCode === 37) // Arrow left
-            {
-                moveToInput("Prev");
-            }
-            else if (ev.keyCode === 39) // Arrow right
-            {
+				return false;
+			}
+			else if (ev.keyCode === 38) // Arrow up
+			{
+				me.OpenDropDown(); // Make sure it is opened
+			}
+			else if (ev.keyCode === 40) // Arrow down
+			{
+				me.OpenDropDown(); // Make sure it is opened
+			}
+			else if (ev.keyCode === 37) // Arrow left
+			{
+				moveToInput("Prev");
+			}
+			else if (ev.keyCode === 39) // Arrow right
+			{
 				if (me.MultiSelectionMode() === false && partiallyHidden !== null)
 					return;
 
-                moveToInput("Next");
-            }
-            else if (ev.keyCode === 27) // Escape
-            {
+				moveToInput("Next");
+			}
+			else if (ev.keyCode === 27) // Escape
+			{
 				if (Fit.Browser.GetInfo().Name === "MSIE")
 					Fit.Events.PreventDefault(ev); // Do not clear input on IE
 
-                me.CloseDropDown();
-            }
-            else if (ev.keyCode === 8) // Backspace - remove selection
-            {
-                if (txt.value.length === 0)
-                {
+				me.CloseDropDown();
+			}
+			else if (ev.keyCode === 8) // Backspace - remove selection
+			{
+				if (txt.value.length === 0)
+				{
 					if (Fit.Browser.GetInfo().Name === "MSIE")
 						Fit.Events.PreventDefault(ev); // Do not navigate back on IE when backspace is pressed within input being removed
 
-                    var toRemove = null;
+					var toRemove = null;
 
 					if (txt !== txtPrimary && Fit.Dom.GetIndex(txt) === 2) // Right input
-                        toRemove = txt.parentElement;
+						toRemove = txt.parentElement;
 					else if (txt !== txtPrimary && Fit.Dom.GetIndex(txt) === 0 && txt.parentElement.previousSibling !== null) // Left input
-                        toRemove = txt.parentElement.previousSibling;
+						toRemove = txt.parentElement.previousSibling;
 					else if (txt.previousSibling !== null) // Primary input
-                        toRemove = txt.previousSibling;
+						toRemove = txt.previousSibling;
 
-                    if (toRemove !== null)
-                    {
+					if (toRemove !== null)
+					{
 						me.RemoveSelection(decode(Fit.Dom.Data(toRemove.children[1], "value")));
-                    }
-                }
-                else
-                {
+					}
+				}
+				else
+				{
 					if (timeOutId !== null)
 						clearTimeout(timeOutId);
 
-                    // New length is not known when removing characters until OnKeyUp is fired.
-                    // We won't wait for that. Instead we calculate the width "once in a while".
-                    // Passing txt instance rather than txtActive, as the latter may change before
-                    // timeout is reached and delegate is executed.
-                    timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
-                }
-            }
-            else if (ev.keyCode === 46) // Delete - remove selection
-            {
-                if (txt.value.length === 0)
-                {
-                    var toRemove = null;
+					// New length is not known when removing characters until OnKeyUp is fired.
+					// We won't wait for that. Instead we calculate the width "once in a while".
+					// Passing txt instance rather than txtActive, as the latter may change before
+					// timeout is reached and delegate is executed.
+					timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
+				}
+			}
+			else if (ev.keyCode === 46) // Delete - remove selection
+			{
+				if (txt.value.length === 0)
+				{
+					var toRemove = null;
 
 					if (txt !== txtPrimary && Fit.Dom.GetIndex(txt) === 0) // Left input
-                        toRemove = txt.parentElement;
+						toRemove = txt.parentElement;
 					else if (txt !== txtPrimary && Fit.Dom.GetIndex(txt) === 2 && txt.parentElement.nextSibling.tagName === "SPAN") // Right input
-                        toRemove = txt.parentElement.nextSibling;
+						toRemove = txt.parentElement.nextSibling;
 
-                    if (toRemove !== null)
-                    {
-                        me.RemoveSelection(decode(Fit.Dom.Data(toRemove.children[1], "value")));
-                    }
-                }
-                else
-                {
+					if (toRemove !== null)
+					{
+						me.RemoveSelection(decode(Fit.Dom.Data(toRemove.children[1], "value")));
+					}
+				}
+				else
+				{
 					if (timeOutId !== null)
 						clearTimeout(timeOutId);
 
-                    // New length is not known when removing characters until OnKeyUp is fired.
-                    // We won't wait for that. Instead we calculate the width "once in a while".
-                    // Passing txt instance rather than txtActive, as the latter may change before
-                    // timeout is reached and delegate is executed.
-                    timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
-                }
-            }
+					// New length is not known when removing characters until OnKeyUp is fired.
+					// We won't wait for that. Instead we calculate the width "once in a while".
+					// Passing txt instance rather than txtActive, as the latter may change before
+					// timeout is reached and delegate is executed.
+					timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
+				}
+			}
 			else if (ev.keyCode === 13) // Enter - notice that item selection is handled by (delegated to) picker when Enter is pressed - picker.OnItemSelectionChanged receives selected item
 			{
 				// Prevent form submit
 				Fit.Events.PreventDefault(e);
 			}
-            else
-            {
+			else
+			{
 				if (txtEnabled === false)
 				{
 					Fit.Events.PreventDefault(ev);
@@ -1363,47 +1363,47 @@ Fit.Controls.DropDown = function(ctlId)
 					timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 0);
 				else
 					fitWidthToContent(txt, txt.value + String.fromCharCode(ev.keyCode | ev.charCode)); // TODO: Will not work properly if multiple characters are selected, and just one character is entered - the input field will obtain an incorrect width until next key stroke. The solution is NOT to always use setTimeout since the delayed update is noticeable.
-            }
-        }
+			}
+		}
 
 		txt.onkeyup = function(e) // Fires only once when a key is released
-        {
-            var ev = Fit.Events.GetEvent(e);
+		{
+			var ev = Fit.Events.GetEvent(e);
 
-            if (ev.keyCode !== 37 && ev.keyCode !== 38 && ev.keyCode !== 39 && ev.keyCode !== 40 && ev.keyCode !== 27 && ev.keyCode !== 9 && ev.keyCode !== 16 && ev.ctrlKey === false && ev.keyCode !== 17) // Do not fire change event for: arrow keys, escape, tab, shift, and on paste (never fires when CTRL is held down (ev.ctrlKey true) or released (ev.keyCode 17))
-            {
+			if (ev.keyCode !== 37 && ev.keyCode !== 38 && ev.keyCode !== 39 && ev.keyCode !== 40 && ev.keyCode !== 27 && ev.keyCode !== 9 && ev.keyCode !== 16 && ev.ctrlKey === false && ev.keyCode !== 17) // Do not fire change event for: arrow keys, escape, tab, shift, and on paste (never fires when CTRL is held down (ev.ctrlKey true) or released (ev.keyCode 17))
+			{
 				if (txt.value !== prevValue)
 				{
 					prevValue = txt.value;
 					fireOnInputChanged(txt.value);
 				}
-            }
-        }
+			}
+		}
 
-        txt.onclick = function(e)
-        {
-            Fit.Events.StopPropagation(e);
-        }
+		txt.onclick = function(e)
+		{
+			Fit.Events.StopPropagation(e);
+		}
 
-        return txt;
-    }
+		return txt;
+	}
 
-    function getSelectionElements() // Return spans containing Title and Value (also include elements marked as invalid selections)
-    {
+	function getSelectionElements() // Return spans containing Title and Value (also include elements marked as invalid selections)
+	{
 		return itemContainer.querySelectorAll("span[data-value]");
-    }
+	}
 
-    function fitWidthToContent(input, val) // Set width of input field equivalent to its content
-    {
+	function fitWidthToContent(input, val) // Set width of input field equivalent to its content
+	{
 		Fit.Validation.ExpectInstance(input, HTMLInputElement);
 		Fit.Validation.ExpectString(val, true);
 
-        var value = ((Fit.Validation.IsSet(val) === true) ? val : input.value);
+		var value = ((Fit.Validation.IsSet(val) === true) ? val : input.value);
 
-        // Width of txtPrimary cannot reliably be determined initially if picker is hidden.
-        // Re-calculating when fitWidthToContent gets called again when the picker is visible.
-        if (txtCssWidth <= 0)
-            txtCssWidth = txtPrimary.offsetWidth; // Notice: offsetWidth returns 0 if picker is hidden using display:none
+		// Width of txtPrimary cannot reliably be determined initially if picker is hidden.
+		// Re-calculating when fitWidthToContent gets called again when the picker is visible.
+		if (txtCssWidth <= 0)
+			txtCssWidth = txtPrimary.offsetWidth; // Notice: offsetWidth returns 0 if picker is hidden using display:none
 
 		spanFitWidth.innerHTML = value;
 		var newWidth = (((value !== "") ? spanFitWidth.offsetWidth : 0) + txtCssWidth);
@@ -1414,25 +1414,25 @@ Fit.Controls.DropDown = function(ctlId)
 		newWidth = ((offsetLeft + newWidth > innerWidth) ? innerWidth - offsetLeft : newWidth);
 
 		input.style.width = newWidth + "px";
-    }
+	}
 
-    function moveToInput(direction) // direction = Next/Prev
-    {
+	function moveToInput(direction) // direction = Next/Prev
+	{
 		Fit.Validation.ExpectString(direction);
 
-        var newInput = null;
+		var newInput = null;
 
-        if (direction === "Prev") // Moving left
-        {
+		if (direction === "Prev") // Moving left
+		{
 			if (txtActive !== txtPrimary && Fit.Dom.GetIndex(txtActive) === 0 && txtActive.parentElement.previousSibling !== null) // Left input has focus
 				newInput = txtActive.parentElement.previousSibling.children[0];
 			else if (txtActive !== txtPrimary && Fit.Dom.GetIndex(txtActive) === 2) // Right input has focus
 				newInput = txtActive.parentElement.children[0];
 			else if (txtActive.previousSibling !== null) // Primary input has focus
 				newInput = txtActive.previousSibling.children[0];
-        }
-        else // Moving right
-        {
+		}
+		else // Moving right
+		{
 			// TODO: Clean up - remove disabled code below - has been replaced by more compact code below it
 			/*if (txtActive !== txtPrimary && Fit.Dom.GetIndex(txtActive) === 0) // Left input has focus
 			{
@@ -1477,10 +1477,10 @@ Fit.Controls.DropDown = function(ctlId)
 			// If newInput is last selection's right input field, then select txtPrimary instead
 			if (newInput !== null && newInput.parentElement.nextSibling === txtPrimary && Fit.Dom.GetIndex(newInput) === 2)
 				newInput = txtPrimary;
-        }
+		}
 
-        if (newInput === null) // May be null if no selections are available to move to
-            return;
+		if (newInput === null) // May be null if no selections are available to move to
+			return;
 
 		// Move content
 		/*newInput.value = txtActive.value;
@@ -1488,32 +1488,32 @@ Fit.Controls.DropDown = function(ctlId)
 		fitWidthToContent(newInput);*/
 
 		focusInput(newInput);
-    }
+	}
 
-    function focusInput(input)
-    {
+	function focusInput(input)
+	{
 		Fit.Validation.ExpectInstance(input, HTMLInputElement);
 
-        txtActive = input;
+		txtActive = input;
 
 		if (focusAssigned === true) // Only set focus if user initially assigned focus to control
 			txtActive.focus(); // Input's OnFocus handler calls picker.SetEventDispatcher(..)
 		else if (/*focusAssigned === false &&*/ picker !== null) // User did not give focus to control, manually call SetEventDispatcher(..) on picker control
 			picker.SetEventDispatcher(txtActive);
-    }
+	}
 
-    function clearAllInputsButActive()
-    {
-        var inputs = itemContainer.getElementsByTagName("input");
+	function clearAllInputsButActive()
+	{
+		var inputs = itemContainer.getElementsByTagName("input");
 
 		Fit.Array.ForEach(inputs, function(input)
 		{
 			if (input === txtActive)
-                return;
+				return;
 
-            me.ClearInput(input);
+			me.ClearInput(input);
 		});
-    }
+	}
 
 	function optimizeTabOrder(item)
 	{
@@ -1644,25 +1644,25 @@ Fit.Controls.DropDown = function(ctlId)
 		return encodeURIComponent(str);
 	}
 
-    // Event dispatchers
+	// Event dispatchers
 
-    function fireOnInputChanged(val)
-    {
+	function fireOnInputChanged(val)
+	{
 		Fit.Validation.ExpectString(val);
 
 		Fit.Array.ForEach(onInputChangedHandlers, function(handler)
 		{
 			handler(me, val);
 		});
-    }
+	}
 
-    function fireOnChange()
-    {
+	function fireOnChange()
+	{
 		me._internal.FireOnChange();
-    }
+	}
 
-    function fireOnPaste(val)
-    {
+	function fireOnPaste(val)
+	{
 		Fit.Validation.ExpectString(val);
 
 		var proceed = true;
@@ -1674,10 +1674,10 @@ Fit.Controls.DropDown = function(ctlId)
 		});
 
 		return proceed;
-    }
+	}
 
-    function fireOnDropDownOpen()
-    {
+	function fireOnDropDownOpen()
+	{
 		Fit.Array.ForEach(onOpenHandlers, function(handler)
 		{
 			handler(me);
@@ -1685,10 +1685,10 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (picker !== null)
 			picker._internal.FireOnShow();
-    }
+	}
 
-    function fireOnDropDownClose()
-    {
+	function fireOnDropDownClose()
+	{
 		Fit.Array.ForEach(onCloseHandlers, function(handler)
 		{
 			handler(me);
@@ -1696,7 +1696,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (picker !== null)
 			picker._internal.FireOnHide();
-    }
+	}
 
 	init();
 }
