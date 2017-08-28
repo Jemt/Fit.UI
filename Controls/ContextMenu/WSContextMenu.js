@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.WSContextMenu">
+/// <container name="Fit.Controls.WSContextMenu" extends="Fit.Controls.ContextMenu">
 /// 	ContextMenu control allowing for quick access to select features provided by a WebService.
 /// 	Extending from Fit.Controls.ContextMenu.
 /// </container>

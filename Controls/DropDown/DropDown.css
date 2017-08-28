@@ -20,6 +20,19 @@ div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems
 {
 	white-space: nowrap; /* Make sure txtPrimary does not word wrap in Single Selection Mode */
 }
+div.FitUiControlDropDown[data-focused="true"][data-device="Phone"] div.FitUiControlDropDownItems,
+div.FitUiControlDropDown[data-focused="true"][data-device="Tablet"] div.FitUiControlDropDownItems
+{
+	/* Make it obvious that a drop down has focus in
+	   case the menu is closed and no input field has focus.
+	   This will be the case when removing items using the delete
+	   button on an item, without focusing the control first. */
+	border: 2px solid #1C74CE;
+}
+div.FitUiControlDropDownItems:focus /* Remove outline when focus is temporarily assigned to prevent DropDown from losing focus */
+{
+	outline: none;
+}
 
 div.FitUiControlDropDownItems > i /* Box surrounding arrow icon */
 {
@@ -49,6 +62,10 @@ div.FitUiControlDropDownItems > i.fa-spin
 	border: none;
 	background-color: transparent;
 }
+div.FitUiControlDropDownItems > i:focus /* Remove outline when focus is assigned to prevent DropDown from losing focus on mobile */
+{
+	outline: none;
+}
 
 div.FitUiControlDropDownItems > span /* Selection container */
 {
@@ -56,6 +73,10 @@ div.FitUiControlDropDownItems > span /* Selection container */
 	white-space: nowrap;
 	margin-top: 0.1em;
 	margin-bottom: 0.1em;
+}
+div.FitUiControlDropDownItems > span:focus /* Remove outline when focus is temporarily assigned to prevent DropDown from losing focus */
+{
+	outline: none;
 }
 
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span > span /* Selection (in multi selection mode only) */
@@ -81,6 +102,10 @@ div.FitUiControlDropDownItems > span > span > i /* Delete button */
 div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems > span > span > i /* Delete button in selection (in single selection mode only) */
 {
 	display: none;
+}
+div.FitUiControlDropDownItems > span > span > i:focus /* Remove outline when focus is temporarily assigned to prevent DropDown from losing focus */
+{
+	outline: none;
 }
 
 /* CSS used to calculate width of content for input fields */

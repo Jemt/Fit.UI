@@ -15,6 +15,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	var me = this;								// Access to members from event handlers (where "this" may have a different meaning)
 	var itemContainer = null;					// Container for selected items and input fields
+	var arrow = null;							// Arrow button used to open/close drop down menu
 	var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
 	var spanFitWidth = null;					// Span element used to calculate text width - used to dynamically control width of input fields
 	var txtPrimary = null;						// Primary input (search) field initially available
@@ -33,8 +34,10 @@ Fit.Controls.DropDown = function(ctlId)
 	var widthObserverId = -1;					// Observer (ID) responsible for updating tab flow when control width is changed
 	var tabOrderObserverId = -1;				// Observer (ID) responsible for updating tab flow when control becomes visible
 	var partiallyHidden = null;					// Reference to item partially hidden (only used in Single Selection Mode where word wrapping is disabled)
-	var clickHandlerId = -1;					// Event (ID) responsible for closing drop down when user clicks outside of control
+	var closeHandlers = [];						// Events (IDs) responsible for closing drop down when user clicks outside of control
 	var dropZone = null;						// Active DropZone (drag and drop support)
+	var isMobile = false;						// Flag indicating whether control is running on a mobile (touch) device
+	var focusInputOnMobile = false;				// Flag indicating whether control should focus input after removing an item or selecting a new item from the picker control
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -49,24 +52,62 @@ Fit.Controls.DropDown = function(ctlId)
 
 		me._internal.Data("multiselect", "false");
 
+		if (Fit.Browser.GetInfo().IsMobile === true)
+			isMobile = true;
+
 		// Create item container
 
 		itemContainer = document.createElement("div");
+		itemContainer.onmousedown = function(e)
+		{
+			itemContainer.tabIndex = 0; // Prevent control from losing focus when clicked by temporarily making the element focusable
+		}
+		itemContainer.onmouseup = function(e)
+		{
+			itemContainer.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
+		}
 		itemContainer.onclick = function(e)
 		{
-			focusAssigned = true;
-			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
+			if (Fit.Events.GetTarget(e) === itemContainer) // Could be triggered by a click on the arrow button which propagates
+			{
+				focusInputOnMobile = true;
+
+				focusAssigned = true; // Clicking the item container causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
+				focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
+			}
+
 			me.OpenDropDown();
 		}
 		Fit.Dom.AddClass(itemContainer, "FitUiControlDropDownItems");
 
 		// Create arrow button used to open drop down
 
-		var arrow = document.createElement("i");
+		arrow = document.createElement("i");
 		Fit.Dom.AddClass(arrow, "fa");
 		Fit.Dom.AddClass(arrow, "fa-chevron-down");
+		arrow.tabIndex = ((isMobile === true) ? 0 : -1); // We need to be able to focus arrow on mobile to keep DropDown focused (search for the use of arrow.focus())
+		arrow.onmousedown = function(e)
+		{
+			if (isMobile === false)
+				arrow.tabIndex = 0; // Prevent control from losing focus when clicked by temporarily making the element focusable
+		}
+		arrow.onmouseup = function(e)
+		{
+			if (isMobile === false) // Assigning focus on a mobile device often pops up the virtual keyboard which is annoying
+			{
+				arrow.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
+
+				// Prevent DropDown from losing focus when arrow is used to close menu.
+				// It would otherwise leave the control with no blinking cursor.
+				// Also, we want the control to be ready for input and keyboard navigation.
+				focusAssigned = true; // Clicking the arrow causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
+				focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
+			}
+		}
 		arrow.onclick = function(e)
 		{
+			focusInputOnMobile = false;
+
 			// Do nothing by default, event propagates out to itemContainer
 			// which opens drop down (See itemContainer.onclick handler above).
 
@@ -75,6 +116,11 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				me.CloseDropDown();
 				Fit.Events.StopPropagation(e); // Prevent drop down from opening again
+
+				if (isMobile === true)
+				{
+					me.Focused(false); // Force control to lose focus when closed on mobile, to have the OnBlur event fire
+				}
 			}
 		}
 
@@ -108,12 +154,63 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Make drop down close when user clicks outside of control
 
-		clickHandlerId = Fit.Events.AddHandler(document, "click", function(e)
+		if (isMobile === false)
 		{
-			var target = Fit.Events.GetTarget(e);
+			var eventId = Fit.Events.AddHandler(document, "click", function(e)
+			{
+				var target = Fit.Events.GetTarget(e);
 
-			if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
-				me.CloseDropDown();
+				if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+					me.CloseDropDown();
+			});
+			Fit.Array.Add(closeHandlers, eventId);
+		}
+		else
+		{
+			// OnClick does not work reliably on mobile (at least not on iOS 9 and 10), so using touch events instead
+
+			var coords = null;
+			var eventId = -1;
+
+			eventId = Fit.Events.AddHandler(document, "touchstart", function(e)
+			{
+				var target = Fit.Events.GetTarget(e);
+
+				coords = null;
+
+				if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+				{
+					coords = Fit.Events.GetPointerState().Coordinates.Document;
+				}
+			});
+			Fit.Array.Add(closeHandlers, eventId);
+
+			eventId = Fit.Events.AddHandler(document, "touchend", function(e)
+			{
+				if (coords === null)
+					return;
+
+				// Determine whether user moved finger (e.g. to scroll page) in which case we do not want to close the menu
+
+				var curCoords = Fit.Events.GetPointerState().Coordinates.Document;
+				var moved = (Math.abs(coords.X - curCoords.X) > 10 || Math.abs(coords.Y - curCoords.Y) > 10); // Must be moved at least 10px left/right or up/down
+
+				if (moved === false)
+				{
+					me.CloseDropDown();
+					me.Focused(false);
+				}
+			});
+			Fit.Array.Add(closeHandlers, eventId);
+		}
+
+		// Make drop down close if focus is removed programmatically
+		// or by iOS which happens when onscreen keyboard is closed.
+
+		me.OnBlur(function()
+		{
+			focusInputOnMobile = false;
+			me.CloseDropDown();
 		});
 
 		// Suppress context menu (except for input fields)
@@ -359,10 +456,10 @@ Fit.Controls.DropDown = function(ctlId)
 				c.value = "";
 				c.value = v;
 			}
-			else if (val === false && txtActive === Fit.Dom.GetFocused())
+			else if (val === false && Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused()) === true)
 			{
 				me.CloseDropDown();
-				txtActive.blur();
+				Fit.Dom.GetFocused().blur(); // Focused element could be txtActive (holds reference to currently focused input field) or arrow button
 			}
 		}
 
@@ -382,9 +479,15 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit._internal.DropDown.Current = null;
 		}
 
-		Fit.Events.RemoveHandler(document, clickHandlerId);
+		if (widthObserverId !== -1)
+			Fit.Events.RemoveMutationObserver(widthObserverId);
 
-		me = itemContainer = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = partiallyHidden = clickHandlerId = dropZone = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
+		Fit.Array.ForEach(closeHandlers, function(eventId)
+		{
+			Fit.Events.RemoveHandler(document, eventId);
+		});
+
+		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
 
 		base();
 	});
@@ -518,7 +621,11 @@ Fit.Controls.DropDown = function(ctlId)
 					txt = txtPrimary;
 			}
 
-			focusInput(((txt !== null) ? txt : txtActive));
+			if (isMobile === false || focusInputOnMobile === true)
+			{
+				focusAssigned = true; // Clicking the picker causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
+				focusInput(((txt !== null) ? txt : txtActive));
+			}
 
 			suppressUpdateItemSelectionState = false;
 		});
@@ -628,18 +735,73 @@ Fit.Controls.DropDown = function(ctlId)
 		var cmdDelete = document.createElement("i");
 		Fit.Dom.AddClass(cmdDelete, "fa");
 		Fit.Dom.AddClass(cmdDelete, "fa-times");
-		cmdDelete.onclick = function(e)
+		cmdDelete.tabIndex = 0; // Prevents control from losing focus when clicking button - will not interfear with tab flow since we have custom handling for that
+		cmdDelete.onclick = function(e) // OnClick fires after MouseUp
 		{
+			// Whether OnClick fires depends on what browser is being used. A couple of tests reveal this:
+			// Chrome and IE: Does not fire onclick if an element is moved to another position in DOM (dragged and dropped).
+			// Firefox: Does not fire onclick if element is moved, unless it is dropped in a new position in DOM (drag and drop)
+			//  - opposite of Chrome and IE. Firefox does ignore minor movements though, for the sake of usability.
+
 			me.RemoveSelection(decode(Fit.Dom.Data(cmdDelete.parentElement, "value")));
 
-			focusInput(txtPrimary);
+			// Always focus control when removing and moving items.
+			// First of all it prevents OnFocus and OnBlur from firing
+			// a lot of times if multiple elements are removed or moved,
+			// secondly it's easier to ensure consistency across browsers
+			// as various events are implemented differently, especially
+			// when drag and drop comes into place.
+			// RemoveSelection changes focus if control already has focus.
+			// If three items are selected, and the first one is removed,
+			// then focus is set to the first (left most) input field.
+			// We always want txtPrimary to have focus after removing an
+			// item using the mouse which is why focus is assigned below.
+			// This is also the reason why the code in cmdDelete.OnMouseUp
+			// alone is not sufficient. Focus must be assigned to txtPrimary
+			// AFTER RemoveSelection(..) is invoked.
+			if (isMobile === false || focusInputOnMobile === true)
+			{
+				focusAssigned = true;
+				focusInput(txtPrimary);
+			}
+			else
+			{
+				arrow.focus(); // Focus arrow to keep DropDown control focused on mobile
+			}
 
 			// Do not open drop down when an item is removed
 			Fit.Events.StopPropagation(e);
 		}
+		cmdDelete.onmouseup = function() // MouseUp fires before OnClick
+		{
+			// OnClick is not fired in Firefox when mouse is moved (but not dropped in a new position),
+			// which causes the item to remain intact and focused. Make sure proper element is focused in this case.
+			if (isMobile === false || focusInputOnMobile === true)
+			{
+				focusAssigned = true;
+				focusInput(txtPrimary);
+			}
+			else
+			{
+				arrow.focus(); // Focus arrow to keep DropDown control focused on mobile
+			}
+		}
 
 		// Item container (left input, title box, right input)
 		var container = document.createElement("span");
+		container.onmousedown = function(e)
+		{
+			container.tabIndex = 0; // Prevent control from losing focus when clicked by temporarily making the element focusable
+		}
+		container.onmouseup = function(e)
+		{
+			container.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
+		}
+		container.onclick = function(e)
+		{
+			focusAssigned = true;
+			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary)); //focusInput(txtPrimary);
+		}
 
 		// Input fields (left and right)
 		var searchLeft = createSearchField();
@@ -906,7 +1068,7 @@ Fit.Controls.DropDown = function(ctlId)
 			return;
 
 		if (me.MultiSelectionMode() === false)
-			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
+			focusInput(txtPrimary);
 		else
 			focusInput(((txt !== null) ? txt : txtPrimary));
 
@@ -1382,6 +1544,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		txt.onclick = function(e)
 		{
+			focusInputOnMobile = true;
 			Fit.Events.StopPropagation(e);
 		}
 
@@ -1545,7 +1708,7 @@ Fit.Controls.DropDown = function(ctlId)
 			if (partiallyHidden !== null)
 				inputs[0].tabIndex = 0;
 		}
-		else //  // Multi Selection Mode
+		else // Multi Selection Mode
 		{
 			partiallyHidden = null;
 
@@ -1590,11 +1753,24 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (Fit.Dom.Data(dropzone.GetDomElement(), "dropping") === "right" && dropzone.GetDomElement() !== draggable.GetDomElement().previousSibling)
 		{
+			// Always focus control when removing and moving items.
+			// First of all it prevents OnFocus and OnBlur from firing
+			// a lot of times if multiple elements are removed or moved,
+			// secondly it's easier to ensure consistency across browsers
+			// as various events are implemented differently, especially
+			// when drag and drop comes into place.
+			focusAssigned = true;
+			focusInput(txtPrimary);
+
 			Fit.Dom.InsertAfter(dropzone.GetDomElement(), draggable.GetDomElement());
 			fireChange = true;
 		}
 		else if (Fit.Dom.Data(dropzone.GetDomElement(), "dropping") === "left" && dropzone.GetDomElement().previousSibling !== draggable.GetDomElement())
 		{
+			// See comment in block above regarding focus
+			focusAssigned = true;
+			focusInput(txtPrimary);
+
 			Fit.Dom.InsertBefore(dropzone.GetDomElement(), draggable.GetDomElement());
 			fireChange = true;
 		}

@@ -88,7 +88,9 @@ Fit.Controls.ControlBase = function(controlId)
 	var onFocusHandlers = [];
 	var onBlurHandlers = [];
 	var hasFocus = false;			// Used by OnFocusIn and OnFocusOut handlers
-	var focusBlurTimeout = null;	// Used by OnFocusIn and OnFocusOut handlers
+	var onBlurTimeout = null;		// Used by OnFocusIn and OnFocusOut handlers
+	var ensureFocusFires = false;	// Used by OnFocusIn and OnFocusOut handlers
+	var waitingForFocus = false;	// Used by OnFocusIn and OnFocusOut handlers
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
@@ -106,6 +108,8 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Data("focused", "false");
 		me._internal.Data("valid", "true");
 		me._internal.Data("dirty", "false");
+
+		me._internal.Data("device", ((Fit.Browser.GetInfo().IsMobile === false) ? "Desktop" : (Fit.Browser.GetInfo().IsPhone === true) ? "Phone" : "Tablet"));
 
 		// Add hidden inputs which are automatically populated with
 		// control value and state information when control is updated.
@@ -213,7 +217,7 @@ Fit.Controls.ControlBase = function(controlId)
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(container);
-		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = focusBlurTimeout = txtValue = txtDirty = txtValid = isIe8 = null;
+		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = isIe8 = null;
 		delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
@@ -534,30 +538,63 @@ Fit.Controls.ControlBase = function(controlId)
 
 	function onFocusIn(e)
 	{
-		// Cancel OnBlur (or OnFocus if browser erroneously allow this
-		// event to fire multiple times without firing OnBlur in-between).
-		if (focusBlurTimeout !== null)
+		// Note on how OnFocus and OnBlur is handled:
+		// OnFocus in JS fires for focusable elements only, meaning
+		// elements with tabIndex set.
+		// If an element within a control is clicked, and that
+		// particular element is not focusable, <body> will be
+		// focused by the browser, causing the control to lose focus
+		// and fire OnBlur.
+		// Programmatically re-assigning focus within a control
+		// will not cause OnBlur to fire since onFocusIn cancels
+		// onFocusOut.
+		// Notice that onFocusOut is triggered for an element losing
+		// focus before onFocusIn is triggered for an element gaining focus.
+		// See http://fiddle.jshell.net/2eha07qt/33 to understand how
+		// onFocusIn/Out fires internally and how OnFocus and OnBlur
+		// fires externally.
+
+		// Cancel OnBlur
+		if (onBlurTimeout !== null)
 		{
-			clearTimeout(focusBlurTimeout);
-			focusBlurTimeout = null;
+			clearTimeout(onBlurTimeout);
+			onBlurTimeout = null;
+		}
+
+		if (waitingForFocus === true) // Ensure FIFO execution of OnFocus and OnBlur - see onFocusOut handler for details
+		{
+			// Control regained focus while waiting for OnFocus and OnBlur to fire.
+			// OnBlur timer was canceled above, so we'll just let the initial FocusIn timer fire.
+			// This happens if FIFO execution for timers are not honored.
+			// See onFocusOut handler for details.
+
+			waitingForFocus = false;
+			return;
 		}
 
 		// Make sure OnFocus only fires once when control is initially given
 		// focus - prevent it from firing when focus is changed internally.
 		if (hasFocus === true)
 			return;
+
 		hasFocus = true;
+
+		// Make sure control does in fact fire initial OnFocus event,
+		// in case control is only assigned focus shortly - otherwise
+		// OnBlur may fire without OnFocus firing first if FIFO execution
+		// of timers are not honored. See onFocusOut handler for details.
+		ensureFocusFires = true;
 
 		// Queue, event has not reached target yet (using Capture instead of event bubbling).
 		// Target must have focus before firing OnFocus. This approach also allow for control
 		// to internally change focus (e.g. in TreeView where focus may change from one node
-		// to another) which may fire both Focus and Blur multiple times. When Focus fires,
-		// any previous Blur event is canceled. When Blur fires, any previous Focus event is
-		// canceled. The last event fired takes precedence and fires when JS thread is released.
-		focusBlurTimeout = setTimeout(function()
+		// to another) which may fire both Focus and Blur multiple times.
+		setTimeout(function()
 		{
 			if (me === null)
 				return; // Control was disposed
+
+			ensureFocusFires = false;
 
 			me._internal.FireOnFocus();
 		}, 0);
@@ -567,20 +604,38 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		// See comments in onFocusIn(..)
 
-		if (focusBlurTimeout !== null)
-		{
-			clearTimeout(focusBlurTimeout);
-			focusBlurTimeout = null;
-		}
-
-		focusBlurTimeout = setTimeout(function()
+		var fireBlur = null;
+		fireBlur = function()
 		{
 			if (me === null)
 				return; // Control was disposed
 
+			if (ensureFocusFires === true) // Make absolutely sure initial OnFocus has fired before firing OnBlur
+			{
+				// Browsers can, in some situations, disregard FIFO execution for timers, for instance when attaching
+				// a debugger, or if the browser suspends JS execution due to power management, especially on mobile devices.
+				// Since the control has already lost focus at this point, it's safe to schedule another
+				// timer to fire OnBlur once OnFocus has been fired. We will keep checking to make sure OnFocus fires first.
+				// OnFocusOut should not be called again since the control no longer has focus, and if the control regains focus
+				// while waiting for OnFocus and OnBlur to fire, then onFocusIn will cancel the OnBlur timer and let the
+				// initial OnFocus timer execute (see the use of waitingForFocus in onFocusIn).
+				// To simulate the FIFO problem, set the OnFocus timer to timeout late, e.g. after 1500 ms.
+				// Then focus the control and immediately remove focus from it again. Register an OnFocus
+				// and OnBlur handler to observe that OnFocus does in fact fire before OnBlur.
+				waitingForFocus = true;
+
+				onBlurTimeout = setTimeout(fireBlur, 0);
+				return;
+			}
+
+			onBlurTimeout = null;
+			waitingForFocus = false;
 			hasFocus = false; // Control has lost focus, allow OnFocus to fire again when it regains focus
+
 			me._internal.FireOnBlur();
-		}, 0);
+		};
+
+		onBlurTimeout = setTimeout(fireBlur, 0);
 	}
 
 	function updateInternalState()
