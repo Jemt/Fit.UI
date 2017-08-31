@@ -10,6 +10,7 @@ in JavaScript. It enhances native JS with added features for:
  - Browser detection
  - Cookie storage
  - DOM and CSS manipulation
+ - Templating for SoC
  - Events and Manipulation Observers
  - Drag and Drop
  - Async. HTTP (AJAX)
@@ -24,6 +25,7 @@ exposing rich APIs and event models.
  - CheckBox
  - Context Menu
  - Dialog
+ - Date and Time Picker with calendar widget
  - Drop Down (with ListView or TreeView)
  - File Picker (async. upload with image previews)
  - Input (with HTML editing using CKEditor)
@@ -34,15 +36,7 @@ exposing rich APIs and event models.
 Fit.UI supports all major browsers (FireFox, Chrome, Edge, Opera, Safari, and even Internet Explorer 8+).
 A lot of work has been put into making Fit.UI the most compatible framework available, leaving nobody behind.
 
-# Release
-
-We have been working very hard on Fit.UI since March 2015 and is now ready
-with a beta for people to start experimenting with. This beta is considered
-quite stable and reliable for a beta. It has been tested and improved on since
-September 2015, and is currently being incorporated into mission critical
-enterprise applications running on SharePoint (server & cloud).
-
-# Example
+# Examples
 
 Check out this super cool upload component based on
 Button, FilePicker, and ProgressBar:
