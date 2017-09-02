@@ -1,4 +1,4 @@
-div.FitUiControlInput input[type="text"],
+div.FitUiControlInput input:first-child,
 div.FitUiControlInput textarea:first-child
 {
 	width: 100%;
@@ -18,7 +18,7 @@ div.FitUiControlInput textarea:first-child
 }
 
 /* Hide clear button within input fields in IE */
-div.FitUiControlInput input[type="text"]::-ms-clear
+div.FitUiControlInput input:first-child::-ms-clear
 {
 	display: none;
 }
@@ -28,7 +28,7 @@ div.FitUiControlInput[data-valid="false"]
 {
 	outline: none;
 }
-div.FitUiControlInput[data-valid="false"] input[type="text"],
+div.FitUiControlInput[data-valid="false"] input:first-child,
 div.FitUiControlInput[data-valid="false"] textarea:first-child
 {
 	border-color: red;
@@ -51,7 +51,7 @@ div.FitUiControlInput[data-maximizable="true"]
 }
 
 /* Remove outline when input has focus */
-div.FitUiControlInput input[type="text"]:focus,
+div.FitUiControlInput input:first-child:focus,
 div.FitUiControlInput textarea:first-child:focus
 {
 	outline: none;
