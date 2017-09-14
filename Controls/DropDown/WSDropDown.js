@@ -240,7 +240,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	});
 
 
-	/// <function container="Fit.Controls.WSListView" name="GetListView" access="public" returns="Fit.Controls.WSListView">
+	/// <function container="Fit.Controls.WSDropDown" name="GetListView" access="public" returns="Fit.Controls.WSListView">
 	/// 	<description> Get WSListView control used to display data in a flat list view </description>
 	/// </function>
 	this.GetListView = function()

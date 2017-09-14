@@ -37,11 +37,23 @@
 	else if (window)
 	{
 		var src = document.scripts[document.scripts.length-1].src;
+		var paramSeparatorPos = src.indexOf("?");
 
-		if (src.indexOf('?') > -1)
+		if (paramSeparatorPos > -1)
 		{
-			// Add instance to custom global variable name
-			window[src.substring(src.indexOf('?')+1)] = factory();
+			// Argument(s) found in src reference - add instance to custom global variable name.
+			// First argument is expected to be the name of the Fit instance.
+
+			var name = src.substring(paramSeparatorPos + 1, (src.indexOf("&") === -1 ? src.length : src.indexOf("&")));
+
+			if (name.indexOf("=") === -1) // Make sure name was defined in the form of e.g. ?Fit and not ?arg=val
+			{
+				window[name] = factory();
+			}
+			else // Name was not valid, it was in the form of ?arg=val
+			{
+				window.Fit = factory();
+			}
 		}
 		else
 		{
@@ -50,5 +62,5 @@
 	}
 })(function()
 {
-	"use strict";
+	//"use strict"; // Not supported by IE9 and below - may cause different runtime behaviour - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode
 	var fitInstance =

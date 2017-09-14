@@ -125,7 +125,7 @@ Fit.Loader.ExecuteScript = function(src, onSuccess, onFailure, context)
 				console.log(error);
 			}
 
-			Fit.Validation.IsSet(onFailure) === true
+			if (Fit.Validation.IsSet(onFailure) === true)
 				onFailure(src);
 		}
 	});
