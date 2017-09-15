@@ -45,7 +45,14 @@ Fit.Events.AddHandler = function()
 	Fit.Validation.ExpectBoolean(useCapture);
 	Fit.Validation.ExpectFunction(eventFunction);
 
-	if (element.addEventListener) // W3C
+	if (event.toLowerCase() === "#rooted") // Custom event
+	{
+		if (useCapture === true)
+			Fit.Validation.ThrowError("Event capturing is not supported for Rooted event");
+
+		Fit.Array.Add(Fit._internal.Events.OnRootedHandlers, { Element: element, Parent: element.parentElement, Event: event, Callback: eventFunction });
+	}
+	else if (element.addEventListener) // W3C
 	{
 		element.addEventListener(event, eventFunction, useCapture);
 	}
@@ -72,7 +79,10 @@ Fit.Events.AddHandler = function()
 
 	element._internal = element._internal || {};
 	element._internal.Events = element._internal.Events || { Handlers: [] };
-	Fit.Array.Add(element._internal.Events.Handlers, { Event: event, Handler: eventFunction, UseCapture: useCapture, Id: element._internal.Events.Handlers.length });
+
+	var eventId = element._internal.Events.Handlers.length;
+
+	Fit.Array.Add(element._internal.Events.Handlers, { Event: event, Handler: eventFunction, UseCapture: useCapture, Id: eventId });
 
 	// Fire event function for onload event if document in window/iframe has already been loaded.
 	// Notice that no event argument is passed to function since we don't have one.
@@ -83,7 +93,7 @@ Fit.Events.AddHandler = function()
 	else if (event.toLowerCase() === "load" && element === window && Fit._internal.Events.OnReadyFired === true) // Element is the current Window instance
 		eventFunction();
 
-	return element._internal.Events.Handlers.length - 1;
+	return eventId;
 }
 
 /// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
@@ -151,13 +161,46 @@ Fit.Events.RemoveHandler = function()
 	Fit.Validation.ExpectBoolean(useCapture);
 	Fit.Validation.ExpectFunction(eventFunction);
 
-	if (element.removeEventListener)
+	if (event.toLowerCase() === "#rooted")
+	{
+		var handlers = Fit._internal.Events.OnRootedHandlers;
+		var remove = null;
+
+		Fit.Array.ForEach(handlers, function(handler)
+		{
+			if (element === handler.Element && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Callback && useCapture === false)
+			{
+				handler.Removed = true; // Allow OnRooted handler to remove element without causing a "Collection was modified" exception - properly removed in timer responsible for observing elements
+				return false; // Break loop
+			}
+		});
+	}
+	else if (element.removeEventListener)
+	{
 		element.removeEventListener(event, eventFunction, useCapture);
+	}
 	else if (element.detachEvent)
+	{
 		element.detachEvent("on" + event, eventFunction);
+	}
 
 	if (arguments.length === 2)
+	{
 		element._internal.Events.Handlers[arguments[1]] = null;
+	}
+	else
+	{
+		for (var i = 0 ; i < element._internal.Events.Handlers.length ; i++)
+		{
+			var handler = element._internal.Events.Handlers[i];
+
+			if (event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && useCapture === handler.UseCapture)
+			{
+				element._internal.Events.Handlers[i] = null;
+				break;
+			}
+		}
+	}
 }
 
 /// <function container="Fit.Events" name="PreventDefault" access="public" static="true" returns="boolean">
@@ -313,6 +356,39 @@ Fit._internal.Events.KeysDown = { Shift: false, Ctrl: false, Alt: false, Meta: f
 Fit._internal.Events.Mouse = { Buttons: { Primary: false, Secondary: false, Touch: false }, Coordinates: { ViewPort: { X: -1, Y: -1 }, Document: { X: -1, Y: -1 } }, Target: null };
 Fit._internal.Events.OnReadyHandlers = [];
 Fit._internal.Events.OnDomReadyHandlers = [];
+Fit._internal.Events.OnRootedHandlers = [];
+
+// ==============================================
+// Observing DOM rooting
+// ==============================================
+
+setInterval(function()
+{
+	var remove = [];
+
+	Fit.Array.ForEach(Fit._internal.Events.OnRootedHandlers, function(handler)
+	{
+		if (handler.Removed === true)
+		{
+			Fit.Array.Add(remove, handler);
+			return; // Skip to next
+		}
+
+		if (Fit.Dom.IsRooted(handler.Element) === true && handler.Parent !== handler.Element.parentElement)
+		{
+			// Element was rooted or moved to another parent
+
+			handler.Parent = handler.Element.parentElement;
+			handler.Callback(handler.Element);
+		}
+	});
+
+	Fit.Array.ForEach(remove, function(handler)
+	{
+		Fit.Array.Remove(Fit._internal.Events.OnRootedHandlers, handler);
+	});
+
+}, 100);
 
 // ==============================================
 // Keyboard tracking
@@ -489,7 +565,7 @@ Fit._internal.Events.MutationObserverIntervalId = -1;
 /// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true" returns="integer">
 /// 	<description>
 /// 		Registers mutation observer which is invoked when a DOMElement is updated. By default
-/// 		only attributes are observed. Use deep flag to have children and character data observed too.
+/// 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
 /// 		An observer ID is returned which can be used to remove mutation observer.
 /// 		Important: Mutation observers should be removed when no longer needed for better performance!
 /// 		To remove an observer from within the observer function itself, simply call disconnect().

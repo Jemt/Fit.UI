@@ -40,6 +40,19 @@ Fit.Controls.WSTreeView = function(ctlId)
 		rootNode = me.GetDomElement().firstChild.firstChild._internal.Node;
 		rootNode.GetDomElement()._internal.WSHasChildren = true; // Support for nodeFullyLoaded(..)
 
+		var rootedEventId = -1;
+		rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(elm)
+		{
+			if (loadDataOnInit === true)
+			{
+				var selected = me.Selected(); // Save selection which is cleared when Reload() is called
+				me.Reload();
+				me.Selected(selected); // Restore selection
+			}
+
+			Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
+		});
+
 		me.OnToggle(function(sender, node)
 		{
 			if (node.Expanded() === true) // Node is currently expanded and will now become collapsed
@@ -326,26 +339,6 @@ Fit.Controls.WSTreeView = function(ctlId)
 		});
 
 		//}
-	}
-
-	/// <function container="Fit.Controls.WSTreeView" name="Render" access="public">
-	/// 	<description>
-	/// 		Render control, either inline or to element specified.
-	/// 		This also results in initial WebService request to load root nodes.
-	/// 	</description>
-	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
-	/// </function>
-	var baseRender = me.Render;
-	this.Render = function(elm)
-	{
-		if (loadDataOnInit === true)
-		{
-			var selected = me.Selected(); // Save selection which is cleared when Reload() is called
-			me.Reload();
-			me.Selected(selected); // Restore selection
-		}
-
-		baseRender(elm);
 	}
 
 	/// <function container="Fit.Controls.WSTreeView" name="Url" access="public" returns="string">
