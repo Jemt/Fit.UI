@@ -529,7 +529,7 @@ Fit.Dom.IsVisible = function(elm)
 	// Determine visibility quickly using offsetParent if possible.
 	// Notice that offsetParent is always Null for an element with
 	// position:fixed, in which case this check will not suffice.
-	if (Fit._internal.Dom.IsOffsetParentSupported() === true && Fit.Dom.GetComputedStyle(elm, "position") !== "fixed")
+	if (Fit._internal.Dom.IsOffsetParentSupported() === true && Fit.Dom.GetComputedStyle(elm, "position") !== "fixed" && elm !== document.body && elm !== document.body.parentElement) // <html>, <body>, and elements with position:fixed have no offsetParent
 	{
 		return (elm.offsetParent !== null);
 	}
@@ -723,36 +723,6 @@ Fit._internal.Dom.GetPosition = function(elm, relativeToViewport, internalKeepMa
 	pos.Y = Math.round(pos.Y);
 
 	return pos;
-}
-
-/// <function container="Fit.Dom" name="GetInnerDistance" access="public" static="true" returns="object">
-/// 	<description>
-/// 		Get distance from element to any given parent or ancestor.
-/// 		Object returned contains an X and Y property with the desired integer values (pixels).
-/// 	</description>
-/// 	<param name="elm" type="DOMElement"> Element to get position for </param>
-/// 	<param name="parent" type="DOMElement"> Parent or ancestor element to measure distance within </param>
-/// </function>
-Fit.Dom.GetInnerDistance = function(elm, parent)
-{
-	Fit.Validation.ExpectDomElement(elm);
-	Fit.Validation.ExpectDomElement(parent);
-
-	// Notice that the distance returned is not suitable for positioning since this
-	// is done relative to the offsetParent (positioned parent), and the code below
-	// does not take margin and borders into account which affects positioning.
-	// Use GetRelativePosition(..) instead if actual position coordinates are needed.
-
-	var x = elm.offsetLeft;
-	var y = elm.offsetTop;
-
-	while ((elm = elm.offsetParent) !== parent && elm !== null)
-	{
-		x += elm.offsetLeft;
-		y += elm.offsetTop;
-	}
-
-	return { X: Math.round(x), Y: Math.round(y) };
 }
 
 /// <function container="Fit.Dom" name="GetRelativePosition" access="public" static="true" returns="object">

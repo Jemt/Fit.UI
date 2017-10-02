@@ -1269,7 +1269,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 			// Get node position and height
 
-			var nodePositionWithinControl = Fit.Dom.GetInnerDistance(activeNode.GetDomElement(), me.GetDomElement());
+			var nodePositionWithinControl = { X: activeNode.GetDomElement().offsetLeft, Y: activeNode.GetDomElement().offsetTop }; // Get position relative to offset parent which is div.FitUiControl that have position:relative
 			var nodeHeightWithoutChildren = -1;
 
 			var childrenContainer = ((activeNode.GetChildren().length > 0) ? activeNode.GetChildren()[0].GetDomElement().parentElement : null);

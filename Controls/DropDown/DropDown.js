@@ -1572,7 +1572,7 @@ Fit.Controls.DropDown = function(ctlId)
 		var newWidth = (((value !== "") ? spanFitWidth.offsetWidth : 0) + txtCssWidth);
 
 		// Make sure new input width does not exceed width of drop down control
-		var offsetLeft = Fit.Dom.GetInnerDistance(input, itemContainer).X;
+		var offsetLeft = input.offsetLeft; // Get position relative to offset parent which is div.FitUiControlDropDownItems that have position:relative
 		var innerWidth = Fit.Dom.GetInnerWidth(itemContainer);
 		newWidth = ((offsetLeft + newWidth > innerWidth) ? innerWidth - offsetLeft : newWidth);
 
