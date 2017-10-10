@@ -1,0 +1,29 @@
+{
+  "name": "fit-ui",
+  "version": "1.0.2",
+  "title": "Fit.UI",
+  "description": "Object Oriented framework for building rich User Interfaces",
+  "main": "dist/Fit.UI.min.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jemt/Fit.UI"
+  },
+  "keywords": [
+    "JavaScript",
+    "UI",
+    "User",
+    "Interface",
+    "Object",
+    "Oriented"
+  ],
+  "author": "Jimmy Thomsen <jimmy@powerzone.dk>",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Jemt/Fit.UI/issues"
+  },
+  "homepage": "http://fitui.org"
+}

@@ -1,18 +1,30 @@
 #!/bin/bash
 
-if [ -d nightly ] ; then
-	rm nightly/ -R
+if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
+        echo "Bash script must be executing within the build folder"
+        exit
 fi
 
-mkdir nightly
-mkdir -p nightly/Controls/TreeView
+echo "Creating dist package"
 
-cp ../Fit.UI.js nightly/
-cp ../Fit.UI.css nightly/
-cp ../Fit.UI.min.js nightly/
-cp ../Fit.UI.min.css nightly/
-cp ../Controls/TreeView/*.png nightly/Controls/TreeView
-cp ../Resources/ nightly/ -R
-#cp ../Examples/ nightly/ -R
+if [ -d dist ] ; then
+	rm dist/ -R
+fi
 
-zip -r nightly-$(date +%F) nightly
+mkdir dist
+mkdir -p dist/Controls/TreeView
+
+cp Fit.UI*.js dist/
+cp Fit.UI*.css dist/
+cp ../Controls/TreeView/*.png dist/Controls/TreeView
+cp ../Resources/ dist/ -R
+
+# Create ZIP package
+
+if [ -f fit-ui-$(date +%F) ] ; then
+	rm fit-ui-$(date +%F)
+fi
+
+zip -q -r fit-ui-$(date +%F) dist
+
+echo "Done creating dist package"

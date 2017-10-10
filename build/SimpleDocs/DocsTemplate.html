@@ -1,0 +1,508 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<title>SimpleDocs</title>
+	<meta http-equiv="content-type" content="text/html;charset=UTF-8">
+
+	<style type="text/css">
+	body
+	{
+		font-family: verdana;
+		font-size: 12px;
+		color: #333333;
+	}
+
+	div.page
+	{
+		width: 960px;
+		margin: 0 auto;
+		border: 1px solid lightgray;
+		background-color: whitesmoke;
+	}
+
+	div.menu
+	{
+		float: left;
+		width: 245px;
+		padding: 10px;
+	}
+
+	div.content
+	{
+		float: left;
+		width: 675px;
+		padding: 10px;
+	}
+
+	a
+	{
+		color: #4794D6;
+		text-decoration: none;
+	}
+
+	a.menulink
+	{
+		margin-left: 5px;
+		margin-bottom: 3px;
+	}
+
+	a.menulink:before
+	{
+		content: "» ";
+		color: orange;
+	}
+
+	h1
+	{
+		font-size: 16px;
+		font-weight: bold;
+		margin-top: 0px;
+		margin-bottom: 15px;
+	}
+
+	div.description
+	{
+		/*font-style: italic;*/
+		margin-bottom: 15px;
+	}
+
+	div.members
+	{
+		border: 1px solid #4794D6;
+		font-weight: bold;
+		font-size: 14px;
+		padding: 5px;
+		margin-bottom: 15px;
+	}
+
+	div.functions
+	{
+		border: 1px solid #4794D6;
+		font-weight: bold;
+		font-size: 14px;
+		padding: 5px;
+		margin-bottom: 15px;
+	}
+
+	div.access
+	{
+		font-weight: bold;
+		margin-bottom: 15px;
+	}
+
+	div.member
+	{
+		margin-bottom: 15px;
+	}
+
+	div.function
+	{
+		margin-bottom: 15px;
+	}
+
+	span.access
+	{
+		color: red;
+	}
+
+	span.static
+	{
+		color: red;
+	}
+
+	span.virtual
+	{
+	}
+
+	span.type
+	{
+		color: green;
+	}
+
+	span.member
+	{
+		color: blue;
+	}
+
+	span.function
+	{
+		color: blue;
+	}
+
+	span.parameter
+	{
+		color: purple;
+	}
+
+	span.default
+	{
+		color: darkred;
+	}
+
+	span.description
+	{
+		/*font-style: italic;*/
+		color: #717171;
+	}
+	</style>
+</head>
+<body>
+
+<script type="text/javascript">
+var containers = eval("({[JSONContainers]})");
+var members = eval("({[JSONMembers]})");
+var functions = eval("({[JSONFunctions]})");
+
+window.onload = initialize;
+
+function initialize()
+{
+	if (navigator.userAgent.indexOf("MSIE 5") > -1 ||  navigator.userAgent.indexOf("MSIE 6") > -1 ||  navigator.userAgent.indexOf("MSIE 7") > -1)
+	{
+		alert("Please upgrade to a more recent version of Internet Explorer");
+		return;
+	}
+
+	buildMenu();
+
+	if (location.href.indexOf("#") > -1)
+		loadDocumentation(location.href.substring(location.href.indexOf("#") + 1));
+	else
+		buildFrontPage();
+
+	document.onkeypress = keyListener;
+}
+
+function keyListener(e)
+{
+	e = (window.event ? window.event : e);
+
+	if (e.keyCode === 115) // Listen for S key
+		search();
+}
+
+function buildMenu()
+{
+	// Build menu
+
+	var menu = document.getElementById("menu");
+	menu.appendChild(createElement("h1", "Containers"));
+
+	var search = createElement("a");
+	search.href = "javascript: search()";
+	search.innerHTML = "Search";
+	menu.appendChild(search);
+	menu.appendChild(createElement("br"));
+
+	// Create links to containers
+
+	for (var i = 0 ; i < containers.length ; i++)
+	{
+		// Skip special containers except @GlobalScope
+		if (containers[i].Name.indexOf("@") === 0 && containers[i].Name !== "@GlobalScope")
+			continue;
+
+		menu.appendChild(createElement("br"));
+		menu.appendChild(createMenuLink(containers[i].Name));
+	}
+}
+
+function buildFrontPage()
+{
+	var content = document.getElementById("content");
+	content.appendChild(createElement("h1", "Documentation"));
+
+	for (var i = 0 ; i < containers.length ; i++)
+	{
+		if (containers[i].Name === "@FrontPage")
+		{
+			content.appendChild(createElement("span", containers[i].Description));
+			return;
+		}
+	}
+
+	content.appendChild(createElement("span", "Please select a container to load documentation.<br>Press S or click the Search link to search available members and functions."));
+}
+
+function loadDocumentation(container)
+{
+	window.scrollTo(0, 0);
+
+	var content = document.getElementById("content");
+	content.innerHTML = "";
+
+	// Load container details
+
+	var containerInfo = getElementByName(containers, container);
+
+	if (containerInfo === null)
+		return;
+
+	// Set headline and description
+
+	content.appendChild(createElement("h1", containerInfo.Name + (containerInfo.Extends !== "" ? " (extends " + containerInfo.Extends + ")" : "")));
+
+	content.appendChild(createElement("div", containerInfo.Description, "description"));
+
+	// Load members
+
+	var headerPrinted = false;
+	var access = "";
+	var accessItem = null;
+
+	for (var i = 0 ; i < members.length ; i++)
+	{
+		if (members[i].Container !== container) // skip member - does not belong to this container
+			continue;
+
+		// Add members header
+
+		if (headerPrinted === false)
+		{
+			headerPrinted = true;
+			content.appendChild(createElement("div", "Members", "members"));
+		}
+
+		// Add access header (e.g. "public static") under which members are grouped
+
+		if (members[i].Access + (members[i].Static === true ? " static" : "") !== access)
+		{
+			access = members[i].Access + (members[i].Static === true ? " static" : "");
+			content.appendChild(createElement("div", access, "access"));
+		}
+
+		// Add member
+
+		content.appendChild(createMemberDocumentation(members[i]));
+	}
+
+	headerPrinted = false;
+	access = "";
+
+	for (var i = 0 ; i < functions.length ; i++)
+	{
+		if (functions[i].Container !== container) // skip function - does not belong to this container
+			continue;
+
+		// Add functions header
+
+		if (headerPrinted === false)
+		{
+			headerPrinted = true;
+			content.appendChild(createElement("div", "Functions", "functions"));
+		}
+
+		// Add access header (e.g. "public static") under which functions are grouped
+
+		if (functions[i].Access + (functions[i].Static === true ? " static" : "") !== access)
+		{
+			access = functions[i].Access + (functions[i].Static === true ? " static" : "");
+			content.appendChild(createElement("div", access, "access"));
+		}
+
+		// Add function
+
+		content.appendChild(createFunctionDocumentation(functions[i]));
+	}
+}
+
+function createMenuLink(container)
+{
+	var link = createElement("a");
+	link.href = "#" + container;
+	link.innerHTML = container;
+	link.setAttribute("onclick", "loadDocumentation('" + container + "');");
+	link.setAttribute("class", "menulink");
+
+	return link;
+}
+
+function createMemberDocumentation(member, prefixContainer)
+{
+	var format = "{[Container]} {[>]} {[Access]} {[Static]} {[Type]} {[Name]} {[=]} {[Default]}";
+
+	format = format.replace("{[Container]}", (prefixContainer !== undefined && prefixContainer === true ? "<a href='#" + member.Container + "' onclick=\"loadDocumentation('" + member.Container + "')\">" + member.Container + "</a>" : ""));
+	format = format.replace("{[>]}", (prefixContainer !== undefined && prefixContainer === true ? ">" : ""));
+	format = format.replace("{[Access]}", (member.Access !== "" ? "<span class='access'>" + member.Access + "</span>" : ""));
+	format = format.replace("{[Static]}", (member.Static === true ? "<span class='static'>static</span>" : ""));
+	format = format.replace("{[Type]}", (member.Type !== "" ? "<span class='type'>" + member.Type + "</span>" : ""));
+	format = format.replace("{[Name]}", "<span class='member'>" + member.Name + "</span>");
+	format = format.replace("{[=]}", (member.Default !== "" ? "=" : ""));
+	format = format.replace("{[Default]}", (member.Default !== "" ? (member.Type.toLowerCase() === "string" && member.Default.toLowerCase() !== "null" ? "\"" : "") + "<span class='default'>" + (member.Default.toLowerCase() !== "string.empty" ? member.Default : "") + "</span>" + (member.Type.toLowerCase() === "string" && member.Default.toLowerCase() !== "null" ? "\"" : "") : ""));
+
+	format += (member.Description !== "" ? "<br><span class='description'>" + member.Description + "</span>" : "");
+
+	return createElement("div", format, "member");
+}
+
+function createFunctionDocumentation(func, prefixContainer)
+{
+	var formatFunction = "{[Container]} {[>]} {[Access]} {[Static]} {[Virtual]} {[Returns]} {[Name]}";
+	var formatParm = "{[Type]} {[Name]} {[=]} {[Default]}";
+	var formatParmDescription = "@{[Name]} = {[Description]}";
+
+	var parm = "";
+	var parms = "";
+
+	for (var i = 0 ; i < func.Parameters.length ; i++)
+	{
+		parm = formatParm;
+
+		parm = parm.replace("{[Type]}", (func.Parameters[i].Type !== "" ? "<span class='type'>" + func.Parameters[i].Type + "</span>" : ""));
+		parm = parm.replace("{[Name]}", "<span class='parameter'>" + func.Parameters[i].Name + "</span>");
+		parm = parm.replace("{[=]}", (func.Parameters[i].Default !== "" ? "=" : ""));
+		parm = parm.replace("{[Default]}", (func.Parameters[i].Default !== "" ? (func.Parameters[i].Type.toLowerCase() === "string" && func.Parameters[i].Default.toLowerCase() !== "null" ? "\"" : "") + "<span class='default'>" + (func.Parameters[i].Default.toLowerCase() !== "string.empty" ? func.Parameters[i].Default : "") + "</span>" + (func.Parameters[i].Type.toLowerCase() === "string" && func.Parameters[i].Default.toLowerCase() !== "null" ? "\"" : "") : ""));
+
+		parms += (parms != "" ? " , " : "") + parm;
+	}
+
+	formatFunction = formatFunction.replace("{[Container]}", (prefixContainer !== undefined && prefixContainer === true ? "<a href='#" + func.Container + "' onclick=\"loadDocumentation('" + func.Container + "')\">" + func.Container + "</a>" : ""));
+	formatFunction = formatFunction.replace("{[>]}", (prefixContainer !== undefined && prefixContainer === true ? ">" : ""));
+	formatFunction = formatFunction.replace("{[Access]}", (func.Access !== "" ? "<span class='access'>" + func.Access + "</span>" : ""));
+	formatFunction = formatFunction.replace("{[Static]}", (func.Static === true ? "<span class='static'>static</span>" : ""));
+	formatFunction = formatFunction.replace("{[Virtual]}", (func.Virtual === true ? "<span class='virtual'>virtual</span>" : ""));
+	formatFunction = formatFunction.replace("{[Returns]}", (func.Returns !== "" ? "<span class='type'>" + func.Returns + "</span>" : ""));
+	formatFunction = formatFunction.replace("{[Name]}", "<span class='function'>" + func.Name + "</span>( " + parms + " )");
+
+	formatFunction += (func.Description !== "" ? "<br><span class='description'>" + func.Description + "</span>" : "");
+
+	for (var i = 0 ; i < func.Parameters.length ; i++)
+	{
+		formatFunction += "<br>" + formatParmDescription;
+		formatFunction = formatFunction.replace("{[Name]}", "<span class='parameter'>" + func.Parameters[i].Name + "</span>");
+		formatFunction = formatFunction.replace("{[Description]}", "<span class='description'>" + func.Parameters[i].Description + "</span>");
+	}
+
+	return createElement("div", formatFunction, "function");
+}
+
+function createElement(type, value, cls)
+{
+	var e = document.createElement(type);
+
+	if (value !== undefined)
+		e.innerHTML = value;
+
+	if (cls !== undefined)
+		e.setAttribute("class", cls);
+
+	return e;
+}
+
+function getElementByName(arr, n)
+{
+	for (var i = 0 ; i < arr.length ; i++)
+		if (arr[i].Name === n)
+			return arr[i];
+
+	return null;
+}
+
+function arrayContains(arr, element)
+{
+	for (var i = 0 ; i < arr.length ; i++)
+		if (arr[i] === element)
+			return true;
+
+	return false;
+}
+
+function search()
+{
+	var s = prompt("Search functions and members by name.\nEnter +<search> to also search parameters and descriptions.", "");
+
+	if (s === null || s === "")
+		return;
+
+	// Clear content
+
+	window.scrollTo(0, 0);
+
+	var content = document.getElementById("content");
+	content.innerHTML = "";
+
+	// Determine whether to do simple or full search
+
+	var searchAll = (s.indexOf("+") === 0);
+	s = (searchAll === true ? s.substring(1) : s);
+
+	// Add headline
+
+	content.appendChild(createElement("h1", "Search results - " + s + (searchAll === true ? " (searching everything)" : "")));
+
+	// Search members
+
+	s = s.toLowerCase();
+	var headerPrinted = false;
+
+	for (var i = 0 ; i < members.length ; i++)
+	{
+		if (searchAll === false && members[i].Name.toLowerCase().indexOf(s) === -1)
+			continue
+		else if (searchAll === true && members[i].Name.toLowerCase().indexOf(s) === -1 && members[i].Description.toLowerCase().indexOf(s) === -1)
+			continue
+
+		if (headerPrinted === false)
+		{
+			headerPrinted = true;
+			content.appendChild(createElement("div", "Members", "members"));
+		}
+
+		content.appendChild(createMemberDocumentation(members[i], true));
+	}
+
+	// Search functions
+
+	headerPrinted = false;
+	var skip = false;
+
+	for (var i = 0 ; i < functions.length ; i++)
+	{
+		skip = false;
+
+		if (searchAll === false && functions[i].Name.toLowerCase().indexOf(s) === -1)
+		{
+			continue
+		}
+		else if (searchAll === true)
+		{
+			if (functions[i].Name.toLowerCase().indexOf(s) === -1 && functions[i].Description.toLowerCase().indexOf(s) === -1)
+			{
+				skip = true;
+
+				for (j = 0 ; j < functions[i].Parameters.length ; j++)
+				{
+					skip = (functions[i].Parameters[j].Name.toLowerCase().indexOf(s) === -1 && functions[i].Parameters[j].Description.toLowerCase().indexOf(s) === -1);
+
+					if (skip === false)
+						break;
+				}
+			}
+		}
+
+		if (skip === true)
+			continue;
+
+		if (headerPrinted == false)
+		{
+			headerPrinted = true;
+			content.appendChild(createElement("div", "Functions", "functions"));
+		}
+
+		content.appendChild(createFunctionDocumentation(functions[i], true));
+	}
+}
+</script>
+
+<div class="page">
+	<div id="menu" class="menu">
+	</div>
+
+	<div id="content" class="content">
+	</div>
+
+	<div style="clear: both"></div>
+</div>
+
+</body>
+</html>

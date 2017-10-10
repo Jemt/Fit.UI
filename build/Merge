@@ -1,6 +1,11 @@
 #!/bin/bash
 
-echo "Merging files.."
+if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
+	echo "Bash script must be executing within the build folder"
+	exit
+fi
+
+echo "Merging files"
 
 echo "" > Fit.UI.js
 
@@ -54,14 +59,15 @@ elif [[ "$1" == "ts" || "$2" == "ts" ]] ; then
 	echo "export default Fit;" >> Fit.UI.js
 fi
 
-# Copy to parent folder
-
-echo "Copying to parent folder.."
-
-cp Fit.UI.css ../
-cp Fit.UI.js ../
-
 # Minify JS and CSS
+
+if [ -f Fit.UI.min.js ] ; then
+	rm Fit.UI.min.js
+fi
+
+if [ -f Fit.UI.min.css ] ; then
+	rm Fit.UI.min.css
+fi
 
 if [[ "$1" == "minify" || "$2" == "minify" ]] ; then
 	echo "Minifying.."
@@ -69,18 +75,17 @@ if [[ "$1" == "minify" || "$2" == "minify" ]] ; then
 	curl -X POST -s --data-urlencode "input@Fit.UI.js" https://javascript-minifier.com/raw > Fit.UI.min.js
 	curl -X POST -s --data-urlencode "input@Fit.UI.css" https://cssminifier.com/raw > Fit.UI.min.css
 
-	cp Fit.UI.min.css ../
-	cp Fit.UI.min.js ../
+	jssize=$(du Fit.UI.min.js | cut -f 1)	# Usually about 180-190 KB
+	csssize=$(du Fit.UI.min.js | cut -f 1)	# Usually about 60-70 KB
 
-	echo "Minifying complete - please verify that Fit.UI.min.js and Fit.UI.min.css contains the minified code"
+	if [[ $jssize -lt 90 || $csssize -lt 30 ]] ; then
+	        echo "Minified JS and/or CSS seems too small. Please verify that"
+	        echo "Fit.UI.min.js and Fit.UI.min.css are valid before proceeding."
+	        echo "Press ENTER to continue."
+	        read
+	fi
 fi
-
-# Create dist
-
-echo "Creating dist.."
-
-./CreateDist
 
 # Done
 
-echo "Done"
+echo "Done merging"

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
+        echo "Bash script must be executing within the build folder"
+        exit
+fi
+
+# Compile Fit.UI
+# This produces Fit.UI.js, Fit.UI.min.js, Fit.UI.css, and Fit.UI.min.css
+
+echo "Invoking Merge"
+
+./Merge umd minify
+
+# Build documentation
+
+# SimpleDocs requirements:
+# apt-get install mono-runtime
+# apt-get install libmono-system-web4.0-cil
+
+echo "Invoking SimpleDocs"
+
+mono SimpleDocs/SimpleDocs.exe
+
+# Run in "sub shell" which executes in the parent directory
+#$(cd .. && mono build/SimpleDocs/SimpleDocs.exe --ResultFile=build/SimpleDocs.html)
+
+# Create dist folder and ZIP package
+
+echo "Invoking CreateDist"
+
+./CreateDist
+
+# Create NPM package
+
+echo "Updating source code in NPM package"
+
+rm npm/dist/ -R
+cp dist/ npm/ -R
+
+# Build TypeScript typings and add to NPM package
+
+echo "Generating typings in NPM package"
+
+node TypingsGenerator.js > npm/types/index.d.ts
+
+echo "Build completed"
