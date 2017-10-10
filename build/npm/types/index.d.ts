@@ -1250,6 +1250,13 @@ declare namespace Fit
 			*/
 			constructor(ctlId:string);
 			/**
+			* Get/set format used by the DatePicker control. This will affect the format in which the date is presented, as well as the value returned by the GetText function. Format takes precedense over locale if set after locale is applied.
+			* @function Format
+			* @param {string} [val=undefined] If defined, format is changed. The following tokens can be used to construct the format: YYYY = Year with four digits (e.g. 2016) M = Month with one digit if possible (e.g. 1 or 12) MM = Month with two digits (e.g. 01 or 12) D = Day with one digit if possible (e.g. 1 or 24) DD = Day with two digits (e.g. 01 or 24) Examples: YYYY-MM-DD or D/M-YYYY
+			* @returns string
+			*/
+			public Format(val?:string):string;
+			/**
 			* Returns a string array containing supported locales
 			* @function GetLocales
 			* @returns string[]
@@ -1266,13 +1273,6 @@ declare namespace Fit
 			* @function Hide
 			*/
 			public Hide():void;
-			/**
-			* Get/set format used by the DatePicker control. This will affect the format in which the date is presented, as well as the value returned by the GetText function. Format takes precedense over locale if set after locale is applied.
-			* @function Locale
-			* @param {string} [val=undefined] If defined, format is changed. The following tokens can be used to construct the format: YYYY = Year with four digits (e.g. 2016) M = Month with one digit if possible (e.g. 1 or 12) MM = Month with two digits (e.g. 01 or 12) D = Day with one digit if possible (e.g. 1 or 24) DD = Day with two digits (e.g. 01 or 24) Examples: YYYY-MM-DD or D/M-YYYY
-			* @returns string
-			*/
-			public Locale(val?:string):string;
 			/**
 			* Get/set locale used by the DatePicker control. This will affect the date format as well as the language used by the calendar widget. Call the GetLocales function to get a complete list of supported locales.
 			* @function Locale
@@ -4519,6 +4519,12 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {integer} id Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {DOMElement} elm DOMElement being observed
@@ -4526,12 +4532,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {integer} id Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of calling both PreventDefault(e) and StopPropagation(e). Returns False.
 		* @function Stop
