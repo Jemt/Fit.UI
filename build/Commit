@@ -5,9 +5,35 @@ if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
         exit
 fi
 
+# Bump NPM package version
+
+echo "Please select how to publish changes to NPM."
+echo "0) Do not publish NPM package"
+echo "1) Publish as Patch update (bug fixes)"
+echo "2) Publish as Minor update (new features and improvements)"
+echo "3) Publish as Major update (major new features and breaking changes)"
+read npmtype
+
+if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
+	echo "Enter optional commit message and press ENTER:"
+	read npmcommitmsg # The value %s will be replaced by the new version number
+fi
+
+if [[ "$npmtype" == "1" ]] ; then
+	echo "Bumping patch number"
+	(cd npm/ && npm version patch -m "$npmcommitmsg")
+elif [[ "$npmtype" == "2" ]] ; then
+	echo "Bumping minor version number"
+	(cd npm/ && npm version minor -m "$npmcommitmsg")
+elif [[ "$npmtype" == "3" ]] ; then
+	echo "Bumping major version number"
+	(cd npm/ && npm version major -m "$npmcommitmsg")
+fi
+
+# Commit to GIT
+
 echo "Committing to GIT"
 
-cd ..
 git status
 echo
 echo "All changed files will be added to stage and pushed to GIT."
@@ -35,30 +61,9 @@ git push
 
 echo "Done pushing changes to GIT."
 
-echo "Please select how to deploy changes to NPM."
-echo "0) Skip NPM deployment"
-echo "1) Deploy as Patch update (bug fixes)"
-echo "2) Deploy as Minor update (new features and improvements)"
-echo "3) Deploy as Major update (major new features and breaking changes)"
-read npmtype
+# Publish NPM package
 
 if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
-	echo "Enter optional commit message and press ENTER:"
-	read npmcommitmsg # The value %s will be replaced by the new version number
-fi
-
-if [[ "$npmtype" == "1" ]] ; then
-	echo "Bumping patch number"
-	npm version patch -m "$npmcommitmsg"
-elif [[ "$npmtype" == "2" ]] ; then
-	echo "Bumping minor version number"
-	npm version minor -m "$npmcommitmsg"
-elif [[ "$npmtype" == "3" ]] ; then
-	echo "Bumping major version number"
-	npm version major -m "$npmcommitmsg"
-fi
-
-if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
-	npm publish
-	echo "NPM package committed"
+	(cd npm/ && npm publish)
+	echo "NPM package published"
 fi
