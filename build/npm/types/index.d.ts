@@ -390,19 +390,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in object array
-		* @function Count
-		* @param {object} obj Object array to count elements within
-		* @returns number
-		*/
-		public static Count(obj:any):number;
-		/**
 		* Returns number of elements in collection
 		* @function Count
 		* @param {array} arr Collection to count elements within
 		* @returns number
 		*/
 		public static Count(arr:any[]):number;
+		/**
+		* Returns number of elements in object array
+		* @function Count
+		* @param {object} obj Object array to count elements within
+		* @returns number
+		*/
+		public static Count(obj:any):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback. Callback is expected to return any children supposed to be iterated too, or Null if further/deeper iteration is not necessary.
 		* @function CustomRecurse
@@ -435,6 +435,20 @@ declare namespace Fit
 		* @returns number
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
+		/**
+		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
+		* @function GetKeys
+		* @param {array} arr Array to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(arr:any[]):any[];
+		/**
+		* Returns all keys (property names) in object
+		* @function GetKeys
+		* @param {object} obj Object to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(obj:any):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -1057,6 +1071,227 @@ declare namespace Fit
 		*/
 		class ControlBase
 		{
+			// Properties defined by Fit.Controls.ControlBase
+			/**
+			* Add CSS class to DOMElement representing control
+			* @function AddCssClass
+			* @param {string} val CSS class to add
+			*/
+			public AddCssClass(val:string):void;
+			/**
+			* Get/set value indicating whether control is always considered dirty. This comes in handy when programmatically changing a value of a control on behalf of the user. Some applications may choose to only save values from dirty controls.
+			* @function AlwaysDirty
+			* @param {boolean} [val=undefined] If defined, Always Dirty is enabled/disabled
+			* @returns boolean
+			*/
+			public AlwaysDirty(val?:boolean):boolean;
+			/**
+			* Set flag indicating whether control should post back changes automatically when value is changed
+			* @function AutoPostBack
+			* @param {boolean} [val=undefined] If defined, True enables auto post back, False disables it
+			* @returns boolean
+			*/
+			public AutoPostBack(val?:boolean):boolean;
+			/**
+			* Clear control value
+			* @function Clear
+			*/
+			public Clear():void;
+			/**
+			* Destroys control to free up memory. Make sure to call Dispose() on ControlBase which can be done like so: this.Dispose = Fit.Core.CreateOverride(this.Dispose, function() { &#160;&#160;&#160;&#160; // Add control specific dispose logic here &#160;&#160;&#160;&#160; base(); // Call Dispose on ControlBase });
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get/set value indicating whether control has focus
+			* @function Focused
+			* @param {boolean} [value=undefined] If defined, True assigns focus, False removes focus (blur)
+			* @returns boolean
+			*/
+			public Focused(value?:boolean):boolean;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Check whether CSS class is found on DOMElement representing control
+			* @function HasCssClass
+			* @param {string} val CSS class to check for
+			* @returns boolean
+			*/
+			public HasCssClass(val:string):boolean;
+			/**
+			* Get/set control height - returns object with Value and Unit properties
+			* @function Height
+			* @param {number} [val=undefined] If defined, control height is updated to specified value. A value of -1 resets control height.
+			* @param {string} [unit=px] If defined, control height is updated to specified CSS unit
+			* @returns any
+			*/
+			public Height(val?:number, unit?:string):any;
+			/**
+			* Get value indicating whether user has changed control value
+			* @function IsDirty
+			* @returns boolean
+			*/
+			public IsDirty():boolean;
+			/**
+			* Get value indicating whether control value is valid. Control value is considered invalid if control is required, but no value is set, or if control value does not match regular expression set using SetValidationExpression(..).
+			* @function IsValid
+			* @returns boolean
+			*/
+			public IsValid():boolean;
+			/**
+			* Register OnBlur event handler which is invoked when control loses focus
+			* @function OnBlur
+			* @param {function} cb Event handler function which accepts Sender (ControlBase)
+			*/
+			public OnBlur(cb:Function):void;
+			/**
+			* Register OnChange event handler which is invoked when control value is changed either programmatically or by user
+			* @function OnChange
+			* @param {function} cb Event handler function which accepts Sender (ControlBase)
+			*/
+			public OnChange(cb:Function):void;
+			/**
+			* Register OnFocus event handler which is invoked when control gains focus
+			* @function OnFocus
+			* @param {function} cb Event handler function which accepts Sender (ControlBase)
+			*/
+			public OnFocus(cb:Function):void;
+			/**
+			* Remove CSS class from DOMElement representing control
+			* @function RemoveCssClass
+			* @param {string} val CSS class to remove
+			*/
+			public RemoveCssClass(val:string):void;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {DOMElement} [toElement=undefined] If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
+			/**
+			* Get/set value indicating whether control is required to be set
+			* @function Required
+			* @param {boolean} [val=undefined] If defined, control required feature is enabled/disabled
+			* @returns boolean
+			*/
+			public Required(val?:boolean):boolean;
+			/**
+			* Get/set scope to which control belongs - this is used to validate multiple controls at once using Fit.Controls.ValidateAll(scope) or Fit.Controls.DirtyCheckAll(scope).
+			* @function Scope
+			* @param {string} [val=undefined] If defined, control scope is updated
+			* @returns string
+			*/
+			public Scope(val?:string):string;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationCallback
+			* @param {function} cb Function receiving control value - must return True if value is valid, otherwise False
+			* @param {string} [errorMsg=undefined] If defined, specified error message is displayed when user clicks or hovers validation error indicator
+			*/
+			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			/**
+			* Set regular expression used to perform on-the-fly validation against control value
+			* @function SetValidationExpression
+			* @param {RegExp} regEx Regular expression to validate against
+			* @param {string} [errorMsg=undefined] If defined, specified error message is displayed when user clicks or hovers validation error indicator
+			*/
+			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			/**
+			* Get/set control value. For controls supporting multiple selections: Set value by providing a string in one the following formats: title1=val1[;title2=val2[;title3=val3]] or val1[;val2[;val3]]. If Title or Value contains reserved characters (semicolon or equality sign), these most be URIEncoded. Selected items are returned in the first format described, also with reserved characters URIEncoded. Providing a new value to this function results in OnChange being fired.
+			* @function Value
+			* @param {string} [val=undefined] If defined, items are selected
+			* @returns string
+			*/
+			public Value(val?:string):string;
+			/**
+			* Get/set value indicating whether control is visible
+			* @function Visible
+			* @param {boolean} [val=undefined] If defined, control visibility is updated
+			* @returns boolean
+			*/
+			public Visible(val?:boolean):boolean;
+			/**
+			* Get/set control width - returns object with Value and Unit properties
+			* @function Width
+			* @param {number} [val=undefined] If defined, control width is updated to specified value. A value of -1 resets control width.
+			* @param {string} [unit=px] If defined, control width is updated to specified CSS unit
+			* @returns any
+			*/
+			public Width(val?:number, unit?:string):any;
+		}
+		/**
+		* DatePicker control allowing user to easily pick a date and optionally time. On mobile devices (phones and tablets) the native date and time pickers are used. Extending from Fit.Controls.ControlBase.
+		* @class [Fit.Controls.DatePicker DatePicker]
+		*/
+		class DatePicker
+		{
+			// Properties defined by Fit.Controls.DatePicker
+			/**
+			* Get/set control value. The function works the same as the Value function, expect it accepts and returns a Date object instead of a string.
+			* @function Date
+			* @param {Date} [val=undefined] If defined, date is selected
+			* @returns Date
+			*/
+			public Date(val?:Date):Date;
+			/**
+			* Create instance of DatePicker control
+			* @function DatePicker
+			* @param {string} ctlId Unique control ID
+			*/
+			constructor(ctlId:string);
+			/**
+			* Returns a string array containing supported locales
+			* @function GetLocales
+			* @returns string[]
+			*/
+			public GetLocales():string[];
+			/**
+			* Get control value as a string. Opposite to the Value function GetText returns the selected Date/DateTime in the format configured (see Format function). The Value function always returns the value in a fixed format, which is YYYY-MM-DD[ hh:mm]. The time portion is only appended if time is enabled (see Time function).
+			* @function GetText
+			* @returns string
+			*/
+			public GetText():string;
+			/**
+			* Calling this function will close the calendar widget. Whether this results in picker being hidden on mobile depends on implementation. Often it will only work if Hide() or Focused(false) is triggered by a user action such as a button click.
+			* @function Hide
+			*/
+			public Hide():void;
+			/**
+			* Get/set format used by the DatePicker control. This will affect the format in which the date is presented, as well as the value returned by the GetText function. Format takes precedense over locale if set after locale is applied.
+			* @function Locale
+			* @param {string} [val=undefined] If defined, format is changed. The following tokens can be used to construct the format: YYYY = Year with four digits (e.g. 2016) M = Month with one digit if possible (e.g. 1 or 12) MM = Month with two digits (e.g. 01 or 12) D = Day with one digit if possible (e.g. 1 or 24) DD = Day with two digits (e.g. 01 or 24) Examples: YYYY-MM-DD or D/M-YYYY
+			* @returns string
+			*/
+			public Locale(val?:string):string;
+			/**
+			* Get/set locale used by the DatePicker control. This will affect the date format as well as the language used by the calendar widget. Call the GetLocales function to get a complete list of supported locales.
+			* @function Locale
+			* @param {string} [val=undefined] If defined, locale is changed
+			* @returns string
+			*/
+			public Locale(val?:string):string;
+			/**
+			* Calling this function will open the calendar widget. Whether this results in picker being displayed on mobile depends on implementation. Often it will only work if Show() or Focused(true) is triggered by a user action such as a button click.
+			* @function Show
+			*/
+			public Show():void;
+			/**
+			* Get/set value indicating whether DatePicker should allow a time portion to be set.
+			* @function Time
+			* @param {boolean} [val=undefined] If defined, time is changed
+			* @returns boolean
+			*/
+			public Time(val?:boolean):boolean;
 			// Properties defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -4191,20 +4426,20 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {function} eventFunction JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture Set True to capture event before it reaches target, False to catch event when it bubbles out from target. NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {function} eventFunction JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {function} eventFunction JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default only attributes and dimensions are observed. Use deep flag to have children and character data observed too. An observer ID is returned which can be used to remove mutation observer. Important: Mutation observers should be removed when no longer needed for better performance! To remove an observer from within the observer function itself, simply call disconnect().
 		* @function AddMutationObserver
@@ -4260,6 +4495,14 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {DOMElement} element EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {function} eventFunction JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {DOMElement} element EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -4271,24 +4514,10 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {DOMElement} element EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {function} eventFunction JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {DOMElement} element EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {function} eventFunction JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {integer} id Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
@@ -4297,6 +4526,12 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {integer} id Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of calling both PreventDefault(e) and StopPropagation(e). Returns False.
 		* @function Stop
