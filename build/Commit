@@ -1,0 +1,64 @@
+#!/bin/bash
+
+if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
+        echo "Bash script must be executing within the build folder"
+        exit
+fi
+
+echo "Committing to GIT"
+
+cd ..
+git status
+echo
+echo "All changed files will be added to stage and pushed to GIT."
+echo "You will be prompted to enter a commit message."
+echo "$ git add --update"
+echo "$ git commit -m title -m description"
+echo "$ git push"
+echo "Press ENTER to continue or CTRL + C to cancel."
+read
+
+echo "Enter short commit title (no quotes!) and press ENTER"
+read gittitle
+echo "Enter commit description (no quotes!) and press ENTER"
+read gitdescription
+
+git add --update
+git commit -m "$gittitle" -m "$gitdescription"
+
+echo "Ready to push changes to GIT."
+echo "Title: $gittitle"
+echo "Description: $gitdescription"
+echo "Press ENTER to continue or CTRL + C to cancel."
+read
+git push
+
+echo "Done pushing changes to GIT."
+
+echo "Please select how to deploy changes to NPM."
+echo "0) Skip NPM deployment"
+echo "1) Deploy as Patch update (bug fixes)"
+echo "2) Deploy as Minor update (new features and improvements)"
+echo "3) Deploy as Major update (major new features and breaking changes)"
+read npmtype
+
+if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
+	echo "Enter optional commit message and press ENTER:"
+	read npmcommitmsg # The value %s will be replaced by the new version number
+fi
+
+if [[ "$npmtype" == "1" ]] ; then
+	echo "Bumping patch number"
+	npm version patch -m "$npmcommitmsg"
+elif [[ "$npmtype" == "2" ]] ; then
+	echo "Bumping minor version number"
+	npm version minor -m "$npmcommitmsg"
+elif [[ "$npmtype" == "3" ]] ; then
+	echo "Bumping major version number"
+	npm version major -m "$npmcommitmsg"
+fi
+
+if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
+	npm publish
+	echo "NPM package committed"
+fi
