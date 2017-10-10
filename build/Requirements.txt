@@ -1,0 +1,14 @@
+CreateDist
+ - Zipping
+    $ apt-get install zip
+
+Build
+ - SimpleDocs requirements:
+    $ apt-get install mono-runtime
+    $ apt-get install libmono-system-web4.0-cil
+ - Typings generator
+    $ apt-get install nodejs
+
+Merge
+ - JS/CSS Minification
+    $ apt-get install curl

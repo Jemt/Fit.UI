@@ -14,10 +14,6 @@ echo "Invoking Merge"
 
 # Build documentation
 
-# SimpleDocs requirements:
-# apt-get install mono-runtime
-# apt-get install libmono-system-web4.0-cil
-
 echo "Invoking SimpleDocs"
 
 mono SimpleDocs/SimpleDocs.exe
@@ -42,6 +38,10 @@ cp dist/ npm/ -R
 
 echo "Generating typings in NPM package"
 
-node TypingsGenerator.js > npm/types/index.d.ts
+if [[ -x $(command -v nodejs) ]] ; then
+	nodejs TypingsGenerator.js > npm/types/index.d.ts
+else
+	node TypingsGenerator.js > npm/types/index.d.ts
+fi
 
 echo "Build completed"
