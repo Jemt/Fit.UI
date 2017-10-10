@@ -18,6 +18,7 @@ cp Fit.UI*.js dist/
 cp Fit.UI*.css dist/
 cp ../Controls/TreeView/*.png dist/Controls/TreeView
 cp ../Resources/ dist/ -R
+cp SimpleDocs.html dist/Documentation.html
 
 # Create ZIP package
 
@@ -25,6 +26,9 @@ if [ -f fit-ui-$(date +%F) ] ; then
 	rm fit-ui-$(date +%F)
 fi
 
-zip -q -r fit-ui-$(date +%F) dist
+# zip -q -r fit-ui-$(date +%F) dist
+
+# Execute in "sub shell" to make 'cd' affect only zip command
+(cd dist/ && zip -q -r ../fit-ui-$(date +%F) *)
 
 echo "Done creating dist package"

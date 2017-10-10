@@ -18,9 +18,6 @@ echo "Invoking SimpleDocs"
 
 mono SimpleDocs/SimpleDocs.exe
 
-# Run in "sub shell" which executes in the parent directory
-#$(cd .. && mono build/SimpleDocs/SimpleDocs.exe --ResultFile=build/SimpleDocs.html)
-
 # Create dist folder and ZIP package
 
 echo "Invoking CreateDist"
