@@ -1,3 +1,13 @@
+/// <container name="Fit.Controls.DatePicker" extends="Fit.Controls.ControlBase">
+/// 	DatePicker control allowing user to easily pick a date and optionally time.
+/// 	On mobile devices (phones and tablets) the native date and time pickers are used.
+/// 	Extending from Fit.Controls.ControlBase.
+/// </container>
+
+/// <function container="Fit.Controls.DatePicker" name="DatePicker" access="public">
+/// 	<description> Create instance of DatePicker control </description>
+/// 	<param name="ctlId" type="string"> Unique control ID </param>
+/// </function>
 Fit.Controls.DatePicker = function(ctlId)
 {
 	Fit.Validation.ExpectStringValue(ctlId);
@@ -353,6 +363,14 @@ Fit.Controls.DatePicker = function(ctlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.DatePicker" name="Date" access="public" returns="Date">
+	/// 	<description>
+	/// 		Get/set control value.
+	/// 		The function works the same as the Value function, expect it
+	/// 		accepts and returns a Date object instead of a string.
+	/// 	</description>
+	/// 	<param name="val" type="Date" default="undefined"> If defined, date is selected </param>
+	/// </function>
 	this.Date = function(val)
 	{
 		Fit.Validation.ExpectDate(val, true);
@@ -398,12 +416,28 @@ Fit.Controls.DatePicker = function(ctlId)
 		return date;
 	}
 
-	this.GetText = function() // Returns value according to format - Value() always return the value in the fixed format "YYYY-MM-DD[ hh:mm]"
+	/// <function container="Fit.Controls.DatePicker" name="GetText" access="public" returns="string">
+	/// 	<description>
+	/// 		Get control value as a string. Opposite to the Value function GetText returns the
+	/// 		selected Date/DateTime in the format configured (see Format function). The Value
+	/// 		function always returns the value in a fixed format, which is YYYY-MM-DD[ hh:mm].
+	/// 		The time portion is only appended if time is enabled (see Time function).
+	/// 	</description>
+	/// </function>
+	this.GetText = function()
 	{
 		var date = me.Date();
 		return ((date !== null) ? Fit.Date.Format(date, me.Format() + ((inputTime !== null) ? " hh:mm" : "")) : "");
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="Locale" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set locale used by the DatePicker control. This will affect the
+	/// 		date format as well as the language used by the calendar widget.
+	/// 		Call the GetLocales function to get a complete list of supported locales.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, locale is changed </param>
+	/// </function>
 	this.Locale = function(val)
 	{
 		Fit.Validation.ExpectString(val, true);
@@ -436,7 +470,24 @@ Fit.Controls.DatePicker = function(ctlId)
 		return locale;
 	}
 
-	this.Format = function(val) // Takes precedense over Locale
+	/// <function container="Fit.Controls.DatePicker" name="Locale" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set format used by the DatePicker control. This will affect the format
+	/// 		in which the date is presented, as well as the value returned by the GetText function.
+	/// 		Format takes precedense over locale if set after locale is applied.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined">
+	/// 		If defined, format is changed.
+	///			The following tokens can be used to construct the format:
+	///			YYYY = Year with four digits (e.g. 2016)
+	///			M = Month with one digit if possible (e.g. 1 or 12)
+	///			MM = Month with two digits (e.g. 01 or 12)
+	///			D = Day with one digit if possible (e.g. 1 or 24)
+	///			DD = Day with two digits (e.g. 01 or 24)
+	/// 		Examples: YYYY-MM-DD or D/M-YYYY
+	/// 	</param>
+	/// </function>
+	this.Format = function(val)
 	{
 		Fit.Validation.ExpectString(val, true);
 
@@ -534,6 +585,12 @@ Fit.Controls.DatePicker = function(ctlId)
 		return weeks;
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="Time" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether DatePicker should allow a time portion to be set.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, time is changed </param>
+	/// </function>
 	this.Time = function(val)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
@@ -695,6 +752,13 @@ Fit.Controls.DatePicker = function(ctlId)
 		return (inputTime !== null);
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="Show" access="public">
+	/// 	<description>
+	/// 		Calling this function will open the calendar widget.
+	/// 		Whether this results in picker being displayed on mobile depends on implementation.
+	/// 		Often it will only work if Show() or Focused(true) is triggered by a user action such as a button click.
+	/// 	</description>
+	/// </function>
 	this.Show = function()
 	{
 		if (isMobile === false)
@@ -711,14 +775,18 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 		else
 		{
-			// Whether this results in picker being displayed on mobile depends on implementation.
-			// Often it will only work if Show() or Focused(true) is triggered by a user action such as a button click.
-
 			me.Focused(false);
 			me.Focused(true);
 		}
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="Hide" access="public">
+	/// 	<description>
+	/// 		Calling this function will close the calendar widget.
+	/// 		Whether this results in picker being hidden on mobile depends on implementation.
+	/// 		Often it will only work if Hide() or Focused(false) is triggered by a user action such as a button click.
+	/// 	</description>
+	/// </function>
 	this.Hide = function()
 	{
 		if (isMobile === false)
@@ -728,13 +796,13 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 		else
 		{
-			// Whether this results in picker being hidden on mobile depends on implementation.
-			// Often it will only work if Hide() or Focused(false) is triggered by a user action such as a button click.
-
 			me.Focused(false);
 		}
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="GetLocales" access="public" returns="string[]">
+	/// 	<description> Returns a string array containing supported locales </description>
+	/// </function>
 	this.GetLocales = function()
 	{
 		var locales = []

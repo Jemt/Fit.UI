@@ -247,6 +247,36 @@ Fit.Array.GetIndex = function(arr, obj) // obj not validated - passing any objec
     return -1;
 }
 
+/// <function container="Fit.Array" name="GetKeys" access="public" static="true" returns="array">
+/// 	<description> Returns all keys in array (indices) - 0, 1, 2, 3, ... </description>
+/// 	<param name="arr" type="array"> Array to get keys from </param>
+/// </function>
+/// <function container="Fit.Array" name="GetKeys" access="public" static="true" returns="array">
+/// 	<description> Returns all keys (property names) in object </description>
+/// 	<param name="obj" type="object"> Object to get keys from </param>
+/// </function>
+Fit.Array.GetKeys = function(obj)
+{
+	var keys = [];
+
+	if (Fit._internal.Validation.IsCollectionType(obj) === true)
+	{
+		for (var i = 0 ; i < obj.length ; i++)
+		{
+			keys.push(i);
+		}
+	}
+	else if (typeof(obj) === "object")
+	{
+		for (var i in obj)
+		{
+			keys.push(i);
+		}
+	}
+
+	return keys;
+}
+
 /// <function container="Fit.Array" name="Contains" access="public" static="true" returns="boolean">
 /// 	<description> Returns True if given object is contained in array, otherwise False </description>
 /// 	<param name="arr" type="array"> Array to search through </param>

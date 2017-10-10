@@ -193,7 +193,7 @@ Fit.Events.RemoveHandler = function()
 		for (var i = 0 ; i < element._internal.Events.Handlers.length ; i++)
 		{
 			var handler = element._internal.Events.Handlers[i];
-			
+
 			if (handler !== null && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && useCapture === handler.UseCapture)
 			{
 				element._internal.Events.Handlers[i] = null;

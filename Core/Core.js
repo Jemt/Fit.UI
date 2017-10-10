@@ -278,11 +278,21 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 	}
 	else if (typeof(jsObj1) === "object" && typeof(jsObj2) === "object" && jsObj1 !== null && jsObj2 !== null) // typeof(null) returns "object"
 	{
-		for (var k in jsObj1)
-			if (Fit.Core.IsEqual(jsObj1[k], jsObj2[k]) === false)
-				return false;
+		// Fixed bug - the following snippet previously returned true: Fit.Core.IsEqual({}, {x:true})
 
-		return true;
+		var identical = true;
+		var keys = Fit.Array.Merge(Fit.Array.GetKeys(jsObj1), Fit.Array.GetKeys(jsObj2));
+
+		Fit.Array.ForEach(keys, function(k)
+		{
+			if (Fit.Core.IsEqual(jsObj1[k], jsObj2[k]) === false)
+			{
+				identical = false;
+				return false;
+			}
+		});
+
+		return identical;
 	}
 	else if (typeof(jsObj1) === "function" && typeof(jsObj2) === "function")
 	{
