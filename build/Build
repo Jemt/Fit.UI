@@ -31,7 +31,10 @@ echo "Invoking CreateDist"
 
 echo "Updating source code in NPM package"
 
-rm npm/dist/ -R
+if [[ -d npm/dist/ ]] ; then
+	rm npm/dist/ -R
+fi
+
 cp dist/ npm/ -R
 
 # Build TypeScript typings and add to NPM package
