@@ -470,7 +470,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		return locale;
 	}
 
-	/// <function container="Fit.Controls.DatePicker" name="Locale" access="public" returns="string">
+	/// <function container="Fit.Controls.DatePicker" name="Format" access="public" returns="string">
 	/// 	<description>
 	/// 		Get/set format used by the DatePicker control. This will affect the format
 	/// 		in which the date is presented, as well as the value returned by the GetText function.
