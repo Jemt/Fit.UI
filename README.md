@@ -36,6 +36,10 @@ exposing rich APIs and event models.
 Fit.UI supports all major browsers (FireFox, Chrome, Edge, Opera, Safari, and even Internet Explorer 8+).
 A lot of work has been put into making Fit.UI the most compatible framework available, leaving nobody behind.
 
+# Get started
+
+Either get Fit.UI from http://fitui.org or install it using NodeJS Package Manager (https://www.npmjs.com/package/fit-ui).
+
 # Examples
 
 Check out this super cool upload component based on
