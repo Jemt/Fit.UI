@@ -41,7 +41,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	var me = this;
 	var rootContainer = null;		// UL element
-	var rootNode = null;			// Fit.Controls.TreeView.Node instance
+	var rootNode = null;			// Fit.Controls.TreeViewNode instance
 
 	var keyNavigationEnabled = true;
 
@@ -88,7 +88,7 @@ Fit.Controls.TreeView = function(ctlId)
 		rootContainer = document.createElement("ul");
 		me._internal.AddDomElement(rootContainer);
 
-		rootNode = new Fit.Controls.TreeView.Node(" ", "TREEVIEW_ROOT_NODE");
+		rootNode = new Fit.Controls.TreeViewNode(" ", "TREEVIEW_ROOT_NODE");
 		rootNode.GetDomElement().tabIndex = -1;
 		rootContainer.appendChild(rootNode.GetDomElement());
 
@@ -106,7 +106,7 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			Select: function(node)
 			{
-				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 				// Deselect selected node if Multi Selection is not enabled
 				if (multiSelect === false && selected.length > 0)
@@ -117,7 +117,7 @@ Fit.Controls.TreeView = function(ctlId)
 			},
 			Deselect: function(node)
 			{
-				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 				// Remove node from internal selection
 				Fit.Array.Remove(selected, node);
@@ -145,17 +145,17 @@ Fit.Controls.TreeView = function(ctlId)
 			},
 			FireToggle: function(node)
 			{
-				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 				return fireEventHandlers(onToggleHandlers, node);
 			},
 			FireToggled: function(node)
 			{
-				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 				return fireEventHandlers(onToggledHandlers, node);
 			},
 			FireSelect: function(node)
 			{
-				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 				// FireSelect is invoked prior to node change.
 				// If TreeView is in Single Selection Mode, and a non-selectable node is already selected,
@@ -168,7 +168,7 @@ Fit.Controls.TreeView = function(ctlId)
 			},
 			FireSelected: function(node)
 			{
-				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 				fireEventHandlers(onSelectedHandlers, node);
 			},
 			FireOnChange: function()
@@ -475,9 +475,9 @@ Fit.Controls.TreeView = function(ctlId)
 		return selectable;
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="Selected" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// <function container="Fit.Controls.TreeView" name="Selected" access="public" returns="Fit.Controls.TreeViewNode[]">
 	/// 	<description> Get/set selected nodes </description>
-	/// 	<param name="val" type="Fit.Controls.TreeView.Node[]" default="undefined"> If defined, provided nodes are selected </param>
+	/// 	<param name="val" type="Fit.Controls.TreeViewNode[]" default="undefined"> If defined, provided nodes are selected </param>
 	/// </function>
 	this.Selected = function(val)
 	{
@@ -494,7 +494,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 				Fit.Array.ForEach(val, function(n)
 				{
-					Fit.Validation.ExpectInstance(n, Fit.Controls.TreeView.Node);
+					Fit.Validation.ExpectInstance(n, Fit.Controls.TreeViewNode);
 
 					var node = ((n.GetTreeView() === me) ? n : me.GetChild(n.Value(), true)); // Try GetChild(..) in case node was constructed, but with a valid value
 
@@ -522,7 +522,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// <function container="Fit.Controls.TreeView" name="SelectAll" access="public">
 	/// 	<description> Select all nodes </description>
 	/// 	<param name="selected" type="boolean"> Value indicating whether to select or deselect nodes </param>
-	/// 	<param name="selectAllNode" type="Fit.Controls.TreeView.Node" default="undefined">
+	/// 	<param name="selectAllNode" type="Fit.Controls.TreeViewNode" default="undefined">
 	/// 		If specified, given node is selected/deselected along with all its children.
 	/// 		If not specified, all nodes contained in TreeView will be selected/deselected.
 	/// 	</param>
@@ -530,7 +530,7 @@ Fit.Controls.TreeView = function(ctlId)
 	this.SelectAll = function(selected, selectAllNode)
 	{
 		Fit.Validation.ExpectBoolean(selected);
-		Fit.Validation.ExpectInstance(selectAllNode, Fit.Controls.TreeView.Node, true);
+		Fit.Validation.ExpectInstance(selectAllNode, Fit.Controls.TreeViewNode, true);
 
 		var node = (selectAllNode ? selectAllNode : null); // Null = select all nodes, Set = select only children under passed node
 
@@ -765,21 +765,21 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeView" name="AddChild" access="public">
 	/// 	<description> Add node to TreeView </description>
-	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to add </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to add </param>
 	/// </function>
 	this.AddChild = function(node)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 		rootNode.AddChild(node);
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="RemoveChild" access="public">
 	/// 	<description> Remove node from TreeView - this does not result in OnSelect and OnSelected being fired for selected nodes </description>
-	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to remove </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to remove </param>
 	/// </function>
 	this.RemoveChild = function(node)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 		rootNode.RemoveChild(node);
 	}
 
@@ -817,7 +817,7 @@ Fit.Controls.TreeView = function(ctlId)
 			me._internal.FireOnChange();
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetChild" access="public" returns="Fit.Controls.TreeView.Node">
+	/// <function container="Fit.Controls.TreeView" name="GetChild" access="public" returns="Fit.Controls.TreeViewNode">
 	/// 	<description> Get node by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Node value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
@@ -830,7 +830,7 @@ Fit.Controls.TreeView = function(ctlId)
 		return rootNode.GetChild(val, recursive);
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetChildren" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// <function container="Fit.Controls.TreeView" name="GetChildren" access="public" returns="Fit.Controls.TreeViewNode[]">
 	/// 	<description> Get all children </description>
 	/// </function>
 	this.GetChildren = function()
@@ -838,7 +838,7 @@ Fit.Controls.TreeView = function(ctlId)
 		return rootNode.GetChildren();
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetAllNodes" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// <function container="Fit.Controls.TreeView" name="GetAllNodes" access="public" returns="Fit.Controls.TreeViewNode[]">
 	/// 	<description> Get all nodes across all children and their children, in a flat structure </description>
 	/// </function>
 	this.GetAllNodes = function()
@@ -854,7 +854,7 @@ Fit.Controls.TreeView = function(ctlId)
 		return nodes;
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetNodeFocused" access="public" returns="Fit.Controls.TreeView.Node">
+	/// <function container="Fit.Controls.TreeView" name="GetNodeFocused" access="public" returns="Fit.Controls.TreeViewNode">
 	/// 	<description> Get node currently having focus - returns Null if no node has focus </description>
 	/// </function>
 	this.GetNodeFocused = function()
@@ -862,18 +862,18 @@ Fit.Controls.TreeView = function(ctlId)
 		return getNodeFocused();
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetNodeAbove" access="public" returns="Fit.Controls.TreeView.Node">
+	/// <function container="Fit.Controls.TreeView" name="GetNodeAbove" access="public" returns="Fit.Controls.TreeViewNode">
 	/// 	<description> Get node above specified node - returns Null if no node is above the specified one </description>
-	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to get node above </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to get node above </param>
 	/// </function>
 	this.GetNodeAbove = function(node)
 	{
 		return getNodeAbove(node, true);
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetNodeBelow" access="public" returns="Fit.Controls.TreeView.Node">
+	/// <function container="Fit.Controls.TreeView" name="GetNodeBelow" access="public" returns="Fit.Controls.TreeViewNode">
 	/// 	<description> Get node below specified node - returns Null if no node is below the specified one </description>
-	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to get node below </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to get node below </param>
 	/// </function>
 	this.GetNodeBelow = function(node)
 	{
@@ -920,7 +920,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Add event handler fired when node is being selected or deselected.
 	/// 		Selection can be canceled by returning False.
 	/// 		Function receives two arguments:
-	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -934,7 +934,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 	<description>
 	/// 		Add event handler fired when node is selected or deselected.
 	/// 		Selection can not be canceled. Function receives two arguments:
-	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -949,7 +949,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Add event handler fired when node is being expanded or collapsed.
 	/// 		Toggle can be canceled by returning False.
 	/// 		Function receives two arguments:
-	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -963,7 +963,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 	<description>
 	/// 		Add event handler fired when node is expanded or collapsed.
 	/// 		Toggle can not be canceled. Function receives two arguments:
-	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -980,7 +980,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
-	/// 		 - Node: Fit.Controls.TreeView.Node instance
+	/// 		 - Node: Fit.Controls.TreeViewNode instance
 	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -996,7 +996,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Add event handler fired before context menu is shown.
 	/// 		This event can be canceled by returning False.
 	/// 		Function receives two arguments:
-	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeView.Node).
+	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 		Use Sender.ContextMenu() to obtain a reference to the context menu.
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -1201,7 +1201,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function executeRecursively(node, cb)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 		Fit.Validation.ExpectFunction(cb);
 
 		if (cb(node) === false)
@@ -1235,7 +1235,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function toggleNodeSelection(node)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 		if (node.Selected() === true && allowDeselect === false)
 			return;
@@ -1249,7 +1249,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function focusNode(node)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 		if (hostControl !== null)
 		{
@@ -1309,7 +1309,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function getNodeAbove(node, noLastOnExpand)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 		Fit.Validation.ExpectBoolean(noLastOnExpand, true);
 
 		// Get parent node
@@ -1348,7 +1348,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function getNodeBelow(node, noFirstOnExpand, noSkipToParent)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 		Fit.Validation.ExpectBoolean(noFirstOnExpand, true);
 		Fit.Validation.ExpectBoolean(noSkipToParent, true);
 
@@ -1382,7 +1382,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function openContextMenu(node, pos) // pos is optional
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 		if (ctx === null)
 			return;
@@ -1424,12 +1424,12 @@ Fit.Controls.TreeView = function(ctlId)
 	init();
 }
 
-/// <function container="Fit.Controls.TreeView.Node" name="Node" access="public">
-/// 	<description> Create instance of TreeView Node </description>
+/// <function container="Fit.Controls.TreeViewNode" name="TreeViewNode" access="public">
+/// 	<description> Create instance of TreeViewNode </description>
 /// 	<param name="displayTitle" type="string"> Node title </param>
 /// 	<param name="nodeValue" type="string"> Node value </param>
 /// </function>
-Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
+Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 {
 	Fit.Validation.ExpectString(displayTitle);
 	Fit.Validation.ExpectString(nodeValue);
@@ -1475,7 +1475,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 	// Public
 	// ============================================
 
-	/// <function container="Fit.Controls.TreeView.Node" name="Title" access="public" returns="string">
+	/// <function container="Fit.Controls.TreeViewNode" name="Title" access="public" returns="string">
 	/// 	<description> Get/set node title </description>
 	/// 	<param name="val" type="string" default="undefined"> If defined, node title is updated </param>
 	/// </function>
@@ -1494,7 +1494,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return Fit.Dom.Text(lblTitle); // Using inner text to get rid of HTML formatting
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="Value" access="public" returns="string">
+	/// <function container="Fit.Controls.TreeViewNode" name="Value" access="public" returns="string">
 	/// 	<description> Get node value </description>
 	/// </function>
 	this.Value = function()
@@ -1502,7 +1502,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return decode(Fit.Dom.Data(elmLi, "value")); // Read only - value has been used on parent node as index (childrenIndexed)
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="Expanded" access="public" returns="boolean">
+	/// <function container="Fit.Controls.TreeViewNode" name="Expanded" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether node is expanded </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True expands node, False collapses it </param>
 	/// </function>
@@ -1535,7 +1535,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return (Fit.Dom.Data(elmLi, "state") === "expanded");
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="Selectable" access="public" returns="boolean">
+	/// <function container="Fit.Controls.TreeViewNode" name="Selectable" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether user can change node selection state </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables node selection, False disables it </param>
 	/// 	<param name="showCheckbox" type="boolean" default="false"> If defined, True adds a selection checkbox, False removes it </param>
@@ -1583,7 +1583,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return (Fit.Dom.Data(elmLi, "selectable") === "true");
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="HasCheckbox" access="public" returns="boolean">
+	/// <function container="Fit.Controls.TreeViewNode" name="HasCheckbox" access="public" returns="boolean">
 	/// 	<description> Get value indicating whether node has its selection checkbox enabled </description>
 	/// </function>
 	this.HasCheckbox = function()
@@ -1591,7 +1591,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return (chkSelect !== null);
 	}
 
-	/*<function container="Fit.Controls.TreeView.Node" name="HasSelectAll" access="public" returns="boolean">
+	/*<function container="Fit.Controls.TreeViewNode" name="HasSelectAll" access="public" returns="boolean">
 		<description> Get value indicating whether node has its Select All checkbox enabled </description>
 	</function>
 	this.HasSelectAll = function()
@@ -1599,7 +1599,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return false;
 	}*/
 
-	/// <function container="Fit.Controls.TreeView.Node" name="Selected" access="public" returns="boolean">
+	/// <function container="Fit.Controls.TreeViewNode" name="Selected" access="public" returns="boolean">
 	/// 	<description>
 	/// 		Get/set value indicating whether node is selected.
 	/// 		If node is selected, it will automatically be made
@@ -1664,7 +1664,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return (Fit.Dom.Data(elmLi, "selected") === "true");
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="Focused" access="public" returns="boolean">
+	/// <function container="Fit.Controls.TreeViewNode" name="Focused" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether node has focus </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True assigns focus, False removes it (blur) </param>
 	/// </function>
@@ -1683,7 +1683,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return (Fit.Dom.GetFocused() === elmLi);
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="GetParent" access="public" returns="Fit.Controls.TreeView.Node">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetParent" access="public" returns="Fit.Controls.TreeViewNode">
 	/// 	<description> Get parent node - returns Null if node has no parent </description>
 	/// </function>
 	this.GetParent = function()
@@ -1698,7 +1698,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return elmLi.parentElement.parentElement._internal.Node;
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="GetTreeView" access="public" returns="Fit.Controls.TreeView">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetTreeView" access="public" returns="Fit.Controls.TreeView">
 	/// 	<description> Returns TreeView if associated, otherwise Null </description>
 	/// </function>
 	this.GetTreeView = function()
@@ -1709,7 +1709,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return null;
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="GetLevel" access="public" returns="integer">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetLevel" access="public" returns="integer">
 	/// 	<description> Get node depth in current hierarchy - root node is considered level 0 </description>
 	/// </function>
 	this.GetLevel = function()
@@ -1725,13 +1725,13 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return level;
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="AddChild" access="public">
+	/// <function container="Fit.Controls.TreeViewNode" name="AddChild" access="public">
 	/// 	<description> Add child node </description>
-	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to add </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to add </param>
 	/// </function>
 	this.AddChild = function(node)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 		// Remove node from existing parent if already rooted.
 		// This is important to make sure that TreeView, from which
@@ -1829,13 +1829,13 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		}
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="RemoveChild" access="public">
+	/// <function container="Fit.Controls.TreeViewNode" name="RemoveChild" access="public">
 	/// 	<description> Remove child node - this does not result in TreeView.OnSelect and TreeView.OnSelected being fired for selected nodes </description>
-	/// 	<param name="node" type="Fit.Controls.TreeView.Node"> Node to remove </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to remove </param>
 	/// </function>
 	this.RemoveChild = function(node)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
 		if (node.GetParent() === me || (me.Value() === "TREEVIEW_ROOT_NODE" && me.GetTreeView().GetChild(node.Value()) !== null))
 		{
@@ -1900,7 +1900,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		}
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="GetChild" access="public" returns="Fit.Controls.TreeView.Node">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetChild" access="public" returns="Fit.Controls.TreeViewNode">
 	/// 	<description> Get node by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Node value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
@@ -1928,7 +1928,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return ((node !== undefined) ? node : null);
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="GetChildren" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetChildren" access="public" returns="Fit.Controls.TreeViewNode[]">
 	/// 	<description> Get all children </description>
 	/// </function>
 	this.GetChildren = function()
@@ -1936,7 +1936,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		return Fit.Array.Copy(childrenArray); // Copy to prevent changes to internal children array
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="Dispose" access="public">
+	/// <function container="Fit.Controls.TreeViewNode" name="Dispose" access="public">
 	/// 	<description> Destroys object to free up memory </description>
 	/// </function>
 	this.Dispose = function()
@@ -1970,7 +1970,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 		me = elmLi = elmUl = cmdToggle = chkSelectAll = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = null;
 	}
 
-	/// <function container="Fit.Controls.TreeView.Node" name="GetDomElement" access="public" returns="DOMElement">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetDomElement" access="public" returns="DOMElement">
 	/// 	<description> Get DOMElement representing node </description>
 	/// </function>
 	this.GetDomElement = function()
@@ -1982,7 +1982,7 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 
 	function executeRecursively(node, cb)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 		Fit.Validation.ExpectFunction(cb);
 
 		if (cb(node) === false)
@@ -2009,3 +2009,5 @@ Fit.Controls.TreeView.Node = function(displayTitle, nodeValue)
 
 	init();
 }
+
+Fit.Controls.TreeView.Node = Fit.Controls.TreeViewNode; // Backward compatibility

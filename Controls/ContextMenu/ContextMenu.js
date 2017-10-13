@@ -382,11 +382,11 @@ Fit.Controls.ContextMenu = function()
 
 	/// <function container="Fit.Controls.ContextMenu" name="AddChild" access="public">
 	/// 	<description> Add item to ContextMenu </description>
-	/// 	<param name="item" type="Fit.Controls.ContextMenu.Item"> Item to add </param>
+	/// 	<param name="item" type="Fit.Controls.ContextMenuItem"> Item to add </param>
 	/// </function>
 	this.AddChild = function(item)
 	{
-		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenu.Item);
+		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenuItem);
 
 		var tvNode = item.GetDomElement()._internal.Node;
 		tree.AddChild(tvNode);
@@ -394,11 +394,11 @@ Fit.Controls.ContextMenu = function()
 
 	/// <function container="Fit.Controls.ContextMenu" name="RemoveChild" access="public">
 	/// 	<description> Remove item from ContextMenu </description>
-	/// 	<param name="item" type="Fit.Controls.ContextMenu.Item"> Item to remove </param>
+	/// 	<param name="item" type="Fit.Controls.ContextMenuItem"> Item to remove </param>
 	/// </function>
 	this.RemoveChild = function(item)
 	{
-		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenu.Item);
+		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenuItem);
 
 		var tvNode = tree.GetChild(item.Value());
 
@@ -416,7 +416,7 @@ Fit.Controls.ContextMenu = function()
 		tree.RemoveAllChildren(dispose);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="GetChild" access="public" returns="Fit.Controls.ContextMenu.Item">
+	/// <function container="Fit.Controls.ContextMenu" name="GetChild" access="public" returns="Fit.Controls.ContextMenuItem">
 	/// 	<description> Get item by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Item value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
@@ -434,7 +434,7 @@ Fit.Controls.ContextMenu = function()
 		return tvNode.GetDomElement()._internal.ContextMenuItem;
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="GetChildren" access="public" returns="Fit.Controls.ContextMenu.Item[]">
+	/// <function container="Fit.Controls.ContextMenu" name="GetChildren" access="public" returns="Fit.Controls.ContextMenuItem[]">
 	/// 	<description> Get all children </description>
 	/// </function>
 	this.GetChildren = function()
@@ -449,7 +449,7 @@ Fit.Controls.ContextMenu = function()
 		return items;
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="GetAllChildren" access="public" returns="Fit.Controls.ContextMenu.Item[]">
+	/// <function container="Fit.Controls.ContextMenu" name="GetAllChildren" access="public" returns="Fit.Controls.ContextMenuItem[]">
 	/// 	<description> Get all children across entire hierarchy in a flat collection </description>
 	/// </function>
 	this.GetAllChildren = function()
@@ -540,7 +540,7 @@ Fit.Controls.ContextMenu = function()
 	/// 	<description>
 	/// 		Add event handler fired when an item is selected in context menu.
 	/// 		Function receives two arguments:
-	/// 		Sender (Fit.Controls.ContextMenu) and Item (Fit.Controls.ContextMenu.Item).
+	/// 		Sender (Fit.Controls.ContextMenu) and Item (Fit.Controls.ContextMenuItem).
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -588,8 +588,8 @@ Fit.Controls.ContextMenu = function()
 
 	function getExpandedChild(children, childToIgnore)
 	{
-		Fit.Validation.ExpectInstanceArray(children, Fit.Controls.TreeView.Node);
-		Fit.Validation.ExpectInstance(childToIgnore, Fit.Controls.TreeView.Node);
+		Fit.Validation.ExpectInstanceArray(children, Fit.Controls.TreeViewNode);
+		Fit.Validation.ExpectInstance(childToIgnore, Fit.Controls.TreeViewNode);
 
 		var found = null;
 
@@ -655,18 +655,18 @@ Fit.Controls.ContextMenu = function()
 	init();
 }
 
-/// <function container="Fit.Controls.ContextMenu.Item" name="Item" access="public">
+/// <function container="Fit.Controls.ContextMenuItem" name="ContextMenuItem" access="public">
 /// 	<description> Create instance of ContextMenu Item </description>
 /// 	<param name="displayTitle" type="string"> Item title </param>
 /// 	<param name="itemValue" type="string"> Item value </param>
 /// </function>
-Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
+Fit.Controls.ContextMenuItem = function(displayTitle, itemValue)
 {
 	Fit.Validation.ExpectString(displayTitle);
 	Fit.Validation.ExpectString(itemValue);
 
 	var me = this;
-	var node = new Fit.Controls.TreeView.Node(displayTitle, itemValue);
+	var node = new Fit.Controls.TreeViewNode(displayTitle, itemValue);
 
 	// ============================================
 	// Init
@@ -681,7 +681,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 	// Public
 	// ============================================
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="Title" access="public" returns="string">
+	/// <function container="Fit.Controls.ContextMenuItem" name="Title" access="public" returns="string">
 	/// 	<description> Get/set item title </description>
 	/// 	<param name="val" type="string" default="undefined"> If defined, item title is updated </param>
 	/// </function>
@@ -691,7 +691,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return node.Title(val);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="Value" access="public" returns="string">
+	/// <function container="Fit.Controls.ContextMenuItem" name="Value" access="public" returns="string">
 	/// 	<description> Get item value </description>
 	/// </function>
 	this.Value = function()
@@ -699,7 +699,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return node.Value();
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="Selectable" access="public" returns="boolean">
+	/// <function container="Fit.Controls.ContextMenuItem" name="Selectable" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether item is selectable or not </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables item, False disables it </param>
 	/// </function>
@@ -709,7 +709,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return node.Selectable(val);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="GetDomElement" access="public" returns="DOMElement">
+	/// <function container="Fit.Controls.ContextMenuItem" name="GetDomElement" access="public" returns="DOMElement">
 	/// 	<description> Get DOMElement representing context menu item </description>
 	/// </function>
 	this.GetDomElement = function()
@@ -717,25 +717,25 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return node.GetDomElement();
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="AddChild" access="public">
+	/// <function container="Fit.Controls.ContextMenuItem" name="AddChild" access="public">
 	/// 	<description> Add child item </description>
-	/// 	<param name="item" type="Fit.Controls.ContextMenu.Item"> Item to add </param>
+	/// 	<param name="item" type="Fit.Controls.ContextMenuItem"> Item to add </param>
 	/// </function>
 	this.AddChild = function(item)
 	{
-		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenu.Item);
+		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenuItem);
 
 		var tvNode = item.GetDomElement()._internal.Node;
 		node.AddChild(tvNode);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="RemoveChild" access="public">
+	/// <function container="Fit.Controls.ContextMenuItem" name="RemoveChild" access="public">
 	/// 	<description> Remove child item </description>
-	/// 	<param name="item" type="Fit.Controls.ContextMenu.Item"> Item to remove </param>
+	/// 	<param name="item" type="Fit.Controls.ContextMenuItem"> Item to remove </param>
 	/// </function>
 	this.RemoveChild = function(item)
 	{
-		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenu.Item);
+		Fit.Validation.ExpectInstance(item, Fit.Controls.ContextMenuItem);
 
 		var tvNode = node.GetChild(item.Value());
 
@@ -743,7 +743,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 			node.RemoveChild(tvNode);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="GetChild" access="public" returns="Fit.Controls.ContextMenu.Item">
+	/// <function container="Fit.Controls.ContextMenuItem" name="GetChild" access="public" returns="Fit.Controls.ContextMenuItem">
 	/// 	<description> Get item by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Item value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
@@ -761,7 +761,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return tvNode.GetDomElement()._internal.ContextMenuItem;
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="GetChildren" access="public" returns="Fit.Controls.ContextMenu.Item[]">
+	/// <function container="Fit.Controls.ContextMenuItem" name="GetChildren" access="public" returns="Fit.Controls.ContextMenuItem[]">
 	/// 	<description> Get all children </description>
 	/// </function>
 	this.GetChildren = function()
@@ -776,7 +776,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return items;
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="GetParent" access="public" returns="Fit.Controls.ContextMenu.Item">
+	/// <function container="Fit.Controls.ContextMenuItem" name="GetParent" access="public" returns="Fit.Controls.ContextMenuItem">
 	/// 	<description> Get parent item - returns Null for a root item </description>
 	/// </function>
 	this.GetParent = function()
@@ -785,7 +785,7 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 		return ((parent !== null) ? parent.GetDomElement()._internal.ContextMenuItem : null);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu.Item" name="Dispose" access="public">
+	/// <function container="Fit.Controls.ContextMenuItem" name="Dispose" access="public">
 	/// 	<description> Destroys item to free up memory </description>
 	/// </function>
 	this.Dispose = function()
@@ -796,6 +796,8 @@ Fit.Controls.ContextMenu.Item = function(displayTitle, itemValue)
 
 	init();
 }
+
+Fit.Controls.ContextMenu.Item = Fit.Controls.ContextMenuItem; // Backward compatibility
 
 // Internals
 

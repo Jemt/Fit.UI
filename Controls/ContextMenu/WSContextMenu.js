@@ -306,7 +306,7 @@ Fit.Controls.WSContextMenu = function()
 
 		// Convert JSON to ContextMenu item, including all contained children
 
-		var item = new Fit.Controls.ContextMenu.Item((jsonNode.Title ? jsonNode.Title : jsonNode.Value), jsonNode.Value);
+		var item = new Fit.Controls.ContextMenuItem((jsonNode.Title ? jsonNode.Title : jsonNode.Value), jsonNode.Value);
 
 		if (jsonNode.Selectable !== undefined)
 			item.Selectable((jsonNode.Selectable === true));

@@ -282,7 +282,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSDropDown instance
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
-	/// 		 - Node: Fit.Controls.TreeView.Node instance if requesting TreeView children, Null if requesting root nodes
+	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered
 	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
@@ -303,7 +303,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSDropDown instance
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
-	/// 		 - Node: Fit.Controls.TreeView.Node instance if requesting TreeView children, Null if requesting root nodes
+	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered
 	/// 		 - Data: JSON data received from WebService
 	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
@@ -324,7 +324,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSDropDown instance
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
-	/// 		 - Node: Fit.Controls.TreeView.Node instance if requesting TreeView children, Null if requesting root nodes
+	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered
 	/// 		 - Data: JSON data received from WebService (Null in this particular case)
 	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance

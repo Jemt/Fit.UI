@@ -196,9 +196,9 @@ Fit.Controls.Input = function(ctlId)
 		return input.spellcheck;
 	}
 
-	/// <function container="Fit.Controls.Input" name="Type" access="public" returns="Fit.Controls.Input.Type">
+	/// <function container="Fit.Controls.Input" name="Type" access="public" returns="Fit.Controls.InputType">
 	/// 	<description> Get/set input type (e.g. Text, Password, Email, etc.) </description>
-	/// 	<param name="val" type="Fit.Controls.Input.Type" default="undefined"> If defined, input type is changed to specified value </param>
+	/// 	<param name="val" type="Fit.Controls.InputType" default="undefined"> If defined, input type is changed to specified value </param>
 	/// </function>
 	this.Type = function(val)
 	{
@@ -206,10 +206,10 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (Fit.Validation.IsSet(Fit.Controls.Input.Type[val]) === false || val === Fit.Controls.Input.Type.Unknown)
-				Fit.Validation.ThrowError("Unsupported input type specified - use e.g. Fit.Controls.Input.Type.Text");
+			if (Fit.Validation.IsSet(Fit.Controls.InputType[val]) === false || val === Fit.Controls.InputType.Unknown)
+				Fit.Validation.ThrowError("Unsupported input type specified - use e.g. Fit.Controls.InputType.Text");
 
-			if (val === Fit.Controls.Input.Type.Textarea)
+			if (val === Fit.Controls.InputType.Textarea)
 			{
 				me.MultiLine(true);
 			}
@@ -217,57 +217,57 @@ Fit.Controls.Input = function(ctlId)
 			{
 				me.MultiLine(false);
 
-				if (val === Fit.Controls.Input.Type.Color)
+				if (val === Fit.Controls.InputType.Color)
 					input.type = "color";
-				else if (val === Fit.Controls.Input.Type.Date)
+				else if (val === Fit.Controls.InputType.Date)
 					input.type = "date";
-				else if (val === Fit.Controls.Input.Type.DateTime)
+				else if (val === Fit.Controls.InputType.DateTime)
 					input.type = "datetime";
-				else if (val === Fit.Controls.Input.Type.Email)
+				else if (val === Fit.Controls.InputType.Email)
 					input.type = "email";
-				else if (val === Fit.Controls.Input.Type.Month)
+				else if (val === Fit.Controls.InputType.Month)
 					input.type = "month";
-				else if (val === Fit.Controls.Input.Type.Number)
+				else if (val === Fit.Controls.InputType.Number)
 					input.type = "number";
-				else if (val === Fit.Controls.Input.Type.Password)
+				else if (val === Fit.Controls.InputType.Password)
 					input.type = "password";
-				else if (val === Fit.Controls.Input.Type.PhoneNumber)
+				else if (val === Fit.Controls.InputType.PhoneNumber)
 					input.type = "tel";
-				else if (val === Fit.Controls.Input.Type.Text)
+				else if (val === Fit.Controls.InputType.Text)
 					input.type = "text";
-				else if (val === Fit.Controls.Input.Type.Time)
+				else if (val === Fit.Controls.InputType.Time)
 					input.type = "time";
-				else if (val === Fit.Controls.Input.Type.Week)
+				else if (val === Fit.Controls.InputType.Week)
 					input.type = "week";
 			}
 		}
 
 		if (me.MultiLine() === true || me.DesignMode() === true)
-			return Fit.Controls.Input.Type.Textarea;
+			return Fit.Controls.InputType.Textarea;
 		else if (input.type === "color")
-			return Fit.Controls.Input.Type.Color;
+			return Fit.Controls.InputType.Color;
 		else if (input.type === "date")
-			return Fit.Controls.Input.Type.Date;
+			return Fit.Controls.InputType.Date;
 		else if (input.type === "datetime")
-			return Fit.Controls.Input.Type.DateTime;
+			return Fit.Controls.InputType.DateTime;
 		else if (input.type === "email")
-			return Fit.Controls.Input.Type.Email;
+			return Fit.Controls.InputType.Email;
 		else if (input.type === "month")
-			return Fit.Controls.Input.Type.Month;
+			return Fit.Controls.InputType.Month;
 		else if (input.type === "number")
-			return Fit.Controls.Input.Type.Number;
+			return Fit.Controls.InputType.Number;
 		else if (input.type === "password")
-			return Fit.Controls.Input.Type.Password;
+			return Fit.Controls.InputType.Password;
 		else if (input.type === "tel")
-			return Fit.Controls.Input.Type.PhoneNumber;
+			return Fit.Controls.InputType.PhoneNumber;
 		else if (input.type === "text")
-			return Fit.Controls.Input.Type.Text;
+			return Fit.Controls.InputType.Text;
 		else if (input.type === "time")
-			return Fit.Controls.Input.Type.Time;
+			return Fit.Controls.InputType.Time;
 		else if (input.type === "week")
-			return Fit.Controls.Input.Type.Week;
+			return Fit.Controls.InputType.Week;
 
-		return Fit.Controls.Input.Type.Unknown; // Only happens if someone changed the type to an unsupported value through the DOM (e.g. hidden or checkbox)
+		return Fit.Controls.InputType.Unknown; // Only happens if someone changed the type to an unsupported value through the DOM (e.g. hidden or checkbox)
 	}
 
 	/// <function container="Fit.Controls.Input" name="MultiLine" access="public" returns="boolean">
@@ -649,73 +649,75 @@ Fit.Controls.Input = function(ctlId)
 	init();
 }
 
-/// <container name="Fit.Controls.Input.Type">
+/// <container name="Fit.Controls.InputType">
 /// 	Enum values determining input type
 /// </container>
-Fit.Controls.Input.Type =
+Fit.Controls.InputType =
 {
-	/// <member container="Fit.Controls.Input.Type" name="Textarea" access="public" static="true" type="string" default="Textarea">
+	/// <member container="Fit.Controls.InputType" name="Textarea" access="public" static="true" type="string" default="Textarea">
 	/// 	<description> Multi line input field </description>
 	/// </member>
 	Textarea: "Textarea",
 
-	/// <member container="Fit.Controls.Input.Type" name="Color" access="public" static="true" type="string" default="Color">
+	/// <member container="Fit.Controls.InputType" name="Color" access="public" static="true" type="string" default="Color">
 	/// 	<description> Input control useful for entering a color </description>
 	/// </member>
 	Color: "Color",
 
-	/// <member container="Fit.Controls.Input.Type" name="Date" access="public" static="true" type="string" default="Date">
+	/// <member container="Fit.Controls.InputType" name="Date" access="public" static="true" type="string" default="Date">
 	/// 	<description> Input control useful for entering a date </description>
 	/// </member>
 	Date: "Date",
 
-	/// <member container="Fit.Controls.Input.Type" name="DateTime" access="public" static="true" type="string" default="DateTime">
+	/// <member container="Fit.Controls.InputType" name="DateTime" access="public" static="true" type="string" default="DateTime">
 	/// 	<description> Input control useful for entering a date and time </description>
 	/// </member>
 	DateTime: "DateTime",
 
-	/// <member container="Fit.Controls.Input.Type" name="Email" access="public" static="true" type="string" default="Email">
+	/// <member container="Fit.Controls.InputType" name="Email" access="public" static="true" type="string" default="Email">
 	/// 	<description> Input control useful for entering an e-mail address </description>
 	/// </member>
 	Email: "Email",
 
-	/// <member container="Fit.Controls.Input.Type" name="Month" access="public" static="true" type="string" default="Month">
+	/// <member container="Fit.Controls.InputType" name="Month" access="public" static="true" type="string" default="Month">
 	/// 	<description> Input control useful for entering a month </description>
 	/// </member>
 	Month: "Month",
 
-	/// <member container="Fit.Controls.Input.Type" name="Number" access="public" static="true" type="string" default="Number">
+	/// <member container="Fit.Controls.InputType" name="Number" access="public" static="true" type="string" default="Number">
 	/// 	<description> Input control useful for entering a number </description>
 	/// </member>
 	Number: "Number",
 
-	/// <member container="Fit.Controls.Input.Type" name="Password" access="public" static="true" type="string" default="Password">
+	/// <member container="Fit.Controls.InputType" name="Password" access="public" static="true" type="string" default="Password">
 	/// 	<description> Input control useful for entering a password (characters are masked) </description>
 	/// </member>
 	Password: "Password",
 
-	/// <member container="Fit.Controls.Input.Type" name="PhoneNumber" access="public" static="true" type="string" default="PhoneNumber">
+	/// <member container="Fit.Controls.InputType" name="PhoneNumber" access="public" static="true" type="string" default="PhoneNumber">
 	/// 	<description> Input control useful for entering a phone number </description>
 	/// </member>
 	PhoneNumber: "PhoneNumber",
 
-	/// <member container="Fit.Controls.Input.Type" name="Text" access="public" static="true" type="string" default="Text">
+	/// <member container="Fit.Controls.InputType" name="Text" access="public" static="true" type="string" default="Text">
 	/// 	<description> Input control useful for entering ordinary text </description>
 	/// </member>
 	Text: "Text",
 
-	/// <member container="Fit.Controls.Input.Type" name="Time" access="public" static="true" type="string" default="Time">
+	/// <member container="Fit.Controls.InputType" name="Time" access="public" static="true" type="string" default="Time">
 	/// 	<description> Input control useful for entering time </description>
 	/// </member>
 	Time: "Time",
 
-	/// <member container="Fit.Controls.Input.Type" name="Week" access="public" static="true" type="string" default="Week">
+	/// <member container="Fit.Controls.InputType" name="Week" access="public" static="true" type="string" default="Week">
 	/// 	<description> Input control useful for entering a week number </description>
 	/// </member>
 	Week: "Week",
 
 	Unknown: "Unknown"
 }
+
+Fit.Controls.Input.Type = Fit.Controls.InputType; // Backward compatibility
 
 Fit._internal.Controls.Input = {};
 Fit._internal.Controls.Input.DefaultSkin = null; // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created

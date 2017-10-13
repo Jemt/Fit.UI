@@ -143,7 +143,7 @@ Fit.Validation.ExpectTypeArray = function(val, typeValCallback, allowNotSet)
 /// 	<description>
 /// 		Throws error if passed object is not an instance of Array
 /// 		contaning only instances of specified type. Example:
-/// 		Fit.Validation.ExpectInstanceArray(arr, Fit.Controls.TreeView.Node)
+/// 		Fit.Validation.ExpectInstanceArray(arr, Fit.Controls.TreeViewNode)
 /// 	</description>
 /// 	<param name="val" type="object"> Object to validate </param>
 /// 	<param name="instanceType" type="object"> Instance type (constructor, e.g. Fit.Http.Request) </param>

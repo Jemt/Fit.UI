@@ -29,7 +29,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	var preSelected = {};
 	var orgSelected = [];
 	var loadDataOnInit = true;
-	var selectAllMode = Fit.Controls.WSTreeView.SelectAllMode.Progressively;
+	var selectAllMode = Fit.Controls.WSTreeViewSelectAllMode.Progressively;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
 	var onAbortHandlers = [];
@@ -107,7 +107,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnSelectAll(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeView.SelectAllMode.Progressively)
+			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
 				return;
 
 			// Handle Select All for TreeView containing no data yet
@@ -152,7 +152,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnPopulated(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeView.SelectAllMode.Progressively)
+			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
 				return;
 
 			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
@@ -212,7 +212,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnSelectAll(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Instantly)
 				return;
 
 			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
@@ -256,7 +256,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnResponse(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Instantly)
 				return;
 
 			// Remove any existing children (subtree may have been partially loaded by user).
@@ -286,7 +286,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnPopulated(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Instantly)
 				return;
 
 			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
@@ -387,13 +387,13 @@ Fit.Controls.WSTreeView = function(ctlId)
 		return jsonpCallback;
 	}
 
-	/// <function container="Fit.Controls.WSTreeView" name="SelectAllMode" access="public" returns="Fit.Controls.WSTreeView.SelectAllMode">
+	/// <function container="Fit.Controls.WSTreeView" name="SelectAllMode" access="public" returns="Fit.Controls.WSTreeViewSelectAllMode">
 	/// 	<description>
 	/// 		Get/set flag indicating whether WebService returns the complete hierarchy when
 	/// 		Select All is triggered (Instantly), or loads data for each level individually
 	/// 		when TreeView automatically expands all nodes (Progressively - chain loading).
 	/// 	</description>
-	/// 	<param name="val" type="Fit.Controls.WSTreeView.SelectAllMode" default="undefined"> If defined, behaviour is set to specified mode </param>
+	/// 	<param name="val" type="Fit.Controls.WSTreeViewSelectAllMode" default="undefined"> If defined, behaviour is set to specified mode </param>
 	/// </function>
 	this.SelectAllMode = function(val)
 	{
@@ -401,7 +401,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (val === Fit.Controls.WSTreeView.SelectAllMode.Progressively || val === Fit.Controls.WSTreeView.SelectAllMode.Instantly)
+			if (val === Fit.Controls.WSTreeViewSelectAllMode.Progressively || val === Fit.Controls.WSTreeViewSelectAllMode.Instantly)
 				selectAllMode = val;
 		}
 
@@ -551,7 +551,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		return value;
 	});
 
-	/// <function container="Fit.Controls.WSTreeView" name="Selected" access="public" returns="Fit.Controls.TreeView.Node[]">
+	/// <function container="Fit.Controls.WSTreeView" name="Selected" access="public" returns="Fit.Controls.TreeViewNode[]">
 	/// 	<description>
 	/// 		Fit.Controls.TreeView.Selected override:
 	/// 		Get/set selected nodes.
@@ -561,7 +561,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		Only the following getter functions can be used for preselection nodes:
 	/// 		node.Title(), node.Value(), node.Selected()
 	/// 	</description>
-	/// 	<param name="val" type="Fit.Controls.TreeView.Node[]" default="undefined"> If defined, provided nodes are selected </param>
+	/// 	<param name="val" type="Fit.Controls.TreeViewNode[]" default="undefined"> If defined, provided nodes are selected </param>
 	/// </function>
 	var baseSelected = me.Selected; // Used by Selected(..), Value(), and SetSelections(..)
 	this.Selected = function(val)
@@ -580,7 +580,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			Fit.Array.ForEach(val, function(n)
 			{
-				Fit.Validation.ExpectInstance(n, Fit.Controls.TreeView.Node);
+				Fit.Validation.ExpectInstance(n, Fit.Controls.TreeViewNode);
 
 				var node = ((n.GetTreeView() === me) ? n : me.GetChild(n.Value(), true)); // Try GetChild(..) in case node was constructed, but with a value of an existing node
 
@@ -630,7 +630,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		Fit.Array.ForEach(preSelected, function(preSelVal)
 		{
 			var preSel = preSelected[preSelVal];
-			Fit.Array.Add(nodes, new Fit.Controls.TreeView.Node(preSel.Title, preSel.Value)); // Invalid nodes! E.g. node.Selected(true) and node.GetTreeView() will not work since node has no association with TreeView
+			Fit.Array.Add(nodes, new Fit.Controls.TreeViewNode(preSel.Title, preSel.Value)); // Invalid nodes! E.g. node.Selected(true) and node.GetTreeView() will not work since node has no association with TreeView
 		});
 
 		return nodes;
@@ -772,7 +772,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
-	/// 		 - Node: Fit.Controls.TreeView.Node instance
+	/// 		 - Node: Fit.Controls.TreeViewNode instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
 	/// </function>
@@ -791,7 +791,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
-	/// 		 - Node: Fit.Controls.TreeView.Node instance to be populated
+	/// 		 - Node: Fit.Controls.TreeViewNode instance to be populated
 	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -810,7 +810,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
-	/// 		 - Node: Fit.Controls.TreeView.Node instance to be populated
+	/// 		 - Node: Fit.Controls.TreeViewNode instance to be populated
 	/// 		 - Children: JSON nodes received from WebService (Null in this particular case)
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -829,7 +829,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		EventArgs object contains the following properties:
 	/// 		 - Sender: Fit.Controls.WSTreeView instance
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
-	/// 		 - Node: Fit.Controls.TreeView.Node instance now populated with children
+	/// 		 - Node: Fit.Controls.TreeViewNode instance now populated with children
 	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -846,7 +846,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 	function getData(node, cb)
 	{
-		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeView.Node, true); // Node is null when requesting root nodes
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode, true); // Node is null when requesting root nodes
 		Fit.Validation.ExpectFunction(cb);
 
 		if (url === null)
@@ -1002,7 +1002,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		// Convert JSON to TreeView node, including all contained children
 
-		var child = new Fit.Controls.TreeView.Node((jsonNode.Title ? jsonNode.Title : jsonNode.Value), jsonNode.Value);
+		var child = new Fit.Controls.TreeViewNode((jsonNode.Title ? jsonNode.Title : jsonNode.Value), jsonNode.Value);
 
 		if (jsonNode.Selectable !== undefined)
 			child.Selectable((jsonNode.Selectable === true)); // Node will obtain Selectable state from TreeView unless explicitly set here
@@ -1035,7 +1035,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		{
 			// Make node expandable by attaching a place holder node
 			// which is automatically removed when node is expanded.
-			var expanderNode = new Fit.Controls.TreeView.Node("__", "__");
+			var expanderNode = new Fit.Controls.TreeViewNode("__", "__");
 			expanderNode.Selectable(false); // Prevent it from being selected when using SelectAll
 			child.AddChild(expanderNode);
 		}
@@ -1119,12 +1119,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 	init();
 }
 
-/// <container name="Fit.Controls.WSTreeView.SelectAllMode">
+/// <container name="Fit.Controls.WSTreeViewSelectAllMode">
 /// 	Enum indicating how data is loaded from WebService when using the Select All feature
 /// </container>
-Fit.Controls.WSTreeView.SelectAllMode =
+Fit.Controls.WSTreeViewSelectAllMode =
 {
-	/// <member container="Fit.Controls.WSTreeView.SelectAllMode" name="Progressively" access="public" static="true" type="string" default="Progressively">
+	/// <member container="Fit.Controls.WSTreeViewSelectAllMode" name="Progressively" access="public" static="true" type="string" default="Progressively">
 	/// 	<description>
 	/// 		Chain load children by progressively expanding them as they are loaded.
 	/// 		This may result in several HTTP requests to WebService, and OnChange will
@@ -1133,7 +1133,7 @@ Fit.Controls.WSTreeView.SelectAllMode =
 	/// </member>
 	Progressively: "Progressively",
 
-	/// <member container="Fit.Controls.WSTreeView.SelectAllMode" name="Instantly" access="public" static="true" type="string" default="Instantly">
+	/// <member container="Fit.Controls.WSTreeViewSelectAllMode" name="Instantly" access="public" static="true" type="string" default="Instantly">
 	/// 	<description>
 	/// 		Load all children at once (WebService is expected to return the complete hierarchy in one single request).
 	/// 		This approach will provide better performance as it does not fire OnChange for every child expanded,
@@ -1142,3 +1142,5 @@ Fit.Controls.WSTreeView.SelectAllMode =
 	/// </member>
 	Instantly: "Instantly"
 };
+
+Fit.Controls.WSTreeView.SelectAllMode = Fit.Controls.WSTreeViewSelectAllMode; // Backward compatibility

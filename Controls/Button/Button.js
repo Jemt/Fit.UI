@@ -75,7 +75,7 @@ Fit.Controls.Button = function(controlId)
 		Fit.Dom.Add(wrapper, label);
 
 		me.Enabled(true);
-		me.Type(Fit.Controls.Button.Type.Default);
+		me.Type(Fit.Controls.ButtonType.Default);
 	}
 
 	/// <function container="Fit.Controls.Button" name="GetId" access="public" returns="string">
@@ -120,18 +120,18 @@ Fit.Controls.Button = function(controlId)
 		return ((Fit.Dom.Data(element, "icon") !== null) ? Fit.Dom.Data(element, "icon") : "");
 	}
 
-	/// <function container="Fit.Controls.Button" name="Type" access="public" returns="Fit.Controls.Button.Type">
+	/// <function container="Fit.Controls.Button" name="Type" access="public" returns="Fit.Controls.ButtonType">
 	/// 	<description>
 	/// 		Get/set button type producing specific look and feel.
 	/// 		Possible values are:
-	/// 		 - Fit.Controls.Button.Type.Default (white)
-	/// 		 - Fit.Controls.Button.Type.Primary (blue)
-	/// 		 - Fit.Controls.Button.Type.Success (green)
-	/// 		 - Fit.Controls.Button.Type.Info (turquoise)
-	/// 		 - Fit.Controls.Button.Type.Warning (orange)
-	/// 		 - Fit.Controls.Button.Type.Danger (red)
+	/// 		 - Fit.Controls.ButtonType.Default (white)
+	/// 		 - Fit.Controls.ButtonType.Primary (blue)
+	/// 		 - Fit.Controls.ButtonType.Success (green)
+	/// 		 - Fit.Controls.ButtonType.Info (turquoise)
+	/// 		 - Fit.Controls.ButtonType.Warning (orange)
+	/// 		 - Fit.Controls.ButtonType.Danger (red)
 	/// 	</description>
-	/// 	<param name="val" type="Fit.Controls.Button.Type" default="undefined"> If specified, button type will be set to specified value </param>
+	/// 	<param name="val" type="Fit.Controls.ButtonType" default="undefined"> If specified, button type will be set to specified value </param>
 	/// </function>
 	this.Type = function(val)
 	{
@@ -139,8 +139,8 @@ Fit.Controls.Button = function(controlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (Fit.Validation.IsSet(Fit.Controls.Button.Type[val]) === false)
-				Fit.Validation.ThrowError("Unsupported button type specified - use e.g. Fit.Controls.Button.Type.Default");
+			if (Fit.Validation.IsSet(Fit.Controls.ButtonType[val]) === false)
+				Fit.Validation.ThrowError("Unsupported button type specified - use e.g. Fit.Controls.ButtonType.Default");
 
 			Fit.Dom.Data(element, "type", val);
 		}
@@ -310,38 +310,40 @@ Fit.Controls.Button = function(controlId)
 	init();
 }
 
-/// <container name="Fit.Controls.Button.Type">
+/// <container name="Fit.Controls.ButtonType">
 /// 	Enum values determining visual appearance of button controls
 /// </container>
-Fit.Controls.Button.Type =
+Fit.Controls.ButtonType =
 {
-	/// <member container="Fit.Controls.Button.Type" name="Default" access="public" static="true" type="string" default="Default">
+	/// <member container="Fit.Controls.ButtonType" name="Default" access="public" static="true" type="string" default="Default">
 	/// 	<description> White unless styled differently - default look and feel </description>
 	/// </member>
 	Default: "Default",
 
-	/// <member container="Fit.Controls.Button.Type" name="Primary" access="public" static="true" type="string" default="Primary">
+	/// <member container="Fit.Controls.ButtonType" name="Primary" access="public" static="true" type="string" default="Primary">
 	/// 	<description> Blue unless styled differently </description>
 	/// </member>
 	Primary: "Primary",
 
-	/// <member container="Fit.Controls.Button.Type" name="Success" access="public" static="true" type="string" default="Success">
+	/// <member container="Fit.Controls.ButtonType" name="Success" access="public" static="true" type="string" default="Success">
 	/// 	<description> Green unless styled differently </description>
 	/// </member>
 	Success: "Success",
 
-	/// <member container="Fit.Controls.Button.Type" name="Info" access="public" static="true" type="string" default="Info">
+	/// <member container="Fit.Controls.ButtonType" name="Info" access="public" static="true" type="string" default="Info">
 	/// 	<description> Turquoise unless styled differently </description>
 	/// </member>
 	Info: "Info",
 
-	/// <member container="Fit.Controls.Button.Type" name="Warning" access="public" static="true" type="string" default="Warning">
+	/// <member container="Fit.Controls.ButtonType" name="Warning" access="public" static="true" type="string" default="Warning">
 	/// 	<description> Orange unless styled differently </description>
 	/// </member>
 	Warning: "Warning",
 
-	/// <member container="Fit.Controls.Button.Type" name="Danger" access="public" static="true" type="string" default="Danger">
+	/// <member container="Fit.Controls.ButtonType" name="Danger" access="public" static="true" type="string" default="Danger">
 	/// 	<description> Red unless styled differently </description>
 	/// </member>
 	Danger: "Danger"
 }
+
+Fit.Controls.Button.Type = Fit.Controls.ButtonType; // Backward compatibility
