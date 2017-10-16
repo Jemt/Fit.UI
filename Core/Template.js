@@ -81,7 +81,7 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 	/// 		UserRole is an object that can be set with either a string
 	/// 		or a DOMElement.
 	/// 		A list identified as Users is accessible using
-	/// 		templateInstance.Content.Users. See Fit.Template.List for
+	/// 		templateInstance.Content.Users. See Fit.TemplateList for
 	/// 		additional information.
 	/// 	</description>
 	/// </member>
@@ -416,7 +416,7 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 		// noticable on pretty large and complex applications which is why refactoring
 		// is not prioritized at the moment.
 
-		/// <container name="Fit.Template.List">
+		/// <container name="Fit.TemplateList">
 		/// 	A template list is a dynamically created object representing
 		/// 	a variable number of items containing placeholders. An example
 		/// 	could be a list of Users containing information such as Name,
@@ -431,10 +431,10 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 		res._internal.Elements = elements;
 		res._internal.IsFitTemplate = true;
 
-		/// <function container="Fit.Template.List" name="AddItem" access="public" returns="object[]">
+		/// <function container="Fit.TemplateList" name="AddItem" access="public" returns="object">
 		/// 	<description>
 		/// 		Create list item represented by associative object
-		/// 		array contaning either strings or DOMElements.
+		/// 		array containing either strings or DOMElements.
 		/// 		Example:
 		/// 		var item = templateInstance.Content.MyList.AddItem();
 		/// 		item[&quot;Name&quot;] = &quot;James Thompson&quot;;
@@ -458,7 +458,7 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 			return item;
 		}
 
-		/// <function container="Fit.Template.List" name="GetItems" access="public" returns="object[][]">
+		/// <function container="Fit.TemplateList" name="GetItems" access="public" returns="object[]">
 		/// 	<description> Get all list items added using AddItem() </description>
 		/// </function>
 		res.GetItems = function()
@@ -466,16 +466,16 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 			return res._internal.Items;
 		}
 
-		/// <function container="Fit.Template.List" name="RemoveItem" access="public">
+		/// <function container="Fit.TemplateList" name="RemoveItem" access="public">
 		/// 	<description> Remove list item (associative object array) </description>
-		/// 	<param name="item" type="object[]"> Item to remove </param>
+		/// 	<param name="item" type="object"> Item to remove </param>
 		/// </function>
 		res.RemoveItem = function(item)
 		{
 			Fit.Array.Remove(res._internal.Items, item);
 		}
 
-		/// <function container="Fit.Template.List" name="Clear" access="public">
+		/// <function container="Fit.TemplateList" name="Clear" access="public">
 		/// 	<description> Clear list </description>
 		/// </function>
 		res.Clear = function()

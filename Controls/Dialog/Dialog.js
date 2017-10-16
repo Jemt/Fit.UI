@@ -21,7 +21,7 @@ Fit.Controls.Dialog = function()
 	function init()
 	{
 		Fit._internal.Core.EnsureStyles();
-		
+
 		dialog = document.createElement("div");
 		Fit.Dom.AddClass(dialog, "FitUiControl");
 		Fit.Dom.AddClass(dialog, "FitUiControlDialog");
@@ -196,7 +196,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 	var cmdOk = new Fit.Controls.Button(Fit.Data.CreateGuid());
 	cmdOk.Title(Fit.Language.Translations.Ok);
 	cmdOk.Icon("check");
-	cmdOk.Type(Fit.Controls.Button.Type.Success);
+	cmdOk.Type(Fit.Controls.ButtonType.Success);
 	cmdOk.OnClick(function(sender)
 	{
 		d.Close();
@@ -211,7 +211,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 		var cmdCancel = new Fit.Controls.Button(Fit.Data.CreateGuid());
 		cmdCancel.Title(Fit.Language.Translations.Cancel);
 		cmdCancel.Icon("ban");
-		cmdCancel.Type(Fit.Controls.Button.Type.Danger);
+		cmdCancel.Type(Fit.Controls.ButtonType.Danger);
 		cmdCancel.OnClick(function(sender)
 		{
 			d.Close();
