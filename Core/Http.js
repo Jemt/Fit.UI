@@ -775,7 +775,4 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 	}
 }
 
-/// <container name="Fit.Http.DotNetJsonRequest">
-/// 	Backward compatibility class - use Fit.Http.JsonRequest instead
-/// </container>
 Fit.Http.DotNetJsonRequest = Fit.Http.JsonRequest;

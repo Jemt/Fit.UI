@@ -1,3 +1,15 @@
+/// <container name="Fit.Controls.WSListView" extends="Fit.Controls.ListView">
+/// 	WebService enabled picker control which allows for entries
+/// 	to be selected in the DropDown control.
+/// </container>
+
+/// <function container="Fit.Controls.WSListView" name="WSListView" access="public">
+/// 	<description> Create instance of WSListView control </description>
+/// 	<param name="controlId" type="string" default="undefined">
+/// 		Unique control ID. if specified, control will be
+/// 		accessible using the Fit.Controls.Find(..) function.
+/// 	</param>
+/// </function>
 Fit.Controls.WSListView = function(ctlId)
 {
 	Fit.Validation.ExpectStringValue(ctlId, true);
