@@ -53,6 +53,9 @@ if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
 
 	sed -ine "s/VersionInfo.*{.*}/$versionObject/" ../Core/Core.js
 	#sed -ine "s/VersionInfo.*{.*}/VersionInfo: { Major: $npmMajor, Minor: $npmMinor, Patch: $npmPatch }/" ../Core/Core.js
+
+	echo "Version bumped - rebuilding to include new version information in package"
+	./Build
 fi
 
 # Commit to GIT
