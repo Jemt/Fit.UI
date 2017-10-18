@@ -147,7 +147,11 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 		Fit.Array.ForEach(elements, function(elm)
 		{
 			var element = dom.querySelector("var.FitTemplate[id='PH" + elm.Id + "']");
-			Fit.Dom.Replace(element, elm.Element);
+
+			if (element !== null) // Null if element was added with non-existing placeholder key
+			{
+				Fit.Dom.Replace(element, elm.Element);
+			}
 		});
 
 		// Register event handlers
@@ -196,6 +200,28 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 				var script = document.scripts[document.scripts.length - 1];
 				Fit.Dom.InsertBefore(script, container);
 			}
+		}
+	}
+
+	/// <function container="Fit.Template" name="GetDomElement" access="public" returns="DOMElement">
+	/// 	<description>
+	/// 		Get DOMElement representing template.
+	/// 		Template content will be wrapped in a div container if
+	/// 		it is refreshable, or if template contains no single root element.
+	/// 	</description>
+	/// </function>
+	this.GetDomElement = function()
+	{
+		var target = document.createElement("div");
+		me.Render(target);
+
+		if (target.children.length === 1)
+		{
+			return target.children[0];
+		}
+		else
+		{
+			return target;
 		}
 	}
 

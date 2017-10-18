@@ -32,7 +32,7 @@
 var Fit = {};
 Fit.Core = {};
 
-/// <function container="Fit.Core" name="Extend" access="public" static="true">
+/// <function container="Fit.Core" name="Extend" access="public" static="true" returns="object">
 /// 	<description>
 /// 		Extend any object with the public members of a super class.
 ///
@@ -403,7 +403,13 @@ Fit.Core.Clone = function(obj)
 
 // INTERNAL
 
-Fit._internal = { Core: { VersionInfo: { Major: 1, Minor: 0, Patch: 0 } } };
+Fit._internal =
+{
+	Core:
+	{
+		VersionInfo: { Major: 1, Minor: 0, Patch: 5 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
+	}
+};
 
 Fit._internal.Core.EnsureStyles = function()
 {
