@@ -10,7 +10,15 @@ fi
 
 echo "Invoking Merge"
 
-./Merge umd minify
+if [[ "$1" == "--nomin" ]] ; then
+	echo
+	echo "WARNING: Fit.UI is NOT minified!"
+	echo "This build is NOT suitable for distribution!"
+	echo
+	./Merge umd # No minification
+else
+	./Merge umd minify
+fi
 
 # Build documentation
 

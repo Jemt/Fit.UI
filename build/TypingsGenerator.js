@@ -1,123 +1,132 @@
 // Based on http://fiddle.jshell.net/bL8xyak4/184/
 // Execute parser: node Parser.js > index.ts.d
 // Expects file SimpleDocs.html to be accessible.
+// Alternatively test in a browser which is great for debugging:
+// https://jsfiddle.net/f2mzr0gz/1/
+// The JSFiddle loads the TypingsGenerator and parses the documentation
+// directly in the browser, allowing us to use the JS debugger.
 
-var useFileReader = true;
+var isNodeJs = (typeof(window) === "undefined");
 
 // Fit.UI shim
 
-Fit =
+if (isNodeJs === true)
 {
-	Core:
+	Fit =
 	{
-		Clone: function(obj)
+		Core:
 		{
-			return obj; // DANGEROUS! Returns same object - any modifications will affect the original object!!!
-		}
-	},
-
-	Array:
-	{
-		GetIndex: function(arr, obj)
-		{
-			for (var i = 0 ; i < arr.length ; i++)
-				if (arr[i] === obj)
-					return i;
-
-			return -1;
-		},
-
-		Contains: function(arr, obj)
-		{
-			return (Fit.Array.GetIndex(arr, obj) > -1);
-		},
-
-		ForEach: function(obj, callback)
-		{
-			if (obj instanceof Array)
+			Clone: function(obj)
 			{
-				for (var i = 0 ; i < obj.length ; i++)
+				return obj; // DANGEROUS! Returns same object - any modifications will affect the original object!!!
+			}
+		},
+
+		Array:
+		{
+			GetIndex: function(arr, obj)
+			{
+				for (var i = 0 ; i < arr.length ; i++)
+					if (arr[i] === obj)
+						return i;
+
+				return -1;
+			},
+
+			Contains: function(arr, obj)
+			{
+				return (Fit.Array.GetIndex(arr, obj) > -1);
+			},
+
+			ForEach: function(obj, callback)
+			{
+				if (obj instanceof Array)
 				{
-					if (callback(obj[i]) === false)
+					for (var i = 0 ; i < obj.length ; i++)
 					{
-						return false;
+						if (callback(obj[i]) === false)
+						{
+							return false;
+						}
 					}
 				}
-			}
-			else
-			{
-				for (var i in obj)
+				else
 				{
-					if (callback(i) === false)
+					for (var i in obj)
 					{
-						return false;
+						if (callback(i) === false)
+						{
+							return false;
+						}
 					}
 				}
-			}
 
-			return true;
-		},
+				return true;
+			},
 
-		Add: function(arr, obj)
-		{
-			arr.push(obj);
-		},
-
-		Merge: function(arr1, arr2)
-		{
-			return arr1.concat(arr2);
-		}
-	},
-
-	Http:
-	{
-		Request: function(url)
-		{
-			var me = this;
-			var onSuccess = [];
-			var responseText = null;
-
-			this.OnSuccess = function(cb)
+			Add: function(arr, obj)
 			{
-				onSuccess.push(cb);
-			}
-			this.Start = function()
+				arr.push(obj);
+			},
+
+			Merge: function(arr1, arr2)
 			{
-				var http = require("http");
+				return arr1.concat(arr2);
+			}
+		}/*,
 
-				var options = url; /*{
-					host: "codemagic.dk",
-					path: "/FlowIT/GUI/SimpleDocs.html"
-				};*/
+		Http:
+		{
+			Request: function(url)
+			{
+				var me = this;
+				var onSuccess = [];
+				var responseText = null;
 
-				callback = function(response)
+				this.OnSuccess = function(cb)
 				{
-					responseText = null;
-					var str = "";
+					onSuccess.push(cb);
+				}
+				this.Start = function()
+				{
+					var http = require("http");
 
-					response.on("data", function (chunk)
+					var options = url; //{ host: "codemagic.dk", path: "/FlowIT/GUI/SimpleDocs.html" };
+
+					callback = function(response)
 					{
-						str += chunk;
-					});
+						responseText = null;
+						var str = "";
 
-					response.on("end", function ()
-					{
-						responseText = str;
+						response.on("data", function (chunk)
+						{
+							str += chunk;
+						});
 
-						for (var i = 0 ; i < onSuccess.length ; i++)
-							onSuccess[i](me);
-					});
+						response.on("end", function ()
+						{
+							responseText = str;
+
+							for (var i = 0 ; i < onSuccess.length ; i++)
+								onSuccess[i](me);
+						});
+					}
+
+					http.request(options, callback).end();
 				}
 
-				http.request(options, callback).end();
+				this.GetResponseText = function()
+				{
+					return responseText;
+				}
 			}
-
-			this.GetResponseText = function()
-			{
-				return responseText;
-			}
-		}
+		}*/
 	}
+}
+else
+{
+	if (!window.Fit)
+		alert("Fatal error - Fit.UI must be loaded first!");
 }
 
 // Parser
@@ -129,9 +138,7 @@ function Parser()
 	var containers = null;	// Classes and Enums
 	var properties = null;	// Public properties and Enum values (which are also just public properties on a container)
 	var functions = null;	// Functions
-
-	var internals = null;	// Interfaces (Enums) and classes to be moved to __FitInternals
-	var enums = null;	// Enums
+	var enums = null;		// Enums
 
 	function init(cb)
 	{
@@ -142,6 +149,7 @@ function Parser()
 
 			var res = regex.exec(resp);
 			containers = eval(res[1]);
+			ensureParentContainers();
 
 			regex.lastIndex++;
 			res = regex.exec(resp);
@@ -151,9 +159,6 @@ function Parser()
 			res = regex.exec(resp);
 			functions = eval(res[1]);
 
-			cleanData();
-
-			internals = getInternals("Fit");
 			enums = getEnums();
 
 			if (cb)
@@ -162,9 +167,9 @@ function Parser()
 			}
 		};
 
-		if (!useFileReader)
+		if (isNodeJs === false)
 		{
-			var r = new Fit.Http.Request("http://codemagic.dk/FlowIT/GUI/SimpleDocs.html");
+			var r = new Fit.Http.Request("https://codemagic.dk/FlowIT/FitUI/build/SimpleDocs.html");
 			r.OnSuccess(function(sender)
 			{
 				startParsing(r.GetResponseText());
@@ -183,28 +188,31 @@ function Parser()
 		}
 	}
 
-	function cleanData()
+	function ensureParentContainers()
 	{
-		// Preserve comments in documentation by replacing e.g. /* xyz */ with \* xyz *\
+		// Some containers such as Fit.Http does not expose functions or members,
+		// only sub containers such as Fit.Http.Request and Fit.Http.JsonRequest.
+		// Therefore the Fit.Http container is not currently defined in the 'containers'
+		// collection. This function will ensure missing parent containers.
 
-		Fit.Array.ForEach([containers, properties, functions], function(type)
+		var ensured = {};
+
+		Fit.Array.ForEach(containers, function(c)
 		{
-			Fit.Array.ForEach(type, function(ob)
-			{
-				ob.Description = ob.Description.replace(/\/\*/g, "\\*");
-				ob.Description = ob.Description.replace(/\*\//g, "*\\");
-				ob.Description = ob.Description.replace(/<br>/g, " ");
+			if (c.Name.indexOf(".") === -1)
+				return; // Skip root container
 
-				if (ob.Parameters)
-				{
-					Fit.Array.ForEach(ob.Parameters, function(p)
-					{
-						p.Description = p.Description.replace(/\/\*/g, "\\*");
-						p.Description = p.Description.replace(/\*\//g, "*\\");
-						p.Description = p.Description.replace(/<br>/g, " ");
-					});
-				}
-			});
+			var parentContainer = c.Name.substring(0, c.Name.lastIndexOf(".")); // Parses e.g. Fit.Http from Fit.Http.Request or Fit from Fit.Array.
+
+			if (ensured[parentContainer] === undefined && getContainerByName(parentContainer) === null)
+			{
+				ensured[parentContainer] = { Name: parentContainer, Description: "", Extends: "" };
+			}
+		});
+
+		Fit.Array.ForEach(ensured, function(name)
+		{
+			Fit.Array.Add(containers, ensured[name]);
 		});
 	}
 
@@ -226,7 +234,7 @@ function Parser()
 		return found;
 	}
 
-	function getContainers(container) // Get all container elements: /// <container ...>
+	function getContainers(container) // Get all container elements (except enums): /// <container ...>
 	{
 		var matches = [];
 
@@ -316,64 +324,14 @@ function Parser()
 		return res;
 	}
 
-	// Functions used to work around limitations in typings
+	// Typings construction
 
 	function getInternals(containerName) // Return "internals" which are classes nested within the 3rd level (e.g. Fit.Controls.TreeView.Node) - Enums such as Fit.Controls.Button.Type are not considered classes and are therefore not included
 	{
-		// Nested classes such as Fit.Controls.TreeView.Node are not supported in typings (Fit and Controls are declared as namespaces and not classes).
-		// To work around this, we move nested classes to interfaces and declare a property of the interface type.
-		// E.g. Fit.Controls.TreeView.Node is declare like so on the TreeView class: public static Node : typeof __FitInternals.FitControlsTreeViewNode;
-		// NOTICE: Unfortunately this prevents us from type casting like so: (obj as Fit.Controls.TreeView.Node).AddChild(..);
-		// NOTICE: This function does not include Enums since they are handled differently than classes - classes are registered as classes while enums are registered as interfaces. See getTypingsForInternals().
-
-		var containerObject = getContainerByName(containerName);
-		var exts = ((containerObject.Extends != "") ? containerObject.Extends.split(";") : []);
-		var container = containerObject.Name;
-		var subContainers = getContainers(container);
-		var moveToInternals = [];
-
-		if (subContainers.length > 0) // Current container has sub container(s) - classes or enums
-		{
-			var allFunctions = [];
-			Fit.Array.ForEach(Fit.Array.Merge(exts, [containerName]), function(conName)
-			{
-				allFunctions = Fit.Array.Merge(allFunctions, getFunctions(conName));
-			});
-
-			var allProperties = []; // Properties and Enum values (which are also just properties)
-			Fit.Array.ForEach(Fit.Array.Merge(exts, [containerName]), function(conName)
-			{
-				allProperties = Fit.Array.Merge(allProperties, getProperties(conName));
-			});
-
-			var hasObjectMember = false;
-
-			Fit.Array.ForEach(Fit.Array.Merge(allFunctions, allProperties), function(x)
-			{
-				if (x.Static === false)
-				{
-					hasObjectMember = true;
-					return false;
-				}
-			});
-
-			if (hasObjectMember === true) // Current container has sub container(s) (e.g. Fit.Controls.TreeView.Node) AND contain object members itself which is not supported - move sub container(s) to different namespace
-			{
-				moveToInternals = Fit.Array.Merge(moveToInternals, subContainers);
-			}
-
-			Fit.Array.ForEach(subContainers, function(sc)
-			{
-				moveToInternals = Fit.Array.Merge(moveToInternals, getInternals(sc.Name));
-			});
-		}
-
-		return moveToInternals;
+		// TODO: Remove this function - only serves the purpose of making the diff tool happy so the latest changes doesn't seem like a complete rewrite
 	}
 
-	// Typings construction
-
-	function getTypingsForContainer(containerName, tabsStr, getInternals) // Generate typings for Fit.UI - getInternals is true when called from getTypingsForInternals()
+	function getTypingsForContainer(containerName, tabsStr)
 	{
 		var res = "";
 		var tabs = ((tabsStr !== undefined) ? tabsStr : "");
@@ -384,26 +342,44 @@ function Parser()
 		var hasSubClass = (isClass === true && getContainers(longContainerName).length > 0);
 		var declareAsNamespace = (isClass === false || (hasSubClass === true && isInitializable(longContainerName) === false));
 
-		// Handle containers considered to be "internals" or enums (see getInternals() function for details)
+		// Handle enums as they are different from classes, obviously
 
-		if (getInternals !== true && Fit.Array.Contains(internals, containerObject) === true)
+		if (Fit.Array.Contains(enums, containerObject) === true)
 		{
-			return "\n" + tabs + "public static " + shortContainerName + " : typeof __FitInternals." + getContainerTypingName(longContainerName) + ";";
-		}
-		else if (getInternals !== true && Fit.Array.Contains(enums, containerObject) === true)
-		{
-			return "\n" + tabs + "public static readonly " + shortContainerName + " : __FitInternals.I" + getContainerTypingName(longContainerName) + ";";
+			res += "\n" + tabs + "/**";
+			res += "\n" + tabs + "* " + formatDescription(containerObject.Description, tabs);
+			res += "\n" + tabs + "* @enum {string}";
+			res += "\n" + tabs + "*/";
+
+			res += "\n" + tabs + "enum " + shortContainerName;
+			res += "\n" + tabs + "{";
+
+			var values = "";
+
+			Fit.Array.ForEach(getProperties(longContainerName), function(p)
+			{
+				values += (values !== "" ? "," : "");
+
+				values += "\n" + tabs + "\t/** " + formatDescription(p.Description, tabs) + " */";
+				values += "\n" + tabs + "\t" + p.Name + " = \"" + p.Default + "\"";
+			});
+
+			res += values;
+
+			res += "\n" + tabs + "}";
+
+			return res;
 		}
 
 		// Handle containers considered to be classes
 
 		res += "\n" + tabs + "/**";
-		res += "\n" + tabs + "* " + containerObject.Description;
+		res += "\n" + tabs + "* " + formatDescription(containerObject.Description, tabs);
 		res += "\n" + tabs + "* @class [" + longContainerName + " " + shortContainerName + "]";
 		res += "\n" + tabs + "*/";
 
 		res += "\n" + tabs + (declareAsNamespace === true ? (longContainerName === "Fit" ? "declare " : "") + "namespace " : "class ");
-		res += (getInternals !== true ? shortContainerName : getContainerTypingName(longContainerName));
+		res += shortContainerName;
 		res += "\n" + tabs + "{";
 
 		// Add class members (properties and functions - e.g. Fit.Template.Content or Fit.GetPath())
@@ -420,12 +396,10 @@ function Parser()
 
 		res += "\n" + tabs + "}";
 
-		// Add internal types (interfaces used to mimic the behaviour of enums (e.g. Fit.Controls.Button.Type) and classes that cannot be nested in other classes (e.g. Fit.Controls.TreeView.Node))
+		// Declare Fit.UI as a module
 
 		if (longContainerName === "Fit")
 		{
-			res = getTypingsForInternals() + "\n" + res;
-
 			res += "\n";
 			res += "\ndeclare module \"fit-ui\"";
 			res += "\n{";
@@ -436,27 +410,30 @@ function Parser()
 		return res;
 	}
 
-	function getMembersForContainer(containerName, tabsStr) // Generate typings for class members (properties and functions)
+	function getMembersForContainer(containerName, tabsStr, skipConstructor) // Generate typings for class members (properties and functions)
 	{
 		var res = "";
 		var tabs = ((tabsStr !== undefined) ? tabsStr : "");
 		var containerObject = getContainerByName(containerName);
 		var longContainerName = containerObject.Name;
 		var shortContainerName = longContainerName.substring(longContainerName.lastIndexOf(".") + 1); // E.g. Fit.Controls.Button => Button
-		var exts = ((containerObject.Extends != "") ? containerObject.Extends.split(";") : []);
+		var exts = ((containerObject.Extends !== "") ? containerObject.Extends.split(";") : []);
 
 		var isClass = (getProperties(longContainerName).length > 0 || getFunctions(longContainerName).length > 0);
 		var hasSubClass = (isClass === true && getContainers(longContainerName).length > 0);
 
 		// Add properties
 
-		res += "\n" + tabs + "// Properties defined by " + longContainerName;
+		var properties = getProperties(longContainerName);
 
-		Fit.Array.ForEach(getProperties(longContainerName), function(p)
+		if (properties.length > 0)
+			res += "\n" + tabs + "// Properties defined by " + longContainerName;
+
+		Fit.Array.ForEach(properties, function(p)
 		{
 			res += "\n" + tabs + "/**";
-			res += "\n" + tabs + "* " + p.Description;
-			res += "\n" + tabs + "* @member [" + p.Type + " " + p.Name + "]";
+			res += "\n" + tabs + "* " + formatDescription(p.Description, tabs);
+			res += "\n" + tabs + "* @member [" + getType(p.Type) /*p.Type*/ + " " + p.Name + "]";
 			res += "\n" + tabs + "*/";
 
 			res += "\n" + tabs + p.Name + ":" + getType(p.Type) + ";";
@@ -464,7 +441,12 @@ function Parser()
 
 		// Add functions
 
-		Fit.Array.ForEach(getFunctions(longContainerName), function(f)
+		var functions = getFunctions(longContainerName);
+
+		if (functions.length > 0)
+			res += "\n" + tabs + "// Functions defined by " + longContainerName;
+
+		Fit.Array.ForEach(functions, function(f)
 		{
 			// Determine function return type
 
@@ -472,20 +454,7 @@ function Parser()
 
 			if (f.Returns)
 			{
-				var containerInstance = getContainerByName(f.Returns.replace("[]", "")); // Null for e.g. string, boolean, integer, etc.
-
-				if (containerInstance !== null && Fit.Array.Contains(enums, containerInstance) === true)
-				{
-					returnType = "typeof " + f.Returns + "[keyof __FitInternals.I" + getContainerTypingName(f.Returns) + "]";
-				}
-				else if (containerInstance !== null && Fit.Array.Contains(internals, containerInstance) === true)
-				{
-					returnType = "__FitInternals." + getContainerTypingName(f.Returns);
-				}
-				else
-				{
-					returnType = getType(f.Returns);
-				}
+				returnType = getType(f.Returns);
 			}
 
 			// Construct function signature
@@ -497,12 +466,15 @@ function Parser()
 			}
 			else
 			{
+				if (skipConstructor === true && f.Name === shortContainerName) // This is a constructor from a super class - skip!
+					return;
+
 				var funcName = (f.Name === shortContainerName ? "constructor" : f.Name);
 				var access = (funcName !== "constructor" ? "public " : "") + (f.Static === true ? "static " : "");
 				var parms = getParameterString(f, tabs);
 
 				res += "\n" + tabs + "/**";
-				res += "\n" + tabs + "* " + f.Description;
+				res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
 				res += "\n" + tabs + "* @function " + f.Name;
 				res += parms.Docs;
 				if (returnType !== null)
@@ -513,10 +485,27 @@ function Parser()
 			}
 		});
 
-		// Add members (properties and functions) from containers/classes from which the current container/class extends
+		// Add members (properties and functions) from containers/classes from which the current container/class extends.
+
+		// Notice how functions and properties from classes from which the current container
+		// extends are added as ordinary members rather than using the Extends construct in
+		// TypeScript (class Y extends X). The reason for this is that Fit.UI supports
+		// multiple inheritance which TypeScript does not.
+		// Fortunately this is not a problem, even if a function accepts only the super class.
+		// Example:
+		//   var ctx = new Fit.Controls.WSContextMenu();
+		//   treeView.ContextMenu(ctx); // ContextMenu(..) accepts an instance of Fit.Controls.ContextMenu().
+		// TypeScript interrogates the ctx instance and concludes that it is compatible with the definition of
+		// Fit.Controls.ContextMenu (it implements all the same members), so it will allow the specialized
+		// WSContextMenu to be passed to the ContextMenu(..) function.
+		// If, for some reason, TypeScript will not allow this in the future, we could make the typings generator
+		// modify the resulting typings so that ContextMenu(contextMenu?:Fit.Controls.ContextMenu):Fit.Controls.ContextMenu;
+		// instead becomes ContextMenu(contextMenu?:Fit.Controls.ContextMenu | Fit.Controls.WSContextMenu):Fit.Controls.ContextMenu | Fit.Controls.WSContextMenu;
+		// Another solution would be to ditch support for multiple inheritance in Fit.UI which was actually added to support some form of interfaces,
+		// PickerBase in particular. TypeScript supports interfaces out of the box.
 
 		for (var i = 0 ; i < exts.length ; i++)
-			res += getMembersForContainer(exts[i], tabs);
+			res += getMembersForContainer(exts[i], tabs, true);
 
 		return res;
 	}
@@ -530,22 +519,9 @@ function Parser()
 		Fit.Array.ForEach(functionInstance.Parameters, function(p)
 		{
 			var containerInstance = getContainerByName(p.Type.replace("[]", "")); // Null for e.g. string, boolean, integer, etc.
-			var type = null;
+			var type = getType(p.Type);
 
-			if (containerInstance !== null && Fit.Array.Contains(enums, containerInstance) === true)
-			{;
-				type = "typeof " + p.Type + "[keyof __FitInternals.I" + getContainerTypingName(p.Type) + "]";
-			}
-			else if (containerInstance !== null && Fit.Array.Contains(internals, containerInstance) === true)
-			{
-				type = "__FitInternals." + getContainerTypingName(p.Type);
-			}
-			else
-			{
-				type = getType(p.Type);
-			}
-
-			docs += "\n" + tabs + "* @param {" + p.Type + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " " + p.Description;
+			docs += "\n" + tabs + "* @param {" + type /*p.Type*/ + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
 
 			str += (str !== "" ? ", " : "") + p.Name;
 			str += (p.Default ? "?" : "");
@@ -554,58 +530,6 @@ function Parser()
 		});
 
 		return { Typings: str, Docs: docs };
-	}
-
-	function getTypingsForInternals() // Return typings for internal members (enums and classes nested in other classes - e.g. Fit.Controls.Button.Type and Fit.Controls.TreeView.Node)
-	{
-		var res = "";
-		//var containers = [];
-
-		res += "/**";
-		res += "\n* STOP! Do NOT use __FitInternals!";
-		res += "\n* It is used only to support Fit.UI Typings.";
-		res += "\n* @class [__FitInternals]";
-		res += "\n*/";
-		res += "\ndeclare namespace __FitInternals";
-		res += "\n{";
-
-		// Enums are registered as interfaces and exposed as members on their classes like so:
-		// public static readonly Type: __FitInternals.IFitControlsButtonType;
-		// The code above is found in Fit.Controls.Button.
-
-		Fit.Array.ForEach(enums, function(en)
-		{
-			//en.__isEnum = true;
-			//Fit.Array.Add(containers, en);
-
-			res += "\n\tinterface I" + getContainerTypingName(en.Name);
-			res += "\n\t{";
-
-			Fit.Array.ForEach(getProperties(en.Name), function(p)
-			{
-				res += "\n\t\t/**";
-				res += "\n\t\t* " + p.Description;
-				res += "\n\t\t* @member [" + p.Type + " " + p.Name + "]";
-				res += "\n\t\t*/";
-
-				res += "\n\t\t" + p.Name + ": \"" + p.Default + "\";";
-			});
-
-			res += "\n\t}";
-		});
-
-		// Nested classes (e.g. Fit.Controls.TreeView.Node) is registered as traditional classes
-		// within the "internal" namespace since nested classes are not supported in typings.
-
-		Fit.Array.ForEach(internals, function(it)
-		{
-			//Fit.Array.Add(containers, it);
-			res += getTypingsForContainer(it.Name, "\t", true);
-		});
-
-		res += "\n}";
-
-		return res;
 	}
 
 	function getType(type)
@@ -618,6 +542,8 @@ function Parser()
 			return "any[]"; //"object[]"; //return "Array<object>";
 		else if (type === "object")
 			return "any";
+		else if (type === "object[]")
+			return "any[]";
 		else if (type === "function")
 			return "Function";
 		else if (type === "integer") // TODO: Integer is not supported in TypeScript, but passing in a decimal where an integer is expected will cause Fit.UI to throw a type validation exception runtime
@@ -626,9 +552,14 @@ function Parser()
 		return type;
 	}
 
-	function getContainerTypingName(containerName) // Transforms e.g. Fit.Controls.Button to FitControlsButton
+	function formatDescription(description, tabs)
 	{
-		return containerName.replace(/\./g, "");
+		description = description.replace(/<br>/g, "\n" + tabs);
+		description = description.replace(/&#160;&#160;&#160;&#160; ?/g, "\t");
+		description = description.replace(/\/\*/g, "//");
+		description = description.replace(/\*\//g, "");
+
+		return description;
 	}
 
 	this.GenerateTypings = function(cb)
@@ -641,12 +572,10 @@ function Parser()
 			me.GetEnums = getEnums;
 			me.GetProperties = getProperties;
 			me.GetFunctions = getFunctions;
-			me.GetInternals = getInternals;
 			me.Data = {};
 			me.Data.Containers = Fit.Core.Clone(containers);
 			me.Data.Properties = Fit.Core.Clone(properties);
 			me.Data.Functions = Fit.Core.Clone(functions);
-			me.Data.Internals = Fit.Core.Clone(internals);
 			me.Data.Enums = Fit.Core.Clone(enums);
 
 			// Finalize
