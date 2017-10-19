@@ -631,7 +631,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					var tv = inputTime.value;
 					var isColon = (ev.keyCode === 186 || (mod.Shift === true && ev.keyCode === 190)); // Colon (keycode 186 or Shift+190 - depends on browser)
-					var valid = (/*tv.length < 5 &&*/ (isColon === true || (ev.keyCode >= 48 && ev.keyCode <= 58))); // Colon or 0-9 - disabled check on length which prevents value from being overwritten when selected
+					var valid = (/*tv.length < 5 &&*/ (isColon === true || (ev.keyCode >= 48 && ev.keyCode <= 58) || (ev.keyCode >= 96 && ev.keyCode <= 105))); // Colon or 0-9 (numrow or numpad) - disabled check on length which prevents value from being overwritten when selected
 
 					if (isColon === true && (tv.length === 0 || tv.substring(tv.length - 1) === ":"))
 					{
