@@ -2,7 +2,7 @@
 /// 	Class from which all Picker Controls extend.
 /// 	Control developers must override: GetDomElement, Destroy.
 /// 	Overriding the following functions is optional:
-/// 	UpdateItemSelectionState, SetEventDispatcher, HandleEvent.
+/// 	UpdateItemSelectionState, HandleEvent.
 /// 	Picker Control must fire OnItemSelectionChanging and OnItemSelectionChanged when an item's
 /// 	selection state is being changed, which is done by invoking
 /// 	this._internal.FireOnItemSelectionChanging(title:string, value:string, currentSelectionState:boolean)
@@ -242,20 +242,6 @@ Fit.Controls.PickerBase = function(controlId)
 		});
 	}
 
-	/// <function container="Fit.Controls.PickerBase" name="SetEventDispatcher" access="public" returns="DOMElement">
-	/// 	<description>
-	/// 		Overriden by control developers (optional).
-	/// 		Host control invokes this function, passing a reference to the
-	/// 		input control dispatching keyboard events using the HandleEvent function.
-	/// 		This function may be called multiple times with identical or different controls.
-	/// 	</description>
-	/// 	<param name="control" type="DOMElement"> Event dispatcher control </param>
-	/// </function>
-	this.SetEventDispatcher = function(control)
-	{
-		Fit.Validation.ExpectDomElement(control);
-	}
-
 	/// <function container="Fit.Controls.PickerBase" name="HandleEvent" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (optional).
@@ -299,7 +285,7 @@ Fit.Controls.PickerBase = function(controlId)
 
 	this._internal = (this._internal ? this._internal : {});
 
-	this._internal.Initialize = function() // Called by Host Control when picker is assigned to it
+	this._internal.InitializePicker = function() // Called by Host Control when picker is assigned to it
 	{
 	}
 

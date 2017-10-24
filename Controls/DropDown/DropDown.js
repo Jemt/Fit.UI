@@ -546,12 +546,10 @@ Fit.Controls.DropDown = function(ctlId)
 			return;
 		}
 
-		pickerControl._internal.Initialize();
+		pickerControl._internal.InitializePicker();
 
 		picker = pickerControl;
 		Fit.Dom.Add(dropDownMenu, picker.GetDomElement());
-
-		picker.SetEventDispatcher(txtActive);
 
 		// Allow picker to select items in case selections have already been set in drop down
 
@@ -1347,9 +1345,6 @@ Fit.Controls.DropDown = function(ctlId)
 			prevValue = txtActive.value;
 
 			clearAllInputsButActive();
-
-			if (picker !== null)
-				picker.SetEventDispatcher(txtActive);
 		}
 
 		txt.onblur = function(e)
@@ -1368,8 +1363,6 @@ Fit.Controls.DropDown = function(ctlId)
 
 			if (picker !== null)
 			{
-				//picker.SetEventDispatcher(txtActive);
-
 				if (me.IsDropDownOpen() === true)
 				{
 					var res = picker.HandleEvent(ev);
@@ -1660,9 +1653,7 @@ Fit.Controls.DropDown = function(ctlId)
 		txtActive = input;
 
 		if (focusAssigned === true) // Only set focus if user initially assigned focus to control
-			txtActive.focus(); // Input's OnFocus handler calls picker.SetEventDispatcher(..)
-		else if (/*focusAssigned === false &&*/ picker !== null) // User did not give focus to control, manually call SetEventDispatcher(..) on picker control
-			picker.SetEventDispatcher(txtActive);
+			txtActive.focus();
 	}
 
 	function clearAllInputsButActive()

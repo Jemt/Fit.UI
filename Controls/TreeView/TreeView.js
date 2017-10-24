@@ -196,7 +196,7 @@ Fit.Controls.TreeView = function(ctlId)
 			//{ PickerControl support - START
 
 			// If used as picker control, make sure first node is selected on initial key press
-			if (hostControl !== null && activeNode === null && rootNode.GetChildren().length > 0)
+			if (isPicker === true && activeNode === null && rootNode.GetChildren().length > 0)
 			{
 				focusNode(rootNode.GetChildren()[0]); // Sets activeNode to first child
 				return;
@@ -205,7 +205,7 @@ Fit.Controls.TreeView = function(ctlId)
 			// If onkeydown was not fired from a list item (which usually has focus),
 			// it was most likely fired from a host control through HandleEvent(..).
 			// In this case activeNode will be set.
-			if (elm.tagName !== "LI" && hostControl !== null && activeNode !== null)
+			if (elm.tagName !== "LI" && isPicker === true && activeNode !== null)
 				elm = activeNode.GetDomElement();
 
 			//} // PickerControl support - END
@@ -907,7 +907,7 @@ Fit.Controls.TreeView = function(ctlId)
 			rootNode.Dispose();
 		});
 
-		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = hostControl = activeNode = isIe8 = null;
+		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isPicker = activeNode = isIe8 = null;
 		baseDispose();
 	}
 
@@ -1011,7 +1011,7 @@ Fit.Controls.TreeView = function(ctlId)
 	// PickerBase interface
 	// ============================================
 
-	var hostControl = null;
+	var isPicker = false;
 	var activeNode = null;
 
 	this.OnShow(function(sender)
@@ -1106,62 +1106,9 @@ Fit.Controls.TreeView = function(ctlId)
 		}
 	}
 
-	this.SetEventDispatcher = function(control)
+	this._internal.InitializePicker = function() // Override function from PickerBase
 	{
-		Fit.Validation.ExpectDomElement(control);
-
-		me.GetDomElement().style.paddingLeft = "0.5em";
-		me.GetDomElement().style.paddingRight = "30px"; // Make room for scrollbar in drop down to prevent items from being partially hidden (drop down fits content up to a given maximum width, so items may not word wrap)
-
-		// This is not pretty. SetEventDispatcher was implemented to support the TreeView
-		// picker control which uses this function to register an OnBlur handler on the
-		// input controls, which in turn is used to change how nodes are selected.
-		// The TreeView was originally design so that nodes were highlighted when gaining
-		// focus, but since we need to be able to navigate the TreeView while keeping
-		// focus in the host control, this approach did not work.
-		// Therefore, when this control is used as a picker control and navigation occure
-		// through the host control and HandleEvent(..), nodes are selected using a CSS
-		// data attribute (data-active=true), and when host control looses focus, we
-		// revert to using the normal selection mode based on focus.
-
-		if (Fit.Validation.IsSet(control) === true)
-		{
-			hostControl = control;
-
-			// Make sure OnBlur handler is only registered once
-
-			if (!hostControl._internal)
-				hostControl._internal = {};
-
-			if (hostControl._internal.TreeViewPickerControl)
-				return;
-
-			hostControl._internal.TreeViewPickerControl = me;
-
-			// Register OnBlur handler
-
-			Fit.Events.AddHandler(hostControl, "blur", function(e)
-			{
-				hostControl = null;
-
-				// Host control may temporarily loose focus and regain it
-				// shortly after (host control consists of multiple input controls).
-				// Stay in Picker Control Mode for a short amount of time, allowing
-				// the host control to regain focus, and keep item selection (activeNode).
-				setTimeout(function()
-				{
-					if (hostControl !== null)
-						return; // Host control regained focus - do not remove selection made using host control
-
-					// Remove highlighting
-					if (activeNode !== null)
-						Fit.Dom.Data(activeNode.GetDomElement(), "active", null);
-
-					// Make sure first child is selected, next time host control is used to navigate items
-					activeNode = null;
-				}, 100);
-			});
-		}
+		isPicker = true;
 	}
 
     this.HandleEvent = function(e)
@@ -1251,7 +1198,7 @@ Fit.Controls.TreeView = function(ctlId)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
 
-		if (hostControl !== null)
+		if (isPicker === true)
 		{
 			// Since host control has focus, we use the "active" data attribute
 			// to indicate that the node has focus, even though it has not,
@@ -1265,11 +1212,25 @@ Fit.Controls.TreeView = function(ctlId)
 
 			// Scroll active node into view if necessary.
 			// This is a bit expensive, especially if we navigate up the
-			// tree from 5+ nested levels, and holds down the arrow key.
+			// tree from 5+ nested levels, and hold down the arrow key.
 
-			// Get node position and height
+			// Get node position within control
 
-			var nodePositionWithinControl = { X: activeNode.GetDomElement().offsetLeft, Y: activeNode.GetDomElement().offsetTop }; // Get position relative to offset parent which is div.FitUiControl that have position:relative
+			// Get position relative to offset parent (parent node) which has position:relative
+			var nodePositionWithinControl = { X: activeNode.GetDomElement().offsetLeft, Y: activeNode.GetDomElement().offsetTop };
+
+			// Get node position all the way up to the div.FitUiControl control container which has position:relative
+			var offsetParent = activeNode.GetDomElement().offsetParent;
+			while (offsetParent !== me.GetDomElement())
+			{
+				nodePositionWithinControl.X += offsetParent.offsetLeft;
+				nodePositionWithinControl.Y += offsetParent.offsetTop;
+
+				offsetParent = offsetParent.offsetParent;
+			}
+
+			// Get node height
+
 			var nodeHeightWithoutChildren = -1;
 
 			var childrenContainer = ((activeNode.GetChildren().length > 0) ? activeNode.GetChildren()[0].GetDomElement().parentElement : null);
@@ -1286,11 +1247,11 @@ Fit.Controls.TreeView = function(ctlId)
 
 			// Vertical scroll
 			if (nodePositionWithinControl.Y > (me.GetDomElement().scrollTop + me.GetDomElement().clientHeight - nodeHeightWithoutChildren) || nodePositionWithinControl.Y < me.GetDomElement().scrollTop)
-				me.GetDomElement().scrollTop = nodePositionWithinControl.Y - (me.GetDomElement().clientHeight / 2); // Horizontal center
+				me.GetDomElement().scrollTop = Math.ceil(nodePositionWithinControl.Y - (me.GetDomElement().clientHeight / 2)); // Horizontal center
 
 			// Horizontal scroll
 			if (activeNode.GetLevel() > 2)
-				me.GetDomElement().scrollLeft = nodePositionWithinControl.X;
+				me.GetDomElement().scrollLeft = Math.ceil(nodePositionWithinControl.X);
 			else
 				me.GetDomElement().scrollLeft = 0;
 
@@ -1438,7 +1399,6 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	var elmLi = null;
 	var elmUl = null;
 	var cmdToggle = null;
-	var chkSelectAll = null;
 	var chkSelect = null;
 	var lblTitle = null;
 	var childrenIndexed = {};
@@ -1547,10 +1507,6 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		Fit.Validation.ExpectBoolean(showCheckbox, true);
 		Fit.Validation.ExpectBoolean(showSelectAll, true);
 
-
-		// TODO: REMEMBER - Update HasSelectAll() function when support for Select All is added!!
-
-
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			// Prevent node from obtaining configuration from TreeView if explicitly set
@@ -1568,6 +1524,16 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 				chkSelect.tabIndex = "-1";
 				chkSelect.checked = me.Selected();
 
+				// Alternatively use Fit.UI CheckBox (will most likely need changes to CSS to adjust position and size)
+				// Also search for chkSelect._FitControl to find related changes if this is enabled at some point!
+				/*var chk = new Fit.Controls.CheckBox(Fit.Data.CreateGuid());
+				chkSelect = chk.GetDomElement();
+				chk.OnChange(function(sender)
+				{
+					chkSelect.checked = chk.Checked();
+				});
+				chkSelect._FitControl = chk;*/
+
 				Fit.Dom.InsertBefore(lblTitle, chkSelect);
 			}
 			else if (showCheckbox === false && chkSelect !== null)
@@ -1577,7 +1543,10 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 			}
 
 			if (chkSelect !== null)
+			{
 				chkSelect.disabled = ((val === false) ? true : false);
+				//chkSelect._FitControl.Enabled(val); // Related to alternative use of Fit.UI CheckBox
+			}
 		}
 
 		return (Fit.Dom.Data(elmLi, "selectable") === "true");
@@ -1590,14 +1559,6 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	{
 		return (chkSelect !== null);
 	}
-
-	/*<function container="Fit.Controls.TreeViewNode" name="HasSelectAll" access="public" returns="boolean">
-		<description> Get value indicating whether node has its Select All checkbox enabled </description>
-	</function>
-	this.HasSelectAll = function()
-	{
-		return false;
-	}*/
 
 	/// <function container="Fit.Controls.TreeViewNode" name="Selected" access="public" returns="boolean">
 	/// 	<description>
@@ -1967,7 +1928,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		}
 
 		// Dispose private members
-		me = elmLi = elmUl = cmdToggle = chkSelectAll = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = null;
+		me = elmLi = elmUl = cmdToggle = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = null;
 	}
 
 	/// <function container="Fit.Controls.TreeViewNode" name="GetDomElement" access="public" returns="DOMElement">
