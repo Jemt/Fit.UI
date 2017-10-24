@@ -204,13 +204,16 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Array.Add(closeHandlers, eventId);
 		}
 
-		// Make drop down close if focus is removed programmatically
-		// or by iOS which happens when onscreen keyboard is closed.
+		// Make drop down close if focus is lost on mobile
+		// which happens when onscreen keyboard is closed.
 
 		me.OnBlur(function()
 		{
-			focusInputOnMobile = false;
-			me.CloseDropDown();
+			if (isMobile === true)
+			{
+				focusInputOnMobile = false;
+				me.CloseDropDown();
+			}
 		});
 
 		// Suppress context menu (except for input fields)
