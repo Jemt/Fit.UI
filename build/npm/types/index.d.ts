@@ -2402,16 +2402,6 @@ declare namespace Fit
 			*/
 			public OnShow(cb:Function):void;
 			/**
-			* Overriden by control developers (optional).
-			Host control invokes this function, passing a reference to the
-			input control dispatching keyboard events using the HandleEvent function.
-			This function may be called multiple times with identical or different controls.
-			* @function SetEventDispatcher
-			* @param {HTMLElement} control - Event dispatcher control
-			* @returns HTMLElement
-			*/
-			public SetEventDispatcher(control:HTMLElement):HTMLElement;
-			/**
 			* Overridden by control developers (optional).
 			Host control invokes this function when picker is assigned to host control, providing an array
 			of items already selected. An item is an object with a Title (string) and Value (string) property set.
@@ -2451,7 +2441,7 @@ declare namespace Fit
 		* Class from which all Picker Controls extend.
 		Control developers must override: GetDomElement, Destroy.
 		Overriding the following functions is optional:
-		UpdateItemSelectionState, SetEventDispatcher, HandleEvent.
+		UpdateItemSelectionState, HandleEvent.
 		Picker Control must fire OnItemSelectionChanging and OnItemSelectionChanged when an item&#39;s
 		selection state is being changed, which is done by invoking
 		this._internal.FireOnItemSelectionChanging(title:string, value:string, currentSelectionState:boolean)
@@ -2552,16 +2542,6 @@ declare namespace Fit
 			* @param {Function} cb - Event handler function
 			*/
 			public OnShow(cb:Function):void;
-			/**
-			* Overriden by control developers (optional).
-			Host control invokes this function, passing a reference to the
-			input control dispatching keyboard events using the HandleEvent function.
-			This function may be called multiple times with identical or different controls.
-			* @function SetEventDispatcher
-			* @param {HTMLElement} control - Event dispatcher control
-			* @returns HTMLElement
-			*/
-			public SetEventDispatcher(control:HTMLElement):HTMLElement;
 			/**
 			* Overridden by control developers (optional).
 			Host control invokes this function when picker is assigned to host control, providing an array
@@ -2976,16 +2956,6 @@ declare namespace Fit
 			* @param {Function} cb - Event handler function
 			*/
 			public OnShow(cb:Function):void;
-			/**
-			* Overriden by control developers (optional).
-			Host control invokes this function, passing a reference to the
-			input control dispatching keyboard events using the HandleEvent function.
-			This function may be called multiple times with identical or different controls.
-			* @function SetEventDispatcher
-			* @param {HTMLElement} control - Event dispatcher control
-			* @returns HTMLElement
-			*/
-			public SetEventDispatcher(control:HTMLElement):HTMLElement;
 			/**
 			* Overridden by control developers (optional).
 			Host control invokes this function when picker is assigned to host control, providing an array
@@ -4130,16 +4100,6 @@ declare namespace Fit
 			*/
 			public OnShow(cb:Function):void;
 			/**
-			* Overriden by control developers (optional).
-			Host control invokes this function, passing a reference to the
-			input control dispatching keyboard events using the HandleEvent function.
-			This function may be called multiple times with identical or different controls.
-			* @function SetEventDispatcher
-			* @param {HTMLElement} control - Event dispatcher control
-			* @returns HTMLElement
-			*/
-			public SetEventDispatcher(control:HTMLElement):HTMLElement;
-			/**
 			* Overridden by control developers (optional).
 			Host control invokes this function when picker is assigned to host control, providing an array
 			of items already selected. An item is an object with a Title (string) and Value (string) property set.
@@ -4582,16 +4542,6 @@ declare namespace Fit
 			* @param {Function} cb - Event handler function
 			*/
 			public OnShow(cb:Function):void;
-			/**
-			* Overriden by control developers (optional).
-			Host control invokes this function, passing a reference to the
-			input control dispatching keyboard events using the HandleEvent function.
-			This function may be called multiple times with identical or different controls.
-			* @function SetEventDispatcher
-			* @param {HTMLElement} control - Event dispatcher control
-			* @returns HTMLElement
-			*/
-			public SetEventDispatcher(control:HTMLElement):HTMLElement;
 			/**
 			* Overridden by control developers (optional).
 			Host control invokes this function when picker is assigned to host control, providing an array
