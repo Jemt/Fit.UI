@@ -407,7 +407,7 @@ Fit._internal =
 {
 	Core:
 	{
-		VersionInfo: { Major: 1, Minor: 0, Patch: 10 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
+		VersionInfo: { Major: 1, Minor: 0, Patch: 11 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
 	}
 };
 
@@ -499,7 +499,15 @@ Fit.GetPath = function()
 /// </function>
 Fit.SetPath = function(basePath)
 {
-	Fit.Validation.ExpectStringValue(basePath);
+	Fit.Validation.ExpectStringValue((basePath === null ? "-" : basePath));
+
+	if (basePath === null)
+	{
+		delete Fit._internal.BasePathOverride;
+		delete Fit._internal.BaseUrlOverride;
+
+		return;
+	}
 
 	// Remove trailing slash if found
 	if (basePath !== "/" && basePath.lastIndexOf("/") === basePath.length - 1)
@@ -507,31 +515,27 @@ Fit.SetPath = function(basePath)
 		basePath = basePath.substring(0, basePath.length - 1);
 	}
 
-	if (basePath.indexOf("/") === 0) // Absolute path
+	var rootUrl = location.protocol + "//" + location.host; // E.g. http://my-domain.com
+
+	// Both GetPath() and GetUrl() return values without trailing slashes.
+	// E.g. libs/fitui and http://host/libs/fitui.
+	// However, when installed to the root, this is indicated by a slash returned
+	// from GetPath() while GetUrl() keeps returning a URL without a trailing slash.
+	// E.g. / and http://my-domain.com.
+
+	Fit._internal.BasePathOverride = basePath;
+
+	if (basePath === "/")
 	{
-		// location.origin not supported before IE11, and it's even buggy on Windows 10 - https://developer.mozilla.org/en-US/docs/Web/API/Window/location
-		var origin = location.href.substring(0, location.href.length - location.pathname.length);
-
-		if (basePath === "/") // Root (unlikely scenario having Fit.UI located at the root though)
-		{
-			// Both GetPath() and GetUrl() return values without trailing slashes.
-			// E.g. libs/fitui and http://host/libs/fitui.
-			// However, when installed to the root, this is indicated by a slash returned
-			// from GetPath() while GetUrl() keeps returning a URL without a trailing slash.
-			// E.g. / and http://host.
-
-			Fit._internal.BasePathOverride = "/";	// /
-			Fit._internal.BaseUrlOverride = origin;	// http://host
-		}
-		else
-		{
-			Fit._internal.BasePathOverride = basePath;			// /libs/fitui
-			Fit._internal.BaseUrlOverride = origin + basePath;	// /http://host/libs/fitui
-		}
+		Fit._internal.BaseUrlOverride = rootUrl; //curUrl;
 	}
-	else // Relative
+	else if (basePath.indexOf("/") === 0) // Absolute path
 	{
-		Fit._internal.BasePathOverride = ((Fit._internal.BasePath !== "/") ? Fit._internal.BasePath : "") + "/" + basePath;
-		Fit._internal.BaseUrlOverride = Fit._internal.BaseUrl + "/" + basePath;
+		Fit._internal.BaseUrlOverride = rootUrl + basePath;
+	}
+	else // Relative path
+	{
+		var curPath = location.pathname.substring(0, location.pathname.lastIndexOf("/")); // E.g. "" (empty for root) or /path/to/folder
+		Fit._internal.BaseUrlOverride = rootUrl + curPath + "/" + basePath;
 	}
 }
