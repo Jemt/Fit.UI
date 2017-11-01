@@ -28,6 +28,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	var open = false;			// Whether calendar widget is currently open
 	var focused = false;		// Whether control is currently focused
 	var restoreView = false;	// Whether to keep calendar widget on given year/month when temporarily closing and opening it again
+	var updateCalConf = true;	// Whether to set/update calendar widget settings - true on initial load
 
 	var isMobile = Fit.Browser.GetInfo().IsMobile;
 	var inputMobile = null;		// Native date picker on mobile devices - value selected is synchronized to input field defined above (remains Null on desktop devices)
@@ -458,6 +459,7 @@ Fit.Controls.DatePicker = function(ctlId)
 			}
 
 			locale = val;
+			updateCalConf = true; // Update calendar widget settings
 			me.Format(getFitUiDateFormat(newFormat));
 
 			if (wasOpen === true)
@@ -526,6 +528,7 @@ Fit.Controls.DatePicker = function(ctlId)
 			var curVal = me.Value(); // The format is used by Value() to parse the date entered - get value before changing format
 
 			format = val;
+			updateCalConf = true; // Update calendar widget settings
 			input.placeholder = Fit.Date.Format(new Date(), format);
 
 			me._internal.ExecuteWithNoOnChange(function()
@@ -572,6 +575,7 @@ Fit.Controls.DatePicker = function(ctlId)
 			}
 
 			weeks = val;
+			updateCalConf = true; // Update calendar widget settings
 
 			if (wasOpen === true)
 			{
@@ -935,9 +939,14 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				var val = me.Value();
 
-				datepicker.datepicker("option", datepicker.jq.datepicker.regional[locale]);
-				datepicker.datepicker("option", "dateFormat", getJqueryUiDatePickerFormat(me.Format()));
-				datepicker.datepicker("option", "showWeek", weeks);
+				if (updateCalConf === true) // Only update settings if actually changed, as this results in input value being updated, causing cursor position to change in IE
+				{
+					updateCalConf = false;
+
+					datepicker.datepicker("option", datepicker.jq.datepicker.regional[locale]);
+					datepicker.datepicker("option", "dateFormat", getJqueryUiDatePickerFormat(me.Format()));
+					datepicker.datepicker("option", "showWeek", weeks);
+				}
 
 				if (startDate !== null && restoreView === true) // Restore year and month the user previously navigated to
 				{
