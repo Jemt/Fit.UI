@@ -121,6 +121,15 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 		r.Start();
 	}
 
+	/// <function container="Fit.Template" name="Reset" access="public">
+	/// 	<description> Resets template - all data and event handlers are removed. Change is not pushed to DOM automatically. </description>
+	/// </function>
+	this.Reset = function()
+	{
+		parse(htmlContent);
+		eventHandlers = [];
+	}
+
 	/// <function container="Fit.Template" name="GetHtml" access="public" returns="string">
 	/// 	<description> Get HTML from template including any changes made </description>
 	/// </function>
@@ -200,28 +209,6 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 				var script = document.scripts[document.scripts.length - 1];
 				Fit.Dom.InsertBefore(script, container);
 			}
-		}
-	}
-
-	/// <function container="Fit.Template" name="GetDomElement" access="public" returns="DOMElement">
-	/// 	<description>
-	/// 		Get DOMElement representing template.
-	/// 		Template content will be wrapped in a div container if
-	/// 		it is refreshable, or if template contains no single root element.
-	/// 	</description>
-	/// </function>
-	this.GetDomElement = function()
-	{
-		var target = document.createElement("div");
-		me.Render(target);
-
-		if (target.children.length === 1)
-		{
-			return target.children[0];
-		}
-		else
-		{
-			return target;
 		}
 	}
 
