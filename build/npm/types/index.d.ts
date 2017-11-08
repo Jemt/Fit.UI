@@ -46,19 +46,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in collection
-		* @function Count
-		* @param {any[]} arr - Collection to count elements within
-		* @returns number
-		*/
-		public static Count(arr:any[]):number;
-		/**
 		* Returns number of elements in object array
 		* @function Count
 		* @param {any} obj - Object array to count elements within
 		* @returns number
 		*/
 		public static Count(obj:any):number;
+		/**
+		* Returns number of elements in collection
+		* @function Count
+		* @param {any[]} arr - Collection to count elements within
+		* @returns number
+		*/
+		public static Count(arr:any[]):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -5327,21 +5327,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -5407,15 +5407,6 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
-		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -5431,6 +5422,21 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -5438,12 +5444,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).

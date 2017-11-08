@@ -258,7 +258,11 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 		Fit.Array.ForEach(elements, function(elm)
 		{
 			var element = dom.querySelector("var.FitTemplate[id='PH" + elm.Id + "']");
-			Fit.Dom.Replace(element, elm.Element);
+
+			if (element !== null) // Null if element was added with non-existing placeholder key
+			{
+				Fit.Dom.Replace(element, elm.Element);
+			}
 		});
 
 		// Register event handlers
