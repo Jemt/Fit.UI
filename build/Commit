@@ -20,9 +20,10 @@ echo "0) Do not publish NPM package"
 echo "1) Publish as Patch update (bug fixes)"
 echo "2) Publish as Minor update (new features and improvements)"
 echo "3) Publish as Major update (major new features and breaking changes)"
+echo "4) Publish without modifying version number"
 read npmtype
 
-if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
+if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" || "$npmtype" == "4" ]] ; then
 	echo "Enter optional commit message and press ENTER:"
 	read npmcommitmsg # The value %s will be replaced by the new version number
 fi
@@ -55,6 +56,10 @@ if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
 	#sed -ine "s/VersionInfo.*{.*}/VersionInfo: { Major: $npmMajor, Minor: $npmMinor, Patch: $npmPatch }/" ../Core/Core.js
 
 	echo "Version bumped - rebuilding to include new version information in package"
+	./Build
+fi
+if [[ "$npmtype" == "4" ]] ; then
+	echo "Rebuilding to make sure version information is up to date in package"
 	./Build
 fi
 
@@ -97,7 +102,7 @@ echo "Done pushing changes to GIT."
 
 # Publish NPM package
 
-if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
+if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" || "$npmtype" === "4" ]] ; then
 	if [[ $simulate == 0 ]] ; then
 		(cd npm/ && npm publish)
 		echo "NPM package published"

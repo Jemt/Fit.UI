@@ -83,6 +83,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationCallbackFunc = null;
 	var validationCallbackError = null;
 	var lazyValidation = false;
+	var hasValidated = false;
 	var blockAutoPostBack = false; // Used by AutoPostBack mechanism to prevent multiple postbacks, e.g on double click
 	var onChangeHandlers = [];
 	var onFocusHandlers = [];
@@ -131,8 +132,6 @@ Fit.Controls.ControlBase = function(controlId)
 
 		me.OnChange(function(sender)
 		{
-			updateInternalState();
-
 			if (blockAutoPostBack === false && me.AutoPostBack() === true && document.forms.length > 0)
 			{
 				setTimeout(function() // Postpone to allow other handlers to execute before postback
@@ -198,6 +197,13 @@ Fit.Controls.ControlBase = function(controlId)
 	/// </function>
 	this.GetDomElement = function()
 	{
+		if (hasValidated === false)
+		{
+			hasValidated = true;
+			me._internal.Validate();
+			updateInternalState(); // Make sure state posted to server is up to date (Dirty and Valid flags) in case a control value has not been assigned
+		}
+
 		return container;
 	}
 
@@ -217,7 +223,7 @@ Fit.Controls.ControlBase = function(controlId)
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(container);
-		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = isIe8 = null;
+		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = isIe8 = null;
 		delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
@@ -372,13 +378,13 @@ Fit.Controls.ControlBase = function(controlId)
 			{
 				orgDirtyFunction = this.IsDirty;
 				this.IsDirty = function() { return true; };
-				updateInternalState()
+				updateInternalState();
 			}
 			else if (val === false && orgDirtyFunction !== null)
 			{
 				this.IsDirty = orgDirtyFunction;
 				orgDirtyFunction = null;
-				updateInternalState()
+				updateInternalState();
 			}
 		}
 
@@ -395,15 +401,13 @@ Fit.Controls.ControlBase = function(controlId)
 
 		if (Fit.Validation.IsSet(toElement) === true)
 		{
-			Fit.Dom.Add(toElement, container);
+			Fit.Dom.Add(toElement, me.GetDomElement()); // GetDomElement() calls Validate()
 		}
 		else
 		{
 			var script = document.scripts[document.scripts.length - 1];
-			Fit.Dom.InsertBefore(script, container);
+			Fit.Dom.InsertBefore(script, me.GetDomElement()); // GetDomElement() calls Validate()
 		}
-
-		me._internal.Validate();
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationExpression" access="public">
@@ -653,7 +657,9 @@ Fit.Controls.ControlBase = function(controlId)
 
 		this._internal.FireOnChange = function()
 		{
+			hasValidated = true;
 			me._internal.Validate();
+			updateInternalState();
 
 			Fit.Array.ForEach(onChangeHandlers, function(cb)
 			{
@@ -755,7 +761,6 @@ Fit.Controls.ControlBase = function(controlId)
 				me._internal.Data("errormessage", null);
 			}
 
-			updateInternalState(); // Make sure state posted to server is up to date (Dirty and Valid flags)
 			me._internal.Repaint();
 		}
 
