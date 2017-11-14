@@ -102,7 +102,7 @@ echo "Done pushing changes to GIT."
 
 # Publish NPM package
 
-if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" || "$npmtype" === "4" ]] ; then
+if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" || "$npmtype" == "4" ]] ; then
 	if [[ $simulate == 0 ]] ; then
 		(cd npm/ && npm publish)
 		echo "NPM package published"
