@@ -44,25 +44,25 @@ Either get Fit.UI from http://fitui.org or install it using NodeJS Package Manag
 
 Check out this super cool upload component based on
 Button, FilePicker, and ProgressBar:
-http://codemagic.dk/FlowIT/GUI/Examples/Upload.html
+https://fiddle.jshell.net/Jemt/L97q8bLa/9/
 
 Here is the Input control with support for HTML editing
 thanks to the power of CKEditor:
-http://fiddle.jshell.net/sejcg222/3/embedded/result/light/
+https://fiddle.jshell.net/Jemt/417gart8/12
 
 Buttons are essential to almost all applications, and FIT.UI
 provides some great onces, with support for FontAwesome icons:
-http://fiddle.jshell.net/05q0tLt6/14/embedded/result/light/
+https://fiddle.jshell.net/Jemt/bL8xyak4/185
 
 Navigation and data selection is equally important to websites
 and applications, so we provide a great TreeView and DropDown control
 for that. Also notice that all controls have a WebService enabled
 sibling that automatically loads data from a server in JSON format:
-http://fiddle.jshell.net/zc99y8u1/4/embedded/result/light/
+https://fiddle.jshell.net/Jemt/on3w99v4/9
 
 # API Documentation
 
-Fit.UI has been thoroughly documented: http://codemagic.dk/FlowIT/GUI/SimpleDocs.html
+Fit.UI has been thoroughly documented: http://fitui.org/fitui/api/
 
 # Partners
 
