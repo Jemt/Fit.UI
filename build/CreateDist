@@ -8,7 +8,7 @@ fi
 echo "Creating dist package"
 
 if [ -d dist ] ; then
-	rm dist/ -R
+	rm -R dist/
 fi
 
 mkdir dist
@@ -17,7 +17,7 @@ mkdir -p dist/Controls/TreeView
 cp Fit.UI*.js dist/
 cp Fit.UI*.css dist/
 cp ../Controls/TreeView/*.png dist/Controls/TreeView
-cp ../Resources/ dist/ -R
+cp -R ../Resources/ dist/
 cp SimpleDocs.html dist/Documentation.html
 
 # Create ZIP package
