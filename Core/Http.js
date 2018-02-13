@@ -48,6 +48,7 @@ Fit.Http.Request = function(uri)
 	var url = uri;
 	var httpRequest = getHttpRequestObject();
 	var customHeaders = {};
+	var customProperties = {};
 	var data = "";
 	var method = "";
 
@@ -206,6 +207,11 @@ Fit.Http.Request = function(uri)
 			usingCustomHeaders = true;
 		}
 
+		Fit.Array.ForEach(customProperties, function(key)
+		{
+			httpRequest[key] = customProperties[key];
+		});
+
 		if ((httpMethod === "POST" || httpMethod === "PUT") && usingCustomHeaders === false) // https://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.2.1
 			httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
@@ -254,6 +260,17 @@ Fit.Http.Request = function(uri)
 	this.GetResponseJson = function()
 	{
 		return ((httpRequest.responseText !== "") ? JSON.parse(httpRequest.responseText) : null);
+	}
+
+	/// <function container="Fit.Http.Request" name="GetResponse" access="public" returns="object">
+	/// 	<description>
+	/// 		Returns result from request. Use this to obtain e.g. binary data on supported browsers.
+	/// 		For requests without custom RequestProperties set the return value will be the response text.
+	/// 	</description>
+	/// </function>
+	this.GetResponse = function()
+	{
+		return (((!httpRequest.responseType || httpRequest.responseType === "text") && typeof(httpRequest.responseText) === "string") ? httpRequest.responseText : httpRequest.response);
 	}
 
 	/// <function container="Fit.Http.Request" name="GetCurrentState" access="public" returns="integer">
@@ -389,6 +406,28 @@ Fit.Http.Request = function(uri)
 	{
 		Fit.Validation.ExpectFunction(func);
 		Fit.Array.Add(onAbortHandlers, func);
+	}
+
+	/// <function container="Fit.Http.Request" name="RequestProperties" access="public" returns="object">
+	/// 	<description>
+	/// 		Set/get custom XHR request properties.
+	/// 		Example of property object: { withCredentials: true, responseType: 'blob' }.
+	/// 		How different browsers and versions support and handle custom properties differ:
+	/// 		https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+	/// 		Full cross browser support is therefore not guaranteed.
+	/// 	</description>
+	/// 	<param name="propertyObject" type="object" default="undefined"> If specified, properties will be applied to XHR request when Start() is invoked </param>
+	/// </function>
+	this.RequestProperties = function(propertyObject)
+	{
+		Fit.Validation.ExpectObject(propertyObject, true);
+
+		if (Fit.Validation.IsSet(propertyObject) === true)
+		{
+			customProperties = propertyObject;
+		}
+
+		return customProperties;
 	}
 
 	// Private

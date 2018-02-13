@@ -11,6 +11,20 @@ Fit._internal.Validation.Clone = null;
 // Type checking
 // ==========================================================
 
+/// <function container="Fit.Validation" name="ExpectObject" access="public" static="true">
+/// 	<description> Throws error if passed object is not a valid object such as { Name: 'Jimmy', Age: 34 } </description>
+/// 	<param name="val" type="object"> Object to validate </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectObject = function(val, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if (val.constructor !== Object)
+		Fit.Validation.ThrowError("Value '" + val + "' is not a valid object");
+}
+
 /// <function container="Fit.Validation" name="ExpectNumber" access="public" static="true">
 /// 	<description> Throws error if passed object is not a number </description>
 /// 	<param name="val" type="object"> Object to validate </param>
