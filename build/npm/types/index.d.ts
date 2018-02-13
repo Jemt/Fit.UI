@@ -72,16 +72,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through object properties and passes each property name to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any} obj - Object containing properties to iterate through
-		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(obj:any, callback:Function):boolean;
-		/**
 		* Iterates through elements in array and passes each value to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -91,6 +81,16 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static ForEach(arr:any[], callback:Function):boolean;
+		/**
+		* Iterates through object properties and passes each property name to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any} obj - Object containing properties to iterate through
+		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(obj:any, callback:Function):boolean;
 		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
@@ -5418,24 +5418,18 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveMutationObserver(id:number):void;
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
@@ -5444,6 +5438,12 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
@@ -5983,6 +5983,13 @@ declare namespace Fit
 		*/
 		public static ExpectNumber(val:any, allowNotSet?:boolean):void;
 		/**
+		* Throws error if passed object is not a valid object such as { Name: &#39;Jimmy&#39;, Age: 34 }
+		* @function ExpectObject
+		* @param {any} val - Object to validate
+		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined
+		*/
+		public static ExpectObject(val:any, allowNotSet?:boolean):void;
+		/**
 		* Throws error if passed object is not an instance of RegExp
 		* @function ExpectRegExp
 		* @param {any} val - Object to validate
@@ -6363,6 +6370,13 @@ declare namespace Fit
 			*/
 			public GetHttpStatus():number;
 			/**
+			* Returns result from request. Use this to obtain e.g. binary data on supported browsers.
+			For requests without custom RequestProperties set the return value will be the response text.
+			* @function GetResponse
+			* @returns any
+			*/
+			public GetResponse():any;
+			/**
 			* Get response header (e.g. text/html) - returns Null if not found
 			* @function GetResponseHeader
 			* @param {string} key - Header key (e.g. Content-Type)
@@ -6449,6 +6463,17 @@ declare namespace Fit
 			* @param {string} uri - URL to request
 			*/
 			constructor(uri:string);
+			/**
+			* Set/get custom XHR request properties.
+			Example of property object: { withCredentials: true, responseType: &#39;blob&#39; }.
+			How different browsers and versions support and handle custom properties differ:
+			https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+			Full cross browser support is therefore not guaranteed.
+			* @function RequestProperties
+			* @param {any} [propertyObject=undefined] - If specified, properties will be applied to XHR request when Start() is invoked
+			* @returns any
+			*/
+			public RequestProperties(propertyObject?:any):any;
 			/**
 			* Set data to post - this will change the request method from GET to POST
 			* @function SetData
