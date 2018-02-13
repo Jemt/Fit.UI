@@ -1,0 +1,12 @@
+build/dist
+build/Fit.UI.css
+build/Fit.UI.min.css
+build/Fit.UI.js
+build/Fit.UI.min.js
+build/SimpleDocs.html
+build/fit-ui-*-*-*.zip
+
+build/npm
+!build/npm/types
+!build/npm/package.json
+!build/npm/README.md
