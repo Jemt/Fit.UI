@@ -10,3 +10,5 @@ build/npm
 !build/npm/types
 !build/npm/package.json
 !build/npm/README.md
+
+Core/Core.js.sed.bck
