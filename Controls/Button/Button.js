@@ -104,7 +104,7 @@ Fit.Controls.Button = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.Button" name="Icon" access="public" returns="string">
-	/// 	<description> Get/set button icon (Font Awesome icon name, e.g. fa-check-circle-o - http://fontawesome.io/icons) </description>
+	/// 	<description> Get/set button icon (Font Awesome icon name, e.g. fa-check-circle-o - https://fontawesome.com/v4.7.0/icons) </description>
 	/// 	<param name="val" type="string" default="undefined"> If specified, button icon will be set to specified value </param>
 	/// </function>
 	this.Icon = function(val)
