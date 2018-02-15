@@ -8,7 +8,7 @@ fi
 echo "Creating dist package"
 
 if [ -d dist ] ; then
-	rm -R dist/
+	rm -R dist
 fi
 
 mkdir dist
@@ -29,6 +29,6 @@ fi
 # zip -q -r fit-ui-$(date +%F) dist
 
 # Execute in "sub shell" to make 'cd' affect only zip command
-(cd dist/ && zip -q -r ../fit-ui-$(date +%F) *)
+(cd dist && zip -q -r ../fit-ui-$(date +%F) *)
 
 echo "Done creating dist package"

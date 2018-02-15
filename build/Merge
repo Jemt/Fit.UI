@@ -38,12 +38,12 @@ done
 
 for dir in `ls ../Controls`
 do
-	for file in `ls ../Controls/$dir/ | grep .js`
+	for file in `ls ../Controls/$dir | grep .js`
 	do
 		cat ../Controls/$dir/$file >> Fit.UI.js
 	done
 
-	for file in `ls ../Controls/$dir/ | grep .css`
+	for file in `ls ../Controls/$dir | grep .css`
 	do
 		cat ../Controls/$dir/$file >> Fit.UI.css
 	done

@@ -30,13 +30,13 @@ fi
 
 if [[ $simulate == 0 && "$npmtype" == "1" ]] ; then
 	echo "Bumping patch number"
-	(cd npm/ && npm version patch -m "$npmcommitmsg")
+	(cd npm && npm version patch -m "$npmcommitmsg")
 elif [[ $simulate == 0 && "$npmtype" == "2" ]] ; then
 	echo "Bumping minor version number"
-	(cd npm/ && npm version minor -m "$npmcommitmsg")
+	(cd npm && npm version minor -m "$npmcommitmsg")
 elif [[ $simulate == 0 && "$npmtype" == "3" ]] ; then
 	echo "Bumping major version number"
-	(cd npm/ && npm version major -m "$npmcommitmsg")
+	(cd npm && npm version major -m "$npmcommitmsg")
 fi
 
 if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" ]] ; then
@@ -104,7 +104,7 @@ echo "Done pushing changes to GIT."
 
 if [[ "$npmtype" == "1" || "$npmtype" == "2" || "$npmtype" == "3" || "$npmtype" == "4" ]] ; then
 	if [[ $simulate == 0 ]] ; then
-		(cd npm/ && npm publish)
+		(cd npm && npm publish)
 		echo "NPM package published"
 	fi
 fi
