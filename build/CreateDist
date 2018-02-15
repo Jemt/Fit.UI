@@ -17,7 +17,7 @@ mkdir -p dist/Controls/TreeView
 cp Fit.UI*.js dist/
 cp Fit.UI*.css dist/
 cp ../Controls/TreeView/*.png dist/Controls/TreeView
-cp -R ../Resources/ dist/
+cp -R ../Resources dist/
 cp SimpleDocs.html dist/Documentation.html
 
 # Create ZIP package

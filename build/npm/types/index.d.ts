@@ -389,7 +389,7 @@ declare namespace Fit
 			*/
 			public Height(val?:number, unit?:string):any;
 			/**
-			* Get/set button icon (Font Awesome icon name, e.g. fa-check-circle-o - http://fontawesome.io/icons)
+			* Get/set button icon (Font Awesome icon name, e.g. fa-check-circle-o - https://fontawesome.com/v4.7.0/icons)
 			* @function Icon
 			* @param {string} [val=undefined] - If specified, button icon will be set to specified value
 			* @returns string
