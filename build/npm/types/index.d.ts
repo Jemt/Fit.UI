@@ -72,16 +72,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through elements in array and passes each value to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any[]} arr - Array containing values to iterate through
-		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(arr:any[], callback:Function):boolean;
-		/**
 		* Iterates through object properties and passes each property name to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -91,6 +81,16 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static ForEach(obj:any, callback:Function):boolean;
+		/**
+		* Iterates through elements in array and passes each value to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any[]} arr - Array containing values to iterate through
+		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(arr:any[], callback:Function):boolean;
 		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
@@ -2097,6 +2097,13 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public MultiLine(val?:boolean):boolean;
+			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
 			/**
 			* Get/set input type (e.g. Text, Password, Email, etc.)
 			* @function Type
@@ -5407,6 +5414,14 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -5422,14 +5437,6 @@ declare namespace Fit
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver

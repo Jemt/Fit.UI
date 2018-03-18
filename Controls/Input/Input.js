@@ -180,6 +180,22 @@ Fit.Controls.Input = function(ctlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.Input" name="Placeholder" access="public" returns="string">
+	/// 	<description> Get/set value used as a placeholder to indicate expected input on supported browsers </description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is set as placeholder </param>
+	/// </function>
+	this.Placeholder = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			input.placeholder = val;
+		}
+
+		return (input.placeholder ? input.placeholder : "");
+	}
+
 	/// <function container="Fit.Controls.Input" name="CheckSpelling" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether control should have spell checking enabled (default) or disabled </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, true enables spell checking while false disables it </param>
