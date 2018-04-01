@@ -196,7 +196,7 @@ Fit.Controls.TreeView = function(ctlId)
 			//{ PickerControl support - START
 
 			// If used as picker control, make sure first node is selected on initial key press
-			if (isPicker === true && activeNode === null && rootNode.GetChildren().length > 0)
+			if (isPicker === true && isNodeSet(activeNode) === false && rootNode.GetChildren().length > 0)
 			{
 				focusNode(rootNode.GetChildren()[0]); // Sets activeNode to first child
 				return;
@@ -205,7 +205,7 @@ Fit.Controls.TreeView = function(ctlId)
 			// If onkeydown was not fired from a list item (which usually has focus),
 			// it was most likely fired from a host control through HandleEvent(..).
 			// In this case activeNode will be set.
-			if (elm.tagName !== "LI" && isPicker === true && activeNode !== null)
+			if (elm.tagName !== "LI" && isPicker === true && isNodeSet(activeNode) === true)
 				elm = activeNode.GetDomElement();
 
 			//} // PickerControl support - END
@@ -1204,7 +1204,7 @@ Fit.Controls.TreeView = function(ctlId)
 			// to indicate that the node has focus, even though it has not,
 			// and keep a reference to the "pseudo focused" node in activeNode.
 
-			if (activeNode !== null)
+			if (isNodeSet(activeNode) === true)
 				Fit.Dom.Data(activeNode.GetDomElement(), "active", null);
 
 			activeNode = node;
@@ -1261,6 +1261,11 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			node.Focused(true);
 		}
+	}
+
+	function isNodeSet(node) // Used to check whether activeNode is set and that it has not been disposed
+	{
+		return (node !== null && node.GetDomElement() !== null); // GetDomElement() returns null if node has been disposed
 	}
 
 	function getNodeFocused()
