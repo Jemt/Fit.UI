@@ -1,6 +1,6 @@
 {
   "name": "fit-ui",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "title": "Fit.UI",
   "description": "Object Oriented framework for building rich User Interfaces",
   "main": "dist/Fit.UI.min.js",

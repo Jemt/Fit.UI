@@ -964,7 +964,6 @@ Fit.Controls.DropDown = function(ctlId)
 	/// </function>
 	this.ClearSelections = function()
 	{
-		var selections = getSelectionElements();
 		var fireEvent = false;
 		var wasFocused = focusAssigned; // Removing an input from DOM fires OnBlur which sets focusAssigned to False
 
@@ -974,7 +973,27 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				if (picker !== null)
 				{
-					var res = picker.UpdateItemSelection(decode(Fit.Dom.Data(selection, "value")), false); // OnItemSelectionChanging and OnItemSelectionChanged are fired if picker recognizes item, causing it to be removed in drop down's OnItemSelectionChanged handler (unless canceled, in which case False is returned)
+					// Notice: Picker fires OnItemSelectionChanged when picker.UpdateItemSelection(..) is invoked
+					// below (other controls than DropDown may have registered an OnItemSelectionChanged
+					// handler too). In this case we set suppressOnItemSelectionChanged to True, causing
+					// drop down to do nothing in OnItemSelectionChanged handler when fired. Drop down's OnItemSelectionChanged
+					// handler is responsible for handling items added/removed by picker, but in this case the change did not
+					// come from the picker.
+					suppressOnItemSelectionChanged = true;
+
+					var res = true;
+					var error = null;
+
+					try // Make sure we can set suppressOnItemSelectionChanged false again, so drop down remains in a functioning state
+					{
+						var res = picker.UpdateItemSelection(decode(Fit.Dom.Data(selection, "value")), false); // OnItemSelectionChanging and OnItemSelectionChanged are fired if picker recognizes item, causing it to be removed in drop down's OnItemSelectionChanged handler (unless canceled, in which case False is returned)
+					}
+					catch (err) { error = err; }
+
+					suppressOnItemSelectionChanged = false;
+
+					if (error !== null)
+						Fit.Validation.ThrowError(error);
 
 					if (res !== false && selection.parentElement.parentElement !== null)
 					{
