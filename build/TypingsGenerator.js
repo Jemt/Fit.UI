@@ -339,8 +339,8 @@ function Parser()
 		var longContainerName = containerObject.Name;
 		var shortContainerName = longContainerName.substring(longContainerName.lastIndexOf(".") + 1); // E.g. Fit.Controls.Button => Button
 		var isClass = (getProperties(longContainerName).length > 0 || getFunctions(longContainerName).length > 0);
-		var hasSubClass = (isClass === true && getContainers(longContainerName).length > 0);
-		var declareAsNamespace = (isClass === false || (hasSubClass === true && isInitializable(longContainerName) === false));
+		var hasSubClassOrEnum = (isClass === true && (getContainers(longContainerName).length > 0 || getEnums(longContainerName).length > 0));
+		var declareAsNamespace = (isClass === false || (hasSubClassOrEnum === true && isInitializable(longContainerName) === false));
 
 		// Handle enums as they are different from classes, obviously
 
@@ -375,7 +375,7 @@ function Parser()
 
 		res += "\n" + tabs + "/**";
 		res += "\n" + tabs + "* " + formatDescription(containerObject.Description, tabs);
-		res += "\n" + tabs + "* @class [" + longContainerName + " " + shortContainerName + "]";
+		res += "\n" + tabs + "* @" + (declareAsNamespace === true ? "namespace" : "class") + " [" + longContainerName + " " + shortContainerName + "]";
 		res += "\n" + tabs + "*/";
 
 		res += "\n" + tabs + (declareAsNamespace === true ? (longContainerName === "Fit" ? "declare " : "") + "namespace " : "class ");
@@ -420,7 +420,7 @@ function Parser()
 		var exts = ((containerObject.Extends !== "") ? containerObject.Extends.split(";") : []);
 
 		var isClass = (getProperties(longContainerName).length > 0 || getFunctions(longContainerName).length > 0);
-		var hasSubClass = (isClass === true && getContainers(longContainerName).length > 0);
+		var hasSubClassOrEnum = (isClass === true && (getContainers(longContainerName).length > 0 || getEnums(longContainerName).length > 0));
 
 		// Add properties
 
@@ -459,30 +459,34 @@ function Parser()
 
 			// Construct function signature
 
-			if (hasSubClass === true && f.Static === true) // NOTICE: Will not work if we add support for creating instances of "Fit"! We can't mix static functions and object functions!
+			if (skipConstructor === true && f.Name === shortContainerName) // This is a constructor from a super class - skip!
+				return;
+
+			var access = null;
+			var funcName = null;
+
+			if (hasSubClassOrEnum === true && f.Static === true) // NOTICE: Will not work if we add support for creating instances of "Fit"! We can't mix static functions and object functions!
 			{
-				var parms = getParameterString(f, tabs);
-				res += "\n" + tabs + "export function " + f.Name + "(" + parms.Typings + "):" + (returnType !== null ? returnType : "void") + ";";
+				access = "export function ";
+				funcName = f.Name;
 			}
 			else
 			{
-				if (skipConstructor === true && f.Name === shortContainerName) // This is a constructor from a super class - skip!
-					return;
-
-				var funcName = (f.Name === shortContainerName ? "constructor" : f.Name);
-				var access = (funcName !== "constructor" ? "public " : "") + (f.Static === true ? "static " : "");
-				var parms = getParameterString(f, tabs);
-
-				res += "\n" + tabs + "/**";
-				res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
-				res += "\n" + tabs + "* @function " + f.Name;
-				res += parms.Docs;
-				if (returnType !== null)
-					res += "\n" + tabs + "* @returns " + returnType;
-				res += "\n" + tabs + "*/";
-
-				res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnType !== null ? returnType : "void") : "") + ";";
+				access = (funcName !== "constructor" ? "public " : "") + (f.Static === true ? "static " : "");
+				funcName = (f.Name === shortContainerName ? "constructor" : f.Name);
 			}
+
+			var parms = getParameterString(f, tabs);
+
+			res += "\n" + tabs + "/**";
+			res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
+			res += "\n" + tabs + "* @function " + f.Name;
+			res += parms.Docs;
+			if (returnType !== null)
+				res += "\n" + tabs + "* @returns " + returnType;
+			res += "\n" + tabs + "*/";
+
+			res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnType !== null ? returnType : "void") : "") + ";";
 		});
 
 		// Add members (properties and functions) from containers/classes from which the current container/class extends.
