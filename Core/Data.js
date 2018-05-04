@@ -78,23 +78,99 @@ Fit.Data.CreateGuid = function(dashFormat)
 // Math
 // =====================================
 
+/// <container name="Fit.Math">
+/// 	Math related functionality.
+/// </container>
 Fit.Math = {};
+
+/// <container name="Fit.Math.MidpointRounding">
+/// 	Enum values determining how a rounding mechanism processes a number that is midway between two numbers.
+/// </container>
+Fit.Math.MidpointRounding =
+{
+	/// <member container="Fit.Math.MidpointRounding" name="Up" access="public" static="true" type="string" default="Up">
+	/// 	<description>
+	/// 		When a number is midway between two others, the value is rounded up towards a positive value. Examples:
+	/// 		1.4 becomes 1, 1.5 (midway) becomes 2, and 1.6 becomes 2.
+	/// 		-1,4 becomes 1, -1,5 (midway) becomes -1, and -1.6 becomes -2.
+	/// 		This is the default behaviour for JavaScript's Math.round(..) function.
+	/// 	</description>
+	/// </member>
+	Up: "Up",
+
+	/// <member container="Fit.Math.MidpointRounding" name="Down" access="public" static="true" type="string" default="Down">
+	/// 	<description>
+	/// 		When a number is midway between two others, the value is rounded down towards a negative value. Examples:
+	/// 		1.4 becomes 1, 1.5 (midway) becomes 1, and 1.6 becomes 2.
+	/// 		-1,4 becomes -1, -1,5 (midway) becomes -2, and -1.6 becomes -2.
+	/// 		This is the reverse behaviour of Fit.Math.MidpointRounding.Up.
+	/// 	</description>
+	/// </member>
+	Down: "Down",
+
+	/// <member container="Fit.Math.MidpointRounding" name="AwayFromZero" access="public" static="true" type="string" default="AwayFromZero">
+	/// 	<description>
+	/// 		When a number is midway between two others, the value is rounded towards the nearest number away from zero. Examples:
+	/// 		1.4 becomes 1, 1.5 (midway) becomes 2, and 1.6 becomes 2.
+	/// 		-1,4 becomes 1, -1,5 (midway) becomes -2, and -1.6 becomes -2.
+	/// 		This is the default behaviour of PHP's round(..) function.
+	/// 	</description>
+	/// </member>
+	AwayFromZero: "AwayFromZero"
+}
 
 /// <function container="Fit.Math" name="Round" access="public" static="true" returns="number">
 /// 	<description> Round off value to a number with the specified precision </description>
 /// 	<param name="value" type="number"> Number to round off </param>
 /// 	<param name="precision" type="integer"> Desired precision </param>
+/// 	<param name="midpointRounding" type="Fit.Math.MidpointRounding" default="undefined">
+/// 		Argument specifies how the function processes a number that is midway between
+/// 		two numbers - defaults to Fit.Math.MidpointRounding.AwayFromZero if not specified.
+/// 	</param>
 /// </function>
-Fit.Math.Round = function(value, precision)
+Fit.Math.Round = function(value, precision, midpointRounding)
 {
 	Fit.Validation.ExpectNumber(value);
 	Fit.Validation.ExpectInteger(precision, true);
 
+	if (Fit.Validation.IsSet(midpointRounding) === true && Fit.Validation.IsSet(Fit.Math.MidpointRounding[midpointRounding]) === false)
+		Fit.Validation.ThrowError("Unsupported MidpointRounding specified - use e.g. Fit.Math.MidpointRounding.Up");
+	
 	var decimals = ((Fit.Validation.IsSet(precision) === true) ? precision : 0);
+	var mpr = (midpointRounding ? midpointRounding : Fit.Math.MidpointRounding.AwayFromZero);
 
     var factor = 1;
-    for (var i = 0 ; i < decimals ; i++) factor = factor * 10;
-    var res = Math.round(value * factor) / factor;
+	for (var i = 0 ; i < decimals ; i++) factor = factor * 10;
+
+	var res = null;
+
+	if (mpr === Fit.Math.MidpointRounding.Up)
+	{
+		// Math.round(..) always round up numbers from midpoint (.5) towards a positive number
+		//  2.5 = 3
+		// -2.5 = -2
+
+		res = Math.round(value * factor) / factor;
+	}
+	else if (mpr === Fit.Math.MidpointRounding.AwayFromZero)
+	{
+		// To round away from zero simply make sure rounding is always performed
+		// on a positive number, and then turn it back into a negative number if
+		// the value was initially negative.
+		//  2.5 = 3
+		// -2.5 = -3
+
+		res = (value < 0 ? -1 : 1) * Math.round(Math.abs(value * factor)) / factor;
+	}
+	else //if (mpr === Fit.Math.MidpointRounding.Down)
+	{
+		// To round down simply reverse positive to negative and
+		// negative to positive before rounding, and then back to its initial sign.
+		//  2.5 = 2
+		// -2.5 = -3
+
+		res = -1 * Math.round(-1 * value * factor) / factor;
+	}
 
 	return res;
 }

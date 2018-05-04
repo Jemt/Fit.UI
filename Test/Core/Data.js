@@ -61,10 +61,87 @@ Tests.CreateGuid = function()
 
 Tests.MathRound = function()
 {
+	var tests =
+	{
+		Up: // Default behaviour in JavaScript with Math.round(..)
+		{
+			// Precision 0
+			"1.4" : 1,
+			"1.5" : 2,
+			"1.6" : 2,
+			"-1.4" : -1,
+			"-1.5" : -1,
+			"-1.6" : -2,
+
+			// Precision 3
+			"1.3154" : 1.315,
+			"1.3155" : 1.316,
+			"1.3156" : 1.316,
+			"-1.3154" : -1.315,
+			"-1.3155" : -1.315,
+			"-1.3156" : -1.316
+		},
+
+		Down: // Reverse of Up
+		{
+			"1.4" : 1,
+			"1.5" : 1,
+			"1.6" : 2,
+			"-1.4" : -1,
+			"-1.5" : -2,
+			"-1.6" : -2,
+
+			"1.3154" : 1.315,
+			"1.3155" : 1.315,
+			"1.3156" : 1.316,
+			"-1.3154" : -1.315,
+			"-1.3155" : -1.316,
+			"-1.3156" : -1.316
+		},
+
+		AwayFromZero: // Default behaviour in PHP with round(..)
+		{
+			"1.4" : 1,
+			"1.5" : 2,
+			"1.6" : 2,
+			"-1.4" : -1,
+			"-1.5" : -2,
+			"-1.6" : -2,
+
+			"1.3154" : 1.315,
+			"1.3155" : 1.316,
+			"1.3156" : 1.316,
+			"-1.3154" : -1.315,
+			"-1.3155" : -1.316,
+			"-1.3156" : -1.316
+		}
+	}
+
+	var errorCount = 0;
+
 	this.Description = "Fit.Math.Round round numbers to the expected precision";
 
 	this.Execute = function()
 	{
+		Fit.Array.ForEach(Fit.Math.MidpointRounding, function(mpr)
+		{
+			//console.log(mpr.toUpperCase());
+
+			Fit.Array.ForEach(tests[mpr], function(test)
+			{
+				var num = parseFloat(test);
+				var expected = tests[mpr][test];
+				var precision = (test.length <= 4 ? 0 : 3);
+
+				//console.log(" " + num + " is expected to round to " + expected + ". Result: " + Fit.Math.Round(num, precision, mpr));
+
+				if (Fit.Math.Round(num, precision, mpr) !== expected)
+				{
+					//console.log("  - ERROR");
+					errorCount++;
+				}
+			});
+		});
 	}
 
 	this.Assertions =
@@ -107,6 +184,14 @@ Tests.MathRound = function()
 			GetResult: function()
 			{
 				return Fit.Math.Round(-0.099, 2);
+			}
+		},
+		{
+			Message: "Alternative MidpointRounding produces no errors",
+			Expected: 0,
+			GetResult: function()
+			{
+				return errorCount;
 			}
 		}
 	]
@@ -178,7 +263,7 @@ Tests.StringTrim = function()
 	var testString = " \t\r\nHello\nWorld \t\r\n   ";
 	var expected = "Hello\nWorld";
 
-	var testString2 = "ABCDEFG\nHIJKLMN\tOPQRSTU     VWXYZ "; // Trailing space is a non-breaking space (OSX: ALT + Space)
+	var testString2 = "ABCDEFG\nHIJKLMN\tOPQRSTU     VWXYZï¿½"; // Trailing space is a non-breaking space (OSX: ALT + Space)
 
 	this.Description = "Fit.String.Trim removes leading and trailing whitespaces";
 

@@ -6,6 +6,8 @@ Tests.SetGet = function()
 
 	this.Execute = function()
 	{
+		// NOTICE: Will NOT work on file:// - it will silently fail because cookies cannot be set on this protocol
+		
 		var cookies = UnitTestHelper.Cookies.GetCookieStore();
 		cookies.Set("A", testValue);		// Session cookie
 		cookies.Set("B", testValue, 1);		// Expires in 1 seconds

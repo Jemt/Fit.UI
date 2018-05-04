@@ -1,14 +1,40 @@
 
 /**
 * 
-* @class [Fit Fit]
+* @namespace [Fit Fit]
 */
 declare namespace Fit
 {
 	// Functions defined by Fit
+	/**
+	* Get absolute path to Fit.UI on server - e.g. /libs/fitui
+	* @function GetPath
+	* @returns string
+	*/
 	export function GetPath():string;
+	/**
+	* Get fully qualified URL to Fit.UI on server - e.g. http://server.com/libs/fitui
+	* @function GetUrl
+	* @returns string
+	*/
 	export function GetUrl():string;
+	/**
+	* Get Fit.UI version object containing the following properties:
+	Major (integer), Minor (integer), Patch (integer), Version (string representing Major.Minor.Patch).
+	* @function GetVersion
+	* @returns any
+	*/
 	export function GetVersion():any;
+	/**
+	* Set path to Fit.UI on server - e.g. libs/fitui.
+	This may be necessary if Fit.UI is loaded dynamically
+	using RequireJS or bundled using e.g. WebPack.
+	Changing the path affects the return value of both
+	GetUrl() and GetPath(), and from where Fit.UI will
+	load resources dynamically.
+	* @function SetPath
+	* @param {string} basePath - Absolute or relative path to folder containing Fit.UI
+	*/
 	export function SetPath(basePath:string):void;
 	/**
 	* Functionality extending the capabilities of native JS arrays
@@ -322,13 +348,37 @@ declare namespace Fit
 	}
 	/**
 	* 
-	* @class [Fit.Controls Controls]
+	* @namespace [Fit.Controls Controls]
 	*/
 	namespace Controls
 	{
 		// Functions defined by Fit.Controls
+		/**
+		* Check dirty state for all controls - either all controls on page, or within specified scope.
+		Returns True if one or more controls are dirty, otherwise False.
+		* @function DirtyCheckAll
+		* @param {string} [scope=undefined] - If specified, dirty check controls only within this scope.
+		See Fit.Controls.ControlBase.Scope(..)
+		for details on configurering scoped validation.
+		* @returns boolean
+		*/
 		export function DirtyCheckAll(scope?:string):boolean;
+		/**
+		* Get control by unique Control ID - returns Null if not found
+		* @function Find
+		* @param {string} id - Unique Control ID
+		* @returns any
+		*/
 		export function Find(id:string):any;
+		/**
+		* Validate all controls - either all controls on page, or within specified scope.
+		Returns True if all controls contain valid values, otherwise False.
+		* @function ValidateAll
+		* @param {string} [scope=undefined] - If specified, validate controls only within this scope.
+		See Fit.Controls.ControlBase.Scope(..)
+		for details on configurering scoped validation.
+		* @returns boolean
+		*/
 		export function ValidateAll(scope?:string):boolean;
 		/**
 		* Button control with support for Font Awesome icons
@@ -5622,10 +5672,10 @@ declare namespace Fit
 		public static LoadStyleSheets(cfg:any[], callback?:Function):void;
 	}
 	/**
-	* 
-	* @class [Fit.Math Math]
+	* Math related functionality.
+	* @namespace [Fit.Math Math]
 	*/
-	class Math
+	namespace Math
 	{
 		// Functions defined by Fit.Math
 		/**
@@ -5637,15 +5687,39 @@ declare namespace Fit
 		* @param {string} [decimalSeparator=undefined] - If defined, the specified decimal separator will be used
 		* @returns string
 		*/
-		public static Format(value:number, decimals:number, decimalSeparator?:string):string;
+		export function Format(value:number, decimals:number, decimalSeparator?:string):string;
 		/**
 		* Round off value to a number with the specified precision
 		* @function Round
 		* @param {number} value - Number to round off
 		* @param {number} precision - Desired precision
+		* @param {Fit.Math.MidpointRounding} [midpointRounding=undefined] - Argument specifies how the function processes a number that is midway between
+		two numbers - defaults to Fit.Math.MidpointRounding.AwayFromZero if not specified.
 		* @returns number
 		*/
-		public static Round(value:number, precision:number):number;
+		export function Round(value:number, precision:number, midpointRounding?:Fit.Math.MidpointRounding):number;
+		/**
+		* Enum values determining how a rounding mechanism processes a number that is midway between two numbers.
+		* @enum {string}
+		*/
+		enum MidpointRounding
+		{
+			/** When a number is midway between two others, the value is rounded towards the nearest number away from zero. Examples:
+		1.4 becomes 1, 1.5 (midway) becomes 2, and 1.6 becomes 2.
+		-1,4 becomes 1, -1,5 (midway) becomes -2, and -1.6 becomes -2.
+		This is the default behaviour of PHP&#39;s round(..) function. */
+			AwayFromZero = "AwayFromZero",
+			/** When a number is midway between two others, the value is rounded down towards a negative value. Examples:
+		1.4 becomes 1, 1.5 (midway) becomes 1, and 1.6 becomes 2.
+		-1,4 becomes -1, -1,5 (midway) becomes -2, and -1.6 becomes -2.
+		This is the reverse behaviour of Fit.Math.MidpointRounding.Up. */
+			Down = "Down",
+			/** When a number is midway between two others, the value is rounded up towards a positive value. Examples:
+		1.4 becomes 1, 1.5 (midway) becomes 2, and 1.6 becomes 2.
+		-1,4 becomes 1, -1,5 (midway) becomes -1, and -1.6 becomes -2.
+		This is the default behaviour for JavaScript&#39;s Math.round(..) function. */
+			Up = "Up"
+		}
 	}
 	/**
 	* 
@@ -6056,7 +6130,7 @@ declare namespace Fit
 	}
 	/**
 	* 
-	* @class [Fit.DragDrop DragDrop]
+	* @namespace [Fit.DragDrop DragDrop]
 	*/
 	namespace DragDrop
 	{
@@ -6145,7 +6219,7 @@ declare namespace Fit
 	}
 	/**
 	* 
-	* @class [Fit.Http Http]
+	* @namespace [Fit.Http Http]
 	*/
 	namespace Http
 	{
