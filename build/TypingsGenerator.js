@@ -472,8 +472,8 @@ function Parser()
 			}
 			else
 			{
-				access = (funcName !== "constructor" ? "public " : "") + (f.Static === true ? "static " : "");
 				funcName = (f.Name === shortContainerName ? "constructor" : f.Name);
+				access = (funcName !== "constructor" ? "public " : "") + (f.Static === true ? "static " : "");
 			}
 
 			var parms = getParameterString(f, tabs);
