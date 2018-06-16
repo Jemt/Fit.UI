@@ -494,8 +494,16 @@ Fit.Controls.Input = function(ctlId)
 				}
 				else if (window.CKEDITOR === null)
 				{
-					var iId = setInterval(function()
+					var iId = -1;
+					iId = setInterval(function()
 					{
+						if (me === null)
+						{
+							// Control was disposed while waiting for CKEditor to finish loading
+							clearInterval(iId);
+							return;
+						}
+
 						if (window.CKEDITOR !== null)
 						{
 							clearInterval(iId);
@@ -537,7 +545,16 @@ Fit.Controls.Input = function(ctlId)
 		// It seems CKEDITOR is not happy about initializing multiple instances at once.
 		if (CKEDITOR._loading === true)
 		{
-			setTimeout(createEditor, 100);
+			setTimeout(function()
+			{
+				if (me === null)
+				{
+					return; // Control was disposed while waiting for another editor to finish initialization - stop waiting
+				}
+
+				createEditor();
+			}, 100);
+			
 			return;
 		}
 		CKEDITOR._loading = true;

@@ -374,7 +374,7 @@ Fit.Controls.TreeView = function(ctlId)
 			}
 		});
 
-		var touchTimeout = null;
+		var touchTimeout = -1;
 		Fit.Events.AddHandler(me.GetDomElement(), "touchstart", function(e)
 		{
 			var target = Fit.Events.GetTarget(e);
@@ -383,10 +383,15 @@ Fit.Controls.TreeView = function(ctlId)
 			{
 				touchTimeout = setTimeout(function()
 				{
+					if (me === null)
+					{
+						return; // Control was disposed while holding down finger to trigger ContextMenu (unlikely though)
+					}
+
 					var node = ((target.tagName === "LI") ? target._internal.Node : Fit.Dom.GetParentOfType(target, "li")._internal.Node);
 					openContextMenu(node);
 
-					touchTimeout = null;
+					touchTimeout = -1;
 				}, 500);
 			}
 		});
@@ -394,10 +399,10 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			var elm = Fit.Events.GetTarget(e);
 
-			if (touchTimeout !== null)
+			if (touchTimeout !== -1)
 			{
 				clearTimeout(touchTimeout);
-				touchTimeout = null;
+				touchTimeout = -1;
 			}
 		});
 	}
@@ -906,6 +911,11 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			rootNode.Dispose();
 		});
+
+		if (ctx !== null)
+		{
+			ctx.Hide();
+		}
 
 		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isPicker = activeNode = isIe8 = null;
 		baseDispose();

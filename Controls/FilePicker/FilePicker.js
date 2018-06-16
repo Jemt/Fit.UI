@@ -622,6 +622,13 @@ Fit.Controls.FilePicker = function(ctlId)
 
 				interval = setInterval(function()
 				{
+					if (me === null)
+					{
+						// Control was disposed while uploading file
+						clearInterval(interval);
+						return;
+					}
+
 					progress = progress + 5;
 					fireEvent(onProgressHandlers, file, progress);
 

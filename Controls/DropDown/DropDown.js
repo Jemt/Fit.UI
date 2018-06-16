@@ -43,7 +43,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
 	var onOpenHandlers = [];					// Invoked when drop down is opened - takes one argument (sender (this))
 	var onCloseHandlers = [];					// Invoked when drop down is closed - takes one argument (sender (this))
-
+	
 	function init()
 	{
 		invalidMessage = Fit.Language.Translations.InvalidSelection;
@@ -281,7 +281,7 @@ Fit.Controls.DropDown = function(ctlId)
 			if ((rtn.Unit === "%" || rtn.Unit === "em" || rtn.Unit === "rem") && widthObserverId === -1)
 			{
 				var prevWidth = me.GetDomElement().offsetWidth;
-				var moTimeout = null;
+				var moTimeout = -1;
 
 				widthObserverId = Fit.Events.AddMutationObserver(me.GetDomElement(), function(elm)
 				{
@@ -291,14 +291,19 @@ Fit.Controls.DropDown = function(ctlId)
 					{
 						prevWidth = newWidth;
 
-						if (moTimeout !== null) // Clear pending optimization
+						if (moTimeout !== -1) // Clear pending optimization
 							clearTimeout(moTimeout);
 
 						// Schedule optimization to prevent too many identical operations
 						// in case observer fires several times almost simultaneously.
 						moTimeout = setTimeout(function()
 						{
-							moTimeout = null;
+							if (me === null)
+							{
+								return; // Control has been disposed
+							}
+
+							moTimeout = -1;
 							optimizeTabOrder();
 						}, 250);
 					}
@@ -483,14 +488,21 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		if (widthObserverId !== -1)
+		{
 			Fit.Events.RemoveMutationObserver(widthObserverId);
+		}
+
+		if (tabOrderObserverId !== -1)
+		{
+			Fit.Events.RemoveMutationObserver(tabOrderObserverId);
+		}
 
 		Fit.Array.ForEach(closeHandlers, function(eventId)
 		{
 			Fit.Events.RemoveHandler(document, eventId);
 		});
 
-		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
+		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
 
 		base();
 	});
@@ -1374,7 +1386,7 @@ Fit.Controls.DropDown = function(ctlId)
 			focusAssigned = false;
 		}
 
-		var timeOutId = null;
+		var timeOutId = -1;
 
 		txt.onkeydown = function(e) // Fires continuously for any key pressed - both characters and e.g backspace/delete/arrows etc. Key press may be canceled (change has not yet occured)
 		{
@@ -1480,14 +1492,23 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 				else
 				{
-					if (timeOutId !== null)
+					if (timeOutId !== -1)
 						clearTimeout(timeOutId);
 
 					// New length is not known when removing characters until OnKeyUp is fired.
 					// We won't wait for that. Instead we calculate the width "once in a while".
 					// Passing txt instance rather than txtActive, as the latter may change before
 					// timeout is reached and delegate is executed.
-					timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
+					timeOutId = setTimeout(function()
+					{
+						if (me === null)
+						{
+							return; // Control was disposed shortly after removing characters
+						}
+
+						fitWidthToContent(txt);
+						timeOutId = -1;
+					}, 50);
 				}
 			}
 			else if (ev.keyCode === 46) // Delete - remove selection
