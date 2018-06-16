@@ -86,12 +86,30 @@ Fit.Events.AddHandler = function()
 
 	// Fire event function for onload event if document in window/iframe has already been loaded.
 	// Notice that no event argument is passed to function since we don't have one.
+	// BE AWARE that contentDocument is replaced when loading another document (URL) within a frame!
+	// Do not register onload on iFrame.contentDocument prior to starting loading content - it will never fire.
+	// Instead register OnLoad on contentDocument afterwards, or register OnLoad on the iFrame element. The latter
+	// will always fire, every time the document is replaced (URL changed / navigation occur).
+	// Also be aware that a frame without a src attribute will always be considered loaded (readyState === "complete")
+	// because it already has a contentDocument ready to be used. Therefore we only immediately fire onload for a
+	// frame that has readyState "complete" IF it also has a src attribute set. If no src attribute is set, we
+	// assume it will be set later, in which case the onload event will fire normally. It simply doesn't make sense to
+	// register an OnLoad handler for a frame that is dynamically populated (which has no src attribute) - it will always be ready ("complete").
 	if (event.toLowerCase() === "load" && element.nodeType === 9 && element.readyState === "complete") // Element is a Document (window.document or iframe.contentDocument)
+	{
 		eventFunction();
-	else if (event.toLowerCase() === "load" && element.contentDocument && element.contentDocument.readyState === "complete") // Element is an iFrame
+	}
+	else if (event.toLowerCase() === "load" && (typeof(element.contentDocument) === "object" && element.contentDocument !== null) && element.src && element.contentDocument.readyState === "complete") // Element is an iFrame
+	{
+		// MSIE 8 requires use of typeof(element.contentDocument) - accessing element.contentDocument without typeof results in an "unspecified error" if
+		// the iFrame is not rooted in DOM. This has been fixed in MSIE 9 where contentDocument on the other hand remains Null until rooted in DOM.
+
 		eventFunction();
+	}
 	else if (event.toLowerCase() === "load" && element === window && Fit._internal.Events.OnReadyFired === true) // Element is the current Window instance
+	{
 		eventFunction();
+	}
 
 	return eventId;
 }
