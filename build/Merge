@@ -77,6 +77,9 @@ if [[ "$1" == "minify" || "$2" == "minify" ]] ; then
 		uglifycss Fit.UI.css --output Fit.UI.min.css
 	else
 		echo "Minifying using javascript-minifier.com and cssminifier.com"
+		echo "Tip: Install UglifyJS and UglifyCSS for much better performance."
+		echo "npm install uglify-js -g"
+		echo "npm install uglifycss -g"
 
 		curl -X POST -s --data-urlencode "input@Fit.UI.js" https://javascript-minifier.com/raw > Fit.UI.min.js
 		curl -X POST -s --data-urlencode "input@Fit.UI.css" https://cssminifier.com/raw > Fit.UI.min.css

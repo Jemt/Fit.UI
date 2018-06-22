@@ -22,9 +22,17 @@ fi
 
 # Build documentation
 
-echo "Invoking SimpleDocs"
+docsGenerated=0
 
-mono SimpleDocs/SimpleDocs.exe
+if [[ -x $(command -v mono) ]] ; then
+	echo "Invoking SimpleDocs"
+	mono SimpleDocs/SimpleDocs.exe
+	docsGenerated=1
+else
+	echo "WARNING: Mono Framework not installed - unable to generate documentation!"
+	echo "Press ENTER to continue."
+	read
+fi
 
 # Create dist folder and ZIP package
 
@@ -44,12 +52,18 @@ cp -R dist npm/
 
 # Build TypeScript typings and add to NPM package
 
-echo "Generating typings in NPM package"
+if [[ $docsGenerated == 1 ]] ; then
+	echo "Generating typings in NPM package"
 
-if [[ -x $(command -v nodejs) ]] ; then
-	nodejs TypingsGenerator.js > npm/types/index.d.ts
+	if [[ -x $(command -v nodejs) ]] ; then
+		nodejs TypingsGenerator.js > npm/types/index.d.ts
+	else
+		node TypingsGenerator.js > npm/types/index.d.ts
+	fi
 else
-	node TypingsGenerator.js > npm/types/index.d.ts
+	echo "WARNING: Unable to generate TypeScript typings - no documentation generated!"
+	echo "Press ENTER to continue."
+	read
 fi
 
 echo "Build completed"
