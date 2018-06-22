@@ -183,7 +183,7 @@ Fit.Array.Insert = function(arr, idx, obj) // obj not validated - passing any ob
     arr.splice(idx, 0, obj);
 }
 
-/// <function container="Fit.Array" name="Merge" access="public" static="true">
+/// <function container="Fit.Array" name="Merge" access="public" static="true" returns="array">
 /// 	<description> Merge/join two arrays </description>
 /// 	<param name="arr1" type="array"> Array 1 to merge with array 2 </param>
 /// 	<param name="arr2" type="array"> Array 2 to merge with array 1 </param>

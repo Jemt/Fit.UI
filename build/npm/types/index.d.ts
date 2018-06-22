@@ -152,8 +152,9 @@ declare namespace Fit
 		* @function Merge
 		* @param {any[]} arr1 - Array 1 to merge with array 2
 		* @param {any[]} arr2 - Array 2 to merge with array 1
+		* @returns any[]
 		*/
-		public static Merge(arr1:any[], arr2:any[]):void;
+		public static Merge(arr1:any[], arr2:any[]):any[];
 		/**
 		* Recursively iterates through objects in array and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
