@@ -5,7 +5,7 @@ div.FitUiControlContextMenu.FitUiControlTreeView
 	color: #333333;
 	padding: 10px;
 	position: absolute; /* top/left set using JS */
-	z-index: 1000;
+	z-index: 1300;
 	cursor: pointer; /* Prevent arrow being shown between items (padding) */
 }
 
