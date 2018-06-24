@@ -283,6 +283,25 @@ Fit.Controls.ContextMenu = function()
 			Fit._internal.ContextMenu.Current = me;
 		}
 
+		// Update all items to let them know if they have children that contains children.
+		// This lets us use CSS ( li[data-deep="true"] > ul > li { /* ... */ } ) to indent all children
+		// within an item if just one of them has children (hence we need to make room for an expand/collapse icon).
+
+		Fit.Array.Recurse(tree.GetChildren(), "GetChildren", function(child)
+		{
+			// Multiple children in the same level will cause their parent to get updated multiple times which is acceptable
+			
+			Fit.Dom.Data(child.GetDomElement(), "deep", "false");
+
+			if (child.GetChildren().length > 0)
+			{
+				if (child.GetParent() !== null)
+					Fit.Dom.Data(child.GetParent().GetDomElement(), "deep", "true");
+				else
+					Fit.Dom.Data(child.GetTreeView().GetDomElement().children[0].children[0] /* ul > li */, "deep", "true");
+			}
+		});
+
 		// Boundary detection
 
 		if (detectBoundaries === true)
