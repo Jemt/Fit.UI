@@ -666,17 +666,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1048,17 +1048,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1307,17 +1307,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1716,17 +1716,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -2055,17 +2055,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -2297,17 +2297,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -3184,17 +3184,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -3917,17 +3917,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -4770,17 +4770,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} regEx - Regular expression to validate against
+			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
