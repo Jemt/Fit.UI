@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+    <title>Fit.UI Debug</title>
+
+    <!-- NOTICE: Use debug.js to experiment/debug -->
+
+    <style type="text/css">
+    body
+    {
+        font-family: verdana;
+        font-size: 14px;
+        color: #333333;
+    }
+    </style>
+
+    <!-- Load CSS resources -->
+    <link rel="stylesheet" type="text/css" href="../Core/Styles.css">
+    <link rel="stylesheet" type="text/css" href="Resources.css">
+
+    <!-- Load core (alphabetically, except for Core.js which MUST come first and Events.js which depends on Core, Array, Browser, Dom, Data, and Validation) -->
+    <script src="../Core/Core.js"></script> <!-- Must come first -->
+    <script src="../Core/Array.js"></script>
+    <script src="../Core/Browser.js"></script>
+    <script src="../Core/ControlBase.js"></script>
+    <script src="../Core/Cookies.js"></script>
+    <script src="../Core/Data.js"></script>
+    <script src="../Core/Dom.js"></script>
+    <script src="../Core/DragDrop.js"></script>
+    <script src="../Core/Http.js"></script>
+    <script src="../Core/Language.js"></script>
+    <script src="../Core/Loader.js"></script>
+    <script src="../Core/Template.js"></script>
+    <script src="../Core/Validation.js"></script>
+    <script src="../Core/Events.js"></script> <!-- Must come last -->
+    
+    <script type="text/javascript">
+    // Tell Fit.UI that it is actually runs from the Debug folder, and not from where the Core files are loaded from.
+    // We need this to make sure Resources (e.g. translation files for the DatePicker) is loaded from the proper location.
+    Fit.SetPath("/Debug");
+    </script>
+
+    <!-- Load controls -->
+    <script type="text/javascript">
+    var controls = [ "Button", "CheckBox", "ContextMenu", "DatePicker", "Dialog", "DropDown", "FilePicker", "Input", "ListView", "ProgressBar", "TreeView" ];
+
+    var controlsCssDone = false;
+    var controlsJsDone = false;
+    var domDone = false;
+
+    var runDebug = function()
+    {
+        if (controlsCssDone && controlsJsDone && domDone)
+        {
+            Fit.Loader.LoadScript("debug.js");
+        }
+    }
+
+    var controlsCss = [];
+    Fit.Array.ForEach(controls, function(control) { Fit.Array.Add(controlsCss, { source: "../Controls/" + control + "/" + control + ".css" }); });
+
+    Fit.Loader.LoadStyleSheets(controlsCss, function()
+    {
+        controlsCssDone = true;
+        runDebug();
+    });
+
+    var controlsJs = [];
+    Fit.Array.ForEach(controls, function(control) { Fit.Array.Add(controlsJs, { source: "../Controls/" + control + "/" + control + ".js" }); });
+
+    Fit.Loader.LoadScripts(controlsJs, function()
+    {
+        controlsJsDone = true;
+        runDebug();
+    });
+
+    Fit.Events.OnDomReady(function()
+    {
+        domDone = true;
+        runDebug();
+    });
+    </script>
+</head>
+<body>
+
+</body>
+</html>

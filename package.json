@@ -1,0 +1,31 @@
+{
+  "name": "fit-ui",
+  "version": "0.0.0",
+  "description": "Fit.UI is an object oriented JavaScript based UI framework for building rich web applications",
+  "main": "index.js",
+  "devDependencies": {
+    "concurrently": "~3.6.0",
+    "http-server": "~0.11.1",
+    "opn": "~5.3.0"
+  },
+  "scripts": {
+    "test": "cd build && ./Merge umd minify && cd .. && concurrently \"node node_modules/http-server/bin/http-server\" \"sleep 1 && ./node_modules/opn/xdg-open http://localhost:8080/Test\"",
+    "debug": "cd Debug && ./prepare && cd .. && concurrently \"node node_modules/http-server/bin/http-server\" \"sleep 1 && ./node_modules/opn/xdg-open http://localhost:8080/Debug\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jemt/Fit.UI.git"
+  },
+  "keywords": [
+    "UI",
+    "UX",
+    "Interface",
+    "Controls"
+  ],
+  "author": "Jimmy Thomsen",
+  "license": "SEE LICENSE IN LICENSE FILE",
+  "bugs": {
+    "url": "https://github.com/Jemt/Fit.UI/issues"
+  },
+  "homepage": "https://github.com/Jemt/Fit.UI#readme"
+}

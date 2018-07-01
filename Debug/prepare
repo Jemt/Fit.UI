@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
+	echo "Bash script must be executing within the Debug folder"
+	exit
+fi
+
+# Merge CSS from Resources into a file located at the root - this is required
+# for e.g. images defined in jQuery UI to load, and for font files in FontAwesome to load,
+# since we have modified image references in the CSS files.
+
+echo "" > Resources.css
+cat ../Resources/FontAwesome/css/font-awesome.css >> Resources.css
+cat ../Resources/JqueryUI-1.11.4.custom/jquery-ui.css >> Resources.css
+cp -Rf ../Resources .
