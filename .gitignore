@@ -12,3 +12,7 @@ build/npm
 !build/npm/README.md
 
 Core/Core.js.sed.bck
+
+node_modules
+Debug/Resources
+Debug/Resources.css
