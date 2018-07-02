@@ -1104,7 +1104,7 @@ declare namespace Fit
 			* @param {Date} [val=undefined] - If defined, date is selected
 			* @returns Date
 			*/
-			public Date(val?:Date):Date;
+			public Date(val?:__fitUiAliasDate):__fitUiAliasDate;
 			/**
 			* Create instance of DatePicker control
 			* @function DatePicker
@@ -5110,14 +5110,14 @@ declare namespace Fit
 		* @param {string} format - Date format
 		* @returns string
 		*/
-		public static Format(date:Date, format:string):string;
+		public static Format(date:__fitUiAliasDate, format:string):string;
 		/**
 		* Get ISO 8601 week number from date
 		* @function GetWeek
 		* @param {Date} date - Date to get week number from
 		* @returns number
 		*/
-		public static GetWeek(date:Date):number;
+		public static GetWeek(date:__fitUiAliasDate):number;
 		/**
 		* Parse date as string into an instance of Date - example: 18-09/2016 17:03:21
 		* @function Parse
@@ -5132,7 +5132,7 @@ declare namespace Fit
 		Example: D-M/Y h:m:s
 		* @returns Date
 		*/
-		public static Parse(strDate:string, format:string):Date;
+		public static Parse(strDate:string, format:string):__fitUiAliasDate;
 	}
 	/**
 	* DOM (Document Object Model) manipulation and helper functionality
@@ -6580,6 +6580,11 @@ declare namespace Fit
 		}
 	}
 }
+
+type __fitUiAliasArray = Array;
+type __fitUiAliasDate = Date;
+type __fitUiAliasMath = Math;
+type __fitUiAliasString = String;
 
 declare module "fit-ui"
 {

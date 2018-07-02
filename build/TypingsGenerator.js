@@ -7,6 +7,7 @@
 // directly in the browser, allowing us to use the JS debugger.
 
 var isNodeJs = (typeof(window) === "undefined");
+var globals = isNodeJs ? global : window;
 
 // Fit.UI shim
 
@@ -136,6 +137,7 @@ function Parser()
 	var me = this;
 
 	var containers = null;	// Classes and Enums
+	var aliasTypes = null;	// Type aliases
 	var properties = null;	// Public properties and Enum values (which are also just public properties on a container)
 	var functions = null;	// Functions
 	var enums = null;		// Enums
@@ -150,6 +152,7 @@ function Parser()
 			var res = regex.exec(resp);
 			containers = eval(res[1]);
 			ensureParentContainers();
+			aliasTypes = getAliases();
 
 			regex.lastIndex++;
 			res = regex.exec(resp);
@@ -169,7 +172,7 @@ function Parser()
 
 		if (isNodeJs === false)
 		{
-			var r = new Fit.Http.Request("https://codemagic.dk/FlowIT/FitUI/build/SimpleDocs.html");
+			var r = new Fit.Http.Request("SimpleDocs.html");
 			r.OnSuccess(function(sender)
 			{
 				startParsing(r.GetResponseText());
@@ -214,6 +217,31 @@ function Parser()
 		{
 			Fit.Array.Add(containers, ensured[name]);
 		});
+	}
+
+	function getAliases()
+	{
+		// Create aliases for native JS types that Fit.UI declare within its own namespace.
+		// For instance Fit.Array and Fit.Date will both override the native Array and Date
+		// within the Fit namespace, preventing us from using the native types.
+
+		var aliasTypes = [];
+
+		Fit.Array.ForEach(containers, function(container)
+		{
+			if (container.Name === "Fit")
+				return; // Skip
+
+			var shortContainerName = container.Name.substring(container.Name.lastIndexOf(".") + 1); // E.g. Fit.Controls.Button => Button
+			
+			if (globals[shortContainerName] !== undefined)
+			{
+				// Type already exists (e.g. Array or Date) - register alias
+				Fit.Array.Add(aliasTypes, { Name: shortContainerName, Alias: "__fitUiAlias" + shortContainerName });
+			}
+		});
+
+		return aliasTypes;
 	}
 
 	// Functions used to get documentation elemenets
@@ -283,6 +311,22 @@ function Parser()
 		});
 
 		return matches;
+	}
+
+	function getAlias(typeName)
+	{
+		var match = null;
+
+		Fit.Array.ForEach(aliasTypes, function(alias)
+		{
+			if (alias.Name === typeName)
+			{
+				match = alias;
+				return false; // Break loop
+			}
+		});
+
+		return match;
 	}
 
 	// Functions used to determine container characteristics
@@ -396,6 +440,19 @@ function Parser()
 
 		res += "\n" + tabs + "}";
 
+		// Register type aliases
+
+		if (longContainerName === "Fit")
+		{
+			res += (aliasTypes.length > 0 ? "\n" : "");
+
+			Fit.Array.ForEach(aliasTypes, function(alias)
+			{
+				res += "\n";
+				res += "type " + alias.Alias + " = " + alias.Name + ";";
+			});
+		}
+
 		// Declare Fit.UI as a module
 
 		if (longContainerName === "Fit")
@@ -436,7 +493,7 @@ function Parser()
 			res += "\n" + tabs + "* @member [" + getType(p.Type) /*p.Type*/ + " " + p.Name + "]";
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + p.Name + ":" + getType(p.Type) + ";";
+			res += "\n" + tabs + p.Name + ":" + getType(p.Type, true) + ";";
 		});
 
 		// Add functions
@@ -451,10 +508,12 @@ function Parser()
 			// Determine function return type
 
 			var returnType = null;
+			var returnTypeAlias = null;
 
 			if (f.Returns)
 			{
 				returnType = getType(f.Returns);
+				returnTypeAlias = getType(f.Returns, true);
 			}
 
 			// Construct function signature
@@ -486,7 +545,7 @@ function Parser()
 				res += "\n" + tabs + "* @returns " + returnType;
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnType !== null ? returnType : "void") : "") + ";";
+			res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
 		});
 
 		// Add members (properties and functions) from containers/classes from which the current container/class extends.
@@ -522,25 +581,32 @@ function Parser()
 
 		Fit.Array.ForEach(functionInstance.Parameters, function(p)
 		{
-			var containerInstance = getContainerByName(p.Type.replace("[]", "")); // Null for e.g. string, boolean, integer, etc.
-			var type = getType(p.Type);
+			//var containerInstance = getContainerByName(p.Type.replace("[]", "")); // Null for e.g. string, boolean, integer, etc.
 
-			docs += "\n" + tabs + "* @param {" + type /*p.Type*/ + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
+			docs += "\n" + tabs + "* @param {" + getType(p.Type) /*p.Type*/ + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
 
 			str += (str !== "" ? ", " : "") + p.Name;
 			str += (p.Default ? "?" : "");
 			str += ":";
-			str += type;
+			str += getType(p.Type, true);
 		});
 
 		return { Typings: str, Docs: docs };
 	}
 
-	function getType(type)
+	function getType(type, resolveAlias)
 	{
+		if (resolveAlias === true)
+		{
+			var alias = getAlias(type);
+
+			if (alias !== null)
+				return alias.Alias;
+		}
+
 		if (type === "DOMElement")
 			return "HTMLElement";
-		if (type === "DOMNode")
+		else if (type === "DOMNode")
 			return "Node";
 		else if (type === "array")
 			return "any[]"; //"object[]"; //return "Array<object>";
