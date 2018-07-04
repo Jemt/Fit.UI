@@ -1578,9 +1578,9 @@ declare namespace Fit
 			/**
 			* Set picker control used to add items to drop down control
 			* @function SetPicker
-			* @param {Fit.Controls.PickerBase} pickerControl - Picker control extending from PickerBase
+			* @param {Fit.Controls.PickerBase} [pickerControl=undefined] - Picker control extending from PickerBase
 			*/
-			public SetPicker(pickerControl:Fit.Controls.PickerBase):void;
+			public SetPicker(pickerControl?:Fit.Controls.PickerBase):void;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -3779,9 +3779,9 @@ declare namespace Fit
 			/**
 			* Set picker control used to add items to drop down control
 			* @function SetPicker
-			* @param {Fit.Controls.PickerBase} pickerControl - Picker control extending from PickerBase
+			* @param {Fit.Controls.PickerBase} [pickerControl=undefined] - Picker control extending from PickerBase
 			*/
-			public SetPicker(pickerControl:Fit.Controls.PickerBase):void;
+			public SetPicker(pickerControl?:Fit.Controls.PickerBase):void;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
