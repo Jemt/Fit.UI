@@ -914,7 +914,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 		if (ctx !== null)
 		{
-			ctx.Hide();
+			ctx.Dispose(); //ctx.Hide();
 		}
 
 		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isPicker = activeNode = isIe8 = null;
