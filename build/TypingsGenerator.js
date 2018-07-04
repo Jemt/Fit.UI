@@ -493,7 +493,7 @@ function Parser()
 			res += "\n" + tabs + "* @member [" + getType(p.Type) /*p.Type*/ + " " + p.Name + "]";
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + p.Name + ":" + getType(p.Type, true) + ";";
+			res += "\n" + tabs + p.Name + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
 		});
 
 		// Add functions
@@ -588,7 +588,7 @@ function Parser()
 			str += (str !== "" ? ", " : "") + p.Name;
 			str += (p.Default ? "?" : "");
 			str += ":";
-			str += getType(p.Type, true);
+			str += getType(p.Type, true) + (p.Nullable === true ? " | null" : "");
 		});
 
 		return { Typings: str, Docs: docs };
