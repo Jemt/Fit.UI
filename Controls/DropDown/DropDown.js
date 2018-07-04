@@ -542,7 +542,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	/// <function container="Fit.Controls.DropDown" name="SetPicker" access="public">
 	/// 	<description> Set picker control used to add items to drop down control </description>
-	/// 	<param name="pickerControl" type="Fit.Controls.PickerBase" default="undefined"> Picker control extending from PickerBase </param>
+	/// 	<param name="pickerControl" type="Fit.Controls.PickerBase" nullable="true"> Picker control extending from PickerBase </param>
 	/// </function>
 	this.SetPicker = function(pickerControl)
 	{

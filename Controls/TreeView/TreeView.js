@@ -715,7 +715,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeView" name="ContextMenu" access="public" returns="Fit.Controls.ContextMenu">
 	/// 	<description> Get/set instance of ContextMenu control triggered when right clicking nodes in TreeView </description>
-	/// 	<param name="contextMenu" type="Fit.Controls.ContextMenu" default="undefined"> If defined, assignes ContextMenu control to TreeView </param>
+	/// 	<param name="contextMenu" type="Fit.Controls.ContextMenu" nullable="true"> If defined, assignes ContextMenu control to TreeView </param>
 	/// </function>
 	this.ContextMenu = function(contextMenu)
 	{
