@@ -14,6 +14,10 @@ Fit.Controls.Dialog = function()
 	var modal = false;
 	var layer = null;
 
+	var width = null;
+	var minWidth = null;
+	var maxWidth = null;
+
 	// ============================================
 	// Init
 	// ============================================
@@ -86,6 +90,116 @@ Fit.Controls.Dialog = function()
 	// ============================================
 	// Public
 	// ============================================
+
+	/// <function container="Fit.Controls.Dialog" name="Width" access="public" returns="object">
+	/// 	<description> Get/set dialog width - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, dialog width is updated to specified value. A value of -1 resets width (auto sizing). </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, dialog width is updated to specified CSS unit </param>
+	/// </function>
+	this.Width = function(val, unit)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		// defaultValue must match width (for both modern browsers and legacy IE) in Dialog.css
+		var defaultValue = (Fit.Browser.GetInfo().Name !== "MSIE" || Fit.Browser.GetInfo().Version >= 9 ? { Value: -1, Unit: "px" } : { Value: 50, Unit: "%" });
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				dialog.style.width = width.Value + width.Unit;
+
+				if (minWidth === null)
+				{
+					dialog.style.minWidth = "0";
+				}
+
+				if (maxWidth === null)
+				{
+					dialog.style.maxWidth = "none";
+				}
+			}
+			else
+			{
+				width = null;
+				dialog.style.width = "";
+
+				if (minWidth === null)
+				{
+					dialog.style.minWidth = "";
+				}
+
+				if (maxWidth === null)
+				{
+					dialog.style.maxWidth = "";
+				}
+			}
+		}
+
+		return (width !== null ? width : defaultValue);
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="MinimumWidth" access="public" returns="object">
+	/// 	<description> Get/set dialog minimum width - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, dialog minimum width is updated to specified value. A value of -1 resets minimum width. </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, dialog minimum width is updated to specified CSS unit </param>
+	/// </function>
+	this.MinimumWidth = function(val, unit)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		// defaultValue must match min-width in Dialog.css
+		var defaultValue = { Value: 280, Unit: "px" };
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				minWidth = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				dialog.style.minWidth = minWidth.Value + minWidth.Unit;
+			}
+			else
+			{
+				minWidth = null;
+				dialog.style.minWidth = (width !== null ? "0" : ""); // Apply "0" (no min-width) if width is set
+			}
+		}
+
+		return (minWidth !== null ? minWidth : (width !== null ? width : defaultValue));
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="MaximumWidth" access="public" returns="object">
+	/// 	<description> Get/set dialog maximum width - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, dialog maximum width is updated to specified value. A value of -1 resets maximum width. </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, dialog maximum width is updated to specified CSS unit </param>
+	/// </function>
+	this.MaximumWidth = function(val, unit)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		// defaultValue must match max-width in Dialog.css
+		var defaultValue = { Value: 800, Unit: "px" };
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				maxWidth = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				dialog.style.maxWidth = maxWidth.Value + maxWidth.Unit;
+			}
+			else
+			{
+				maxWidth = null;
+				dialog.style.maxWidth = (width !== null ? "none" : ""); // Apply "none" (no max-width) if width is set
+			}
+		}
+
+		return (maxWidth !== null ? maxWidth : (width !== null ? width : defaultValue));
+	}
 
 	/// <function container="Fit.Controls.Dialog" name="Modal" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether dialog is modal or not </description>
