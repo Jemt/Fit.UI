@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "cd build && ./Merge umd minify && cd .. && concurrently \"node node_modules/http-server/bin/http-server\" \"sleep 1 && ./node_modules/opn/xdg-open http://localhost:8080/Test\"",
-    "debug": "cd Debug && ./prepare && cd .. && concurrently \"node node_modules/http-server/bin/http-server\" \"sleep 1 && ./node_modules/opn/xdg-open http://localhost:8080/Debug\""
+    "debug": "cd Debug && ./prepare && cd .. && concurrently \"node node_modules/http-server/bin/http-server -c-1\" \"sleep 1 && ./node_modules/opn/xdg-open http://localhost:8080/Debug\""
   },
   "repository": {
     "type": "git",
