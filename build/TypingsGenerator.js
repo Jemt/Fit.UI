@@ -490,10 +490,10 @@ function Parser()
 		{
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(p.Description, tabs);
-			res += "\n" + tabs + "* @member [" + getType(p.Type) /*p.Type*/ + " " + p.Name + "]";
+			res += "\n" + tabs + "* @member {" + (p.Nullable === true ? "(" + getType(p.Type) + "|null)" : getType(p.Type))+ "} " + p.Name;
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + p.Name + ":" + getType(p.Type, true) + ";";
+			res += "\n" + tabs + p.Name + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
 		});
 
 		// Add functions
@@ -583,12 +583,12 @@ function Parser()
 		{
 			//var containerInstance = getContainerByName(p.Type.replace("[]", "")); // Null for e.g. string, boolean, integer, etc.
 
-			docs += "\n" + tabs + "* @param {" + getType(p.Type) /*p.Type*/ + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
+			docs += "\n" + tabs + "* @param {" + (p.Nullable === true ? "(" + getType(p.Type) + "|null)" : getType(p.Type))+ "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
 
 			str += (str !== "" ? ", " : "") + p.Name;
 			str += (p.Default ? "?" : "");
 			str += ":";
-			str += getType(p.Type, true);
+			str += getType(p.Type, true) + (p.Nullable === true ? " | null" : "");
 		});
 
 		return { Typings: str, Docs: docs };

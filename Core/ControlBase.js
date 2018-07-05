@@ -412,7 +412,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationExpression" access="public">
 	/// 	<description> Set regular expression used to perform on-the-fly validation against control value </description>
-	/// 	<param name="regEx" type="RegExp" default="undefined"> Regular expression to validate against </param>
+	/// 	<param name="regEx" type="RegExp" nullable="true"> Regular expression to validate against </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
 	/// 	</param>
@@ -430,7 +430,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationCallback" access="public">
 	/// 	<description> Set callback function used to perform on-the-fly validation against control value </description>
-	/// 	<param name="cb" type="function" default="undefined"> Function receiving control value - must return True if value is valid, otherwise False </param>
+	/// 	<param name="cb" type="function" nullable="true"> Function receiving control value - must return True if value is valid, otherwise False </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
 	/// 	</param>

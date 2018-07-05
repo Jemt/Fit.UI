@@ -43,7 +43,19 @@
 
     <!-- Load controls -->
     <script type="text/javascript">
-    var controls = [ "Button", "CheckBox", "ContextMenu", "DatePicker", "Dialog", "DropDown", "FilePicker", "Input", "ListView", "ProgressBar", "TreeView" ];
+    var controls = [
+        { Folder: "Button", Components: ["Button"] },
+        { Folder: "CheckBox", Components: ["CheckBox"] },
+        { Folder: "ContextMenu", Components: ["ContextMenu", "WSContextMenu"] },
+        { Folder: "DatePicker", Components: ["DatePicker"] },
+        { Folder: "Dialog", Components: ["Dialog"] },
+        { Folder: "DropDown", Components: ["PickerBase", "DropDown", "WSDropDown"] },
+        { Folder: "FilePicker", Components: ["FilePicker"] },
+        { Folder: "Input", Components: ["Input"] },
+        { Folder: "ListView", Components: ["ListView"] },
+        { Folder: "ProgressBar", Components: ["ProgressBar"] },
+        { Folder: "TreeView", Components: ["TreeView", "WSTreeView"] }
+    ]
 
     var controlsCssDone = false;
     var controlsJsDone = false;
@@ -57,17 +69,39 @@
         }
     }
 
-    var controlsCss = [];
-    Fit.Array.ForEach(controls, function(control) { Fit.Array.Add(controlsCss, { source: "../Controls/" + control + "/" + control + ".css" }); });
-
-    Fit.Loader.LoadStyleSheets(controlsCss, function()
+    // CSS must be loaded at the document root level since CSS reference e.g. images relative to the stylesheet.
+    // So to make sure images work (e.g. helper lines for TreeView: Controls/TreeView/gfxDotLine.png)
+    // we need to make sure the CSS is loaded at the document root level, just like the merged version
+    // gets loaded at the document root level (Fit.UI[.min].css).
+    var css = "";
+    var cssCount = 0;
+    Fit.Array.ForEach(controls, function(controlInfo)
     {
-        controlsCssDone = true;
-        runDebug();
+        var r = new Fit.Http.Request("../Controls/" + controlInfo.Folder + "/" + controlInfo.Folder + ".css");
+        r.OnSuccess(function(sender)
+        {
+            css += "\n" + r.GetResponseText() + "\n";
+            cssCount++;
+
+            if (controls.length === cssCount)
+            {
+                controlsCssDone = true;
+                Fit.Dom.Add(document.getElementsByTagName("head")[0], Fit.Dom.CreateElement("<style>" + css + "</style>"));
+
+                runDebug();
+            }
+        });
+        r.Start();
     });
 
     var controlsJs = [];
-    Fit.Array.ForEach(controls, function(control) { Fit.Array.Add(controlsJs, { source: "../Controls/" + control + "/" + control + ".js" }); });
+    Fit.Array.ForEach(controls, function(controlInfo)
+    {
+        Fit.Array.ForEach(controlInfo.Components, function(component)
+        {
+            Fit.Array.Add(controlsJs, { source: "../Controls/" + controlInfo.Folder + "/" + component + ".js" });
+        });
+    });
 
     Fit.Loader.LoadScripts(controlsJs, function()
     {

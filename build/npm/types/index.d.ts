@@ -666,17 +666,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1048,17 +1048,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1307,17 +1307,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1578,9 +1578,9 @@ declare namespace Fit
 			/**
 			* Set picker control used to add items to drop down control
 			* @function SetPicker
-			* @param {Fit.Controls.PickerBase} pickerControl - Picker control extending from PickerBase
+			* @param {(Fit.Controls.PickerBase|null)} pickerControl - Picker control extending from PickerBase
 			*/
-			public SetPicker(pickerControl:Fit.Controls.PickerBase):void;
+			public SetPicker(pickerControl:Fit.Controls.PickerBase | null):void;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -1716,17 +1716,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -2055,17 +2055,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -2297,17 +2297,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -2765,10 +2765,10 @@ declare namespace Fit
 			/**
 			* Get/set instance of ContextMenu control triggered when right clicking nodes in TreeView
 			* @function ContextMenu
-			* @param {Fit.Controls.ContextMenu} [contextMenu=undefined] - If defined, assignes ContextMenu control to TreeView
+			* @param {(Fit.Controls.ContextMenu|null)} contextMenu - If defined, assignes ContextMenu control to TreeView
 			* @returns Fit.Controls.ContextMenu
 			*/
-			public ContextMenu(contextMenu?:Fit.Controls.ContextMenu):Fit.Controls.ContextMenu;
+			public ContextMenu(contextMenu:Fit.Controls.ContextMenu | null):Fit.Controls.ContextMenu;
 			/**
 			* Get all nodes across all children and their children, in a flat structure
 			* @function GetAllNodes
@@ -3184,17 +3184,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -3779,9 +3779,9 @@ declare namespace Fit
 			/**
 			* Set picker control used to add items to drop down control
 			* @function SetPicker
-			* @param {Fit.Controls.PickerBase} pickerControl - Picker control extending from PickerBase
+			* @param {(Fit.Controls.PickerBase|null)} pickerControl - Picker control extending from PickerBase
 			*/
-			public SetPicker(pickerControl:Fit.Controls.PickerBase):void;
+			public SetPicker(pickerControl:Fit.Controls.PickerBase | null):void;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -3917,17 +3917,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -4357,10 +4357,10 @@ declare namespace Fit
 			/**
 			* Get/set instance of ContextMenu control triggered when right clicking nodes in TreeView
 			* @function ContextMenu
-			* @param {Fit.Controls.ContextMenu} [contextMenu=undefined] - If defined, assignes ContextMenu control to TreeView
+			* @param {(Fit.Controls.ContextMenu|null)} contextMenu - If defined, assignes ContextMenu control to TreeView
 			* @returns Fit.Controls.ContextMenu
 			*/
-			public ContextMenu(contextMenu?:Fit.Controls.ContextMenu):Fit.Controls.ContextMenu;
+			public ContextMenu(contextMenu:Fit.Controls.ContextMenu | null):Fit.Controls.ContextMenu;
 			/**
 			* Get all nodes across all children and their children, in a flat structure
 			* @function GetAllNodes
@@ -4770,17 +4770,17 @@ declare namespace Fit
 			/**
 			* Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationCallback
-			* @param {Function} [cb=undefined] - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationCallback(cb?:Function, errorMsg?:string):void;
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
 			* Set regular expression used to perform on-the-fly validation against control value
 			* @function SetValidationExpression
-			* @param {RegExp} [regEx=undefined] - Regular expression to validate against
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
-			public SetValidationExpression(regEx?:RegExp, errorMsg?:string):void;
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -5835,7 +5835,7 @@ declare namespace Fit
 		A list identified as Users is accessible using
 		templateInstance.Content.Users. See Fit.TemplateList for
 		additional information.
-		* @member [any Content]
+		* @member {any} Content
 		*/
 		Content:any;
 		// Functions defined by Fit.Template

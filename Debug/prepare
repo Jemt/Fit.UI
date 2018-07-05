@@ -12,4 +12,9 @@ fi
 echo "" > Resources.css
 cat ../Resources/FontAwesome/css/font-awesome.css >> Resources.css
 cat ../Resources/JqueryUI-1.11.4.custom/jquery-ui.css >> Resources.css
+
+# Copy resources
+
+mkdir -p Controls/TreeView
+cp ../Controls/TreeView/*.png Controls/TreeView
 cp -Rf ../Resources .
