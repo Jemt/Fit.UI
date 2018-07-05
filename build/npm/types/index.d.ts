@@ -1403,6 +1403,22 @@ declare namespace Fit
 			*/
 			public GetDomElement():HTMLElement;
 			/**
+			* Get/set dialog maximum width - returns object with Value and Unit properties
+			* @function MaximumWidth
+			* @param {number} [val=undefined] - If defined, dialog maximum width is updated to specified value. A value of -1 resets maximum width.
+			* @param {string} [unit=px] - If defined, dialog maximum width is updated to specified CSS unit
+			* @returns any
+			*/
+			public MaximumWidth(val?:number, unit?:string):any;
+			/**
+			* Get/set dialog minimum width - returns object with Value and Unit properties
+			* @function MinimumWidth
+			* @param {number} [val=undefined] - If defined, dialog minimum width is updated to specified value. A value of -1 resets minimum width.
+			* @param {string} [unit=px] - If defined, dialog minimum width is updated to specified CSS unit
+			* @returns any
+			*/
+			public MinimumWidth(val?:number, unit?:string):any;
+			/**
 			* Get/set value indicating whether dialog is modal or not
 			* @function Modal
 			* @param {boolean} [val=undefined] - If specified, True enables modal mode, False disables it
@@ -1414,6 +1430,14 @@ declare namespace Fit
 			* @function Open
 			*/
 			public Open():void;
+			/**
+			* Get/set dialog width - returns object with Value and Unit properties
+			* @function Width
+			* @param {number} [val=undefined] - If defined, dialog width is updated to specified value. A value of -1 resets width (auto sizing).
+			* @param {string} [unit=px] - If defined, dialog width is updated to specified CSS unit
+			* @returns any
+			*/
+			public Width(val?:number, unit?:string):any;
 		}
 		/**
 		* Drop Down Menu control allowing for single and multi selection.
@@ -5385,21 +5409,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -5469,6 +5493,15 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
@@ -5479,15 +5512,6 @@ declare namespace Fit
 		* @param {number} eventId - Event ID identifying handler to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
