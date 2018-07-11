@@ -6401,6 +6401,180 @@ declare namespace Fit
 			* @param {any} json - Data to send
 			*/
 			public SetData(json:any):void;
+			// Functions defined by Fit.Http.Request
+			/**
+			* Abort asynchroneus request
+			* @function Abort
+			*/
+			public Abort():void;
+			/**
+			* Add data to post - this will change the request method from GET to POST
+			* @function AddData
+			* @param {string} key - Data key
+			* @param {string} value - Data value
+			* @param {boolean} [uriEncode=true] - Set False to prevent value from being URI encoded to preserve special characters
+			*/
+			public AddData(key:string, value:string, uriEncode?:boolean):void;
+			/**
+			* Add header to request.
+			Manually adding headers will prevent the Request instance from
+			manipulating headers. This is done to provide full control with the headers.
+			You will in this case most likely need to add the following header for a POST request:
+			Content-type : application/x-www-form-urlencoded
+			* @function AddHeader
+			* @param {string} key - Header key
+			* @param {string} value - Header value
+			*/
+			public AddHeader(key:string, value:string):void;
+			/**
+			* Get current request state.
+			0 = Unsent
+			1 = Opened
+			2 = Headers received
+			3 = Loading
+			4 = Done (response is ready for processing)
+			* @function GetCurrentState
+			* @returns number
+			*/
+			public GetCurrentState():number;
+			/**
+			* Get data set to be posted
+			* @function GetData
+			* @returns string
+			*/
+			public GetData():string;
+			/**
+			* Returns HTTP status. Common return values are:
+			200 = OK (successful request)
+			304 = Forbidden (access denied)
+			404 = Not found
+			408 = Request time out
+			500 = Internal server error
+			503 = Service unavailable
+			* @function GetHttpStatus
+			* @returns number
+			*/
+			public GetHttpStatus():number;
+			/**
+			* Returns result from request. Use this to obtain e.g. binary data on supported browsers.
+			For requests without custom RequestProperties set the return value will be the response text.
+			* @function GetResponse
+			* @returns any
+			*/
+			public GetResponse():any;
+			/**
+			* Get response header (e.g. text/html) - returns Null if not found
+			* @function GetResponseHeader
+			* @param {string} key - Header key (e.g. Content-Type)
+			* @returns string
+			*/
+			public GetResponseHeader(key:string):string;
+			/**
+			* Get response headers - returned array contain objects with Key (string) and Value (string) properties
+			* @function GetResponseHeaders
+			* @returns any[]
+			*/
+			public GetResponseHeaders():any[];
+			/**
+			* Returns result from request as JSON object, Null if no response was returned.
+			Return value will only be as expected if GetCurrentState() returns a value of 4
+			(request done) and GetHttpStatus() returns a value of 2xx (request successful).
+			* @function GetResponseJson
+			* @returns any
+			*/
+			public GetResponseJson():any;
+			/**
+			* Returns text result from request.
+			Return value will only be as expected if GetCurrentState() returns a value of 4
+			(request done) and GetHttpStatus() returns a value of 2xx (request successful).
+			* @function GetResponseText
+			* @returns string
+			*/
+			public GetResponseText():string;
+			/**
+			* Returns result from request as XML or HTML document.
+			Return value will only be as expected if GetCurrentState() returns a value of 4
+			(request done) and GetHttpStatus() returns a value of 2xx (request successful).
+			* @function GetResponseXml
+			* @returns Document
+			*/
+			public GetResponseXml():Document;
+			/**
+			* Get/set request method (e.g. GET, POST, HEAD, PUT, DELETE, OPTIONS)
+			* @function Method
+			* @param {string} [val=undefined] - If defined, changes HTTP request method to specified value
+			* @returns string
+			*/
+			public Method(val?:string):string;
+			/**
+			* Add function to invoke when request is canceled
+			* @function OnAbort
+			* @param {Function} func - JavaScript function invoked when request is canceled.
+			Fit.Http.Request instance is passed to function.
+			*/
+			public OnAbort(func:Function):void;
+			/**
+			* Add function to invoke when request is unsuccessful
+			* @function OnFailure
+			* @param {Function} func - JavaScript function invoked when request finished, but not successfully.
+			Fit.Http.Request instance is passed to function.
+			*/
+			public OnFailure(func:Function):void;
+			/**
+			* Add function to invoke when request is initiated.
+			Request can be canceled by returning False.
+			* @function OnRequest
+			* @param {Function} func - JavaScript function invoked when request is initiated.
+			Fit.Http.Request instance is passed to function.
+			*/
+			public OnRequest(func:Function):void;
+			/**
+			* Add function to invoke when request state is changed.
+			Use GetCurrentState() to read the state at the given time.
+			* @function OnStateChange
+			* @param {Function} func - JavaScript function invoked when state changes.
+			Fit.Http.Request instance is passed to function.
+			*/
+			public OnStateChange(func:Function):void;
+			/**
+			* Add function to invoke when request is successful
+			* @function OnSuccess
+			* @param {Function} func - JavaScript function invoked when request finished successfully.
+			Fit.Http.Request instance is passed to function.
+			*/
+			public OnSuccess(func:Function):void;
+			/**
+			* Set/get custom XHR request properties.
+			Example of property object: { withCredentials: true, responseType: &#39;blob&#39; }.
+			How different browsers and versions support and handle custom properties differ:
+			https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+			Full cross browser support is therefore not guaranteed.
+			* @function RequestProperties
+			* @param {any} [propertyObject=undefined] - If specified, properties will be applied to XHR request when Start() is invoked
+			* @returns any
+			*/
+			public RequestProperties(propertyObject?:any):any;
+			/**
+			* Set data to post - this will change the request method from GET to POST
+			* @function SetData
+			* @param {string} dataStr - Data to send
+			*/
+			public SetData(dataStr:string):void;
+			/**
+			* Invoke request. An asynchroneus request is performed if an
+			OnStateChange, OnSuccess, or OnFailure event handler has been set.
+			If no event handlers have been set, a synchronous request will be performed,
+			causing the client to wait (and freeze) until data is received.
+			* @function Start
+			*/
+			public Start():void;
+			/**
+			* Get/set request URL
+			* @function Url
+			* @param {string} [val=undefined] - If defined, changes request URL to specified value
+			* @returns string
+			*/
+			public Url(val?:string):string;
 		}
 		/**
 		* Asynchronous HTTP request functionality (AJAX/WebService).

@@ -443,7 +443,7 @@ Fit.Http.Request = function(uri)
 	}
 }
 
-/// <container name="Fit.Http.JsonRequest">
+/// <container name="Fit.Http.JsonRequest" extends="Fit.Http.Request">
 /// 	Asynchronous HTTP request functionality (AJAX/WebService)
 /// 	optimized for exchanging data with the server in JSON format.
 /// 	Extending from Fit.Http.Request.
