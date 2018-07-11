@@ -6779,7 +6779,7 @@ declare namespace Fit
 	}
 }
 
-type __fitUiAliasArray = Array;
+type __fitUiAliasArray = Array<any>;
 type __fitUiAliasDate = Date;
 type __fitUiAliasMath = Math;
 type __fitUiAliasString = String;

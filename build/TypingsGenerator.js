@@ -449,7 +449,15 @@ function Parser()
 			Fit.Array.ForEach(aliasTypes, function(alias)
 			{
 				res += "\n";
-				res += "type " + alias.Alias + " = " + alias.Name + ";";
+				
+				if (alias.Name === "Array")
+				{
+					res += "type " + alias.Alias + " = " + alias.Name + "<any>;";
+				}
+				else
+				{
+					res += "type " + alias.Alias + " = " + alias.Name + ";";
+				}
 			});
 		}
 
