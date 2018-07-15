@@ -24,7 +24,7 @@ div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below *
 
 	/* Centering for modern browsers - automatically fits to content */
 	width: auto;
-	/*overflow: visible;*/
+	overflow: visible;
 	margin: 0;
 	top: 25%;
 	left: 50%;
