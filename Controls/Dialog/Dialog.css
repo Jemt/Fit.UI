@@ -36,22 +36,22 @@ div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below *
 	transform: translate(-50%, -25%);
 }
 
-div.FitUiControlDialog > div
+div.FitUiControlDialogContent
 {
 	padding: 1.5em;
 }
 
-div.FitUiControlDialog > div + div /* Buttons */
+div.FitUiControlDialogButtons
 {
 	padding: 0px;
 	border-top: 1px solid silver;
 	text-align: right;
 }
-div.FitUiControlDialog > div + div div.FitUiControlButton
+div.FitUiControlDialogButtons div.FitUiControlButton
 {
 	margin: 0.75em;
 }
-div.FitUiControlDialog > div + div div.FitUiControlButton + div.FitUiControlButton
+div.FitUiControlDialogButtons div.FitUiControlButton + div.FitUiControlButton
 {
 	margin-left: 0px;
 	margin-top: 0px; /* In case buttons flow below each other if dialog gets too narrow */

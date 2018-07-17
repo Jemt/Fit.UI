@@ -31,9 +31,11 @@ Fit.Controls.Dialog = function()
 		Fit.Dom.AddClass(dialog, "FitUiControlDialog");
 
 		content = document.createElement("div");
+		Fit.Dom.AddClass(content, "FitUiControlDialogContent");
 		Fit.Dom.Add(dialog, content);
 
 		buttons = document.createElement("div");
+		Fit.Dom.AddClass(buttons, "FitUiControlDialogButtons");
 		Fit.Dom.Add(dialog, buttons);
 
 		layer = document.createElement("div");
@@ -233,6 +235,23 @@ Fit.Controls.Dialog = function()
 		return content.innerHTML;
 	}
 
+	/// <function container="Fit.Controls.Dialog" name="ContentDomElement" access="public" returns="DOMElement">
+	/// 	<description> Get/set dialog content element </description>
+	/// 	<param name="elm" type="DOMElement" default="undefined"> If specified, content element is replaced with the provided element </param>
+	/// </function>
+	this.ContentDomElement = function(elm)
+	{
+		Fit.Validation.ExpectElementNode(elm, true);
+
+		if (Fit.Validation.IsSet(elm) === true)
+		{
+			Fit.Dom.Replace(content, elm);
+			content = elm;
+		}
+
+		return content;
+	}
+
 	/// <function container="Fit.Controls.Dialog" name="AddButton" access="public">
 	/// 	<description> Add button to dialog </description>
 	/// 	<param name="btn" type="Fit.Controls.Button"> Instance of Fit.Controls.Button </param>
@@ -303,7 +322,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 	Fit.Validation.ExpectFunction(cb, true);
 
 	var d = new Fit.Controls.Dialog();
-	d.Content(content);
+	d.Content(content.replace(/\n/g, "<br>"));
 	d.Modal(true);
 	Fit.Dom.AddClass(d.GetDomElement(), "FitUiControlDialogBase");
 
@@ -338,6 +357,8 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 
 	d.Open();
 	cmdOk.Focused(true);
+
+	return d;
 }
 
 /// <function container="Fit.Controls.Dialog" name="Alert" access="public" static="true">
@@ -371,4 +392,42 @@ Fit.Controls.Dialog.Confirm = function(content, cb)
 	Fit.Validation.ExpectFunction(cb);
 
 	Fit.Controls.Dialog._internal.BaseDialog(content, true, cb);
+}
+
+/// <function container="Fit.Controls.Dialog" name="Prompt" access="public" static="true">
+/// 	<description> Display prompt dialog that allows for user input </description>
+/// 	<param name="content" type="string"> Content to display in prompt dialog </param>
+/// 	<param name="defaultValue" type="string"> Default value in input field </param>
+/// 	<param name="cb" type="function" default="undefined">
+/// 		Callback function invoked when OK or Cancel button is clicked.
+/// 		Value entered in input field is passed, null if prompt is canceled.
+/// 	</param>
+/// </function>
+Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
+{
+	Fit.Validation.ExpectString(content);
+	Fit.Validation.ExpectString(defaultValue);
+	Fit.Validation.ExpectFunction(cb);
+
+	var txt = new Fit.Controls.Input("FitUiControlDialogPrompt" + Fit.Data.CreateGuid());
+	txt.Width(100, "%");
+	txt.Value(defaultValue);
+
+	var dia = Fit.Controls.Dialog._internal.BaseDialog(content + "<br><br>", true, function(res)
+	{
+		var val = txt.Value();
+		txt.Dispose();
+
+		if (res === true) // OK
+		{
+			cb(val);
+		}
+		else // Cancel
+		{
+			cb(null);
+		}
+	});
+
+	Fit.Dom.Add(dia.ContentDomElement(), txt.GetDomElement());
+	txt.Focused(true);
 }

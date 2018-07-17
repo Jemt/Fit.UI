@@ -126,19 +126,19 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
-		* @function GetKeys
-		* @param {any[]} arr - Array to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(arr:any[]):any[];
-		/**
 		* Returns all keys (property names) in object
 		* @function GetKeys
 		* @param {any} obj - Object to get keys from
 		* @returns any[]
 		*/
 		public static GetKeys(obj:any):any[];
+		/**
+		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
+		* @function GetKeys
+		* @param {any[]} arr - Array to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(arr:any[]):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -1369,6 +1369,15 @@ declare namespace Fit
 			*/
 			public static Confirm(content:string, cb:Function):void;
 			/**
+			* Display prompt dialog that allows for user input
+			* @function Prompt
+			* @param {string} content - Content to display in prompt dialog
+			* @param {string} defaultValue - Default value in input field
+			* @param {Function} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Function):void;
+			/**
 			* Add button to dialog
 			* @function AddButton
 			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button
@@ -1386,6 +1395,13 @@ declare namespace Fit
 			* @returns string
 			*/
 			public Content(val?:string):string;
+			/**
+			* Get/set dialog content element
+			* @function ContentDomElement
+			* @param {HTMLElement} [elm=undefined] - If specified, content element is replaced with the provided element
+			* @returns HTMLElement
+			*/
+			public ContentDomElement(elm?:HTMLElement):HTMLElement;
 			/**
 			* Create instance of Dialog control
 			* @function Dialog
@@ -5409,21 +5425,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
