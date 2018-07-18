@@ -321,13 +321,12 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 
 					// Notice: Placeholders to be replaced by DOM elements should only
 					// be declared once - a DOM element cannot be added multiple times!
-					// Theoretically placeholders for string values could be used multiple times, but
-					// for the sake of consistency we only replace the first occurrence in this case too.
+					// Placeholders for string values can on the other hand be declared multiple times.
 					newHtml = newHtml.replace("{[" + key + "]}", "<var class='FitTemplate' id='PH" + id + "'></var>");
 				}
 				else // String value
 				{
-					newHtml = newHtml.replace("{[" + key + "]}", obj);
+					newHtml = newHtml.replace(new RegExp("{\\[" + key + "\\]}", "g"), obj);
 				}
 			}
 		});
