@@ -46,6 +46,14 @@ Fit.Controls.Input = function(ctlId)
 		}
 		input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
 		{
+			if (me === null)
+			{
+				// Fix for Chrome which fires OnChange and OnBlur (in both capturering and bubbling phase)
+				// if control has focus while being removed from DOM, e.g. if used in a dialog closed using ESC.
+				// More details here: https://bugs.chromium.org/p/chromium/issues/detail?id=866242
+				return;
+			}
+
 			input.onkeyup();
 		}
 		me._internal.AddDomElement(input);
