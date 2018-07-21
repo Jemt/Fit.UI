@@ -536,7 +536,7 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 					}
 					else // String value
 					{
-						itemHtml = itemHtml.replace("{[" + prop + "]}", obj);
+						itemHtml = itemHtml.replace(new RegExp("{\\[" + prop + "\\]}", "g"), obj);
 					}
 				});
 
