@@ -332,7 +332,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 	cmdOk.Type(Fit.Controls.ButtonType.Success);
 	cmdOk.OnClick(function(sender)
 	{
-		d.Close();
+		d.Dispose();
 
 		if (Fit.Validation.IsSet(cb) === true)
 			cb(true);
@@ -347,7 +347,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 		cmdCancel.Type(Fit.Controls.ButtonType.Danger);
 		cmdCancel.OnClick(function(sender)
 		{
-			d.Close();
+			d.Dispose();
 
 			if (Fit.Validation.IsSet(cb) === true)
 				cb(false);
@@ -415,6 +415,8 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 
 	var dia = Fit.Controls.Dialog._internal.BaseDialog(content + "<br><br>", true, function(res)
 	{
+		// Notice: Dialog is disposed at this point!
+		
 		var val = txt.Value();
 		txt.Dispose();
 
