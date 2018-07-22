@@ -103,7 +103,7 @@ Fit.Core.Extends = function(instance, superType)
 	Fit.Validation.ExpectIsSet(instance);
 	Fit.Validation.ExpectFunction(superType);
 
-	return (instance._internal && instance._internal.Extends && Fit.Array.Contains(instance._internal.Extends, superType) === true);
+	return (instance._internal !== undefined && instance._internal.Extends !== undefined && Fit.Array.Contains(instance._internal.Extends, superType) === true);
 }
 
 /// <function container="Fit.Core" name="InstanceOf" access="public" static="true" returns="boolean">
@@ -407,7 +407,7 @@ Fit._internal =
 {
 	Core:
 	{
-		VersionInfo: { Major: 1, Minor: 0, Patch: 44 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
+		VersionInfo: { Major: 1, Minor: 0, Patch: 45 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
 	}
 };
 
