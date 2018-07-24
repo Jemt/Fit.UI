@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.ProgressBar">
+/// <container name="Fit.Controls.ProgressBar" extends="Fit.Controls.Component">
 /// 	ProgressBar control useful for indicating progress.
 /// </container>
 
@@ -12,22 +12,13 @@
 Fit.Controls.ProgressBar = function(controlId)
 {
 	Fit.Validation.ExpectStringValue(controlId, true);
-
-	// Support for Fit.Controls.Find(..)
-
-	if (Fit.Validation.IsSet(controlId) === true)
-	{
-		if (Fit._internal.ControlBase.Controls[controlId] !== undefined)
-			Fit.Validation.ThrowError("Control with ID '" + controlId + "' has already been defined - Control IDs must be unique!");
-
-		Fit._internal.ControlBase.Controls[controlId] = this;
-	}
+	Fit.Core.Extend(this, Fit.Controls.Component).Apply(controlId);
 
 	// Internals
 
 	var me = this;
-	var id = (controlId ? controlId : null);
-	var element = null;
+	var id = me.GetId();
+	var element = me.GetDomElement();
 	var status = null;
 	var title = "";
 	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
@@ -35,13 +26,6 @@ Fit.Controls.ProgressBar = function(controlId)
 
 	function init()
 	{
-		Fit._internal.Core.EnsureStyles();
-		
-		element = document.createElement("div");
-
-		if (id !== null)
-			element.id = id;
-
 		Fit.Dom.AddClass(element, "FitUiControl");
 		Fit.Dom.AddClass(element, "FitUiControlProgressBar");
 
@@ -52,14 +36,6 @@ Fit.Controls.ProgressBar = function(controlId)
 
 		title = document.createElement("span");
 		Fit.Dom.Add(status, title);
-	}
-
-	/// <function container="Fit.Controls.ProgressBar" name="GetId" access="public" returns="string">
-	/// 	<description> Get unique Control ID - returns Null if not set </description>
-	/// </function>
-	this.GetId = function()
-	{
-		return id;
 	}
 
 	/// <function container="Fit.Controls.ProgressBar" name="Title" access="public" returns="string">
@@ -105,33 +81,6 @@ Fit.Controls.ProgressBar = function(controlId)
 		return width;
 	}
 
-	/// <function container="Fit.Controls.ProgressBar" name="GetDomElement" access="public" returns="DOMElement">
-	/// 	<description> Get DOMElement representing control </description>
-	/// </function>
-	this.GetDomElement = function()
-	{
-		return element;
-	}
-
-	/// <function container="Fit.Controls.ProgressBar" name="Render" access="public">
-	/// 	<description> Render control, either inline or to element specified </description>
-	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
-	/// </function>
-	this.Render = function(toElement)
-	{
-		Fit.Validation.ExpectDomElement(toElement, true);
-
-		if (Fit.Validation.IsSet(toElement) === true)
-		{
-			Fit.Dom.Add(toElement, element);
-		}
-		else
-		{
-			var script = document.scripts[document.scripts.length - 1];
-			Fit.Dom.InsertBefore(script, element);
-		}
-	}
-
 	/// <function container="Fit.Controls.ProgressBar" name="Progress" access="public" returns="integer">
 	/// 	<description> Get/set progress - a value between 0 and 100 </description>
 	/// 	<param name="val" type="integer" default="undefined"> If defined, progress is set to specified value (0-100) </param>
@@ -165,17 +114,11 @@ Fit.Controls.ProgressBar = function(controlId)
 		Fit.Array.Add(onProgressHandlers, cb);
 	}
 
-	/// <function container="Fit.Controls.ProgressBar" name="Dispose" access="public">
-	/// 	<description> Destroys control to free up memory </description>
-	/// </function>
-	this.Dispose = function()
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		Fit.Dom.Remove(element);
 		me = id = element = status = title = width = onProgressHandlers = null;
-
-		if (Fit.Validation.IsSet(controlId) === true)
-			delete Fit._internal.ControlBase.Controls[controlId];
-	}
+		base();
+	});
 
 	init();
 }

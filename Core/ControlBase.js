@@ -2,17 +2,98 @@ Fit.Controls = {};
 Fit._internal.Controls = {}
 Fit._internal.ControlBase = { Controls: {} };
 
-/// <container name="Fit.Controls.ControlBase">
-/// 	Class from which all UI Controls extend
+/// <container name="Fit.Controls.Component">
+/// 	Class from which all UI components extend
+/// </container>
+Fit.Controls.Component = function(controlId)
+{
+	Fit.Validation.ExpectStringValue(controlId, true);
+
+	var me = this;
+	var id = null;
+	var container = null;
+
+	function init()
+	{
+		Fit._internal.Core.EnsureStyles();
+
+		id = (Fit.Validation.IsSet(controlId) === true ? controlId : "Ctl" + Fit.Data.CreateGuid());
+
+		if (Fit._internal.ControlBase.Controls[id] !== undefined)
+			Fit.Validation.ThrowError("Control with ID '" + id + "' has already been defined - Control IDs must be unique!");
+
+		Fit._internal.ControlBase.Controls[id] = me;
+
+		container = document.createElement("div");
+		container.id = id;
+		container._internal = { Instance: me };
+	}
+
+	/// <function container="Fit.Controls.Component" name="GetId" access="public" returns="string">
+	/// 	<description> Get unique Control ID </description>
+	/// </function>
+	this.GetId = function()
+	{
+		return id;
+	}
+
+   	/// <function container="Fit.Controls.Component" name="GetDomElement" access="public" returns="DOMElement">
+	/// 	<description> Get DOMElement representing control </description>
+	/// </function>
+	this.GetDomElement = function()
+	{
+		return container;
+	}
+	
+	/// <function container="Fit.Controls.Component" name="Render" access="public">
+	/// 	<description> Render control, either inline or to element specified </description>
+	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
+	/// </function>
+	this.Render = function(toElement)
+	{
+		Fit.Validation.ExpectDomElement(toElement, true);
+
+		if (Fit.Validation.IsSet(toElement) === true)
+		{
+			Fit.Dom.Add(toElement, me.GetDomElement()); // Using GetDomElement() which may have been overridden, e.g. by ControlBase which does some validation when GetDomElement() is called, or by ContextMenu which returns a different element
+		}
+		else
+		{
+			var script = document.scripts[document.scripts.length - 1];
+			Fit.Dom.InsertBefore(script, me.GetDomElement()); // Using GetDomElement() which may have been overridden, e.g. by ControlBase which does some validation when GetDomElement() is called, or by ContextMenu which returns a different element
+		}
+	}
+
+	/// <function container="Fit.Controls.Component" name="Dispose" access="public">
+	/// 	<description>
+	/// 		Destroys control to free up memory.
+	/// 		Make sure to call Dispose() on Component which can be done like so:
+	/// 		this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+	/// 		{
+	/// 			&#160;&#160;&#160;&#160; // Add control specific dispose logic here
+	/// 			&#160;&#160;&#160;&#160; base(); // Call Dispose on Component
+	/// 		});
+	/// 	</description>
+	/// </function>
+	this.Dispose = function()
+	{
+		// This will destroy control - it will no longer work!
+
+		Fit.Dom.Remove(container); // Dispose 'container' rather than object returned from GetDomElement() which may have been overridden and potentially returning a different object, in which case the derivative should dispose the object
+		me = id = container = null;
+		delete Fit._internal.ControlBase.Controls[controlId];
+	}
+
+	init();
+}
+
+/// <container name="Fit.Controls.ControlBase" extends="Fit.Controls.Component">
+/// 	Class from which all editable controls extend
 /// </container>
 Fit.Controls.ControlBase = function(controlId)
 {
-	Fit.Validation.ExpectStringValue(controlId);
-
-	if (Fit._internal.ControlBase.Controls[controlId] !== undefined)
-		Fit.Validation.ThrowError("Control with ID '" + controlId + "' has already been defined - Control IDs must be unique!");
-
-	Fit._internal.ControlBase.Controls[controlId] = this;
+	Fit.Validation.ExpectStringValue(controlId, true);
+	Fit.Core.Extend(this, Fit.Controls.Component).Apply(controlId);
 
 	// ============================================
 	// Interface - must be overridden
@@ -70,8 +151,8 @@ Fit.Controls.ControlBase = function(controlId)
 	// ============================================
 
 	var me = this;
-	var id = controlId;
-	var container = null;
+	var id = me.GetId(); //controlId;
+	var container = me.GetDomElement();
 	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
 	var height = { Value: -1, Unit: "px" };
 	var scope = null;
@@ -99,10 +180,6 @@ Fit.Controls.ControlBase = function(controlId)
 
 	function init()
 	{
-		Fit._internal.Core.EnsureStyles();
-
-		container = document.createElement("div");
-		container.id = id;
 		container.style.width = width.Value + width.Unit;
 		Fit.Dom.AddClass(container, "FitUiControl");
 
@@ -184,18 +261,7 @@ Fit.Controls.ControlBase = function(controlId)
 		return (me._internal.Data("autopost") === "true");
 	}
 
-	/// <function container="Fit.Controls.ControlBase" name="GetId" access="public" returns="string">
-	/// 	<description> Get unique Control ID </description>
-	/// </function>
-	this.GetId = function()
-	{
-		return id;
-	}
-
-	/// <function container="Fit.Controls.ControlBase" name="GetDomElement" access="public" returns="DOMElement">
-	/// 	<description> Get DOMElement representing control </description>
-	/// </function>
-	this.GetDomElement = function()
+	this.GetDomElement = Fit.Core.CreateOverride(this.GetDomElement, function()
 	{
 		if (hasValidated === false)
 		{
@@ -204,28 +270,15 @@ Fit.Controls.ControlBase = function(controlId)
 			updateInternalState(); // Make sure state posted to server is up to date (Dirty and Valid flags) in case a control value has not been assigned
 		}
 
-		return container;
-	}
+		return base();
+	});
 
-	/// <function container="Fit.Controls.ControlBase" name="Dispose" access="public">
-	/// 	<description>
-	/// 		Destroys control to free up memory.
-	/// 		Make sure to call Dispose() on ControlBase which can be done like so:
-	/// 		this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-	/// 		{
-	/// 			&#160;&#160;&#160;&#160; // Add control specific dispose logic here
-	/// 			&#160;&#160;&#160;&#160; base(); // Call Dispose on ControlBase
-	/// 		});
-	/// 	</description>
-	/// </function>
-	this.Dispose = function()
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		// This will destroy control - it will no longer work!
-
-		Fit.Dom.Remove(container);
 		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = isIe8 = null;
-		delete Fit._internal.ControlBase.Controls[controlId];
-	}
+		base();
+	});
+
 
 	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="object">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
@@ -389,25 +442,6 @@ Fit.Controls.ControlBase = function(controlId)
 		}
 
 		return (orgDirtyFunction !== null);
-	}
-
-	/// <function container="Fit.Controls.ControlBase" name="Render" access="public">
-	/// 	<description> Render control, either inline or to element specified </description>
-	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
-	/// </function>
-	this.Render = function(toElement)
-	{
-		Fit.Validation.ExpectDomElement(toElement, true);
-
-		if (Fit.Validation.IsSet(toElement) === true)
-		{
-			Fit.Dom.Add(toElement, me.GetDomElement()); // GetDomElement() calls Validate()
-		}
-		else
-		{
-			var script = document.scripts[document.scripts.length - 1];
-			Fit.Dom.InsertBefore(script, me.GetDomElement()); // GetDomElement() calls Validate()
-		}
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationExpression" access="public">

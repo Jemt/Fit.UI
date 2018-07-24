@@ -1,4 +1,4 @@
-/// <container name="Fit.Controls.Button">
+/// <container name="Fit.Controls.Button" extends="Fit.Controls.Component">
 /// 	Button control with support for Font Awesome icons
 /// </container>
 
@@ -14,22 +14,13 @@
 Fit.Controls.Button = function(controlId)
 {
 	Fit.Validation.ExpectStringValue(controlId, true);
-
-	// Support for Fit.Controls.Find(..)
-
-	if (Fit.Validation.IsSet(controlId) === true)
-	{
-		if (Fit._internal.ControlBase.Controls[controlId] !== undefined)
-			Fit.Validation.ThrowError("Control with ID '" + controlId + "' has already been defined - Control IDs must be unique!");
-
-		Fit._internal.ControlBase.Controls[controlId] = this;
-	}
+	Fit.Core.Extend(this, Fit.Controls.Component).Apply(controlId);
 
 	// Internals
 
 	var me = this;
-	var id = (controlId ? controlId : null);
-	var element = null;
+	var id = me.GetId();
+	var element = me.GetDomElement();
 	var wrapper = null;
 	var icon = null;
 	var label = null;
@@ -39,13 +30,6 @@ Fit.Controls.Button = function(controlId)
 
 	function init()
 	{
-		Fit._internal.Core.EnsureStyles();
-
-		element = document.createElement("div");
-
-		if (id !== null)
-			element.id = id;
-
 		Fit.Events.AddHandler(element, "click", function(e)
 		{
 			if (me.Enabled() === true)
@@ -76,14 +60,6 @@ Fit.Controls.Button = function(controlId)
 
 		me.Enabled(true);
 		me.Type(Fit.Controls.ButtonType.Default);
-	}
-
-	/// <function container="Fit.Controls.Button" name="GetId" access="public" returns="string">
-	/// 	<description> Get unique Control ID - returns Null if not set </description>
-	/// </function>
-	this.GetId = function()
-	{
-		return id;
 	}
 
 	/// <function container="Fit.Controls.Button" name="Title" access="public" returns="string">
@@ -268,44 +244,11 @@ Fit.Controls.Button = function(controlId)
 		});
 	}
 
-	/// <function container="Fit.Controls.Button" name="GetDomElement" access="public" returns="DOMElement">
-	/// 	<description> Get DOMElement representing control </description>
-	/// </function>
-	this.GetDomElement = function()
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		return element;
-	}
-
-	/// <function container="Fit.Controls.Button" name="Render" access="public">
-	/// 	<description> Render control, either inline or to element specified </description>
-	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
-	/// </function>
-	this.Render = function(toElement)
-	{
-		Fit.Validation.ExpectDomElement(toElement, true);
-
-		if (Fit.Validation.IsSet(toElement) === true)
-		{
-			Fit.Dom.Add(toElement, element);
-		}
-		else
-		{
-			var script = document.scripts[document.scripts.length - 1];
-			Fit.Dom.InsertBefore(script, element);
-		}
-	}
-
-	/// <function container="Fit.Controls.Button" name="Dispose" access="public">
-	/// 	<description> Destroys control to free up memory </description>
-	/// </function>
-	this.Dispose = function()
-	{
-		Fit.Dom.Remove(element);
 		me = id = element = wrapper = icon = label = width = height = onClickHandlers = null;
-
-		if (Fit.Validation.IsSet(controlId) === true)
-			delete Fit._internal.ControlBase.Controls[controlId];
-	}
+		base();
+	});
 
 	init();
 }

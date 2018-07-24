@@ -1,14 +1,21 @@
-/// <container name="Fit.Controls.Dialog">
+/// <container name="Fit.Controls.Dialog" extends="Fit.Controls.Component">
 /// 	Simple Dialog control with support for Fit.UI buttons.
 /// </container>
 
 /// <function container="Fit.Controls.Dialog" name="Dialog" access="public">
 /// 	<description> Create instance of Dialog control </description>
+/// 	<param name="controlId" type="string" default="undefined">
+/// 		Unique control ID. If specified, control will be
+/// 		accessible using the Fit.Controls.Find(..) function.
+/// 	</param>
 /// </function>
-Fit.Controls.Dialog = function()
+Fit.Controls.Dialog = function(controlId)
 {
+	Fit.Validation.ExpectStringValue(controlId, true);
+	Fit.Core.Extend(this, Fit.Controls.Component).Apply(controlId);
+
 	var me = this;
-	var dialog = null;
+	var dialog = me.GetDomElement();
 	var content = null;
 	var buttons = null;
 	var modal = false;
@@ -24,9 +31,6 @@ Fit.Controls.Dialog = function()
 
 	function init()
 	{
-		Fit._internal.Core.EnsureStyles();
-
-		dialog = document.createElement("div");
 		Fit.Dom.AddClass(dialog, "FitUiControl");
 		Fit.Dom.AddClass(dialog, "FitUiControlDialog");
 
@@ -284,31 +288,25 @@ Fit.Controls.Dialog = function()
 			Fit.Dom.Remove(layer);
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="GetDomElement" access="public" returns="DOMElement">
-	/// 	<description> Get DOMElement representing control </description>
-	/// </function>
-	this.GetDomElement = function()
+	this.Render = function(toElement) // Override Render() on Fit.Controls.Component
 	{
-		return dialog;
+		Fit.Validation.ThrowError("Use Open function to open Dialog");
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="Dispose" access="public">
-	/// 	<description> Destroys component to free up memory, including associated buttons </description>
-	/// </function>
-	this.Dispose = function()
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		Fit.Dom.Remove(dialog);
-
 		if (layer !== null)
 			Fit.Dom.Remove(layer);
 
 		Fit.Array.ForEach(Fit.Array.Copy(buttons.children), function(buttonElm) // Using Copy(..) since Dispose() modifies children collection
 		{
-			Fit.Controls.Find(buttonElm.id).Dispose();
+			buttonElm._internal.Instance.Dispose();
 		});
 
-		me = dialog = content = buttons = modal = layer = null;
-	}
+		me = dialog = content = buttons = modal = layer = width = minWidth = maxWidth = null;
+
+		base();
+	});
 
 	init();
 }

@@ -1,12 +1,19 @@
-/// <container name="Fit.Controls.ContextMenu">
+/// <container name="Fit.Controls.ContextMenu" extends="Fit.Controls.Component">
 /// 	ContextMenu control allowing for quick access to select features.
 /// </container>
 
 /// <function container="Fit.Controls.ContextMenu" name="ContextMenu" access="public">
 /// 	<description> Create instance of ContextMenu control </description>
+/// 	<param name="controlId" type="string" default="undefined">
+/// 		Unique control ID. If specified, control will be
+/// 		accessible using the Fit.Controls.Find(..) function.
+/// 	</param>
 /// </function>
-Fit.Controls.ContextMenu = function()
+Fit.Controls.ContextMenu = function(controlId)
 {
+	Fit.Validation.ExpectStringValue(controlId, true);
+	Fit.Core.Extend(this, Fit.Controls.Component).Apply(controlId);
+
 	var me = this;
 	var tree = new Fit.Controls.TreeView("ContextMenuTreeView_" + Fit.Data.CreateGuid());
 	var prevFocused = null;
@@ -25,8 +32,6 @@ Fit.Controls.ContextMenu = function()
 
 	function init()
 	{
-		Fit._internal.Core.EnsureStyles();
-
 		Fit.Dom.Data(tree.GetDomElement(), "keynav", "false");				// True when navigating using keyboard
 		Fit.Dom.Data(tree.GetDomElement(), "sticky", "false");				// True when user toggles node
 		Fit.Dom.Data(tree.GetDomElement(), "viewportcollision", "false");	// True when context menu collides with viewport boundaries
@@ -391,12 +396,14 @@ Fit.Controls.ContextMenu = function()
 		return (tree.GetDomElement().parentElement !== null);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="GetDomElement" access="public" returns="DOMElement">
-	/// 	<description> Get DOMElement representing context menu </description>
-	/// </function>
-	this.GetDomElement = function()
+	this.GetDomElement = function() // Override GetDomElement() on Fit.Controls.Component
 	{
 		return tree.GetDomElement();
+	}
+
+	this.Render = function(toElement) // Override Render() on Fit.Controls.Component
+	{
+		Fit.Validation.ThrowError("Use Show function to open ContextMenu");
 	}
 
 	/// <function container="Fit.Controls.ContextMenu" name="AddChild" access="public">
@@ -499,17 +506,16 @@ Fit.Controls.ContextMenu = function()
 		return tree.Focused(value);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="Dispose" access="public">
-	/// 	<description> Destroys component to free up memory </description>
-	/// </function>
-	this.Dispose = function()
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		if (me === Fit._internal.ContextMenu.Current) // In case ContextMenu is being disposed while being used
 			Fit._internal.ContextMenu.Current = null;
 
 		tree.Dispose();
 		me = tree = prevFocused = detectBoundaries = highlightOnInitKeyStroke = isIe8 = onShowing = onShown = onHide = onSelect = null;
-	}
+
+		base();
+	});
 
 	// ============================================
 	// Events
