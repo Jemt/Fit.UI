@@ -6,11 +6,11 @@
 
 /// <function container="Fit.Controls.Input" name="Input" access="public">
 /// 	<description> Create instance of Input control </description>
-/// 	<param name="ctlId" type="string"> Unique control ID </param>
+/// 	<param name="ctlId" type="string" default="undefined"> Unique control ID that can be used to access control using Fit.Controls.Find(..) </param>
 /// </function>
 Fit.Controls.Input = function(ctlId)
 {
-	Fit.Validation.ExpectStringValue(ctlId);
+	Fit.Validation.ExpectStringValue(ctlId, true);
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;

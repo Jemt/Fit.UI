@@ -6,11 +6,11 @@
 
 /// <function container="Fit.Controls.DropDown" name="DropDown" access="public">
 /// 	<description> Create instance of DropDown control </description>
-/// 	<param name="ctlId" type="string"> Unique control ID </param>
+/// 	<param name="ctlId" type="string" default="undefined"> Unique control ID that can be used to access control using Fit.Controls.Find(..) </param>
 /// </function>
 Fit.Controls.DropDown = function(ctlId)
 {
-	Fit.Validation.ExpectStringValue(ctlId);
+	Fit.Validation.ExpectStringValue(ctlId, true);
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;								// Access to members from event handlers (where "this" may have a different meaning)

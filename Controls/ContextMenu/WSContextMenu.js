@@ -5,10 +5,12 @@
 
 /// <function container="Fit.Controls.WSContextMenu" name="WSContextMenu" access="public">
 /// 	<description> Create instance of WSContextMenu control </description>
+/// 	<param name="controlId" type="string" default="undefined"> Unique control ID that can be used to access control using Fit.Controls.Find(..) </param>
 /// </function>
-Fit.Controls.WSContextMenu = function()
+Fit.Controls.WSContextMenu = function(controlId)
 {
-	Fit.Core.Extend(this, Fit.Controls.ContextMenu).Apply();
+	Fit.Validation.ExpectStringValue(controlId, true);
+	Fit.Core.Extend(this, Fit.Controls.ContextMenu).Apply(controlId);
 
 	var me = this;
 	var url = null;

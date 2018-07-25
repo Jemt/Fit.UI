@@ -4,10 +4,7 @@
 
 /// <function container="Fit.Controls.ContextMenu" name="ContextMenu" access="public">
 /// 	<description> Create instance of ContextMenu control </description>
-/// 	<param name="controlId" type="string" default="undefined">
-/// 		Unique control ID. If specified, control will be
-/// 		accessible using the Fit.Controls.Find(..) function.
-/// 	</param>
+/// 	<param name="controlId" type="string" default="undefined"> Unique control ID that can be used to access control using Fit.Controls.Find(..) </param>
 /// </function>
 Fit.Controls.ContextMenu = function(controlId)
 {
