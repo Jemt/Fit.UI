@@ -80,8 +80,8 @@ Fit.Controls.Component = function(controlId)
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(container); // Dispose 'container' rather than object returned from GetDomElement() which may have been overridden and potentially returning a different object, in which case the derivative should dispose the object
+		delete Fit._internal.ControlBase.Controls[id];
 		me = id = container = null;
-		delete Fit._internal.ControlBase.Controls[controlId];
 	}
 
 	init();
@@ -151,7 +151,7 @@ Fit.Controls.ControlBase = function(controlId)
 	// ============================================
 
 	var me = this;
-	var id = me.GetId(); //controlId;
+	var id = me.GetId();
 	var container = me.GetDomElement();
 	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
 	var height = { Value: -1, Unit: "px" };
