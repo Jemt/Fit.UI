@@ -56,8 +56,13 @@
 /// 		to DOM. A value of True results in template being wrapped in a div container
 /// 		controlled by the templating system.
 /// 	</param>
+/// 	<param name="autoDispose" type="boolean" default="true">
+/// 		Flag indicating whether Fit.UI controls should be automatically disposed
+/// 		when removed from view. Controls are disposed once changes are pushed to
+/// 		DOM using the Update() function.
+/// 	</param>
 /// </function>
-Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  --  http://fiddle.jshell.net/3rbq1r13/3/
+Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5sb97qtn/28/  --  http://fiddle.jshell.net/3rbq1r13/3/
 {
 	Fit.Validation.ExpectBoolean(refreshable, true);
 
@@ -66,6 +71,7 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 	var container = null;
 	var elements = [];		// Holds references to all DOMElements added to template
 	var eventHandlers = []; // Holds references to all event handler functions associated with DOM elements
+	var controls = [];		// Holds references to all Fit.UI controls rendered to DOM view
 
 	function init()
 	{
@@ -250,10 +256,13 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 
 		// Turn Template into DOM element
 
-		var html = me.toString();
+		var html = me.toString(); // Also populates 'elements' array containing DOMElements to be added further down
 		var dom = Fit.Dom.CreateElement("<div>" + html + "</div>");
 
 		// Inject DOMElements
+
+		var oldControls = controls;
+		controls = [];
 
 		Fit.Array.ForEach(elements, function(elm)
 		{
@@ -263,7 +272,26 @@ Fit.Template = function(refreshable) // http://fiddle.jshell.net/5sb97qtn/28/  -
 			{
 				Fit.Dom.Replace(element, elm.Element);
 			}
+
+			if (elm.Element._internal !== undefined && elm.Element._internal.Instance !== undefined) // Fit.UI control inheriting from Fit.Controls.Component which is disposable
+			{
+				Fit.Array.Add(controls, elm.Element._internal.Instance);
+			}
 		});
+
+		// Auto dispose controls previously added to template if now left out
+
+		if (autoDispose !== false)
+		{
+			Fit.Array.ForEach(oldControls, function(oldControl)
+			{
+				// Dispose control if no longer found in view
+				if (Fit.Array.Contains(controls, oldControl) === false)
+				{
+					oldControl.Dispose();
+				}
+			});
+		}
 
 		// Register event handlers
 
