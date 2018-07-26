@@ -902,9 +902,10 @@ Fit.Controls.TreeView = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	var baseDispose = me.Dispose;
-	this.Dispose = function()
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function(calledInternally)
 	{
+		Fit.Validation.ExpectBoolean(calledInternally, true);
+
 		// This will destroy control - it will no longer work!
 
 		me._internal.ExecuteWithNoOnChange(function() // Prevent Dispose() on nodes from firing OnChange when they are removed from hierarchy
@@ -917,9 +918,15 @@ Fit.Controls.TreeView = function(ctlId)
 			ctx.Dispose(); //ctx.Hide();
 		}
 
+		base();
+
+		if (calledInternally !== true)
+		{
+			me.Destroy(true); // PickerBase.Destroy()
+		}
+
 		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isPicker = activeNode = isIe8 = null;
-		baseDispose();
-	}
+	});
 
 	// ============================================
 	// Events (OnChange defined on BaseControl)
@@ -1138,12 +1145,18 @@ Fit.Controls.TreeView = function(ctlId)
 		}
     }
 
-	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function()
+	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
 	{
+		Fit.Validation.ExpectBoolean(calledInternally, true);
+
 		// This will destroy control - it will no longer work!
 
-		me.Dispose();
-		base();
+		if (calledInternally !== true)
+		{
+			me.Dispose(true); // Component.Dispose()
+		}
+
+		base(); // PickerBase.Destroy()
 	});
 
 	// ============================================

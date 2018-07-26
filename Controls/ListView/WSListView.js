@@ -5,10 +5,7 @@
 
 /// <function container="Fit.Controls.WSListView" name="WSListView" access="public">
 /// 	<description> Create instance of WSListView control </description>
-/// 	<param name="controlId" type="string" default="undefined">
-/// 		Unique control ID. if specified, control will be
-/// 		accessible using the Fit.Controls.Find(..) function.
-/// 	</param>
+/// 	<param name="ctlId" type="string" default="undefined"> Unique control ID that can be used to access control using Fit.Controls.Find(..) </param>
 /// </function>
 Fit.Controls.WSListView = function(ctlId)
 {

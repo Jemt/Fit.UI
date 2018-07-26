@@ -17,24 +17,11 @@
 /// 	OnItemSelectionComplete should only fire if a change was made (changes can be canceled using
 /// 	OnItemSelectionChanging).
 /// </container>
-Fit.Controls.PickerBase = function(controlId)
+Fit.Controls.PickerBase = function()
 {
-	Fit.Validation.ExpectStringValue(controlId, true);
-
-	// Support for Fit.Controls.Find(..)
-
-	if (Fit.Validation.IsSet(controlId) === true)
-	{
-		if (Fit._internal.ControlBase.Controls[controlId] !== undefined)
-			Fit.Validation.ThrowError("Control with ID '" + controlId + "' has already been defined - Control IDs must be unique!");
-
-		Fit._internal.ControlBase.Controls[controlId] = this;
-	}
-
 	// Private variables
 
 	var me = this;
-	var id = (controlId ? controlId : null);
 
 	var onShowHandlers = [];
 	var onHideHandlers = [];
@@ -45,14 +32,6 @@ Fit.Controls.PickerBase = function(controlId)
 	// ============================================
 	// Public
 	// ============================================
-
-	/// <function container="Fit.Controls.PickerBase" name="GetId" access="public" returns="string">
-	/// 	<description> Get unique Control ID </description>
-	/// </function>
-	this.GetId = function()
-	{
-		return id;
-	}
 
 	/// <function container="Fit.Controls.PickerBase" name="MaxHeight" access="public" returns="object">
 	/// 	<description> Get/set max height of control - returns object with Value (number) and Unit (string) properties </description>
@@ -271,10 +250,7 @@ Fit.Controls.PickerBase = function(controlId)
 	/// </function>
 	this.Destroy = function() // Must be overridden - remember to call base !
 	{
-		me = id = onShowHandlers = onHideHandlers = onChangingHandlers = onChangeHandlers = onCompleteHandlers = null;
-
-		if (Fit.Validation.IsSet(controlId) === true)
-			delete Fit._internal.ControlBase.Controls[controlId];
+		me = onShowHandlers = onHideHandlers = onChangingHandlers = onChangeHandlers = onCompleteHandlers = null;
 	}
 
 	// ============================================

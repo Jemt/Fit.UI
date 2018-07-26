@@ -1,31 +1,25 @@
-/// <container name="Fit.Controls.ListView" extends="Fit.Controls.PickerBase">
+/// <container name="Fit.Controls.ListView" extends="Fit.Controls.PickerBase;Fit.Controls.Component">
 /// 	Picker control which allows for entries
 /// 	to be selected in the DropDown control.
 /// </container>
 
 /// <function container="Fit.Controls.ListView" name="ListView" access="public">
 /// 	<description> Create instance of ListView control </description>
-/// 	<param name="controlId" type="string" default="undefined">
-/// 		Unique control ID. if specified, control will be
-/// 		accessible using the Fit.Controls.Find(..) function.
-/// 	</param>
+/// 	<param name="controlId" type="string" default="undefined"> Unique control ID that can be used to access control using Fit.Controls.Find(..) </param>
 /// </function>
 Fit.Controls.ListView = function(controlId)
 {
 	Fit.Validation.ExpectStringValue(controlId, true);
-
-	Fit.Core.Extend(this, Fit.Controls.PickerBase).Apply(controlId);
+	Fit.Core.Extend(this, Fit.Controls.PickerBase).Apply();
+	Fit.Core.Extend(this, Fit.Controls.Component).Apply(controlId);
 
 	var me = this;
-	var list = null;
+	var list = me.GetDomElement();
 	var active = null;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	function init()
 	{
-		Fit._internal.Core.EnsureStyles();
-		
-		list = document.createElement("div");
 		list.tabIndex = "0";
 		Fit.Dom.AddClass(list, "FitUiControlListView");
 
@@ -198,11 +192,6 @@ Fit.Controls.ListView = function(controlId)
 	// PickerBase interface
 	// ============================================
 
-	this.GetDomElement = function()
-	{
-		return list;
-	}
-
     this.HandleEvent = function(e)
     {
 		Fit.Validation.ExpectEvent(e, true);
@@ -246,15 +235,34 @@ Fit.Controls.ListView = function(controlId)
 				Fit.Events.PreventDefault(ev);
             }
         }
-    }
-
-	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function()
+	}
+	
+	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
 	{
+		Fit.Validation.ExpectBoolean(calledInternally, true);
+
 		// This will destroy control - it will no longer work!
 
-		Fit.Dom.Remove(list);
+		if (calledInternally !== true)
+		{
+			me.Dispose(true); // Component.Dispose()
+		}
+
+		base(); // PickerBase.Destroy()
+	});
+
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function(calledInternally)
+	{
+		Fit.Validation.ExpectBoolean(calledInternally, true);
+		
+		base(); // Component.Dispose()
+		
+		if (calledInternally !== true)
+		{
+			me.Destroy(true); // PickerBase.Destroy()
+		}
+
 		me = list = active = isIe8 = null;
-		base();
 	});
 
     // ============================================
