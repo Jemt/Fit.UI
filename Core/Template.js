@@ -342,7 +342,14 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 			}
 			else
 			{
-				if (typeof(obj) === "object" && (obj instanceof Element || obj instanceof Text)) // DOM
+				if (Fit.Core.InstanceOf(obj, Fit.Controls.Component) === true) // Fit.UI Control
+				{
+					var id = Fit.Data.CreateGuid();
+					Fit.Array.Add(elements, { Id: id, Element: obj.GetDomElement() });
+
+					newHtml = newHtml.replace("{[" + key + "]}", "<var class='FitTemplate' id='PH" + id + "'></var>");
+				}
+				else if (typeof(obj) === "object" && (obj instanceof Element || obj instanceof Text)) // DOM
 				{
 					var id = Fit.Data.CreateGuid();
 					Fit.Array.Add(elements, { Id: id, Element: obj });
@@ -550,6 +557,17 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 						});
 
 						itemHtml = itemHtml.replace(obj._internal.Block, allSubItems);
+					}
+					else if (Fit.Core.InstanceOf(obj, Fit.Controls.Component) === true) // Fit.UI Control
+					{
+						var id = Fit.Data.CreateGuid();
+						Fit.Array.Add(res._internal.Elements, { Id: id, Element: obj.GetDomElement() });
+
+						// Notice: Placeholders to be replaced by DOM elements should only
+						// be declared once - a DOM element cannot be added multiple times!
+						// Theoretically placeholders for string values could be used multiple times, but
+						// for the sake of consistency we only replace the first occurrence in this case too.
+						itemHtml = itemHtml.replace("{[" + prop + "]}", "<var class='FitTemplate' id='PH" + id + "'></var>");
 					}
 					else if (typeof(obj) === "object" && (obj instanceof Element || obj instanceof Text)) // DOM
 					{
