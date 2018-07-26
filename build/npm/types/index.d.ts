@@ -98,16 +98,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through object properties and passes each property name to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any} obj - Object containing properties to iterate through
-		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(obj:any, callback:Function):boolean;
-		/**
 		* Iterates through elements in array and passes each value to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -117,6 +107,16 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static ForEach(arr:any[], callback:Function):boolean;
+		/**
+		* Iterates through object properties and passes each property name to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any} obj - Object containing properties to iterate through
+		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(obj:any, callback:Function):boolean;
 		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
@@ -391,8 +391,7 @@ declare namespace Fit
 			/**
 			* Create instance of Button control
 			* @function Button
-			* @param {string} [controlId=undefined] - Unique control ID. If specified, control will be
-			accessible using the Fit.Controls.Find(..) function.
+			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
 			constructor(controlId?:string);
 			/**
@@ -400,11 +399,6 @@ declare namespace Fit
 			* @function Click
 			*/
 			public Click():void;
-			/**
-			* Destroys control to free up memory
-			* @function Dispose
-			*/
-			public Dispose():void;
 			/**
 			* Get/set value indicating whether button is enabled or not
 			* @function Enabled
@@ -419,18 +413,6 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public Focused(focus?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID - returns Null if not set
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Get/set control height - returns object with Value and Unit properties
 			* @function Height
@@ -452,12 +434,6 @@ declare namespace Fit
 			* @param {Function} cb - Callback function invoked when button is clicked - takes button instance as argument
 			*/
 			public OnClick(cb:Function):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set button title
 			* @function Title
@@ -487,6 +463,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Simple CheckBox control.
@@ -499,9 +505,9 @@ declare namespace Fit
 			/**
 			* Create instance of CheckBox control
 			* @function CheckBox
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			/**
 			* Get/set value indicating whether control is checked
 			* @function Checked
@@ -560,35 +566,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -642,12 +625,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -704,6 +681,73 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
+		}
+		/**
+		* Class from which all UI components extend
+		* @class [Fit.Controls.Component Component]
+		*/
+		class Component
+		{
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* ContextMenu control allowing for quick access to select features.
@@ -721,8 +765,9 @@ declare namespace Fit
 			/**
 			* Create instance of ContextMenu control
 			* @function ContextMenu
+			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor();
+			constructor(controlId?:string);
 			/**
 			* Get/set value indicating whether boundary/collision detection is enabled or not
 			* @function DetectBoundaries
@@ -730,11 +775,6 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public DetectBoundaries(val?:boolean):boolean;
-			/**
-			* Destroys component to free up memory
-			* @function Dispose
-			*/
-			public Dispose():void;
 			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
@@ -762,12 +802,6 @@ declare namespace Fit
 			* @returns Fit.Controls.ContextMenuItem[]
 			*/
 			public GetChildren():Fit.Controls.ContextMenuItem[];
-			/**
-			* Get DOMElement representing context menu
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
 			/**
 			* Hide context menu
 			* @function Hide
@@ -828,6 +862,36 @@ declare namespace Fit
 			* @param {number} [y=undefined] - If defined, context menu will open at specified vertical position
 			*/
 			public Show(x?:number, y?:number):void;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* 
@@ -908,7 +972,7 @@ declare namespace Fit
 			public Value():string;
 		}
 		/**
-		* Class from which all UI Controls extend
+		* Class from which all editable controls extend
 		* @class [Fit.Controls.ControlBase ControlBase]
 		*/
 		class ControlBase
@@ -942,35 +1006,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -1024,12 +1065,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -1086,6 +1121,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* DatePicker control allowing user to easily pick a date and optionally time.
@@ -1108,9 +1173,9 @@ declare namespace Fit
 			/**
 			* Create instance of DatePicker control
 			* @function DatePicker
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			/**
 			* Get/set format used by the DatePicker control. This will affect the format
 			in which the date is presented, as well as the value returned by the GetText function.
@@ -1201,35 +1266,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -1283,12 +1325,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -1345,6 +1381,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Simple Dialog control with support for Fit.UI buttons.
@@ -1405,19 +1471,9 @@ declare namespace Fit
 			/**
 			* Create instance of Dialog control
 			* @function Dialog
+			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor();
-			/**
-			* Destroys component to free up memory, including associated buttons
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
+			constructor(controlId?:string);
 			/**
 			* Get/set dialog maximum width - returns object with Value and Unit properties
 			* @function MaximumWidth
@@ -1454,6 +1510,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Drop Down Menu control allowing for single and multi selection.
@@ -1493,9 +1579,9 @@ declare namespace Fit
 			/**
 			* Create instance of DropDown control
 			* @function DropDown
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			/**
 			* Get/set max height of drop down - returns object with Value (number) and Unit (string) properties
 			* @function DropDownMaxHeight
@@ -1650,35 +1736,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -1732,12 +1795,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -1794,6 +1851,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Control allowing for files to be selected locally and uploaded asynchronously.
@@ -1813,9 +1900,9 @@ declare namespace Fit
 			/**
 			* Create instance of FilePicker control
 			* @function FilePicker
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			/**
 			* Get collection of selected files. Each file is represented as an object with the following members:
 			- Filename:string (Name of selected file)
@@ -1989,35 +2076,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -2071,12 +2135,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -2133,6 +2191,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Input control which allows for one or multiple lines of
@@ -2161,9 +2249,9 @@ declare namespace Fit
 			/**
 			* Create instance of Input control
 			* @function Input
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			/**
 			* Get/set value indicating whether control is maximizable
 			* @function Maximizable
@@ -2231,35 +2319,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -2313,12 +2378,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -2375,6 +2434,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Picker control which allows for entries
@@ -2401,8 +2490,7 @@ declare namespace Fit
 			/**
 			* Create instance of ListView control
 			* @function ListView
-			* @param {string} [controlId=undefined] - Unique control ID. if specified, control will be
-			accessible using the Fit.Controls.Find(..) function.
+			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
 			constructor(controlId?:string);
 			/**
@@ -2436,12 +2524,6 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -2534,6 +2616,36 @@ declare namespace Fit
 			* @param {boolean} selected - True if item was selected, False if item was deselected
 			*/
 			public UpdateItemSelection(value:string, selected:boolean):void;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Class from which all Picker Controls extend.
@@ -2577,12 +2689,6 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -2684,23 +2790,6 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.ProgressBar
 			/**
-			* Destroys control to free up memory
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID - returns Null if not set
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
-			/**
 			* Set callback function invoked when progress is changed
 			* @function OnProgress
 			* @param {Function} cb - Callback function invoked when progress is changed - takes progress bar instance as argument
@@ -2716,16 +2805,9 @@ declare namespace Fit
 			/**
 			* Create instance of ProgressBar control
 			* @function ProgressBar
-			* @param {string} [controlId=undefined] - Unique control ID. if specified, control will be
-			accessible using the Fit.Controls.Find(..) function.
+			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
 			constructor(controlId?:string);
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set title in progress bar
 			* @function Title
@@ -2741,6 +2823,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* TreeView control allowing data to be listed in a structured manner.
@@ -2961,9 +3073,9 @@ declare namespace Fit
 			/**
 			* Create instance of TreeView control
 			* @function TreeView
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			/**
 			* Get/set value indicating whether Word Wrapping is enabled
 			* @function WordWrap
@@ -2991,12 +3103,6 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -3118,35 +3224,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -3200,12 +3283,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -3262,6 +3339,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* 
@@ -3452,8 +3559,9 @@ declare namespace Fit
 			/**
 			* Create instance of WSContextMenu control
 			* @function WSContextMenu
+			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor();
+			constructor(controlId?:string);
 			// Functions defined by Fit.Controls.ContextMenu
 			/**
 			* Add item to ContextMenu
@@ -3468,11 +3576,6 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public DetectBoundaries(val?:boolean):boolean;
-			/**
-			* Destroys component to free up memory
-			* @function Dispose
-			*/
-			public Dispose():void;
 			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
@@ -3500,12 +3603,6 @@ declare namespace Fit
 			* @returns Fit.Controls.ContextMenuItem[]
 			*/
 			public GetChildren():Fit.Controls.ContextMenuItem[];
-			/**
-			* Get DOMElement representing context menu
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
 			/**
 			* Hide context menu
 			* @function Hide
@@ -3566,6 +3663,36 @@ declare namespace Fit
 			* @param {number} [y=undefined] - If defined, context menu will open at specified vertical position
 			*/
 			public Show(x?:number, y?:number):void;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* WebService enabled Drop Down Menu control allowing for single and multi selection.
@@ -3667,9 +3794,9 @@ declare namespace Fit
 			/**
 			* Create instance of WSDropDown control
 			* @function WSDropDown
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			// Functions defined by Fit.Controls.DropDown
 			/**
 			* Add selection to control
@@ -3851,35 +3978,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -3933,12 +4037,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -3995,6 +4093,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* WebService enabled picker control which allows for entries
@@ -4084,10 +4212,9 @@ declare namespace Fit
 			/**
 			* Create instance of WSListView control
 			* @function WSListView
-			* @param {string} [controlId=undefined] - Unique control ID. if specified, control will be
-			accessible using the Fit.Controls.Find(..) function.
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(controlId?:string);
+			constructor(ctlId?:string);
 			// Functions defined by Fit.Controls.ListView
 			/**
 			* Add item to ListView
@@ -4134,12 +4261,6 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -4232,6 +4353,36 @@ declare namespace Fit
 			* @param {boolean} selected - True if item was selected, False if item was deselected
 			*/
 			public UpdateItemSelection(value:string, selected:boolean):void;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* TreeView control allowing data from a
@@ -4364,9 +4515,9 @@ declare namespace Fit
 			/**
 			* Create instance of WSTreeView control
 			* @function WSTreeView
-			* @param {string} ctlId - Unique control ID
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
-			constructor(ctlId:string);
+			constructor(ctlId?:string);
 			// Functions defined by Fit.Controls.TreeView
 			/**
 			* Add node to TreeView
@@ -4578,12 +4729,6 @@ declare namespace Fit
 			*/
 			public GetDomElement():HTMLElement;
 			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
-			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
 			picker control to handle keyboard navigation with keys such as
@@ -4704,35 +4849,12 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
-			* Destroys control to free up memory.
-			Make sure to call Dispose() on ControlBase which can be done like so:
-			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-			{
-				// Add control specific dispose logic here
-				base(); // Call Dispose on ControlBase
-			});
-			* @function Dispose
-			*/
-			public Dispose():void;
-			/**
 			* Get/set value indicating whether control has focus
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
-			/**
-			* Get DOMElement representing control
-			* @function GetDomElement
-			* @returns HTMLElement
-			*/
-			public GetDomElement():HTMLElement;
-			/**
-			* Get unique Control ID
-			* @function GetId
-			* @returns string
-			*/
-			public GetId():string;
 			/**
 			* Check whether CSS class is found on DOMElement representing control
 			* @function HasCssClass
@@ -4786,12 +4908,6 @@ declare namespace Fit
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
-			/**
-			* Render control, either inline or to element specified
-			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
-			*/
-			public Render(toElement?:HTMLElement):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -4848,6 +4964,36 @@ declare namespace Fit
 			* @returns any
 			*/
 			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
 		}
 		/**
 		* Enum values determining visual appearance of button controls
@@ -5529,6 +5675,12 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, eventId:number):void;
 		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -5536,12 +5688,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
@@ -5933,8 +6079,11 @@ declare namespace Fit
 		* @param {boolean} [refreshable=false] - Flag indicating whether template can be updated after being rendered
 		to DOM. A value of True results in template being wrapped in a div container
 		controlled by the templating system.
+		* @param {boolean} [autoDispose=true] - Flag indicating whether Fit.UI controls should be automatically disposed
+		when removed from view. Controls are disposed once changes are pushed to
+		DOM using the Update() function.
 		*/
-		constructor(refreshable?:boolean);
+		constructor(refreshable?:boolean, autoDispose?:boolean);
 		/**
 		* Push changes to DOM to make them visible through the user interface
 		* @function Update
