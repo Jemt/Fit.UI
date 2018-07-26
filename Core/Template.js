@@ -71,7 +71,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 	var container = null;
 	var elements = [];		// Holds references to all DOMElements added to template
 	var eventHandlers = []; // Holds references to all event handler functions associated with DOM elements
-	var controls = [];		// Holds references to all Fit.UI controls rendered to DOM view
+	var controls = [];		// Holds references to all Fit.UI controls (DOMElements) rendered to DOM view
 
 	function init()
 	{
@@ -275,7 +275,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 
 			if (elm.Element._internal !== undefined && elm.Element._internal.Instance !== undefined) // Fit.UI control inheriting from Fit.Controls.Component which is disposable
 			{
-				Fit.Array.Add(controls, elm.Element._internal.Instance);
+				Fit.Array.Add(controls, elm.Element);
 			}
 		});
 
@@ -285,10 +285,10 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		{
 			Fit.Array.ForEach(oldControls, function(oldControl)
 			{
-				// Dispose control if no longer found in view
-				if (Fit.Array.Contains(controls, oldControl) === false)
+				// Dispose control if no longer found in view, unless manually disposed by external code in which case the _internal property no longer exists
+				if (Fit.Array.Contains(controls, oldControl) === false && oldControl._internal !== undefined)
 				{
-					oldControl.Dispose();
+					oldControl._internal.Instance.Dispose();
 				}
 			});
 		}

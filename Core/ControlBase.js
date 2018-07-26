@@ -80,7 +80,7 @@ Fit.Controls.Component = function(controlId)
 		// This will destroy control - it will no longer work!
 
 		Fit.Dom.Remove(container); // Dispose 'container' rather than object returned from GetDomElement() which may have been overridden and potentially returning a different object, in which case the derivative should dispose the object
-		delete container._internal; // Removed in case external code holds a reference to DOMElement. Also allows us to internally determine whether control has been disposed or not, since it will always be presented unless disposed.
+		delete container._internal; // Removed in case external code holds a reference to DOMElement. Also allows us to internally determine whether control has been disposed or not (e.g. in Fit.Template), since it will always be presented unless disposed.
 		delete Fit._internal.ControlBase.Controls[id];
 		me = id = container = null;
 	}
