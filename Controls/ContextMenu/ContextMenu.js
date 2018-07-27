@@ -340,6 +340,7 @@ Fit.Controls.ContextMenu = function(controlId)
 		if (me.IsVisible() === true)
 		{
 			Fit.Dom.Remove(tree.GetDomElement());
+			fireEventHandlers(onHide);
 
 			Fit.Array.ForEach(tree.GetChildren(), function(n) // OnToggled handler makes sure to collapse nodes recursively
 			{
@@ -355,8 +356,6 @@ Fit.Controls.ContextMenu = function(controlId)
 			{
 				Fit.Dom.Data(ul, "viewportcollision", null);
 			});
-
-			fireEventHandlers(onHide); // Should be last in case a handler disposes ContextMenu
 		}
 	}
 
