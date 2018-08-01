@@ -19,6 +19,10 @@
     <link rel="stylesheet" type="text/css" href="../Core/Styles.css">
     <link rel="stylesheet" type="text/css" href="Resources.css">
 
+    <!-- Load CSS resources on Legacy IE -->
+    <!-- Disable resources above to use this! Make sure to rebuild Fit.UI before testing! -->
+    <!--link rel="stylesheet" type="text/css" href="../build/dist/Fit.UI.css"-->
+
     <!-- Load core (alphabetically, except for Core.js which MUST come first and Events.js which depends on Core, Array, Browser, Dom, Data, and Validation) -->
     <script src="../Core/Core.js"></script> <!-- Must come first -->
     <script src="../Core/Array.js"></script>
@@ -73,6 +77,9 @@
     // So to make sure images work (e.g. helper lines for TreeView: Controls/TreeView/gfxDotLine.png)
     // we need to make sure the CSS is loaded at the document root level, just like the merged version
     // gets loaded at the document root level (Fit.UI[.min].css).
+    // WARNING: Does NOT work with Legacy IE!
+    // To test in IE build Fit.UI and include a reference to Fit.UI.css in head,
+    // and remove/disable references to ../Core/Styles.css and Resources.css.
     var css = "";
     var cssCount = 0;
     Fit.Array.ForEach(controls, function(controlInfo)
