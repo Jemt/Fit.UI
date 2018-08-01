@@ -3,11 +3,11 @@
 Stacking context, Z-index:
 
  - Error indicator			: 500
- - Calendar					: 1000
  - Drop down				: 1000
  - Dialog					: 1200
    - Modal BG layer			: 1100
- - Context menu				: 1300
+ - Context menu				: 1300 (mounted in <body>)
+ - Calendar					: 1300 (mounted in <body>)
  - Dragging					: 99999
 
 */
