@@ -617,6 +617,8 @@ Fit.Controls.Input = function(ctlId)
 				{
 					var h = me.Height();
 					me.Height(((h.Value >= 150 && h.Unit === "px") ? h.Value : 150));
+
+					designEditor._isReadyForInteraction = true;
 				},
 				change: function()
 				{
@@ -638,6 +640,19 @@ Fit.Controls.Input = function(ctlId)
 	{
 		if (designEditor !== null)
 		{
+			if (designEditor._isReadyForInteraction !== true)
+			{
+				// Postpone, editor is not ready yet.
+				// This may happen when editor is created and Width(..) is
+				// immediately set after creating and mounting the control.
+				// https://github.com/Jemt/Fit.UI/issues/34
+				// This is a problem because CKEditor uses setTimeout(..) to for instance
+				// allow early registration of events, and because resources are loaded
+				// in an async. manner.
+				setTimeout(updateDesignEditorSize, 100);
+				return;
+			}
+
 			var w = me.Width();
 			var h = me.Height();
 
