@@ -67,7 +67,7 @@ div.fitui-datepicker select:focus
 div.fitui-datepicker
 {
 	margin-top: 1px;
-	z-index: 1000 !important; /* Using !important to override inline style */
+	z-index: 1300 !important; /* Using !important to override inline style */
 }
 
 td.fitui-datepicker-week-col
