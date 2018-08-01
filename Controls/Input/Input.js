@@ -129,8 +129,7 @@ Fit.Controls.Input = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	var baseDispose = me.Dispose;
-	this.Dispose = function()
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		// This will destroy control - it will no longer work!
 
@@ -139,28 +138,26 @@ Fit.Controls.Input = function(ctlId)
 
 		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = isIe8 = null;
 
-		baseDispose();
-	}
+		base();
+	});
 
 	// See documentation on ControlBase
-	var baseWidth = me.Width;
-	this.Width = function(val, unit)
+	this.Width = Fit.Core.CreateOverride(this.Width, function(val, unit)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			baseWidth(val, unit);
+			base(val, unit);
 			updateDesignEditorSize();
 		}
 
-		return baseWidth();
-	}
+		return base();
+	});
 
 	// See documentation on ControlBase
-	var baseHeight = me.Height;
-	this.Height = function(val, unit, suppressMinMax)
+	this.Height = Fit.Core.CreateOverride(this.Height, function(val, unit, suppressMinMax)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
@@ -168,7 +165,7 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			var h = baseHeight(val, unit);
+			var h = base(val, unit);
 			updateDesignEditorSize(); // Throws error if in DesignMode and unit is not px
 
 			if (me.Maximizable() === true && suppressMinMax !== true)
@@ -181,8 +178,8 @@ Fit.Controls.Input = function(ctlId)
 			}
 		}
 
-		return baseHeight();
-	}
+		return base();
+	});
 
 	// ============================================
 	// Public
@@ -549,27 +546,6 @@ Fit.Controls.Input = function(ctlId)
 
 	function createEditor()
 	{
-		// Prevent the following error: Uncaught TypeError: Cannot read property 'getEditor' of undefined
-		// It seems CKEDITOR is not happy about initializing multiple instances at once.
-		if (CKEDITOR._loading === true)
-		{
-			setTimeout(function()
-			{
-				if (me === null)
-				{
-					return; // Control was disposed while waiting for another editor to finish initialization - stop waiting
-				}
-
-				createEditor();
-			}, 100);
-			
-			return;
-		}
-		CKEDITOR._loading = true;
-		CKEDITOR.on("instanceLoaded", function () { CKEDITOR._loading = false; });
-
-		// Create editor
-
 		// NOTICE: CKEDITOR requires input control to be rooted in DOM.
 		// Creating the editor when Render(..) is called is not the solution, since the programmer
 		// may call GetDomElement() instead and root the element at any given time which is out of our control.
@@ -581,7 +557,6 @@ Fit.Controls.Input = function(ctlId)
 		// the size of objects while being invisible. The CKEditor team may also solve the bug in an update.
 		if (Fit.Dom.IsRooted(me.GetDomElement()) === false)
 		{
-			CKEDITOR._loading = false;
 			Fit.Validation.ThrowError("Control must be appended/rendered to DOM before DesignMode can be initialized");
 		}
 
