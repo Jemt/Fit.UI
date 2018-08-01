@@ -121,7 +121,7 @@ Stacking context, Z-index:
 
 /* Drag and Drop */
 
-.FitDragDropDraggable
+.FitDragDropDraggableHandle
 {
     cursor: move;
     user-select: none;

@@ -29,6 +29,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		Fit._internal.Core.EnsureStyles();
 
         Fit.Dom.AddClass(elm, "FitDragDropDraggable");
+        Fit.Dom.AddClass((trgElm !== null ? trgElm : elm), "FitDragDropDraggableHandle");
 
         // Mouse down
 
