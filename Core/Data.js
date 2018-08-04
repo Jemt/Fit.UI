@@ -207,8 +207,8 @@ Fit.Math.Format = function(value, decimals, decimalSeparator)
 
 /// <function container="Fit.Math" name="Random" access="public" static="true" returns="integer">
 /// 	<description> Get random integer value </description>
-/// 	<param name="min" type="integer" default="undefined> Minimum value - assumes 0 if not defined </param>
-/// 	<param name="max" type="integer" default="undefined> Maximum value - assumes Number.MAX_SAFE_INTEGER (9007199254740991) if not defined </param>
+/// 	<param name="min" type="integer" default="undefined"> Minimum value - assumes 0 if not defined </param>
+/// 	<param name="max" type="integer" default="undefined"> Maximum value - assumes Number.MAX_SAFE_INTEGER (9007199254740991) if not defined </param>
 /// </function>
 Fit.Math.Random = function(min, max)
 {
