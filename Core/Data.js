@@ -205,6 +205,22 @@ Fit.Math.Format = function(value, decimals, decimalSeparator)
     return ((Fit.Validation.IsSet(decimalSeparator) === true) ? str.replace(".", decimalSeparator) : str);
 }
 
+/// <function container="Fit.Math" name="Random" access="public" static="true" returns="integer">
+/// 	<description> Get random integer value </description>
+/// 	<param name="min" type="integer" default="undefined> Minimum value - assumes 0 if not defined </param>
+/// 	<param name="max" type="integer" default="undefined> Maximum value - assumes Number.MAX_SAFE_INTEGER (9007199254740991) if not defined </param>
+/// </function>
+Fit.Math.Random = function(min, max)
+{
+	Fit.Validation.ExpectInteger(min, true);
+	Fit.Validation.ExpectInteger(max, true);
+
+	var mn = Fit.Validation.IsSet(min) === true ? min : 0;
+	var mx = Fit.Validation.IsSet(max) === true ? max : 9007199254740991; // Number.MAX_SAFE_INTEGER not supported by IE
+
+	return Math.floor(Math.random() * (mx - mn + 1)) + mn;
+}
+
 
 // =====================================
 // String
