@@ -806,10 +806,13 @@ Fit.Controls.Dialog = function(controlId)
 			return;
 		}
 
-		// Ensure container for title buttons
+		// Ensure title bar and container for title buttons
 
 		if (titleButtons === null && (cmdMaximize !== null || cmdDismiss !== null))
 		{
+			if (me.Title() === null)
+				me.Title("");
+
 			titleButtons = document.createElement("div");
 			Fit.Dom.AddClass(titleButtons, "FitUiControlDialogTitleButtons");
 			Fit.Dom.Add(title, titleButtons);
