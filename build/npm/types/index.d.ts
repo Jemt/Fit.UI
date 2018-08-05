@@ -1469,11 +1469,63 @@ declare namespace Fit
 			*/
 			public ContentDomElement(elm?:HTMLElement):HTMLElement;
 			/**
+			* Get/set content URL - returns null if not set
+			* @function ContentUrl
+			* @param {string} [url=undefined] - If specified, dialog is updated with content from specified URL
+			* @param {Function} [onLoadHandler=undefined] - If specified, callback is invoked when content has been loaded
+			* @returns string
+			*/
+			public ContentUrl(url?:string, onLoadHandler?:Function):string;
+			/**
 			* Create instance of Dialog control
 			* @function Dialog
 			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
 			constructor(controlId?:string);
+			/**
+			* Get/set flag indicating whether dialog is dismissible or not
+			* @function Dismissible
+			* @param {boolean} [val=undefined] - If defined, a value of True makes dialog dismissible by adding a close button while False disables it
+			* @param {boolean} [disposeOnDismiss=undefined] - If defined, a value of True results in dialog being disposed (destroyed) when closed using dismiss/close button
+			* @returns boolean
+			*/
+			public Dismissible(val?:boolean, disposeOnDismiss?:boolean):boolean;
+			/**
+			* Get/set dialog height - returns object with Value and Unit properties
+			* @function Height
+			* @param {number} [val=undefined] - If defined, dialog height is updated to specified value. A value of -1 resets height to default.
+			* @param {string} [unit=px] - If defined, dialog width is updated to specified CSS unit
+			* @returns any
+			*/
+			public Height(val?:number, unit?:string):any;
+			/**
+			* Get flag indicating whether dialog is open or not
+			* @function IsOpen
+			* @returns boolean
+			*/
+			public IsOpen():boolean;
+			/**
+			* Get/set flag indicating whether dialog is maximizable or not
+			* @function Maximizable
+			* @param {boolean} [val=undefined] - If defined, a value of True makes dialog maximizable by adding a maximize button while False disables it
+			* @returns boolean
+			*/
+			public Maximizable(val?:boolean):boolean;
+			/**
+			* Get/set flag indicating whether dialog is maximized or not
+			* @function Maximized
+			* @param {boolean} [val=undefined] - If defined, True maximizes dialog while False restores it
+			* @returns boolean
+			*/
+			public Maximized(val?:boolean):boolean;
+			/**
+			* Get/set dialog maximum height - returns object with Value and Unit properties
+			* @function MaximumHeight
+			* @param {number} [val=undefined] - If defined, dialog maximum height is updated to specified value. A value of -1 resets maximum height.
+			* @param {string} [unit=px] - If defined, dialog maximum height is updated to specified CSS unit
+			* @returns any
+			*/
+			public MaximumHeight(val?:number, unit?:string):any;
 			/**
 			* Get/set dialog maximum width - returns object with Value and Unit properties
 			* @function MaximumWidth
@@ -1482,6 +1534,14 @@ declare namespace Fit
 			* @returns any
 			*/
 			public MaximumWidth(val?:number, unit?:string):any;
+			/**
+			* Get/set dialog minimum height - returns object with Value and Unit properties
+			* @function MinimumHeight
+			* @param {number} [val=undefined] - If defined, dialog minimum height is updated to specified value. A value of -1 resets minimum height.
+			* @param {string} [unit=px] - If defined, dialog minimum height is updated to specified CSS unit
+			* @returns any
+			*/
+			public MinimumHeight(val?:number, unit?:string):any;
 			/**
 			* Get/set dialog minimum width - returns object with Value and Unit properties
 			* @function MinimumWidth
@@ -1498,10 +1558,38 @@ declare namespace Fit
 			*/
 			public Modal(val?:boolean):boolean;
 			/**
+			* Add event handler fired when dialog is being dismissed (closed).
+			Action can be suppressed by returning False.
+			Function receives one argument: Sender (Fit.Controls.Dialog)
+			* @function OnDismiss
+			* @param {Function} cb - Event handler function
+			*/
+			public OnDismiss(cb:Function):void;
+			/**
 			* Open dialog
 			* @function Open
 			*/
 			public Open():void;
+			/**
+			* Remove all buttons from dialog
+			* @function RemoveAllButtons
+			* @param {boolean} [dispose=undefined] - If defined, a value of True results in buttons being disposed (destroyed)
+			*/
+			public RemoveAllButtons(dispose?:boolean):void;
+			/**
+			* Remove button from dialog
+			* @function RemoveButton
+			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button
+			* @param {boolean} [dispose=undefined] - If defined, a value of True results in button being disposed (destroyed)
+			*/
+			public RemoveButton(btn:Fit.Controls.Button, dispose?:boolean):void;
+			/**
+			* Get/set title - returns null if not set, and null can be passed to remove title
+			* @function Title
+			* @param {string} [val=undefined] - If specified, dialog title is updated with specified value
+			* @returns string
+			*/
+			public Title(val?:string):string;
 			/**
 			* Get/set dialog width - returns object with Value and Unit properties
 			* @function Width
@@ -5660,6 +5748,13 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {number} eventId - Event ID identifying handler to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -5667,13 +5762,6 @@ declare namespace Fit
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
-		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
@@ -5875,6 +5963,14 @@ declare namespace Fit
 		* @returns string
 		*/
 		export function Format(value:number, decimals:number, decimalSeparator?:string):string;
+		/**
+		* Get random integer value
+		* @function Random
+		* @param {number} [min=undefined] - Minimum value - assumes 0 if not defined
+		* @param {number} [max=undefined] - Maximum value - assumes Number.MAX_SAFE_INTEGER (9007199254740991) if not defined
+		* @returns number
+		*/
+		export function Random(min?:number, max?:number):number;
 		/**
 		* Round off value to a number with the specified precision
 		* @function Round
