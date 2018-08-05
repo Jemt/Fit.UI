@@ -126,25 +126,25 @@ Fit.Controls.Dialog = function(controlId)
 
 					setContentHeight();
 				}
-
-				return;
 			}
-			
-			if (title === null)
+			else
 			{
-				title = document.createElement("div");
-				Fit.Dom.AddClass(title, "FitUiControlDialogTitle");
-				Fit.Dom.InsertAt(dialog, 0, title);
+				if (title === null)
+				{
+					title = document.createElement("div");
+					Fit.Dom.AddClass(title, "FitUiControlDialogTitle");
+					Fit.Dom.InsertAt(dialog, 0, title);
+				}
+
+				Fit.Dom.Text(title, val);
+
+				if (titleButtons !== null)
+				{
+					Fit.Dom.Add(title, titleButtons);
+				}
+
+				setContentHeight();
 			}
-
-			Fit.Dom.Text(title, val);
-
-			if (titleButtons !== null)
-			{
-				Fit.Dom.Add(title, titleButtons);
-			}
-
-			setContentHeight();
 		}
 
 		return (title !== null ? Fit.Dom.Text(title) : null);
