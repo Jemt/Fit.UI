@@ -13,6 +13,8 @@ Fit.Controls.Component = function(controlId)
 	var id = null;
 	var container = null;
 
+	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
+
 	function init()
 	{
 		Fit._internal.Core.EnsureStyles();
@@ -82,7 +84,39 @@ Fit.Controls.Component = function(controlId)
 		Fit.Dom.Remove(container); // Dispose 'container' rather than object returned from GetDomElement() which may have been overridden and potentially returning a different object, in which case the derivative should dispose the object
 		delete container._internal; // Removed in case external code holds a reference to DOMElement. Also allows us to internally determine whether control has been disposed or not (e.g. in Fit.Template), since it will always be presented unless disposed.
 		delete Fit._internal.ControlBase.Controls[id];
-		me = id = container = null;
+		me = id = container = isIe8 = null;
+	}
+
+	// Internals
+
+	this._internal = (this._internal ? this._internal : {});
+
+	this._internal.Repaint = function(f) // Use callback function if a repaint is required both before and after a given operation, which often requires JS thread to be released on IE
+	{
+		Fit.Validation.ExpectFunction(f, true);
+
+		var cb = ((Fit.Validation.IsSet(f) === true) ? f : function() {});
+
+		if (isIe8 === false)
+		{
+			cb();
+		}
+		else
+		{
+			// Flickering may occure on IE8 when updating UI over time
+			// (UI update + JS thread released + UI updates again "later").
+
+			Fit.Dom.AddClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
+			Fit.Dom.RemoveClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
+
+			setTimeout(function()
+			{
+				cb();
+
+				Fit.Dom.AddClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
+				Fit.Dom.RemoveClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
+			}, 0);
+		}
 	}
 
 	init();
@@ -177,7 +211,6 @@ Fit.Controls.ControlBase = function(controlId)
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
-	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	function init()
 	{
@@ -276,7 +309,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = isIe8 = null;
+		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = null;
 		base();
 	});
 
@@ -688,8 +721,6 @@ Fit.Controls.ControlBase = function(controlId)
 
 	// Private members (must be public in order to be accessible to controls extending from ControlBase)
 
-	this._internal = (this._internal ? this._internal : {});
-
 		this._internal.FireOnChange = function()
 		{
 			hasValidated = true;
@@ -797,34 +828,6 @@ Fit.Controls.ControlBase = function(controlId)
 			}
 
 			me._internal.Repaint();
-		}
-
-		this._internal.Repaint = function(f) // Use callback function if a repaint is required both before and after a given operation, which often requires JS thread to be released on IE
-		{
-			Fit.Validation.ExpectFunction(f, true);
-
-			var cb = ((Fit.Validation.IsSet(f) === true) ? f : function() {});
-
-			if (isIe8 === false)
-			{
-				cb();
-			}
-			else
-			{
-				// Flickering may occure on IE8 when updating UI over time
-				// (UI update + JS thread released + UI updates again "later").
-
-				Fit.Dom.AddClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
-				Fit.Dom.RemoveClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
-
-				setTimeout(function()
-				{
-					cb();
-
-					Fit.Dom.AddClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
-					Fit.Dom.RemoveClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");
-				}, 0);
-			}
 		}
 
 	init();
