@@ -9,8 +9,7 @@ div.FitUiControlDialog
 
 	/* Centering for Legacy browsers - unfortunately this does not work with width:auto, so it defaults to 50% */
 	width: 50%; /* Must be identical to the value specified in Width(..) in Dialog.js ! */
-	overflow: auto; /* Show scroll if too much information is squeezed into the dialog */
-	top: 2em;
+	top: 5%;
 	left: 0px;
 	right: 0px;
 	margin: 0 auto;
@@ -24,7 +23,6 @@ div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below *
 
 	/* Centering for modern browsers - automatically fits to content */
 	width: auto;
-	overflow: visible;
 	margin: 0;
 	top: 25%;
 	left: 50%;
@@ -35,14 +33,81 @@ div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below *
 	-o-transform: translate(-50%, -25%);
 	transform: translate(-50%, -25%);
 }
+div.FitUiControlDialog[data-maximized="true"]
+{
+	/* Using !important due to specificity above (:not(#LegacyIE)).
+	   Defining the selector like below will break it in Legacy IE:
+	   div.FitUiControlDialog[data-maximized="true"]:not(#LegacyIE), div.FitUiControlDialog[data-maximized="true"] { ... } */
+	top: 2% !important;
+	bottom: 2% !important;
+	left: 5% !important;  /* Safari on iOS will adjust iFrame height to fit its content (which makes scrolling impossible) if left/right values are lowered any further! */
+	right: 5% !important; /* Safari on iOS will adjust iFrame height to fit its content (which makes scrolling impossible) if left/right values are lowered any further! */
+	-webkit-transform: none !important;
+	-moz-transform: none !important;
+	-ms-transform: none !important;
+	-o-transform: none !important;
+	transform: none !important;
+
+	/* Using !important to override properties in style attribute */
+	width: auto !important;
+	min-width: 0 !important;
+	max-width: none !important;
+	height: auto !important;
+	min-height: 0 !important;
+	max-height: none !important;
+}
+
+div.FitUiControlDialogTitle
+{
+	padding: 1em;
+	font-size: 1.1em;
+	font-weight: bold;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+div.FitUiControlDialogTitleButtons
+{
+	position: absolute;
+	right: 0;
+	top: 0;
+	padding: 0.65em;
+}
+
+div.FitUiControlDialogTitle,
+div.FitUiControlDialogTitleButtons
+{
+	background-color: white;
+	border-bottom: 1px solid silver;
+	height: 3.2em;
+}
+
+.FitUiControlDialogTitle div.FitUiControlButton + div.FitUiControlButton
+{
+	margin-left: 0.5em;
+}
 
 div.FitUiControlDialogContent
 {
 	padding: 1.5em;
+	overflow: auto;
+	height: 100%;
+}
+
+div.FitUiControlDialog[data-framed="true"]
+{
+	height: 40%;
+}
+div.FitUiControlDialog iframe
+{
+	display: block;
+	width: 100%;
+	height: 100%;
 }
 
 div.FitUiControlDialogButtons
 {
+	/*background-color: white;*/
 	padding: 0px;
 	border-top: 1px solid silver;
 	text-align: right;

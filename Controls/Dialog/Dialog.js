@@ -13,6 +13,10 @@ Fit.Controls.Dialog = function(controlId)
 
 	var me = this;
 	var dialog = me.GetDomElement();
+	var title = null;
+	var titleButtons = null;
+	var cmdMaximize = null;
+	var cmdDismiss = null;
 	var content = null;
 	var buttons = null;
 	var modal = false;
@@ -22,6 +26,13 @@ Fit.Controls.Dialog = function(controlId)
 	var minWidth = null;
 	var maxWidth = null;
 
+	var height = null;
+	var minHeight = null;
+	var maxHeight = null;
+	var mutationObserverId = -1;
+
+	var onDismissHandlers = [];
+
 	// ============================================
 	// Init
 	// ============================================
@@ -30,14 +41,11 @@ Fit.Controls.Dialog = function(controlId)
 	{
 		Fit.Dom.AddClass(dialog, "FitUiControl");
 		Fit.Dom.AddClass(dialog, "FitUiControlDialog");
+		Fit.Dom.Data(dialog, "framed", "false");
+		Fit.Dom.Data(dialog, "maximized", "false");
 
-		content = document.createElement("div");
-		Fit.Dom.AddClass(content, "FitUiControlDialogContent");
+		content = createContentElement();
 		Fit.Dom.Add(dialog, content);
-
-		buttons = document.createElement("div");
-		Fit.Dom.AddClass(buttons, "FitUiControlDialogButtons");
-		Fit.Dom.Add(dialog, buttons);
 
 		layer = document.createElement("div");
 		Fit.Dom.AddClass(layer, "FitUiControlDialogModalLayer");
@@ -49,7 +57,7 @@ Fit.Controls.Dialog = function(controlId)
 			var ev = Fit.Events.GetEvent(e);
 			var key = Fit.Events.GetModifierKeys();
 
-			if (modal === true && buttons.children.length > 0 && ev.keyCode === 9) // Tab key
+			if (modal === true && buttons !== null && ev.keyCode === 9) // Tab key
 			{
 				var buttonFocused = Fit.Dom.GetFocused();
 
@@ -79,13 +87,13 @@ Fit.Controls.Dialog = function(controlId)
 			if (me === null)
 				return; // Dialog was disposed when a button was clicked
 
-			if (buttons.children.length > 0 && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
+			if (buttons !== null && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
 				buttons.children[0].focus();
 		});
 
 		Fit.Events.AddHandler(layer, "click", function(e)
 		{
-			if (buttons.children.length > 0 && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
+			if (buttons !== null && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
 				buttons.children[0].focus();
 		});
 	}
@@ -93,6 +101,54 @@ Fit.Controls.Dialog = function(controlId)
 	// ============================================
 	// Public
 	// ============================================
+
+	/// <function container="Fit.Controls.Dialog" name="Title" access="public" returns="string">
+	/// 	<description> Get/set title - returns null if not set, and null can be passed to remove title </description>
+	/// 	<param name="val" type="string" default="undefined"> If specified, dialog title is updated with specified value </param>
+	/// </function>
+	this.Title = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (val !== undefined) // Allow null to remove title
+		{
+			if (val === null && title !== null)
+			{
+				if (titleButtons !== null)
+				{
+					Fit.Dom.Text(title, "");
+					Fit.Dom.Add(title, titleButtons);
+				}
+				else
+				{
+					Fit.Dom.Remove(title);
+					title = null;
+
+					setContentHeight();
+				}
+
+				return;
+			}
+			
+			if (title === null)
+			{
+				title = document.createElement("div");
+				Fit.Dom.AddClass(title, "FitUiControlDialogTitle");
+				Fit.Dom.InsertAt(dialog, 0, title);
+			}
+
+			Fit.Dom.Text(title, val);
+
+			if (titleButtons !== null)
+			{
+				Fit.Dom.Add(title, titleButtons);
+			}
+
+			setContentHeight();
+		}
+
+		return (title !== null ? Fit.Dom.Text(title) : null);
+	}
 
 	/// <function container="Fit.Controls.Dialog" name="Width" access="public" returns="object">
 	/// 	<description> Get/set dialog width - returns object with Value and Unit properties </description>
@@ -204,6 +260,102 @@ Fit.Controls.Dialog = function(controlId)
 		return (maxWidth !== null ? maxWidth : (width !== null ? width : defaultValue));
 	}
 
+	/// <function container="Fit.Controls.Dialog" name="Height" access="public" returns="object">
+	/// 	<description> Get/set dialog height - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, dialog height is updated to specified value. A value of -1 resets height to default. </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, dialog width is updated to specified CSS unit </param>
+	/// </function>
+	this.Height = function(val, unit)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		// defaultValue must match height in Dialog.css
+		var defaultValue = (content.tagName === "IFRAME" ? { Value: 40, Unit: "%" } : { Value: -1, Unit: "px" });
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				height = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				dialog.style.height = height.Value + height.Unit;
+			}
+			else
+			{
+				height = null;
+				dialog.style.height = "";
+			}
+
+			setContentHeight();
+		}
+
+		return (height !== null ? height : defaultValue);
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="MinimumHeight" access="public" returns="object">
+	/// 	<description> Get/set dialog minimum height - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, dialog minimum height is updated to specified value. A value of -1 resets minimum height. </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, dialog minimum height is updated to specified CSS unit </param>
+	/// </function>
+	this.MinimumHeight = function(val, unit)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		// defaultValue must match min-height in Dialog.css (which is not defined)
+		var defaultValue = { Value: -1, Unit: "px" };
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				minHeight = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				dialog.style.minHeight = minHeight.Value + minHeight.Unit;
+			}
+			else
+			{
+				minHeight = null;
+				dialog.style.minHeight = "";
+			}
+
+			setContentHeight();
+		}
+
+		return (minHeight !== null ? minHeight : defaultValue);
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="MaximumHeight" access="public" returns="object">
+	/// 	<description> Get/set dialog maximum height - returns object with Value and Unit properties </description>
+	/// 	<param name="val" type="number" default="undefined"> If defined, dialog maximum height is updated to specified value. A value of -1 resets maximum height. </param>
+	/// 	<param name="unit" type="string" default="px"> If defined, dialog maximum height is updated to specified CSS unit </param>
+	/// </function>
+	this.MaximumHeight = function(val, unit)
+	{
+		Fit.Validation.ExpectNumber(val, true);
+		Fit.Validation.ExpectStringValue(unit, true);
+
+		// defaultValue must match max-height in Dialog.css (which is not defined)
+		var defaultValue = { Value: -1, Unit: "px" };
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > -1)
+			{
+				maxHeight = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				dialog.style.maxHeight = maxHeight.Value + maxHeight.Unit;
+			}
+			else
+			{
+				maxHeight = null;
+				dialog.style.maxHeight = "";
+			}
+
+			setContentHeight();
+		}
+
+		return (maxHeight !== null ? maxHeight : defaultValue);
+	}
+
 	/// <function container="Fit.Controls.Dialog" name="Modal" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether dialog is modal or not </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If specified, True enables modal mode, False disables it </param>
@@ -230,7 +382,14 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
+			if (content.tagName === "IFRAME") //if (Fit.Dom.HasClass(content, "FitUiControlDialogContent") === false)
+			{
+				var newContentElement = createContentElement();
+				me.ContentDomElement(newContentElement);
+			}
+
 			content.innerHTML = val;
+			setContentHeight();
 		}
 
 		return content.innerHTML;
@@ -246,11 +405,174 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (Fit.Validation.IsSet(elm) === true)
 		{
+			// Notice that the Dialog component may change the style.height property
+			// of the element to make it fit within the component. Also be aware that
+			// this may cause content within the element to overflow its container
+			// unless the overflow property is set on the element provided.
+
 			Fit.Dom.Replace(content, elm);
 			content = elm;
+
+			Fit.Dom.Data(dialog, "framed", (elm.tagName === "IFRAME" ? "true" : "false"));
+
+			setContentHeight();
 		}
 
 		return content;
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="ContentUrl" access="public" returns="string">
+	/// 	<description> Get/set content URL - returns null if not set </description>
+	/// 	<param name="url" type="string" default="undefined"> If specified, dialog is updated with content from specified URL </param>
+	/// 	<param name="onLoadHandler" type="function" default="undefined"> If specified, callback is invoked when content has been loaded </param>
+	/// </function>
+	this.ContentUrl = function(url, onLoadHandler)
+	{
+		Fit.Validation.ExpectString(url, true);
+		Fit.Validation.ExpectFunction(onLoadHandler, true);
+
+		if (Fit.Validation.IsSet(url) === true)
+		{
+			var iframe = Fit.Dom.CreateElement("<iframe src='" + url + "' frameBorder='0' allowtransparency='true'></iframe>");
+			
+			if (Fit.Validation.IsSet(onLoadHandler) === true)
+			{
+				Fit.Events.AddHandler(iframe, "load", function(e)
+				{
+					onLoadHandler(me);
+				});
+			}
+
+			me.ContentDomElement(iframe);
+		}
+
+		return (content.tagName === "IFRAME" ? content.src : null);
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="Maximized" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether dialog is maximized or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True maximizes dialog while False restores it </param>
+	/// </function>
+	this.Maximized = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			Fit.Dom.Data(dialog, "maximized", (val === true ? "true" : "false"));
+
+			if (cmdMaximize !== null)
+			{
+				if (Fit.Dom.Data(dialog, "maximized") === "true")
+				{
+					cmdMaximize.Icon("compress");
+				}
+				else
+				{
+					cmdMaximize.Icon("expand");
+				}
+			}
+
+			me._internal.Repaint();
+		}
+
+		return (Fit.Dom.Data(dialog, "maximized") === "true");
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="Maximizable" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether dialog is maximizable or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, a value of True makes dialog maximizable by adding a maximize button while False disables it </param>
+	/// </function>
+	this.Maximizable = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && cmdMaximize === null)
+			{
+				cmdMaximize = new Fit.Controls.Button();
+				cmdMaximize.Icon((me.Maximized() === false ? "expand" : "compress"));
+				cmdMaximize.OnClick(function(sender)
+				{
+					if (me.Maximized() === false)
+					{
+						me.Maximized(true); // Also updates button icon
+					}
+					else
+					{
+						me.Maximized(false); // Also updates button icon
+					}
+				});
+
+				updateTitleButtons();
+			}
+			else if (val === false && cmdMaximize !== null)
+			{
+				cmdMaximize.Dispose();
+				cmdMaximize = null;
+				updateTitleButtons();
+			}
+		}
+
+		return (cmdMaximize !== null);
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="Dismissible" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether dialog is dismissible or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, a value of True makes dialog dismissible by adding a close button while False disables it </param>
+	/// 	<param name="disposeOnDismiss" type="boolean" default="undefined"> If defined, a value of True results in dialog being disposed (destroyed) when closed using dismiss/close button </param>
+	/// </function>
+	this.Dismissible = function(val, disposeOnDismiss)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+		Fit.Validation.ExpectBoolean(disposeOnDismiss, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && cmdDismiss === null)
+			{
+				cmdDismiss = new Fit.Controls.Button();
+				cmdDismiss.Icon("close");
+				cmdDismiss.OnClick(function(sender)
+				{
+					var canceled = false;
+
+					Fit.Array.ForEach(onDismissHandlers, function(cb)
+					{
+						if (cb(me) === false)
+						{
+							canceled = true;
+							return false; // Break loop
+						}
+					});
+
+					if (canceled === true)
+					{
+						return;
+					}
+
+					if (disposeOnDismiss === true)
+					{
+						me.Dispose();
+					}
+					else
+					{
+						me.Close();
+					}
+				});
+
+				updateTitleButtons();
+			}
+			else if (val === false && cmdDismiss !== null)
+			{
+				cmdDismiss.Dispose();
+				cmdDismiss = null;
+				updateTitleButtons();
+			}
+		}
+
+		return (cmdDismiss !== null);
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="AddButton" access="public">
@@ -260,7 +582,93 @@ Fit.Controls.Dialog = function(controlId)
 	this.AddButton = function(btn)
 	{
 		Fit.Validation.ExpectInstance(btn, Fit.Controls.Button);
+
+		if (buttons === null)
+		{
+			buttons = document.createElement("div");
+			Fit.Dom.AddClass(buttons, "FitUiControlDialogButtons");
+			Fit.Dom.Add(dialog, buttons);
+		}
+
 		Fit.Dom.Add(buttons, btn.GetDomElement());
+
+		setContentHeight();
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="RemoveButton" access="public">
+	/// 	<description> Remove button from dialog </description>
+	/// 	<param name="btn" type="Fit.Controls.Button"> Instance of Fit.Controls.Button </param>
+	/// 	<param name="dispose" type="boolean" default="undefined"> If defined, a value of True results in button being disposed (destroyed) </param>
+	/// </function>
+	this.RemoveButton = function(btn, dispose)
+	{
+		Fit.Validation.ExpectInstance(btn, Fit.Controls.Button);
+		Fit.Validation.ExpectBoolean(dispose, true);
+
+		if (buttons === null)
+			return;
+
+		Fit.Array.ForEach(buttons.children, function(elm)
+		{
+			if (elm === btn.GetDomElement())
+			{
+				if (dispose === true)
+				{
+					btn.Dispose();
+				}
+				else
+				{
+					Fit.Dom.Remove(btn.GetDomElement());
+				}
+
+				if (buttons.children.length === 0)
+				{
+					Fit.Dom.Remove(buttons);
+					buttons = null;
+				}
+
+				setContentHeight();
+
+				return false; // Break loop
+			}
+		});
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="RemoveAllButtons" access="public">
+	/// 	<description> Remove all buttons from dialog </description>
+	/// 	<param name="dispose" type="boolean" default="undefined"> If defined, a value of True results in buttons being disposed (destroyed) </param>
+	/// </function>
+	this.RemoveAllButtons = function(dispose)
+	{
+		Fit.Validation.ExpectBoolean(dispose, true);
+
+		if (buttons === null)
+			return;
+
+		Fit.Array.ForEach(Fit.Array.Copy(buttons.children), function(buttonElm) // Using Copy(..) since code modifies children collection
+		{
+			if (dispose === true)
+			{
+				buttonElm._internal.Instance.Dispose();
+			}
+			else
+			{
+				Fit.Dom.Remove(buttonElm);
+			}
+		});
+
+		Fit.Dom.Remove(buttons);
+		buttons = null;
+
+		setContentHeight();
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="IsOpen" access="public" returns="boolean">
+	/// 	<description> Get flag indicating whether dialog is open or not </description>
+	/// </function>
+	this.IsOpen = function()
+	{
+		return (dialog.parentElement === document.body);
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="Open" access="public">
@@ -272,6 +680,12 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (modal === true)
 			Fit.Dom.Add(document.body, layer);
+		
+		setContentHeight();
+		mutationObserverId = Fit.Events.AddMutationObserver(dialog, function(elm)
+		{
+			setContentHeight();
+		});
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="Close" access="public">
@@ -279,6 +693,12 @@ Fit.Controls.Dialog = function(controlId)
 	/// </function>
 	this.Close = function()
 	{
+		if (me.IsOpen() === false)
+			return;
+
+		Fit.Events.RemoveMutationObserver(mutationObserverId);
+		mutationObserverId = -1;
+
 		Fit.Dom.Remove(dialog);
 
 		if (layer !== null)
@@ -294,16 +714,119 @@ Fit.Controls.Dialog = function(controlId)
 	{
 		if (layer !== null)
 			Fit.Dom.Remove(layer);
-
-		Fit.Array.ForEach(Fit.Array.Copy(buttons.children), function(buttonElm) // Using Copy(..) since Dispose() modifies children collection
+		
+		if (cmdMaximize !== null)
 		{
-			buttonElm._internal.Instance.Dispose();
-		});
+			cmdMaximize.Dispose();
+		}
 
-		me = dialog = content = buttons = modal = layer = width = minWidth = maxWidth = null;
+		if (cmdDismiss !== null)
+		{
+			cmdDismiss.Dispose();
+		}
+
+		if (buttons !== null)
+		{
+			Fit.Array.ForEach(Fit.Array.Copy(buttons.children), function(buttonElm) // Using Copy(..) since Dispose() modifies children collection
+			{
+				buttonElm._internal.Instance.Dispose();
+			});
+		}
+
+		if (mutationObserverId !== -1)
+		{
+			Fit.Events.RemoveMutationObserver(mutationObserverId);
+		}
+
+		me = dialog = title = titleButtons = cmdMaximize = cmdDismiss = content = buttons = modal = layer = width = minWidth = maxWidth = height = minHeight = maxHeight = mutationObserverId = onDismissHandlers = null;
 
 		base();
 	});
+
+	// ============================================
+	// Events
+	// ============================================
+
+	/// <function container="Fit.Controls.Dialog" name="OnDismiss" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when dialog is being dismissed (closed).
+	/// 		Action can be suppressed by returning False.
+	/// 		Function receives one argument: Sender (Fit.Controls.Dialog)
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnDismiss = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onDismissHandlers, cb);
+	}
+
+	// ============================================
+	// Private
+	// ============================================
+
+	function createContentElement()
+	{
+		var div = document.createElement("div");
+		Fit.Dom.AddClass(div, "FitUiControlDialogContent");
+		return div;
+	}
+
+	function setContentHeight()
+	{
+		if (me.IsOpen() === false)
+			return;
+
+		// By default the Dialog component adjusts its height to the content.
+		// But if Height/MinimumHeight/MaximumHeight is set, then make sure to
+		// adjust the height of the content element if title/buttons are added.
+		// If no title/buttons are added, the content element simply adjusts to the
+		// height of the dialog since it has height:100%.
+
+		content.style.height = "";
+
+		if ((buttons !== null || title !== null) && (me.Height().Value !== -1 || me.MinimumHeight().Value !== -1 || me.MaximumHeight().Value !== -1))
+		{
+			var dh = dialog.offsetHeight;
+			var th = (title !== null ? title.offsetHeight : 0);
+			var bh = (buttons !== null ? buttons.offsetHeight : 0);
+
+			content.style.height = (dh - th - bh) + "px";
+		}
+	}
+
+	function updateTitleButtons()
+	{
+		// Remove title buttons container if no longer needed
+
+		if (titleButtons !== null && cmdMaximize === null && cmdDismiss === null)
+		{
+			Fit.Dom.Remove(titleButtons);
+			titleButtons = null;
+			return;
+		}
+
+		// Ensure container for title buttons
+
+		if (titleButtons === null && (cmdMaximize !== null || cmdDismiss !== null))
+		{
+			titleButtons = document.createElement("div");
+			Fit.Dom.AddClass(titleButtons, "FitUiControlDialogTitleButtons");
+			Fit.Dom.Add(title, titleButtons);
+		}
+
+		// Add/re-add to ensure proper order
+
+		if (cmdMaximize !== null)
+		{
+			Fit.Dom.Add(titleButtons, cmdMaximize.GetDomElement());
+		}
+
+		if (cmdDismiss !== null)
+		{
+			Fit.Dom.Add(titleButtons, cmdDismiss.GetDomElement());
+		}
+	}
 
 	init();
 }
