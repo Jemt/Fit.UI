@@ -79,7 +79,9 @@
     // gets loaded at the document root level (Fit.UI[.min].css).
     // WARNING: Does NOT work with Legacy IE!
     // To test in IE build Fit.UI and include a reference to Fit.UI.css in head,
-    // and remove/disable references to ../Core/Styles.css and Resources.css.
+    // remove/disable references to ../Core/Styles.css and Resources.css above,
+    // disable code below that loads individual CSS files, and make sure to set
+    // controlsCssDone = true!
     var css = "";
     var cssCount = 0;
     Fit.Array.ForEach(controls, function(controlInfo)
@@ -100,6 +102,7 @@
         });
         r.Start();
     });
+    //controlsCssDone = true; // Enable this line when testing in Legacy IE
 
     var controlsJs = [];
     Fit.Array.ForEach(controls, function(controlInfo)
