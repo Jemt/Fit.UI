@@ -37,6 +37,17 @@ declare namespace Fit
 	*/
 	export function SetPath(basePath:string):void;
 	/**
+	* Set URL to Fit.UI on server - e.g. http://cdn/libs/fitui/.
+	This may be necessary if Fit.UI is loaded dynamically
+	from a foreign domain such as a CDN (Content Delivery Network).
+	Changing the URL affects the return value of both
+	GetUrl() and GetPath(), and from where Fit.UI will
+	load resources dynamically.
+	* @function SetUrl
+	* @param {string} baseUrl - Full URL to folder containing Fit.UI
+	*/
+	export function SetUrl(baseUrl:string):void;
+	/**
 	* Functionality extending the capabilities of native JS arrays
 	* @class [Fit.Array Array]
 	*/
@@ -72,19 +83,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in object array
-		* @function Count
-		* @param {any} obj - Object array to count elements within
-		* @returns number
-		*/
-		public static Count(obj:any):number;
-		/**
 		* Returns number of elements in collection
 		* @function Count
 		* @param {any[]} arr - Collection to count elements within
 		* @returns number
 		*/
 		public static Count(arr:any[]):number;
+		/**
+		* Returns number of elements in object array
+		* @function Count
+		* @param {any} obj - Object array to count elements within
+		* @returns number
+		*/
+		public static Count(obj:any):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -98,16 +109,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through elements in array and passes each value to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any[]} arr - Array containing values to iterate through
-		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(arr:any[], callback:Function):boolean;
-		/**
 		* Iterates through object properties and passes each property name to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -118,6 +119,16 @@ declare namespace Fit
 		*/
 		public static ForEach(obj:any, callback:Function):boolean;
 		/**
+		* Iterates through elements in array and passes each value to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any[]} arr - Array containing values to iterate through
+		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(arr:any[], callback:Function):boolean;
+		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
 		* @param {any[]} arr - Array to search through
@@ -126,19 +137,19 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys (property names) in object
-		* @function GetKeys
-		* @param {any} obj - Object to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(obj:any):any[];
-		/**
 		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
 		* @function GetKeys
 		* @param {any[]} arr - Array to get keys from
 		* @returns any[]
 		*/
 		public static GetKeys(arr:any[]):any[];
+		/**
+		* Returns all keys (property names) in object
+		* @function GetKeys
+		* @param {any} obj - Object to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(obj:any):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -307,6 +318,23 @@ declare namespace Fit
 		* @param {any} msg - Message or object to log
 		*/
 		public static Log(msg:any):void;
+		/**
+		* Parses well-formed URLs and returns an object containing the following properties:
+		- Url:string (URL passed to function)
+		- Protocol:string (e.g. ftp, http, https)
+		- Port:integer (returns -1 if not defined in URL)
+		- Auth:string (e.g. accessToken or user:pass)
+		- Host:string (e.g. localhost or fitui.org)
+		- Path:string (e.g. /path/to/)
+		- Resource:string (e.g. resource.php)
+		- FullPath:string (e.g. /path/to/resource.php)
+		- Parameters:object (associative object array with URL parameters as keys)
+		- Anchor:string
+		* @function ParseUrl
+		* @param {string} url - Well-formed URL to parse
+		* @returns any
+		*/
+		public static ParseUrl(url:string):any;
 	}
 	/**
 	* 
@@ -5743,10 +5771,9 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
@@ -5759,9 +5786,10 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
