@@ -154,7 +154,7 @@ Fit.Browser.GetQueryString = function(alternativeUrl)
 		try
 		{
 			// Notice: decodeURIComponent(..) throws an error in case invalid encoding is used
-			qs.Parameters[keyval[0]] = ((keyval.length > 1) ? decodeURIComponent(keyval[1]) : "");
+			qs.Parameters[decodeURIComponent(keyval[0])] = ((keyval.length > 1) ? decodeURIComponent(keyval[1]) : "");
 		}
 		catch (err)
 		{
@@ -164,6 +164,121 @@ Fit.Browser.GetQueryString = function(alternativeUrl)
 	});
 
 	return qs;
+}
+
+/// <function container="Fit.Browser" name="ParseUrl" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Parses well-formed URLs and returns an object containing the following properties:
+/// 		 - Url:string (URL passed to function)
+/// 		 - Protocol:string (e.g. ftp, http, https)
+/// 		 - Port:integer (returns -1 if not defined in URL)
+/// 		 - Auth:string (e.g. accessToken or user:pass)
+/// 		 - Host:string (e.g. localhost or fitui.org)
+/// 		 - Path:string (e.g. /path/to/)
+/// 		 - Resource:string (e.g. resource.php)
+/// 		 - FullPath:string (e.g. /path/to/resource.php)
+/// 		 - Parameters:object (associative object array with URL parameters as keys)
+/// 		 - Anchor:string
+/// 	</description>
+/// 	<param name="url" type="string"> Well-formed URL to parse </param>
+/// </function>
+Fit.Browser.ParseUrl = function(url)
+{
+	Fit.Validation.ExpectString(url);
+
+	// URLs are often concatenated incorrectly with double forward slashes.
+	// E.g. http://localhost//path/to//file.php
+	// Compensate for this problem to reduce risk of runtime parse errors.
+	// https://regex101.com/r/DMQs9A/1/
+	var doubleSlashes = /(^.*:\/\/.*?)\/\/(.*)/;
+	while (doubleSlashes.test(url) === true)
+	{
+		url = url.replace(doubleSlashes, "$1/$2");
+	}
+
+	// This function is not perfect.
+	// It will parse well-formed URLs properly
+	// but may be fooled by incorrecly formatted URLs,
+	// and does not currently support IPv6 addresses.
+	// But for a solution using Regular Expression it
+	// is works quite well and is very simple in its
+	// implementation.
+
+	// Using JS is possible although known to give slightly
+	// different results across different browsers - example:
+	//    var a = document.createElement("a");
+	//    console.log(a.pathname, a.host, a.port, a.protocol, a.username, a.password); // etc.
+	// On top of differences across browsers it also depends on DOM which is not available in Workers,
+	// it will automatically canonicalize the URL to the page (relative to domain, protocol, etc.),
+	// and some browsers (e.g. Legacy IE) does not parse IPv6 addresses either.
+	// See comments here: https://gist.github.com/jlong/2428561
+	// Solution must be cross browser and support Legacy IE !
+
+	// It is impossible to produce a perfect solution using a one-liner
+	// regular expression. Inventer of WWW, Tim Burners-Lee (TimBL / TBL),
+	// among many others, solves parsing programmatically: https://www.w3.org/wiki/UriTesting
+	// Such solutions tend to be much more complex though.
+	// Another example: https://github.com/unshiftio/url-parse
+
+	/* RegEx fiddle: https://regex101.com/r/poWR2S/14
+	0 = Full match
+	1 = Protocol (http/https/ftp/etc)
+	2 = Group used to exclude @ from auth in #3
+	3 = Auth
+	5 = Host followed by port in #7
+	6 = Group used to exclude / from port in #7
+	7 = Port
+	8 = Host NOT followed by port
+	9 = Host NOT followed by anything (end of string)
+	10 = Group used to wrap #11 #12 #13 #14 #15
+	11 = Path followed by QS (and possibly #hash) in #12
+	12 = QS (and possibly #hash)
+	13 = Path followed by #hash in #14
+	14 = #hash value
+	15 = Path NOT followed by anything (end of string) */
+	var regEx = /(.+):\/\/((.+)@)?((.+):((\d+)\/?)?|(.+?)\/|(.+?)$)((.*)\?(.+)|(.*)#(.*)|(.*)$)/;
+	var match = regEx.exec(url);
+	var result = { Url: null, Protocol: null, Port: null, Auth: null, Host: null, FullPath: null, Path: null, Resource: null, Parameters: {}, Anchor: null };
+
+	if (match === null)
+	{
+		Fit.Validation.ThrowError("Unable to parse invalid URL - valid example: schema://[auth@]host[:port][/path/resource[?parm=val[#hash]]]");
+	}
+
+	if (match.length !== 16) // RegExp should produce this amount of capture group results!
+	{
+		Fit.Validation.ThrowError("Unexpected parse error - internal error"); // Happens if RegExp is changed without adjusting code using it
+	}
+
+	var fullPath = (match[11] || match[13] || match[15] || ""); //var fullPath = (match[11] || match[13] || (match[15] && match[15] !== "?" ? match[15] : "") || "");
+	var qs = Fit.Browser.GetQueryString(url);
+
+	result.Url = url;
+	result.Protocol = match[1].toLowerCase();
+	result.Auth = match[3] || null;
+	result.Host = match[5] || match[8] || match[9];
+	result.Port = (match[7] ? parseInt(match[7]) : -1);
+	result.FullPath = "/" + fullPath;
+	result.Parameters = qs.Parameters;
+	result.Anchor = qs.Anchor;
+
+	result.Path = "/";
+	
+	if (fullPath !== "")
+	{
+		var pathInfo = fullPath.split("/");
+
+		// Construct path without resource (/path/to/resource.php => /path/to/)
+		result.Path += pathInfo.slice(0, -1).join("/") + (pathInfo.length > 0 ? "/" : "");
+
+		// Add resource (e.g. resource.php) if found in URL
+		if (pathInfo[pathInfo.length - 1] !== "")
+		{
+			result.Resource = pathInfo[pathInfo.length - 1];
+		}
+	}
+	
+	return result;
 }
 
 /// <function container="Fit.Browser" name="GetLanguage" access="public" static="true" returns="string">

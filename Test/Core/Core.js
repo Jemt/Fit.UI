@@ -220,6 +220,112 @@ Tests.Clone = function()
 	]
 }
 
+Tests.SetPath = function()
+{
+	var orgPath = Fit.GetPath();			// E.g. /build
+	var orgUrl = Fit.GetUrl();				// E.g. http://localhost:8080/build
+	var root = orgUrl.replace(orgPath, "");	// E.g. http://localhost:8080
+
+	this.Description = "Testing SetPath function";
+
+	this.Execute = function()
+	{
+	}
+
+	this.Assertions =
+	[
+		{
+			Message: "Deep path without trailing slash",
+			Expected: JSON.stringify(["/new/path/to/Fit.UI", root + "/new/path/to/Fit.UI"]),
+			GetResult: function()
+			{
+				Fit.SetPath("/new/path/to/Fit.UI");
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		},
+		{
+			Message: "Deep path with trailing slash",
+			Expected: JSON.stringify(["/new/path/to/Fit.UI", root + "/new/path/to/Fit.UI"]),
+			GetResult: function()
+			{
+				Fit.SetPath("/new/path/to/Fit.UI/");
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		},
+		{
+			Message: "Root path",
+			Expected: JSON.stringify(["/", root]),
+			GetResult: function()
+			{
+				Fit.SetPath("/");
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		},
+		{
+			Message: "Can reset path",
+			Expected: JSON.stringify([orgPath, orgUrl]),
+			GetResult: function()
+			{
+				Fit.SetPath(null);
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		}
+	]
+}
+
+Tests.SetUrl = function()
+{
+	var orgPath = Fit.GetPath();			// E.g. /build
+	var orgUrl = Fit.GetUrl();				// E.g. http://localhost:8080/build
+	var root = orgUrl.replace(orgPath, "");	// E.g. http://localhost:8080
+
+	this.Description = "Testing SetUrl function";
+
+	this.Execute = function()
+	{
+	}
+
+	this.Assertions =
+	[
+		{
+			Message: "Deep URL path without trailing slash",
+			Expected: JSON.stringify(["/new/path/to/Fit.UI", "https://token@10.20.1.20:8082/new/path/to/Fit.UI"]),
+			GetResult: function()
+			{
+				Fit.SetUrl("https://token@10.20.1.20:8082/new/path/to/Fit.UI");
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		},
+		{
+			Message: "Deep URL path with trailing slash",
+			Expected: JSON.stringify(["/new/path/to/Fit.UI", "https://token@10.20.1.20:8082/new/path/to/Fit.UI"]),
+			GetResult: function()
+			{
+				Fit.SetUrl("https://token@10.20.1.20:8082/new/path/to/Fit.UI/");
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		},
+		{
+			Message: "Root URL path",
+			Expected: JSON.stringify(["/", "https://token@10.20.1.20:8082"]),
+			GetResult: function()
+			{
+				Fit.SetUrl("https://token@10.20.1.20:8082");
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		},
+		{
+			Message: "Can reset URL path",
+			Expected: JSON.stringify([orgPath, orgUrl]),
+			GetResult: function()
+			{
+				Fit.SetUrl(null);
+				return JSON.stringify([Fit.GetPath(), Fit.GetUrl()]);
+			}
+		}
+	]
+}
+
 
 UnitTestHelper.Core = {};
 
