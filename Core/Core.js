@@ -539,3 +539,32 @@ Fit.SetPath = function(basePath)
 		Fit._internal.BaseUrlOverride = rootUrl + curPath + "/" + basePath;
 	}
 }
+
+/// <function container="Fit" name="SetUrl" access="public" static="true">
+/// 	<description>
+/// 		Set URL to Fit.UI on server - e.g. http://cdn/libs/fitui/.
+/// 		This may be necessary if Fit.UI is loaded dynamically
+/// 		from a foreign domain such as a CDN (Content Delivery Network).
+/// 		Changing the URL affects the return value of both
+/// 		GetUrl() and GetPath(), and from where Fit.UI will
+/// 		load resources dynamically.
+/// 	</description>
+/// 	<param name="baseUrl" type="string"> Full URL to folder containing Fit.UI </param>
+/// </function>
+Fit.SetUrl = function(baseUrl) // E.g. http://foreign-host/path/to/Fit.UI/
+{
+	Fit.Validation.ExpectStringValue((baseUrl === null ? "-" : baseUrl));
+
+	if (baseUrl === null)
+	{
+		Fit.SetPath(null); // Reset Path and URL overriding
+		return;
+	}
+
+	var url = Fit.Browser.ParseUrl(baseUrl);
+
+	Fit.SetPath(url.FullPath); // Using FullPath rather than Path in case URL has been specified using http://host/path/to/Fit.UI (without trailing slash which makes Fit.UI a resource and not a folder, resulting in it being excluded from Path)
+	
+	var newUrl = (url.Url.lastIndexOf("/") === url.Url.length - 1 ? url.Url.substring(0, url.Url.length - 1) : url.Url); // Both GetPath() and GetUrl() return values without trailing slashes - e.g. libs/fitui and http://host/libs/fitui - so make sure no trailing slash is present
+	Fit._internal.BaseUrlOverride = newUrl;
+}
