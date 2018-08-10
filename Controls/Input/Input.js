@@ -494,6 +494,11 @@ Fit.Controls.Input = function(ctlId)
 
 					Fit.Loader.LoadScript(Fit.GetUrl() + "/Resources/CKEditor/ckeditor.js", function(src) // Using Fit.GetUrl() rather than Fit.GetPath() to allow editor to be used on e.g. JSFiddle (Cross-Origin Resource Sharing policy)
 					{
+						if (Fit.Validation.IsSet(Fit._internal.Controls.Input.DefaultSkin) === true)
+						{
+							CKEDITOR.config.skin = Fit._internal.Controls.Input.DefaultSkin;
+						}
+						
 						createEditor();
 					});
 				}
@@ -563,7 +568,6 @@ Fit.Controls.Input = function(ctlId)
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
-			skin: ((Fit.Validation.IsSet(Fit._internal.Controls.Input.DefaultSkin) === true) ? Fit._internal.Controls.Input.DefaultSkin : "moono"),
 			language: ((Fit.Browser.GetInfo().Language === "da") ? "da" : "en"), // TODO: Ship with all language files and remove this entry to have CKEditor default to browser language
 			extraPlugins: "justify,pastefromword",
 			toolbar:
