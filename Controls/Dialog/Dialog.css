@@ -38,10 +38,10 @@ div.FitUiControlDialog[data-maximized="true"]
 	/* Using !important due to specificity above (:not(#LegacyIE)).
 	   Defining the selector like below will break it in Legacy IE:
 	   div.FitUiControlDialog[data-maximized="true"]:not(#LegacyIE), div.FitUiControlDialog[data-maximized="true"] { ... } */
-	top: 2% !important;
-	bottom: 2% !important;
-	left: 5% !important;  /* Safari on iOS will adjust iFrame height to fit its content (which makes scrolling impossible) if left/right values are lowered any further! */
-	right: 5% !important; /* Safari on iOS will adjust iFrame height to fit its content (which makes scrolling impossible) if left/right values are lowered any further! */
+	top: 0 !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
 	-webkit-transform: none !important;
 	-moz-transform: none !important;
 	-ms-transform: none !important;
@@ -96,7 +96,21 @@ div.FitUiControlDialogContent
 
 div.FitUiControlDialog[data-framed="true"]
 {
+	/* Assume some sensible height that will be consistent across browsers
+	   when dialog can't adjust to content since it is framed. */
 	height: 40%;
+}
+div.FitUiControlDialog[data-framed="true"] div.FitUiControlDialogContent
+{
+	padding: 0px;
+
+	/* iFrame assumes height of content on iOS, so make surrounding div scrollable instead.
+	   All other browsers will respect the dimensions set on the iframe (width=100% x height=100%),
+	   in which case the iframe will be scrollable, and remain within the boundaries of
+	   div.FitUiControlDialogContent. So fortunately these settings will not cause problems
+	   on standard compliant browsers. */
+	-webkit-overflow-scrolling: touch;
+	overflow: auto;
 }
 div.FitUiControlDialog iframe
 {

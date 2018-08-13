@@ -18,6 +18,7 @@ Fit.Controls.Dialog = function(controlId)
 	var cmdMaximize = null;
 	var cmdDismiss = null;
 	var content = null;
+	var iframe = null;
 	var buttons = null;
 	var modal = false;
 	var layer = null;
@@ -271,7 +272,7 @@ Fit.Controls.Dialog = function(controlId)
 		Fit.Validation.ExpectStringValue(unit, true);
 
 		// defaultValue must match height in Dialog.css
-		var defaultValue = (content.tagName === "IFRAME" ? { Value: 40, Unit: "%" } : { Value: -1, Unit: "px" });
+		var defaultValue = (iframe !== null ? { Value: 40, Unit: "%" } : { Value: -1, Unit: "px" });
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -382,42 +383,25 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			if (content.tagName === "IFRAME") //if (Fit.Dom.HasClass(content, "FitUiControlDialogContent") === false)
+			content.innerHTML = val;
+
+			if (iframe !== null)
 			{
-				var newContentElement = createContentElement();
-				me.ContentDomElement(newContentElement);
+				Fit.Dom.Data(dialog, "framed", "false");
+				iframe = null;
 			}
 
-			content.innerHTML = val;
 			setContentHeight();
 		}
 
 		return content.innerHTML;
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="ContentDomElement" access="public" returns="DOMElement">
-	/// 	<description> Get/set dialog content element </description>
-	/// 	<param name="elm" type="DOMElement" default="undefined"> If specified, content element is replaced with the provided element </param>
+	/// <function container="Fit.Controls.Dialog" name="GetContentDomElement" access="public" returns="DOMElement">
+	/// 	<description> Get dialog content element </description>
 	/// </function>
-	this.ContentDomElement = function(elm)
+	this.GetContentDomElement = function()
 	{
-		Fit.Validation.ExpectElementNode(elm, true);
-
-		if (Fit.Validation.IsSet(elm) === true)
-		{
-			// Notice that the Dialog component may change the style.height property
-			// of the element to make it fit within the component. Also be aware that
-			// this may cause content within the element to overflow its container
-			// unless the overflow property is set on the element provided.
-
-			Fit.Dom.Replace(content, elm);
-			content = elm;
-
-			Fit.Dom.Data(dialog, "framed", (elm.tagName === "IFRAME" ? "true" : "false"));
-
-			setContentHeight();
-		}
-
 		return content;
 	}
 
@@ -433,7 +417,7 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (Fit.Validation.IsSet(url) === true)
 		{
-			var iframe = Fit.Dom.CreateElement("<iframe src='" + url + "' frameBorder='0' allowtransparency='true'></iframe>");
+			iframe = Fit.Dom.CreateElement("<iframe src='" + url + "' scrolling='yes' frameBorder='0' allowtransparency='true'></iframe>");
 			
 			if (Fit.Validation.IsSet(onLoadHandler) === true)
 			{
@@ -443,10 +427,12 @@ Fit.Controls.Dialog = function(controlId)
 				});
 			}
 
-			me.ContentDomElement(iframe);
+			content.innerHTML = "";
+			Fit.Dom.Add(content, iframe);
+			Fit.Dom.Data(dialog, "framed", "true");
 		}
 
-		return (content.tagName === "IFRAME" ? content.src : null);
+		return (iframe !== null ? iframe.src : null);
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="Maximized" access="public" returns="boolean">
@@ -473,7 +459,17 @@ Fit.Controls.Dialog = function(controlId)
 				}
 			}
 
-			me._internal.Repaint();
+			me._internal.Repaint(function()
+			{
+				// Safari on iOS: Scroll does not work after resizing the
+				// dialog. Temporarily hiding the iframe solves the problem.
+				var b = Fit.Browser.GetInfo();
+				if (iframe !== null && b.Name === "Safari" && b.IsMobile === true)
+				{
+					iframe.style.display = "none";
+					setTimeout(function() { iframe.style.display = ""; }, 0);
+				}
+			});
 		}
 
 		return (Fit.Dom.Data(dialog, "maximized") === "true");
@@ -951,6 +947,6 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 		}
 	});
 
-	Fit.Dom.Add(dia.ContentDomElement(), txt.GetDomElement());
+	Fit.Dom.Add(dia.GetContentDomElement(), txt.GetDomElement());
 	txt.Focused(true);
 }
