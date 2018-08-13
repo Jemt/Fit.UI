@@ -1490,13 +1490,6 @@ declare namespace Fit
 			*/
 			public Content(val?:string):string;
 			/**
-			* Get/set dialog content element
-			* @function ContentDomElement
-			* @param {HTMLElement} [elm=undefined] - If specified, content element is replaced with the provided element
-			* @returns HTMLElement
-			*/
-			public ContentDomElement(elm?:HTMLElement):HTMLElement;
-			/**
 			* Get/set content URL - returns null if not set
 			* @function ContentUrl
 			* @param {string} [url=undefined] - If specified, dialog is updated with content from specified URL
@@ -1518,6 +1511,12 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public Dismissible(val?:boolean, disposeOnDismiss?:boolean):boolean;
+			/**
+			* Get dialog content element
+			* @function GetContentDomElement
+			* @returns HTMLElement
+			*/
+			public GetContentDomElement():HTMLElement;
 			/**
 			* Get/set dialog height - returns object with Value and Unit properties
 			* @function Height
