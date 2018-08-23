@@ -774,14 +774,14 @@ Fit.Controls.Dialog = function(controlId)
 			return;
 
 		// By default the Dialog component adjusts its height to the content.
-		// But if Height/MinimumHeight/MaximumHeight is set, then make sure to
-		// adjust the height of the content element if title/buttons are added.
-		// If no title/buttons are added, the content element simply adjusts to the
-		// height of the dialog since it has height:100%.
+		// But if Height/MinimumHeight/MaximumHeight is set, or dialog is maximized,
+		// then make sure to adjust the height of the content element if title/buttons
+		// are added. If no title/buttons are added, the content element simply adjusts
+		// to the height of the dialog since it has height:100%.
 
 		content.style.height = "";
 
-		if ((buttons !== null || title !== null) && (me.Height().Value !== -1 || me.MinimumHeight().Value !== -1 || me.MaximumHeight().Value !== -1))
+		if ((buttons !== null || title !== null) && (me.Maximized() === true || me.Height().Value !== -1 || me.MinimumHeight().Value !== -1 || me.MaximumHeight().Value !== -1))
 		{
 			var dh = dialog.offsetHeight;
 			var th = (title !== null ? title.offsetHeight : 0);
