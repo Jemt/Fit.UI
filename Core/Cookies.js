@@ -70,10 +70,10 @@ Fit.Cookies = function()
 	this.Set = function(name, value, seconds)
 	{
 		Fit.Validation.ExpectStringValue(name);
-		Fit.Validation.ExpectString(name);
+		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectInteger(seconds, true);
 
-		Fit.Cookies.Set(prefix + name, value, seconds, path);
+		Fit.Cookies.Set(prefix + name, value, seconds, (path !== "" ? path : null));
 	}
 
 	/// <function container="Fit.Cookies" name="Get" access="public" returns="string">
