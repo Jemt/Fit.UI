@@ -69,9 +69,10 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 	var me = this;
 	var htmlContent = "";
 	var container = null;
-	var elements = [];		// Holds references to all DOMElements added to template
-	var eventHandlers = []; // Holds references to all event handler functions associated with DOM elements
-	var controls = [];		// Holds references to all Fit.UI controls (DOMElements) rendered to DOM view
+	var pendingElements = [];	// Holds references to all DOMElements to be rendered: { Id:string, Element:DOMElements }
+	var nodesRendered = [];		// Holds references to all DOMElements rendered to DOM
+	var eventHandlers = []; 	// Holds references to all event handler functions associated with DOM elements: { ElementId:string, EventType:string, Callback:function }
+	var controls = [];			// Holds references to all Fit.UI controls (DOMElements) rendered to DOM
 
 	function init()
 	{
@@ -132,8 +133,44 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 	/// </function>
 	this.Reset = function()
 	{
-		parse(htmlContent);
+		// Do NOT clear e.g. 'nodesRendered' or 'controls' as they are needed if template is disposed.
+		// The purpose of this function is to clear data added externally, not internal state.
+
+		parse(htmlContent); // Re-initializes Content property
 		eventHandlers = [];
+	}
+
+	/// <function container="Fit.Template" name="Dispose" access="public">
+	/// 	<description> Dispose template to free up memory </description>
+	/// </function>
+	this.Dispose = function()
+	{
+		if (autoDispose !== false)
+		{
+			Fit.Array.ForEach(controls, function(controlElm)
+			{
+				// Dispose control unless manually disposed by external code in which case the _internal property no longer exists
+				if (controlElm._internal !== undefined)
+				{
+					controlElm._internal.Instance.Dispose();
+				}
+			});
+		}
+
+		if (container !== null)
+		{
+			Fit.Dom.Remove(container);
+		}
+		else
+		{
+			Fit.Array.ForEach(nodesRendered, function(node)
+			{
+				Fit.Dom.Remove(node);
+			});
+		}
+
+		this.Content = null;
+		me = htmlContent = container = pendingElements = nodesRendered = eventHandlers = controls = null;
 	}
 
 	/// <function container="Fit.Template" name="GetHtml" access="public" returns="string">
@@ -152,14 +189,17 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 	{
 		Fit.Validation.ExpectDomElement(toElement, true);
 
+		if (nodesRendered.length > 0)
+			return; // Skip - already rendered - Update() should be used to push changes!
+
 		// Turn Template into DOM element
 
-		var html = me.toString();
+		var html = me.toString(); // Also populates 'pendingElements' array containing DOMElements to be added further down
 		var dom = Fit.Dom.CreateElement("<div>" + html + "</div>");
 
 		// Inject DOMElements
 
-		Fit.Array.ForEach(elements, function(elm)
+		Fit.Array.ForEach(pendingElements, function(elm)
 		{
 			var element = dom.querySelector("var.FitTemplate[id='PH" + elm.Id + "']");
 
@@ -167,7 +207,14 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 			{
 				Fit.Dom.Replace(element, elm.Element);
 			}
+
+			if (elm.Element._internal !== undefined && elm.Element._internal.Instance !== undefined) // Fit.UI control inheriting from Fit.Controls.Component which is disposable
+			{
+				Fit.Array.Add(controls, elm.Element);
+			}
 		});
+
+		pendingElements = []; // No longer needed
 
 		// Register event handlers
 
@@ -186,12 +233,15 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 
 		var renderTarget = ((container !== null) ? container : toElement);
 		var nodes = Fit.Array.Copy(dom.childNodes); // Copy to prevent "Collection was modified" error when rendering elements, which moves them to a new parent
+		
+		nodesRendered = [];
 
 		if (Fit.Validation.IsSet(renderTarget) === true)
 		{
 			Fit.Array.ForEach(nodes, function(n)
 			{
 				Fit.Dom.Add(renderTarget, n);
+				Fit.Array.Add(nodesRendered, n);
 			});
 		}
 		else
@@ -201,6 +251,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 			Fit.Array.ForEach(nodes, function(n)
 			{
 				Fit.Dom.InsertBefore(script, n);
+				Fit.Array.Add(nodesRendered, n);
 			});
 		}
 
@@ -256,7 +307,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 
 		// Turn Template into DOM element
 
-		var html = me.toString(); // Also populates 'elements' array containing DOMElements to be added further down
+		var html = me.toString(); // Also populates 'pendingElements' array containing DOMElements to be added further down
 		var dom = Fit.Dom.CreateElement("<div>" + html + "</div>");
 
 		// Inject DOMElements
@@ -264,7 +315,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		var oldControls = controls;
 		controls = [];
 
-		Fit.Array.ForEach(elements, function(elm)
+		Fit.Array.ForEach(pendingElements, function(elm)
 		{
 			var element = dom.querySelector("var.FitTemplate[id='PH" + elm.Id + "']");
 
@@ -278,6 +329,8 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 				Fit.Array.Add(controls, elm.Element);
 			}
 		});
+
+		pendingElements = []; // No longer needed
 
 		// Auto dispose controls previously added to template if now left out
 
@@ -313,10 +366,12 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		// Render to DOM
 
 		var nodes = Fit.Array.Copy(dom.childNodes); // Copy to prevent "Collection was modified" error when rendering elements, which moves them to a new parent
+		nodesRendered = [];
 
 		Fit.Array.ForEach(nodes, function(n)
 		{
 			Fit.Dom.Add(container, n);
+			Fit.Array.Add(nodesRendered, n);
 		});
 	}
 
@@ -327,7 +382,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		// Corresponding, event handlers are registered later when template is rendered to real DOM.
 
 		var newHtml = htmlContent;
-		Fit.Array.Clear(elements); // Do not create new object - it will break references to collection on lists
+		Fit.Array.Clear(pendingElements); // Do not create new object - it will break references to collection on lists
 
 		Fit.Array.ForEach(me.Content, function(key)
 		{
@@ -345,14 +400,14 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 				if (Fit.Core.InstanceOf(obj, Fit.Controls.Component) === true) // Fit.UI Control
 				{
 					var id = Fit.Data.CreateGuid();
-					Fit.Array.Add(elements, { Id: id, Element: obj.GetDomElement() });
+					Fit.Array.Add(pendingElements, { Id: id, Element: obj.GetDomElement() });
 
 					newHtml = newHtml.replace("{[" + key + "]}", "<var class='FitTemplate' id='PH" + id + "'></var>");
 				}
 				else if (typeof(obj) === "object" && (obj instanceof Element || obj instanceof Text)) // DOM
 				{
 					var id = Fit.Data.CreateGuid();
-					Fit.Array.Add(elements, { Id: id, Element: obj });
+					Fit.Array.Add(pendingElements, { Id: id, Element: obj });
 
 					// Notice: Placeholders to be replaced by DOM elements should only
 					// be declared once - a DOM element cannot be added multiple times!
@@ -455,9 +510,9 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		// on the 'res' object is not cloned - they keep pointing to the original
 		// functions, hence they will continue using the orignal 'res' object
 		// part of their closure.
-		// This can be fixed by refering to 'this' rather than 'res' within the
+		// This can be fixed by referring to 'this' rather than 'res' within the
 		// functions, but we also need to "fix" clones which holds a reference to
-		// 'elements' on the template instance, and needs to keep this reference
+		// 'pendingElements' on the template instance, and needs to keep this reference
 		// rather than having its own copy.
 		// Another issue is that the List object depends heavily on
 		// functionality on the Template object (e.g. handlePlaceHolders(..)
@@ -479,7 +534,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		res._internal.Block = html;
 		res._internal.Html = html.replace("<!-- LIST " + name + " -->", "").replace("<!-- /LIST " + name + " -->", "");
 		res._internal.Items = [];
-		res._internal.Elements = elements;
+		res._internal.PendingElements = pendingElements;
 		res._internal.IsFitTemplate = true;
 
 		/// <function container="Fit.TemplateList" name="AddItem" access="public" returns="object">
@@ -561,7 +616,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 					else if (Fit.Core.InstanceOf(obj, Fit.Controls.Component) === true) // Fit.UI Control
 					{
 						var id = Fit.Data.CreateGuid();
-						Fit.Array.Add(res._internal.Elements, { Id: id, Element: obj.GetDomElement() });
+						Fit.Array.Add(res._internal.PendingElements, { Id: id, Element: obj.GetDomElement() });
 
 						// Notice: Placeholders to be replaced by DOM elements should only
 						// be declared once - a DOM element cannot be added multiple times!
@@ -572,7 +627,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 					else if (typeof(obj) === "object" && (obj instanceof Element || obj instanceof Text)) // DOM
 					{
 						var id = Fit.Data.CreateGuid();
-						Fit.Array.Add(res._internal.Elements, { Id: id, Element: obj });
+						Fit.Array.Add(res._internal.PendingElements, { Id: id, Element: obj });
 
 						// Notice: Placeholders to be replaced by DOM elements should only
 						// be declared once - a DOM element cannot be added multiple times!
