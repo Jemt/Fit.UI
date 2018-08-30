@@ -214,7 +214,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 			}
 		});
 
-		pendingElements = []; // No longer needed
+		Fit.Array.Clear(pendingElements); // No longer needed - do not create new object - it will break references to collection on lists
 
 		// Register event handlers
 
@@ -330,7 +330,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 			}
 		});
 
-		pendingElements = []; // No longer needed
+		Fit.Array.Clear(pendingElements); // No longer needed - do not create new object - it will break references to collection on lists
 
 		// Auto dispose controls previously added to template if now left out
 
