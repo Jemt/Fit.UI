@@ -507,7 +507,11 @@ Fit.Http.JsonRequest = function(url)
 
 	this.Start = Fit.Core.CreateOverride(this.Start, function()
 	{
-		baseSetData(JSON.stringify(data)); // In case external code manipulated data without calling SetData(json) - example: req.GetData().Xyz = newValue;
+		if (data !== null)
+		{
+			baseSetData(JSON.stringify(data)); // In case external code manipulated data without calling SetData(json) - example: req.GetData().Xyz = newValue;
+		}
+		
 		base();
 	});
 
