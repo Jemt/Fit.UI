@@ -875,6 +875,17 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		if (fireEventHandlers(onRequestHandlers, eventArgs) === false)
 			return false;
+		
+		if (eventArgs.Request !== request)
+		{
+			// Support for changing request instans to
+			// take control over webservice communication.
+
+			// Restrict to support for Fit.Http.Request or classes derived from this
+			Fit.Validation.ExpectInstance(eventArgs.Request, Fit.Http.Request);
+
+			request = eventArgs.Request;
+		}
 
 		// Define request callbacks
 

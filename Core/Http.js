@@ -46,11 +46,13 @@ Fit.Http.Request = function(uri)
 
 	var me = this;
 	var url = uri;
+	var async = -1; // -1 = not defined / enforced, 0 = sync, 1 = async
 	var httpRequest = getHttpRequestObject();
 	var customHeaders = {};
 	var customProperties = {};
-	var data = "";
-	var method = "";
+	var formData = null;
+	var data = null;
+	var method = null;
 
 	var onStateChange = [];
 	var onRequestHandlers = [];
@@ -60,40 +62,41 @@ Fit.Http.Request = function(uri)
 
 	// Init
 
-	httpRequest.onreadystatechange = function()
+	function init()
 	{
-		Fit.Array.ForEach(onStateChange, function(handler)
+		httpRequest.onreadystatechange = function()
 		{
-			handler(me);
-		});
+			Fit.Array.ForEach(onStateChange, function(handler)
+			{
+				handler(me);
+			});
 
-		if (httpRequest.readyState === 4)
-		{
-			if (httpRequest.status === 0)
+			if (httpRequest.readyState === 4)
 			{
-				Fit.Array.ForEach(onAbortHandlers, function(handler) { handler(me); });
-			}
-			else if (httpRequest.status >= 200 && httpRequest.status <= 299) // Entire 2xx range indicates success
-			{
-				Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
-			}
-			else
-			{
-				Fit.Array.ForEach(onFailureHandlers, function(handler) { handler(me); });
+				if (httpRequest.status === 0)
+				{
+					me._internal.FireOnAbort();
+				}
+				else if (httpRequest.status >= 200 && httpRequest.status <= 299) // Entire 2xx range indicates success
+				{
+					me._internal.FireOnSuccess();
+				}
+				else
+				{
+					me._internal.FireOnFailure();
+				}
 			}
 		}
+
+		// Cross Site Request Forgery (CSRF) protection
+		// https://markitzeroday.com/x-requested-with/cors/2017/06/29/csrf-mitigation-for-ajax-requests.html
+		me.AddHeader("X-Requested-With", "XMLHttpRequest");
 	}
 
 	// Public
 
 	/// <function container="Fit.Http.Request" name="AddHeader" access="public">
-	/// 	<description>
-	/// 		Add header to request.
-	/// 		Manually adding headers will prevent the Request instance from
-	/// 		manipulating headers. This is done to provide full control with the headers.
-	/// 		You will in this case most likely need to add the following header for a POST request:
-	/// 		Content-type : application/x-www-form-urlencoded
-	/// 	</description>
+	/// 	<description> Add header to request </description>
 	/// 	<param name="key" type="string"> Header key </param>
 	/// 	<param name="value" type="string"> Header value </param>
 	/// </function>
@@ -101,42 +104,169 @@ Fit.Http.Request = function(uri)
 	{
 		Fit.Validation.ExpectStringValue(key);
 		Fit.Validation.ExpectString(value);
-		customHeaders[key] = value;
+		customHeaders[key.toLowerCase()] = { Key: key, Value: value };
+	}
+
+	/// <function container="Fit.Http.Request" name="GetHeader" access="public" returns="string">
+	/// 	<description> Get request header - returns Null if not found </description>
+	/// 	<param name="key" type="string"> Header name </param>
+	/// </function>
+	this.GetHeader = function(key)
+	{
+		Fit.Validation.ExpectString(key);
+		return (Fit.Validation.IsSet(customHeaders[key.toLowerCase()]) === true ? customHeaders[key.toLowerCase()].Value : null);
+	}
+
+	/// <function container="Fit.Http.Request" name="RemoveHeader" access="public">
+	/// 	<description> Remove request header </description>
+	/// 	<param name="key" type="string"> Header name </param>
+	/// </function>
+	this.RemoveHeader = function(key)
+	{
+		Fit.Validation.ExpectString(key);
+		delete customHeaders[key.toLowerCase()];
+	}
+
+	/// <function container="Fit.Http.Request" name="GetHeaders" access="public" returns="string[]">
+	/// 	<description> Get all request header names </description>
+	/// </function>
+	this.GetHeaders = function()
+	{
+		var keys = [];
+
+		Fit.Array.ForEach(customHeaders, function(key)
+		{
+			Fit.Array.Add(keys, customHeaders[key].Key);
+		})
+
+		return keys;
+	}
+
+	/// <function container="Fit.Http.Request" name="ClearHeaders" access="public">
+	/// 	<description> Remove all request headers </description>
+	/// </function>
+	this.ClearHeaders = function()
+	{
+		customHeaders = {};
 	}
 
 	/// <function container="Fit.Http.Request" name="SetData" access="public">
 	/// 	<description> Set data to post - this will change the request method from GET to POST </description>
-	/// 	<param name="dataStr" type="string"> Data to send </param>
+	/// 	<param name="dataObj" type="object"> Data to send </param>
 	/// </function>
-	this.SetData = function(dataStr)
+	this.SetData = function(dataObj)
 	{
-		Fit.Validation.ExpectString(dataStr, true);
-		data = ((Fit.Validation.IsSet(dataStr) === true) ? dataStr : "");
+		me.ClearFormData(); // Clears both form data and removes content-type header if ensured in conjunction with form data previously set
+		data = null;
+
+		if (typeof(dataObj) === "string" && (me.GetHeader("content-type") === null || me.GetHeader("content-type").toLowerCase() === "application/x-www-form-urlencoded"))
+		{
+			// Backward compatibility - Fit.Http.Request previously only allowed "key=val&key2=val2&etc" being passed to SetData.
+			// Now accepting both the old "form data string mode" and any kind of object which will be stringified upon request.
+			// Unfortunately this means that passing a "clean string" will not be possible without triggering "form data mode",
+			// unless the Content-Type header is set prior to calling SetData("My string").
+			// So request.SetData("Hello world") without setting the Content-Type header first will be considered form data
+			// (Hello world=) and the Content-Type header will be set to "application/x-www-form-urlencoded".
+			Fit.Browser.Log("Deprecated use of SetData(..) to set form data on instance of Fit.Http.Request - please use AddFormData(..) instead! If data added is not to be considered form data then make sure to set Content-Type header prior to calling SetData(..)!");
+
+			formData = {};
+			ensureContentTypeHeaderForFormData();
+
+			var coll = parseKeyValuePairs(dataObj);
+
+			Fit.Array.ForEach(coll, function(key)
+			{
+				formData[key] = { Value: coll[key], Encode: true };
+			});
+		}
+		else
+		{
+			data = dataObj;
+		}
 	}
 
-	/// <function container="Fit.Http.Request" name="GetData" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="GetData" access="public" returns="object">
 	/// 	<description> Get data set to be posted </description>
 	/// </function>
 	this.GetData = function()
 	{
+		if (formData !== null)
+		{
+			return getFormDataString(false); // False = do not encode values (returns string as provided to SetData(..))
+		}
+
 		return data;
 	}
 
-	/// <function container="Fit.Http.Request" name="AddData" access="public">
-	/// 	<description> Add data to post - this will change the request method from GET to POST </description>
+	/// <function container="Fit.Http.Request" name="AddFormData" access="public">
+	/// 	<description>
+	/// 		Add form data - this will change the request method from GET to POST
+	/// 		and cause the following header to be added to the request, unless already
+	/// 		defined: Content-type: application/x-www-form-urlencoded
+	/// 	</description>
 	/// 	<param name="key" type="string"> Data key </param>
 	/// 	<param name="value" type="string"> Data value </param>
 	/// 	<param name="uriEncode" type="boolean" default="true">
 	/// 		Set False to prevent value from being URI encoded to preserve special characters
 	/// 	</param>
 	/// </function>
-	this.AddData = function(key, value, uriEncode)
+	this.AddFormData = function(key, value, uriEncode)
 	{
 		Fit.Validation.ExpectStringValue(key);
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(uriEncode, true);
 
-		data += ((data !== "") ? "&" : "") + key + "=" + ((uriEncode === false) ? value : encodeURIComponent(value).replace(/%20/g, "+"));
+		if (formData === null)
+		{
+			formData = {};
+			ensureContentTypeHeaderForFormData();
+		}
+		
+		formData[key] = { Value: value, Encode: (uriEncode !== false) };
+	}
+
+	this.AddData = function(key, value, uriEncode) // Backward compatibility
+	{
+		Fit.Validation.ExpectStringValue(key);
+		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectBoolean(uriEncode, true);
+
+		Fit.Browser.Log("Use of deprecated AddData(..) function to set form data on instance of Fit.Http.Request - please use AddFormData(..) instead!")
+		
+		me.AddFormData(key, value, uriEncode);
+	}
+
+	/// <function container="Fit.Http.Request" name="GetFormData" access="public" returns="string">
+	/// 	<description> Get form value added to form data collection - returns Null if not found </description>
+	/// 	<param name="key" type="string"> Data key </param>
+	/// </function>
+	this.GetFormData = function(key)
+	{
+		Fit.Validation.ExpectString(key);
+		return (formData !== null && Fit.Validation.IsSet(formData[key]) === true ? formData[key].Value : null);
+	}
+
+	/// <function container="Fit.Http.Request" name="RemoveFormData" access="public">
+	/// 	<description> Remove form value from form data collection </description>
+	/// 	<param name="key" type="string"> Data key </param>
+	/// </function>
+	this.RemoveFormData = function(key)
+	{
+		Fit.Validation.ExpectString(key);
+
+		if (formData !== null)
+			delete formData[key];
+	}
+
+	/// <function container="Fit.Http.Request" name="ClearFormData" access="public">
+	/// 	<description> Remove all form values from form data collection </description>
+	/// </function>
+	this.ClearFormData = function()
+	{
+		formData = null;
+
+		if (me.GetHeader("content-type") !== null && customHeaders["content-type"]._ensured === true)
+			me.RemoveHeader("content-type");
 	}
 
 	/// <function container="Fit.Http.Request" name="Method" access="public" returns="string">
@@ -152,7 +282,27 @@ Fit.Http.Request = function(uri)
 			method = val;
 		}
 
-		return method;
+		return (method !== null ? method : (data !== null || formData !== null ? "POST" : "GET"));
+	}
+
+	/// <function container="Fit.Http.Request" name="Async" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether request is made asynchronously or synchronously </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, enforces an async or sync request based on the boolean value provided </param>
+	/// </function>
+	this.Async = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			async = (val === true ? 1 : 0);
+		}
+
+		if (async !== -1) // Enforced (value is 0 or 1)
+			return (async === 1);
+
+		// Not enforced - request will become async if event handlers are registered
+		return (onStateChange.length > 0 || onSuccessHandlers.length > 0 || onFailureHandlers.length > 0);
 	}
 
 	/// <function container="Fit.Http.Request" name="Url" access="public" returns="string">
@@ -181,30 +331,27 @@ Fit.Http.Request = function(uri)
 	/// </function>
 	this.Start = function()
 	{
+		if (formData !== null && data !== null)
+		{
+			Fit.Validation.ThrowError("Unable to send both (JSON) Data and Form Data simultaneously - specify only one type of data to send");
+		}
+
 		// Fire OnRequest
 
-		var cancel = false;
-
-		Fit.Array.ForEach(onRequestHandlers, function(handler)
-		{
-			if (handler(me) === false)
-				cancel = true;
-		});
+		var cancel = me._internal.FireOnRequest();
 
 		if (cancel === true)
 			return;
 
 		// Perform request
 
-		var httpMethod = (method !== "" ? method : (data !== "" ? "POST" : "GET"));
-		var async = (onStateChange.length > 0 || onSuccessHandlers.length > 0 || onFailureHandlers.length > 0);
+		var httpMethod = me.Method();
+		var async = me.Async();
 		httpRequest.open(httpMethod, url, async);
 
-		var usingCustomHeaders = false;
 		for (var header in customHeaders)
 		{
-			httpRequest.setRequestHeader(header, customHeaders[header]);
-			usingCustomHeaders = true;
+			httpRequest.setRequestHeader(header, customHeaders[header].Value);
 		}
 
 		Fit.Array.ForEach(customProperties, function(key)
@@ -212,10 +359,10 @@ Fit.Http.Request = function(uri)
 			httpRequest[key] = customProperties[key];
 		});
 
-		if ((httpMethod === "POST" || httpMethod === "PUT") && usingCustomHeaders === false) // https://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.2.1
-			httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-		httpRequest.send(data);
+		if (formData !== null)
+			httpRequest.send(getFormDataString(true));
+		else
+			httpRequest.send((data !== null ? (typeof(data) === "string" ? data : JSON.stringify(data)) : ""));
 	}
 
 	/// <function container="Fit.Http.Request" name="Abort" access="public">
@@ -430,6 +577,39 @@ Fit.Http.Request = function(uri)
 		return customProperties;
 	}
 
+	// Protected
+
+	this._internal =
+	{
+		FireOnSuccess: function()
+		{
+			Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
+		},
+
+		FireOnFailure: function()
+		{
+			Fit.Array.ForEach(onFailureHandlers, function(handler) { handler(me); });
+		},
+
+		FireOnAbort: function()
+		{
+			Fit.Array.ForEach(onAbortHandlers, function(handler) { handler(me); });
+		},
+
+		FireOnRequest: function()
+		{
+			var cancel = false;
+
+			Fit.Array.ForEach(onRequestHandlers, function(handler)
+			{
+				if (handler(me) === false)
+					cancel = true;
+			});
+
+			return cancel;
+		},
+	}
+
 	// Private
 
 	function getHttpRequestObject()
@@ -441,6 +621,51 @@ Fit.Http.Request = function(uri)
 
 		throw new Error("Http Request object not supported");
 	}
+
+	function parseKeyValuePairs(formDataStr) // formDataStr = key1=val1&name=james&keyOnly&more=data
+	{
+		Fit.Validation.ExpectString(formDataStr);
+
+		if (formDataStr === "")
+			return {};
+
+		var obj = {};
+		var entries = formDataStr.split("&");
+
+		Fit.Array.ForEach(entries, function(entry)
+		{
+			var kv = entry.split("=");
+			obj[kv[0]] = (kv.length > 1 ? kv[1] : "");
+		});
+
+		return obj;
+	}
+
+	function getFormDataString(encode) // Returns form data in query string format: key1=val1&name=james&keyOnly=&more=data
+	{
+		Fit.Validation.ExpectBoolean(encode);
+
+		var formDataStr = "";
+
+		Fit.Array.ForEach((formData !== null ? formData : {}), function(key)
+		{
+			formDataStr += (formDataStr !== "" ? "&" : "") + key + "=" + (encode === true && formData[key].Encode === true ? encodeURIComponent(formData[key].Value) : formData[key].Value);
+		});
+
+		return formDataStr;
+	}
+
+	function ensureContentTypeHeaderForFormData() // Add content-type header for Form Data if content-type header has not already been defined
+	{
+		if (me.GetHeader("content-type") === null)
+		{
+			// https://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.2.1
+			me.AddHeader("content-type", "application/x-www-form-urlencoded");
+			customHeaders["content-type"]._ensured = true;
+		}
+	}
+
+	init();
 }
 
 /// <container name="Fit.Http.JsonRequest" extends="Fit.Http.Request">
@@ -477,45 +702,13 @@ Fit.Http.JsonRequest = function(url)
 	Fit.Core.Extend(this, Fit.Http.Request).Apply(url);
 
 	var me = this;
-	var data = null;
 
 	function init()
 	{
 		me.AddHeader("Content-Type", "application/json; charset=UTF-8");
-		me.AddHeader("X-Requested-With", "XMLHttpRequest");
 	}
 
-	/// <function container="Fit.Http.JsonRequest" name="SetData" access="public">
-	/// 	<description> Set JSON data to post - this will change the request method from GET to POST </description>
-	/// 	<param name="json" type="object"> Data to send </param>
-	/// </function>
-	var baseSetData = me.SetData;
-	this.SetData = function(json) // JSON
-	{
-		Fit.Validation.ExpectIsSet(json);
-		data = json;
-		baseSetData(JSON.stringify(data));
-	}
-
-	/// <function container="Fit.Http.JsonRequest" name="GetData" access="public" returns="object">
-	/// 	<description> Get JSON data set to be posted </description>
-	/// </function>
-	this.GetData = function(dataStr)
-	{
-		return data;
-	}
-
-	this.Start = Fit.Core.CreateOverride(this.Start, function()
-	{
-		if (data !== null)
-		{
-			baseSetData(JSON.stringify(data)); // In case external code manipulated data without calling SetData(json) - example: req.GetData().Xyz = newValue;
-		}
-		
-		base();
-	});
-
-	this.AddData = function(key, value, uriEncode)
+	this.AddFormData = function(key, value, uriEncode)
 	{
 		Fit.Validation.ThrowError("Use SetData(..) to set JSON request data for JSON WebService");
 	}
@@ -529,16 +722,15 @@ Fit.Http.JsonRequest = function(url)
 	/// 		from this property, hence contained data is returned as the root object.
 	/// 	</description>
 	/// </function>
-	var baseGetResponseJson = me.GetResponseJson;
-	this.GetResponseJson = function()
+	this.GetResponseJson = Fit.Core.CreateOverride(this.GetResponseJson, function()
 	{
-		var resp = baseGetResponseJson();
+		var resp = base();
 
 		if (url.toLowerCase().indexOf(".asmx/") !== -1 && resp && resp.d)
 			resp = resp.d; // Extract .NET response data
 
 		return resp;
-	}
+	});
 
 	init();
 }

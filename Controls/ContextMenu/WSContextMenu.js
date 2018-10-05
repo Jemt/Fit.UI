@@ -244,6 +244,17 @@ Fit.Controls.WSContextMenu = function(controlId)
 
 		if (fireEventHandlers(onRequestHandlers, eventArgs) === false)
 			return;
+		
+		if (eventArgs.Request !== request)
+		{
+			// Support for changing request instans to
+			// take control over webservice communication.
+
+			// Restrict to support for Fit.Http.Request or classes derived from this
+			Fit.Validation.ExpectInstance(eventArgs.Request, Fit.Http.Request);
+
+			request = eventArgs.Request;
+		}
 
 		// Define request callbacks
 

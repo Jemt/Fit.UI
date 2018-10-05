@@ -414,6 +414,17 @@ Fit.Controls.WSDropDown = function(ctlId)
 				eventArgs.Children = newArgs.Data;
 			else if (eventArgs.Items) // WSListView
 				eventArgs.Items = newArgs.Data;
+			
+			if (newArgs.Request !== eventArgs.Request)
+			{
+				// Support for changing request instans to
+				// take control over webservice communication.
+
+				// Restrict to support for Fit.Http.Request or classes derived from this
+				Fit.Validation.ExpectInstance(newArgs.Request, Fit.Http.Request);
+
+				eventArgs.Request = newArgs.Request;
+			}
 		});
 
 		return !cancel;
