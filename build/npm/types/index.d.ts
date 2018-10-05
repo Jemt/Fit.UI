@@ -109,16 +109,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through object properties and passes each property name to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any} obj - Object containing properties to iterate through
-		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(obj:any, callback:Function):boolean;
-		/**
 		* Iterates through elements in array and passes each value to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -129,6 +119,16 @@ declare namespace Fit
 		*/
 		public static ForEach(arr:any[], callback:Function):boolean;
 		/**
+		* Iterates through object properties and passes each property name to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any} obj - Object containing properties to iterate through
+		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(obj:any, callback:Function):boolean;
+		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
 		* @param {any[]} arr - Array to search through
@@ -137,19 +137,19 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys (property names) in object
-		* @function GetKeys
-		* @param {any} obj - Object to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(obj:any):any[];
-		/**
 		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
 		* @function GetKeys
 		* @param {any[]} arr - Array to get keys from
 		* @returns any[]
 		*/
 		public static GetKeys(arr:any[]):any[];
+		/**
+		* Returns all keys (property names) in object
+		* @function GetKeys
+		* @param {any} obj - Object to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(obj:any):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -5686,21 +5686,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -6666,12 +6666,6 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Http.JsonRequest
 			/**
-			* Get JSON data set to be posted
-			* @function GetData
-			* @returns any
-			*/
-			public GetData():any;
-			/**
 			* Returns result from request as JSON object, Null if no response was returned.
 			Return value will only be as expected if GetCurrentState() returns a value of 4
 			(request done) and GetHttpStatus() returns a value of 2xx (request successful).
@@ -6688,12 +6682,6 @@ declare namespace Fit
 			http://server/_layouts/15/Company/MyWebService.asmx/MyMethod
 			*/
 			constructor(url:string);
-			/**
-			* Set JSON data to post - this will change the request method from GET to POST
-			* @function SetData
-			* @param {any} json - Data to send
-			*/
-			public SetData(json:any):void;
 			// Functions defined by Fit.Http.Request
 			/**
 			* Abort asynchroneus request
@@ -6701,24 +6689,39 @@ declare namespace Fit
 			*/
 			public Abort():void;
 			/**
-			* Add data to post - this will change the request method from GET to POST
-			* @function AddData
+			* Add form data - this will change the request method from GET to POST
+			and cause the following header to be added to the request, unless already
+			defined: Content-type: application/x-www-form-urlencoded
+			* @function AddFormData
 			* @param {string} key - Data key
 			* @param {string} value - Data value
 			* @param {boolean} [uriEncode=true] - Set False to prevent value from being URI encoded to preserve special characters
 			*/
-			public AddData(key:string, value:string, uriEncode?:boolean):void;
+			public AddFormData(key:string, value:string, uriEncode?:boolean):void;
 			/**
-			* Add header to request.
-			Manually adding headers will prevent the Request instance from
-			manipulating headers. This is done to provide full control with the headers.
-			You will in this case most likely need to add the following header for a POST request:
-			Content-type : application/x-www-form-urlencoded
+			* Add header to request
 			* @function AddHeader
 			* @param {string} key - Header key
 			* @param {string} value - Header value
 			*/
 			public AddHeader(key:string, value:string):void;
+			/**
+			* Get/set flag indicating whether request is made asynchronously or synchronously
+			* @function Async
+			* @param {boolean} [val=undefined] - If defined, enforces an async or sync request based on the boolean value provided
+			* @returns boolean
+			*/
+			public Async(val?:boolean):boolean;
+			/**
+			* Remove all form values from form data collection
+			* @function ClearFormData
+			*/
+			public ClearFormData():void;
+			/**
+			* Remove all request headers
+			* @function ClearHeaders
+			*/
+			public ClearHeaders():void;
 			/**
 			* Get current request state.
 			0 = Unsent
@@ -6733,9 +6736,29 @@ declare namespace Fit
 			/**
 			* Get data set to be posted
 			* @function GetData
+			* @returns any
+			*/
+			public GetData():any;
+			/**
+			* Get form value added to form data collection - returns Null if not found
+			* @function GetFormData
+			* @param {string} key - Data key
 			* @returns string
 			*/
-			public GetData():string;
+			public GetFormData(key:string):string;
+			/**
+			* Get request header - returns Null if not found
+			* @function GetHeader
+			* @param {string} key - Header name
+			* @returns string
+			*/
+			public GetHeader(key:string):string;
+			/**
+			* Get all request header names
+			* @function GetHeaders
+			* @returns string[]
+			*/
+			public GetHeaders():string[];
 			/**
 			* Returns HTTP status. Common return values are:
 			200 = OK (successful request)
@@ -6837,6 +6860,18 @@ declare namespace Fit
 			*/
 			public OnSuccess(func:Function):void;
 			/**
+			* Remove form value from form data collection
+			* @function RemoveFormData
+			* @param {string} key - Data key
+			*/
+			public RemoveFormData(key:string):void;
+			/**
+			* Remove request header
+			* @function RemoveHeader
+			* @param {string} key - Header name
+			*/
+			public RemoveHeader(key:string):void;
+			/**
 			* Set/get custom XHR request properties.
 			Example of property object: { withCredentials: true, responseType: &#39;blob&#39; }.
 			How different browsers and versions support and handle custom properties differ:
@@ -6850,9 +6885,9 @@ declare namespace Fit
 			/**
 			* Set data to post - this will change the request method from GET to POST
 			* @function SetData
-			* @param {string} dataStr - Data to send
+			* @param {any} dataObj - Data to send
 			*/
-			public SetData(dataStr:string):void;
+			public SetData(dataObj:any):void;
 			/**
 			* Invoke request. An asynchroneus request is performed if an
 			OnStateChange, OnSuccess, or OnFailure event handler has been set.
@@ -6895,24 +6930,39 @@ declare namespace Fit
 			*/
 			public Abort():void;
 			/**
-			* Add data to post - this will change the request method from GET to POST
-			* @function AddData
+			* Add form data - this will change the request method from GET to POST
+			and cause the following header to be added to the request, unless already
+			defined: Content-type: application/x-www-form-urlencoded
+			* @function AddFormData
 			* @param {string} key - Data key
 			* @param {string} value - Data value
 			* @param {boolean} [uriEncode=true] - Set False to prevent value from being URI encoded to preserve special characters
 			*/
-			public AddData(key:string, value:string, uriEncode?:boolean):void;
+			public AddFormData(key:string, value:string, uriEncode?:boolean):void;
 			/**
-			* Add header to request.
-			Manually adding headers will prevent the Request instance from
-			manipulating headers. This is done to provide full control with the headers.
-			You will in this case most likely need to add the following header for a POST request:
-			Content-type : application/x-www-form-urlencoded
+			* Add header to request
 			* @function AddHeader
 			* @param {string} key - Header key
 			* @param {string} value - Header value
 			*/
 			public AddHeader(key:string, value:string):void;
+			/**
+			* Get/set flag indicating whether request is made asynchronously or synchronously
+			* @function Async
+			* @param {boolean} [val=undefined] - If defined, enforces an async or sync request based on the boolean value provided
+			* @returns boolean
+			*/
+			public Async(val?:boolean):boolean;
+			/**
+			* Remove all form values from form data collection
+			* @function ClearFormData
+			*/
+			public ClearFormData():void;
+			/**
+			* Remove all request headers
+			* @function ClearHeaders
+			*/
+			public ClearHeaders():void;
 			/**
 			* Get current request state.
 			0 = Unsent
@@ -6927,9 +6977,29 @@ declare namespace Fit
 			/**
 			* Get data set to be posted
 			* @function GetData
+			* @returns any
+			*/
+			public GetData():any;
+			/**
+			* Get form value added to form data collection - returns Null if not found
+			* @function GetFormData
+			* @param {string} key - Data key
 			* @returns string
 			*/
-			public GetData():string;
+			public GetFormData(key:string):string;
+			/**
+			* Get request header - returns Null if not found
+			* @function GetHeader
+			* @param {string} key - Header name
+			* @returns string
+			*/
+			public GetHeader(key:string):string;
+			/**
+			* Get all request header names
+			* @function GetHeaders
+			* @returns string[]
+			*/
+			public GetHeaders():string[];
 			/**
 			* Returns HTTP status. Common return values are:
 			200 = OK (successful request)
@@ -7031,6 +7101,18 @@ declare namespace Fit
 			*/
 			public OnSuccess(func:Function):void;
 			/**
+			* Remove form value from form data collection
+			* @function RemoveFormData
+			* @param {string} key - Data key
+			*/
+			public RemoveFormData(key:string):void;
+			/**
+			* Remove request header
+			* @function RemoveHeader
+			* @param {string} key - Header name
+			*/
+			public RemoveHeader(key:string):void;
+			/**
 			* Constructor - creates instance of Request class
 			* @function Request
 			* @param {string} uri - URL to request
@@ -7050,9 +7132,9 @@ declare namespace Fit
 			/**
 			* Set data to post - this will change the request method from GET to POST
 			* @function SetData
-			* @param {string} dataStr - Data to send
+			* @param {any} dataObj - Data to send
 			*/
-			public SetData(dataStr:string):void;
+			public SetData(dataObj:any):void;
 			/**
 			* Invoke request. An asynchroneus request is performed if an
 			OnStateChange, OnSuccess, or OnFailure event handler has been set.
