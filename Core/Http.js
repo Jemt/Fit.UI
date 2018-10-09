@@ -66,10 +66,7 @@ Fit.Http.Request = function(uri)
 	{
 		httpRequest.onreadystatechange = function()
 		{
-			Fit.Array.ForEach(onStateChange, function(handler)
-			{
-				handler(me);
-			});
+			me._internal.FireOnStateChange();
 
 			if (httpRequest.readyState === 4)
 			{
@@ -581,6 +578,11 @@ Fit.Http.Request = function(uri)
 
 	this._internal =
 	{
+		FireOnStateChange: function()
+		{
+			Fit.Array.ForEach(onStateChange, function(handler) { handler(me); });
+		},
+		
 		FireOnSuccess: function()
 		{
 			Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
