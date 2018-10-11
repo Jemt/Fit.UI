@@ -356,10 +356,17 @@ Fit.Http.Request = function(uri)
 			httpRequest[key] = customProperties[key];
 		});
 
-		if (formData !== null)
-			httpRequest.send(getFormDataString(true));
-		else
-			httpRequest.send((data !== null ? (typeof(data) === "string" ? data : JSON.stringify(data)) : ""));
+		try // Using try/catch to catch communication errors such as DNS problems (ERR_NAME_NOT_RESOLVED)
+		{
+			if (formData !== null)
+				httpRequest.send(getFormDataString(true));
+			else
+				httpRequest.send((data !== null ? (typeof(data) === "string" ? data : JSON.stringify(data)) : ""));
+		}
+		catch (err)
+		{
+			me._internal.FireOnFailure();
+		}
 	}
 
 	/// <function container="Fit.Http.Request" name="Abort" access="public">
