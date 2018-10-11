@@ -1692,6 +1692,13 @@ declare namespace Fit
 			*/
 			public CloseDropDown():void;
 			/**
+			* Get/set value indicating whether boundary/collision detection is enabled or not
+			* @function DetectBoundaries
+			* @param {boolean} [val=undefined] - If defined, True enables collision detection (default), False disables it
+			* @returns boolean
+			*/
+			public DetectBoundaries(val?:boolean):boolean;
+			/**
 			* Create instance of DropDown control
 			* @function DropDown
 			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
@@ -3940,6 +3947,13 @@ declare namespace Fit
 			*/
 			public CloseDropDown():void;
 			/**
+			* Get/set value indicating whether boundary/collision detection is enabled or not
+			* @function DetectBoundaries
+			* @param {boolean} [val=undefined] - If defined, True enables collision detection (default), False disables it
+			* @returns boolean
+			*/
+			public DetectBoundaries(val?:boolean):boolean;
+			/**
 			* Get/set max height of drop down - returns object with Value (number) and Unit (string) properties
 			* @function DropDownMaxHeight
 			* @param {number} [value=undefined] - If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content.
@@ -5766,14 +5780,12 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler for specified event on given EventTarget
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
-		* @param {Function} eventFunction - JavaScript function to remove
+		* @param {number} eventId - Event ID identifying handler to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
 		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
@@ -5783,18 +5795,14 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
@@ -5803,6 +5811,12 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
