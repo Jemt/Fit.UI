@@ -38,12 +38,13 @@ Fit.Controls.DropDown = function(ctlId)
 	var dropZone = null;						// Active DropZone (drag and drop support)
 	var isMobile = false;						// Flag indicating whether control is running on a mobile (touch) device
 	var focusInputOnMobile = false;				// Flag indicating whether control should focus input after removing an item or selecting a new item from the picker control
+	var detectBoundaries = true;				// Flag indicating whether drop down menu should detect viewport collision and open upwards when needed
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
 	var onOpenHandlers = [];					// Invoked when drop down is opened - takes one argument (sender (this))
 	var onCloseHandlers = [];					// Invoked when drop down is closed - takes one argument (sender (this))
-
+	
 	function init()
 	{
 		invalidMessage = Fit.Language.Translations.InvalidSelection;
@@ -281,7 +282,7 @@ Fit.Controls.DropDown = function(ctlId)
 			if ((rtn.Unit === "%" || rtn.Unit === "em" || rtn.Unit === "rem") && widthObserverId === -1)
 			{
 				var prevWidth = me.GetDomElement().offsetWidth;
-				var moTimeout = null;
+				var moTimeout = -1;
 
 				widthObserverId = Fit.Events.AddMutationObserver(me.GetDomElement(), function(elm)
 				{
@@ -291,14 +292,19 @@ Fit.Controls.DropDown = function(ctlId)
 					{
 						prevWidth = newWidth;
 
-						if (moTimeout !== null) // Clear pending optimization
+						if (moTimeout !== -1) // Clear pending optimization
 							clearTimeout(moTimeout);
 
 						// Schedule optimization to prevent too many identical operations
 						// in case observer fires several times almost simultaneously.
 						moTimeout = setTimeout(function()
 						{
-							moTimeout = null;
+							if (me === null)
+							{
+								return; // Control has been disposed
+							}
+
+							moTimeout = -1;
 							optimizeTabOrder();
 						}, 250);
 					}
@@ -483,14 +489,21 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		if (widthObserverId !== -1)
+		{
 			Fit.Events.RemoveMutationObserver(widthObserverId);
+		}
+
+		if (tabOrderObserverId !== -1)
+		{
+			Fit.Events.RemoveMutationObserver(tabOrderObserverId);
+		}
 
 		Fit.Array.ForEach(closeHandlers, function(eventId)
 		{
 			Fit.Events.RemoveHandler(document, eventId);
 		});
 
-		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
+		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
 
 		base();
 	});
@@ -530,7 +543,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	/// <function container="Fit.Controls.DropDown" name="SetPicker" access="public">
 	/// 	<description> Set picker control used to add items to drop down control </description>
-	/// 	<param name="pickerControl" type="Fit.Controls.PickerBase"> Picker control extending from PickerBase </param>
+	/// 	<param name="pickerControl" type="Fit.Controls.PickerBase" nullable="true"> Picker control extending from PickerBase </param>
 	/// </function>
 	this.SetPicker = function(pickerControl)
 	{
@@ -964,7 +977,6 @@ Fit.Controls.DropDown = function(ctlId)
 	/// </function>
 	this.ClearSelections = function()
 	{
-		var selections = getSelectionElements();
 		var fireEvent = false;
 		var wasFocused = focusAssigned; // Removing an input from DOM fires OnBlur which sets focusAssigned to False
 
@@ -974,7 +986,27 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				if (picker !== null)
 				{
-					var res = picker.UpdateItemSelection(decode(Fit.Dom.Data(selection, "value")), false); // OnItemSelectionChanging and OnItemSelectionChanged are fired if picker recognizes item, causing it to be removed in drop down's OnItemSelectionChanged handler (unless canceled, in which case False is returned)
+					// Notice: Picker fires OnItemSelectionChanged when picker.UpdateItemSelection(..) is invoked
+					// below (other controls than DropDown may have registered an OnItemSelectionChanged
+					// handler too). In this case we set suppressOnItemSelectionChanged to True, causing
+					// drop down to do nothing in OnItemSelectionChanged handler when fired. Drop down's OnItemSelectionChanged
+					// handler is responsible for handling items added/removed by picker, but in this case the change did not
+					// come from the picker.
+					suppressOnItemSelectionChanged = true;
+
+					var res = true;
+					var error = null;
+
+					try // Make sure we can set suppressOnItemSelectionChanged false again, so drop down remains in a functioning state
+					{
+						var res = picker.UpdateItemSelection(decode(Fit.Dom.Data(selection, "value")), false); // OnItemSelectionChanging and OnItemSelectionChanged are fired if picker recognizes item, causing it to be removed in drop down's OnItemSelectionChanged handler (unless canceled, in which case False is returned)
+					}
+					catch (err) { error = err; }
+
+					suppressOnItemSelectionChanged = false;
+
+					if (error !== null)
+						Fit.Validation.ThrowError(error);
 
 					if (res !== false && selection.parentElement.parentElement !== null)
 					{
@@ -1215,6 +1247,8 @@ Fit.Controls.DropDown = function(ctlId)
 		dropDownMenu.style.minWidth = me.GetDomElement().offsetWidth + "px"; // In case DropDownMaxWidth(..) is set - update every time drop down is opened in case viewport is resized and has changed control width
 		dropDownMenu.style.display = "block";
 
+		optimizeDropDownPosition();
+
 		Fit._internal.DropDown.Current = me;
 
 		fireOnDropDownOpen();
@@ -1229,6 +1263,7 @@ Fit.Controls.DropDown = function(ctlId)
 			return;
 
 		dropDownMenu.style.display = "none";
+		resetDropDownPosition();
 
 		Fit._internal.DropDown.Current = null;
 
@@ -1241,6 +1276,22 @@ Fit.Controls.DropDown = function(ctlId)
 	this.IsDropDownOpen = function()
 	{
 		return (dropDownMenu.style.display === "block");
+	}
+
+	/// <function container="Fit.Controls.DropDown" name="DetectBoundaries" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether boundary/collision detection is enabled or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables collision detection (default), False disables it </param>
+	/// </function>
+	this.DetectBoundaries = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			detectBoundaries = val;
+		}
+
+		return detectBoundaries;
 	}
 
 	// ============================================
@@ -1352,10 +1403,18 @@ Fit.Controls.DropDown = function(ctlId)
 
 		txt.onblur = function(e)
 		{
+			if (me === null)
+			{
+				// Fix for Chrome which fires OnChange and OnBlur (in both capturering and bubbling phase)
+				// if control has focus while being removed from DOM, e.g. if used in a dialog closed using ESC.
+				// More details here: https://bugs.chromium.org/p/chromium/issues/detail?id=866242
+				return;
+			}
+
 			focusAssigned = false;
 		}
 
-		var timeOutId = null;
+		var timeOutId = -1;
 
 		txt.onkeydown = function(e) // Fires continuously for any key pressed - both characters and e.g backspace/delete/arrows etc. Key press may be canceled (change has not yet occured)
 		{
@@ -1461,14 +1520,23 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 				else
 				{
-					if (timeOutId !== null)
+					if (timeOutId !== -1)
 						clearTimeout(timeOutId);
 
 					// New length is not known when removing characters until OnKeyUp is fired.
 					// We won't wait for that. Instead we calculate the width "once in a while".
 					// Passing txt instance rather than txtActive, as the latter may change before
 					// timeout is reached and delegate is executed.
-					timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
+					timeOutId = setTimeout(function()
+					{
+						if (me === null)
+						{
+							return; // Control was disposed shortly after removing characters
+						}
+
+						fitWidthToContent(txt);
+						timeOutId = -1;
+					}, 50);
 				}
 			}
 			else if (ev.keyCode === 46) // Delete - remove selection
@@ -1508,7 +1576,12 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				if (txtEnabled === false)
 				{
-					Fit.Events.PreventDefault(ev);
+					if (Fit.Events.GetModifierKeys().Meta === false && Fit.Events.GetModifierKeys().Ctrl === false)
+					{
+						// Suppress key press unless modifier key is being used (e.g. CTRL+F5 or CMD+R to reload page)
+						Fit.Events.PreventDefault(ev);
+					}
+
 					return;
 				}
 
@@ -1616,6 +1689,7 @@ Fit.Controls.DropDown = function(ctlId)
 					newInput = txtPrimary;
 			}*/
 
+			// TODO: Rename this! We have a private property in this class with the same name!
 			var itemContainer = null; // Remains Null if last item's right input control has focus (unlikely since it will never be focused unless user manages to actually click it (5px wide)
 
 			if (txtActive !== txtPrimary && Fit.Dom.GetIndex(txtActive) === 0) // Left input has focus
@@ -1714,6 +1788,141 @@ Fit.Controls.DropDown = function(ctlId)
 					item.nextSibling.tabIndex = 0; // Fully visible - part of tab flow
 			});
 		}
+	}
+
+	function optimizeDropDownPosition()
+	{
+		if (detectBoundaries === false || picker === null)
+			return;
+
+		// Drop Down Menu is positioned above control if sufficient space (set in
+		// spaceRequiredBelowControl variable) is not available below control, and
+		// more space is available above control.
+		// The MaxHeight of the drop down menu will be adjusted automatically to
+		// prevent it from exceeding the boundaries of the viewport. However, the
+		// drop down menu will never decrease to less than the height given in the
+		// minimumDropDownHeight variable to keep it functional.
+
+		var viewPortDimensions = Fit.Browser.GetViewPortDimensions();				// { Width, Height }
+		var controlPosition = Fit.Dom.GetPosition(itemContainer, true);				// { X, Y } within viewport
+		var innerDimensions = Fit.Dom.GetInnerDimensions(me.GetDomElement());		// { X, Y } with width/height of itemContainer including its margin and outline which itemContainer.offsetWidth/Height does not include
+		var spacingAboveAndBelow = innerDimensions.Y - itemContainer.offsetHeight;	// Margin and outline above and below itemContainer, in case this has been applied using CSS
+		var spaceAboveControl = controlPosition.Y;									// Space available above control
+		var spaceBelowControl = viewPortDimensions.Height - (controlPosition.Y + innerDimensions.Y); // Space available below control
+		var mostSpaceAboveControl = spaceAboveControl > spaceBelowControl;			// True if there is more space available above control than below control
+		var spaceRequiredBelowControl = 100;										// Opens upwards if this amount of pixels is not available below control, and more space is available above control
+		var minimumDropDownHeight = 50;												// Ensures that drop down menu is never reduced to less than this amount of pixels in height
+		var spacingToBrowserEdge = 10;												// Makes sure that drop down menu has this amount of spacing (in pixels) to the edge of the browser
+
+		if (maxHeight.Unit === "px")
+		{
+			// This mechanism is only capable of determining whether drop down can fit
+			// below control if the drop down menu's MaxHeight is defined in pixels
+			// since we don't know what e.g. 3em resolves to (although we could use the same
+			// approach as used by fitWidthToContent(..) to measure it), and the drop down might not
+			// even need the space defined my MaxHeight if it contains a small treeview with all nodes
+			// collapsed, in which case the initial height will be small - so we won't be able to measure
+			// this value using DOM, we will have to use the same approach as fitWidthToContent(..).
+			// So if we want to support relative units, we will need to convert the relative MaxHeight
+			// to its actual pixel value using an approach similar to fitWidthToContent(..).
+			spaceRequiredBelowControl = maxHeight.Value;
+		}
+
+		// NOTICE: Selecting nodes in DropDown using mouse causes control's input field to gain focus
+		// which is very annoying when drop down opens upward and selected items exceed viewport boundaries
+		// as it causes page to scroll down to bottom of control.
+
+		if (mostSpaceAboveControl === true && controlPosition.Y + itemContainer.offsetHeight + spaceRequiredBelowControl + spacingAboveAndBelow > viewPortDimensions.Height) // Open upward
+		{
+			// More space is available above control than below control, AND the drop down menu
+			// does not have sufficient space available below the control (given by minimumDropDownHeight),
+			// so it is now being opened upwards instead.
+
+			dropDownMenu.style.marginTop = ""; // Reset in case drop down was previously opened downwards
+
+			var topBorderWidth = 0;
+			try
+			{
+				topBorderWidth = parseFloat(Fit.Dom.GetComputedStyle(itemContainer, "border-top-width"));
+			}
+			catch (err)
+			{
+				console.log("Unexpected: Unable to calculate border-top-width");
+			}
+
+			// Position drop down above control.
+			// WARNING: Assuming identical spacing above and below itemContainer (devided by 2) which
+			// is obviously not bullet proof. Different top/bottom spacing may have been applied.
+			// Consider using Fit.Dom.GetComputedStyle(itemContainer, "margin-top")
+			// and Fit.Dom.GetComputedStyle(itemContainer, "outline-width") instead.
+			dropDownMenu.style.bottom = (innerDimensions.Y + (spacingAboveAndBelow / 2) - topBorderWidth) + "px";
+
+			var spaceAvailableAboveControl = controlPosition.Y - spacingToBrowserEdge;
+
+			if (spaceAvailableAboveControl < minimumDropDownHeight)
+			{
+				// Do not reduce drop down height more than minimumDropDownHeight,
+				// even though user might have to scroll page to see the entire drop down menu.
+				// Reducing the drop down menu to e.g. 10px makes it completely unusable.
+
+				spaceAvailableAboveControl = minimumDropDownHeight;
+			}
+
+			if (maxHeight.Unit !== "px" || maxHeight.Value > spaceAvailableAboveControl)
+			{
+				// Reduce drop down menu's max height.
+				// CSS unit for MaxHeight is someting like 'em' (so enforce pixel based
+				// max height), or pixel based MaxHeight simply exceeds space available.
+
+				picker.MaxHeight(spaceAvailableAboveControl, "px");
+			}
+		}
+		else // Open like normal, downward
+		{
+			dropDownMenu.style.bottom = ""; // Reset in case drop down was previously opened upwards
+
+			var bottomBorderWidth = 0;
+			try
+			{
+				bottomBorderWidth = parseFloat(Fit.Dom.GetComputedStyle(itemContainer, "border-bottom-width"));
+			}
+			catch (err)
+			{
+				console.log("Unexpected: Unable to calculate border-bottom-width");
+			}
+
+			dropDownMenu.style.marginTop = "-" + bottomBorderWidth + "px";
+
+			var spaceAvailableBelowControl = spaceBelowControl - spacingToBrowserEdge;
+
+			if (spaceAvailableBelowControl < minimumDropDownHeight)
+			{
+				// Do not reduce drop down height more than minimumDropDownHeight,
+				// even though user might have to scroll page to see the entire drop down menu.
+				// Reducing the drop down menu to e.g. 10px makes it completely unusable.
+
+				spaceAvailableBelowControl = minimumDropDownHeight;
+			}
+
+			if (maxHeight.Unit !== "px" || maxHeight.Value > spaceAvailableBelowControl)
+			{
+				// Reduce drop down menu's max height.
+				// CSS unit for MaxHeight is someting like 'em' (so enforce pixel based
+				// max height), or pixel based MaxHeight simply exceeds space available.
+
+				picker.MaxHeight(spaceAvailableBelowControl, "px");
+			}
+		}
+	}
+
+	function resetDropDownPosition()
+	{
+		// Reset changes made by optimizeDropDownPosition()
+		dropDownMenu.style.bottom = "";
+		dropDownMenu.style.marginTop = "";
+
+		if (picker !== null) // Checking in case picker was removed while opened (unlikely though)
+			picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
 	}
 
 	function onDragStop(draggable)
@@ -1828,6 +2037,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function fireOnChange()
 	{
+		optimizeDropDownPosition();
 		me._internal.FireOnChange();
 	}
 
