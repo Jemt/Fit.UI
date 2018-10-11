@@ -356,7 +356,25 @@ Fit.Http.Request = function(uri)
 			httpRequest[key] = customProperties[key];
 		});
 
-		try // Using try/catch to catch communication errors such as DNS problems (ERR_NAME_NOT_RESOLVED)
+		// Monitor request to catch communication problems (e.g. DNS errors)
+		var checkerId = -1;
+		checkerId = setInterval(function()
+		{
+			if (me.GetCurrentState() === 4) // Request done
+			{
+				clearInterval(checkerId);
+
+				if (me.GetHttpStatus() === 0)
+				{
+					// Request is done (ready state === 4) and failed (HTTP status === 0),
+					// possibly due to DNS problem (ERR_NAME_NOT_RESOLVED) - fire OnFailure.
+
+					me._internal.FireOnFailure();
+				}
+			}
+		}, 1000);
+
+		try // Using try/catch to catch any error that may occur when initializing connection
 		{
 			if (formData !== null)
 				httpRequest.send(getFormDataString(true));
