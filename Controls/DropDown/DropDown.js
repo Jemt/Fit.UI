@@ -1792,7 +1792,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function optimizeDropDownPosition()
 	{
-		if (detectBoundaries === false || picker === null)
+		if (detectBoundaries === false || picker === null || me.IsDropDownOpen() === false)
 			return;
 
 		// Drop Down Menu is positioned above control if sufficient space (set in
