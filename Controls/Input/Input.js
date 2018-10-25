@@ -24,6 +24,7 @@ Fit.Controls.Input = function(ctlId)
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
 	var mutationObserverId = -1;
+	var rootedEventId = -1;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	// ============================================
@@ -136,7 +137,17 @@ Fit.Controls.Input = function(ctlId)
 		if (designEditor !== null)
 			designEditor.destroy();
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = isIe8 = null;
+		if (mutationObserverId !== -1)
+		{
+			Fit.Events.RemoveMutationObserver(mutationObserverId);
+		}
+
+		if (rootedEventId !== -1)
+		{
+			Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
+		}
+
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = isIe8 = null;
 
 		base();
 	});
@@ -562,7 +573,43 @@ Fit.Controls.Input = function(ctlId)
 		// the size of objects while being invisible. The CKEditor team may also solve the bug in an update.
 		if (Fit.Dom.IsRooted(me.GetDomElement()) === false)
 		{
-			Fit.Validation.ThrowError("Control must be appended/rendered to DOM before DesignMode can be initialized");
+			//Fit.Validation.ThrowError("Control must be appended/rendered to DOM before DesignMode can be initialized");
+
+			var retry = function(elm)
+			{
+				if (Fit.Dom.IsRooted(me.GetDomElement()) === true)
+				{
+					if (me.DesignMode() === true)
+					{
+						createEditor();
+					}
+
+					return true;
+				}
+
+				// Return False to indicate that we still need to keep retrying (still in DesignMode).
+				// Otherwie return True to indicate success - retrying is no longer relevant.
+				return (me.DesignMode() === true ? false : true);
+			};
+
+			setTimeout(function() // Queue to allow control to be rooted
+			{
+				if (retry() === false)
+				{
+					// Still not rooted - add observer to create editor instance once control is rooted
+
+					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(elm)
+					{
+						if (retry() === true || me.DesignMode() === false)
+						{
+							Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
+							rootedEventId = -1;
+						}
+					});
+				}
+			}, 0);
+
+			return;
 		}
 
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
