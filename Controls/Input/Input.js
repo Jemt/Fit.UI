@@ -575,7 +575,7 @@ Fit.Controls.Input = function(ctlId)
 		{
 			//Fit.Validation.ThrowError("Control must be appended/rendered to DOM before DesignMode can be initialized");
 
-			var retry = function(elm)
+			var retry = function()
 			{
 				if (Fit.Dom.IsRooted(me.GetDomElement()) === true)
 				{
@@ -598,7 +598,7 @@ Fit.Controls.Input = function(ctlId)
 				{
 					// Still not rooted - add observer to create editor instance once control is rooted
 
-					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(elm)
+					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(e)
 					{
 						if (retry() === true || me.DesignMode() === false)
 						{
