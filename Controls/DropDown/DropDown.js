@@ -38,7 +38,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var dropZone = null;						// Active DropZone (drag and drop support)
 	var isMobile = false;						// Flag indicating whether control is running on a mobile (touch) device
 	var focusInputOnMobile = false;				// Flag indicating whether control should focus input after removing an item or selecting a new item from the picker control
-	var detectBoundaries = true;				// Flag indicating whether drop down menu should detect viewport collision and open upwards when needed
+	var detectBoundaries = false;				// Flag indicating whether drop down menu should detect viewport collision and open upwards when needed
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -576,6 +576,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// Set picker MaxHeight
 
 		picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
+		optimizeDropDownPosition(); // In case dropdown is already open and SetPicker was called async, e.g. initiated from OnOpen event. Function may change MaxHeight on Picker.
 
 		// Make sure OnItemSelectionChanged is only registered once
 
@@ -1244,10 +1245,16 @@ Fit.Controls.DropDown = function(ctlId)
 		if (Fit._internal.DropDown.Current !== null && Fit._internal.DropDown.Current !== me)
 			Fit._internal.DropDown.Current.CloseDropDown();
 
+
+		// Do this before displaying drop down to prevent dropdown with position:absolute
+		// from changing height of document which may cause page to temporarily scroll, hence
+		// result in incorrect measurement of control position in optimizeDropDownPosition().
+		optimizeDropDownPosition(true);
+
 		dropDownMenu.style.minWidth = me.GetDomElement().offsetWidth + "px"; // In case DropDownMaxWidth(..) is set - update every time drop down is opened in case viewport is resized and has changed control width
 		dropDownMenu.style.display = "block";
 
-		optimizeDropDownPosition();
+		//optimizeDropDownPosition();
 
 		Fit._internal.DropDown.Current = me;
 
@@ -1279,7 +1286,13 @@ Fit.Controls.DropDown = function(ctlId)
 	}
 
 	/// <function container="Fit.Controls.DropDown" name="DetectBoundaries" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether boundary/collision detection is enabled or not </description>
+	/// 	<description>
+	/// 		Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
+	/// 		This may cause drop down to open upwards if sufficient space is not available below control.
+	/// 		Enabling this feature will also allow the control to escape (overflow) boundaries created by
+	/// 		containers with overflow:scroll|hidden|auto. The DropDown element will be positioned
+	/// 		using fixed positioning rather than absolute positioning.
+	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables collision detection (default), False disables it </param>
 	/// </function>
 	this.DetectBoundaries = function(val)
@@ -1790,72 +1803,56 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 	}
 
-	function optimizeDropDownPosition()
+	function optimizeDropDownPosition(force)
 	{
-		if (detectBoundaries === false || picker === null || me.IsDropDownOpen() === false)
+		Fit.Validation.ExpectBoolean(force, true);
+
+		if (detectBoundaries === false || (me.IsDropDownOpen() === false && force !== true))
 			return;
 
 		// Drop Down Menu is positioned above control if sufficient space (set in
-		// spaceRequiredBelowControl variable) is not available below control, and
-		// more space is available above control.
+		// spaceRequiredBelowControl variable) is not available below control.
 		// The MaxHeight of the drop down menu will be adjusted automatically to
 		// prevent it from exceeding the boundaries of the viewport. However, the
 		// drop down menu will never decrease to less than the height given in the
 		// minimumDropDownHeight variable to keep it functional.
 
+		// Notice that this feature results in the drop down being "disconnected" from the
+		// control, allowing the control to be "scrolled away" from the drop down element when opened.
+		// This is caused by using position:fixed of course.
+
 		var viewPortDimensions = Fit.Browser.GetViewPortDimensions();				// { Width, Height }
 		var controlPosition = Fit.Dom.GetPosition(itemContainer, true);				// { X, Y } within viewport
 		var innerDimensions = Fit.Dom.GetInnerDimensions(me.GetDomElement());		// { X, Y } with width/height of itemContainer including its margin and outline which itemContainer.offsetWidth/Height does not include
 		var spacingAboveAndBelow = innerDimensions.Y - itemContainer.offsetHeight;	// Margin and outline above and below itemContainer, in case this has been applied using CSS
-		var spaceAboveControl = controlPosition.Y;									// Space available above control
+		//var spaceAboveControl = controlPosition.Y;									// Space available above control
 		var spaceBelowControl = viewPortDimensions.Height - (controlPosition.Y + innerDimensions.Y); // Space available below control
-		var mostSpaceAboveControl = spaceAboveControl > spaceBelowControl;			// True if there is more space available above control than below control
+		//var mostSpaceAboveControl = spaceAboveControl > spaceBelowControl;			// True if there is more space available above control than below control
 		var spaceRequiredBelowControl = 100;										// Opens upwards if this amount of pixels is not available below control, and more space is available above control
 		var minimumDropDownHeight = 50;												// Ensures that drop down menu is never reduced to less than this amount of pixels in height
 		var spacingToBrowserEdge = 10;												// Makes sure that drop down menu has this amount of spacing (in pixels) to the edge of the browser
 
-		if (maxHeight.Unit === "px")
+		// More space is available above control than below control, AND the drop down menu does not have sufficient space available below the control (given by spaceRequiredBelowControl), so it is now being opened upwards instead.
+		// var condMoreSpaceAboveAndNotEnoughSpaceBelow = (mostSpaceAboveControl === true && controlPosition.Y + itemContainer.offsetHeight + spaceRequiredBelowControl + spacingAboveAndBelow > viewPortDimensions.Height);
+
+		// Sufficient space is not available below control, so it is now being opened upwards instead.
+		// Contrary to condMoreSpaceAboveAndNotEnoughSpaceBelow, this condition does not care about
+		// whether more space is available above the control or not. If the control does not have the required space
+		// available below it, it will open upwards, even when there is not sufficient space available. In this case
+		// the drop down element will simply overlay the control. This is to prevent the primary text field from being
+		// hidden behind the drop down element.
+		var condNotEnoughSpaceBelow = spaceBelowControl - (spacingAboveAndBelow / 2) - spacingToBrowserEdge < spaceRequiredBelowControl
+		
+		if (condNotEnoughSpaceBelow === true) // Open upward
 		{
-			// This mechanism is only capable of determining whether drop down can fit
-			// below control if the drop down menu's MaxHeight is defined in pixels
-			// since we don't know what e.g. 3em resolves to (although we could use the same
-			// approach as used by fitWidthToContent(..) to measure it), and the drop down might not
-			// even need the space defined my MaxHeight if it contains a small treeview with all nodes
-			// collapsed, in which case the initial height will be small - so we won't be able to measure
-			// this value using DOM, we will have to use the same approach as fitWidthToContent(..).
-			// So if we want to support relative units, we will need to convert the relative MaxHeight
-			// to its actual pixel value using an approach similar to fitWidthToContent(..).
-			spaceRequiredBelowControl = maxHeight.Value;
-		}
+			// Open upward as space required below control (given by spaceRequiredBelowControl) is not available
 
-		// NOTICE: Selecting nodes in DropDown using mouse causes control's input field to gain focus
-		// which is very annoying when drop down opens upward and selected items exceed viewport boundaries
-		// as it causes page to scroll down to bottom of control.
+			dropDownMenu.style.position = "fixed";	// Using fixed positioning to escape containers with overflow:scroll|hidden|auto
+			dropDownMenu.style.width = "auto";		// Picker by default has width:100% to assume the same width as the control
+			dropDownMenu.style.top = "";
+			dropDownMenu.style.bottom = (viewPortDimensions.Height - controlPosition.Y) + "px";
 
-		if (mostSpaceAboveControl === true && controlPosition.Y + itemContainer.offsetHeight + spaceRequiredBelowControl + spacingAboveAndBelow > viewPortDimensions.Height) // Open upward
-		{
-			// More space is available above control than below control, AND the drop down menu
-			// does not have sufficient space available below the control (given by minimumDropDownHeight),
-			// so it is now being opened upwards instead.
-
-			dropDownMenu.style.marginTop = ""; // Reset in case drop down was previously opened downwards
-
-			var topBorderWidth = 0;
-			try
-			{
-				topBorderWidth = parseFloat(Fit.Dom.GetComputedStyle(itemContainer, "border-top-width"));
-			}
-			catch (err)
-			{
-				console.log("Unexpected: Unable to calculate border-top-width");
-			}
-
-			// Position drop down above control.
-			// WARNING: Assuming identical spacing above and below itemContainer (devided by 2) which
-			// is obviously not bullet proof. Different top/bottom spacing may have been applied.
-			// Consider using Fit.Dom.GetComputedStyle(itemContainer, "margin-top")
-			// and Fit.Dom.GetComputedStyle(itemContainer, "outline-width") instead.
-			dropDownMenu.style.bottom = (innerDimensions.Y + (spacingAboveAndBelow / 2) - topBorderWidth) + "px";
+			// Optimize drop down height based on available space
 
 			var spaceAvailableAboveControl = controlPosition.Y - spacingToBrowserEdge;
 
@@ -1866,9 +1863,13 @@ Fit.Controls.DropDown = function(ctlId)
 				// Reducing the drop down menu to e.g. 10px makes it completely unusable.
 
 				spaceAvailableAboveControl = minimumDropDownHeight;
+				
+				// Prevent drop down element from exceeding viewport boundaries when forcing minimum height above
+				dropDownMenu.style.bottom = "";
+				dropDownMenu.style.top = spacingToBrowserEdge + "px";
 			}
 
-			if (maxHeight.Unit !== "px" || maxHeight.Value > spaceAvailableAboveControl)
+			if (picker !== null && (maxHeight.Unit !== "px" || maxHeight.Value > spaceAvailableAboveControl))
 			{
 				// Reduce drop down menu's max height.
 				// CSS unit for MaxHeight is someting like 'em' (so enforce pixel based
@@ -1876,35 +1877,43 @@ Fit.Controls.DropDown = function(ctlId)
 
 				picker.MaxHeight(spaceAvailableAboveControl, "px");
 			}
+
+			if (picker !== null && Fit.Core.IsEqual(picker.MaxHeight(), maxHeight) === false && picker.MaxHeight().Value < maxHeight.Value)
+			{
+				// MaxHeight has previously been reduced by optimizeDropDownPosition and is now smaller than
+				// the value initially configured for the drop down. Increase its size again if sufficient space is available.
+
+				picker.MaxHeight((maxHeight.Value < spaceAvailableAboveControl ? maxHeight.Value : spaceAvailableAboveControl), "px");
+			}
 		}
-		else // Open like normal, downward
+		else // Open like normal, downwards
 		{
-			dropDownMenu.style.bottom = ""; // Reset in case drop down was previously opened upwards
+			dropDownMenu.style.position = "fixed";
+			dropDownMenu.style.width = "auto";
+			dropDownMenu.style.top = (controlPosition.Y + innerDimensions.Y) + "px";
+			dropDownMenu.style.bottom = "";
 
-			var bottomBorderWidth = 0;
-			try
-			{
-				bottomBorderWidth = parseFloat(Fit.Dom.GetComputedStyle(itemContainer, "border-bottom-width"));
-			}
-			catch (err)
-			{
-				console.log("Unexpected: Unable to calculate border-bottom-width");
-			}
-
-			dropDownMenu.style.marginTop = "-" + bottomBorderWidth + "px";
+			// Optimize drop down height based on available space
 
 			var spaceAvailableBelowControl = spaceBelowControl - spacingToBrowserEdge;
 
 			if (spaceAvailableBelowControl < minimumDropDownHeight)
 			{
+				// NOTICE: This is only relevant (gets called) if we replace the use
+				// of condNotEnoughSpaceBelow with condMoreSpaceAboveAndNotEnoughSpaceBelow.
+
 				// Do not reduce drop down height more than minimumDropDownHeight,
 				// even though user might have to scroll page to see the entire drop down menu.
 				// Reducing the drop down menu to e.g. 10px makes it completely unusable.
 
 				spaceAvailableBelowControl = minimumDropDownHeight;
+
+				// Prevent drop down element from exceeding viewport boundaries when forcing minimum height above.
+				dropDownMenu.style.top = "";
+				dropDownMenu.style.bottom = spacingToBrowserEdge + "px";
 			}
 
-			if (maxHeight.Unit !== "px" || maxHeight.Value > spaceAvailableBelowControl)
+			if (picker !== null && (maxHeight.Unit !== "px" || maxHeight.Value > spaceAvailableBelowControl))
 			{
 				// Reduce drop down menu's max height.
 				// CSS unit for MaxHeight is someting like 'em' (so enforce pixel based
@@ -1912,14 +1921,24 @@ Fit.Controls.DropDown = function(ctlId)
 
 				picker.MaxHeight(spaceAvailableBelowControl, "px");
 			}
+
+			if (picker !== null && Fit.Core.IsEqual(picker.MaxHeight(), maxHeight) === false && picker.MaxHeight().Value < maxHeight.Value)
+			{
+				// MaxHeight has previously been reduced by optimizeDropDownPosition and is now smaller than
+				// the value initially configured for the drop down. Increase its size again if sufficient space is available.
+
+				picker.MaxHeight((maxHeight.Value < spaceAvailableBelowControl ? maxHeight.Value : spaceAvailableBelowControl), "px");
+			}
 		}
 	}
 
 	function resetDropDownPosition()
 	{
 		// Reset changes made by optimizeDropDownPosition()
+		dropDownMenu.style.position = "";
+		dropDownMenu.style.width = "";
 		dropDownMenu.style.bottom = "";
-		dropDownMenu.style.marginTop = "";
+		dropDownMenu.style.top = "";
 
 		if (picker !== null) // Checking in case picker was removed while opened (unlikely though)
 			picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
