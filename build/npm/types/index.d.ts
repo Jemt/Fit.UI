@@ -1692,7 +1692,11 @@ declare namespace Fit
 			*/
 			public CloseDropDown():void;
 			/**
-			* Get/set value indicating whether boundary/collision detection is enabled or not
+			* Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
+			This may cause drop down to open upwards if sufficient space is not available below control.
+			Enabling this feature will also allow the control to escape (overflow) boundaries created by
+			containers with overflow:scroll|hidden|auto. The DropDown element will be positioned
+			using fixed positioning rather than absolute positioning.
 			* @function DetectBoundaries
 			* @param {boolean} [val=undefined] - If defined, True enables collision detection (default), False disables it
 			* @returns boolean
@@ -3947,7 +3951,11 @@ declare namespace Fit
 			*/
 			public CloseDropDown():void;
 			/**
-			* Get/set value indicating whether boundary/collision detection is enabled or not
+			* Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
+			This may cause drop down to open upwards if sufficient space is not available below control.
+			Enabling this feature will also allow the control to escape (overflow) boundaries created by
+			containers with overflow:scroll|hidden|auto. The DropDown element will be positioned
+			using fixed positioning rather than absolute positioning.
 			* @function DetectBoundaries
 			* @param {boolean} [val=undefined] - If defined, True enables collision detection (default), False disables it
 			* @returns boolean
