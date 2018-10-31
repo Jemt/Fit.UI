@@ -195,10 +195,10 @@ Fit.Controls.TreeView = function(ctlId)
 
 			//{ PickerControl support - START
 
-			// If used as picker control, make sure first node is selected on initial key press
-			if (isPicker === true && isNodeSet(activeNode) === false && rootNode.GetChildren().length > 0)
+			// If used as picker control, make sure first node is selected on initial key press (activeNode has not yet been set)
+			if (isPicker === true && isNodeSet(activeNode) === false)
 			{
-				focusNode(rootNode.GetChildren()[0]); // Sets activeNode to first child
+				focusFirstNode(); // Sets activeNode to first child
 				return;
 			}
 
@@ -1033,7 +1033,8 @@ Fit.Controls.TreeView = function(ctlId)
 
 	this.OnShow(function(sender)
 	{
-		// Reset scroll
+		// Reset selection and scroll
+		unsetActiveNode();
 		me.GetDomElement().scrollTop = 0;
 		me.GetDomElement().scrollLeft = 0;
 	});
@@ -1283,6 +1284,23 @@ Fit.Controls.TreeView = function(ctlId)
 		else
 		{
 			node.Focused(true);
+		}
+	}
+
+	function focusFirstNode() // Focus first node in TreeView
+	{
+		if (rootNode.GetChildren().length > 0)
+		{
+			focusNode(rootNode.GetChildren()[0]);
+		}
+	}
+
+	function unsetActiveNode() // Unset picker selection
+	{
+		if (isNodeSet(activeNode) === true)
+		{
+			Fit.Dom.Data(activeNode.GetDomElement(), "active", null);
+			activeNode = null;
 		}
 	}
 
