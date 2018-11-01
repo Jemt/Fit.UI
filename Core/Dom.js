@@ -863,6 +863,88 @@ Fit.Dom.GetScrollPosition = function(elm)
 	return pos;
 }
 
+/// <function container="Fit.Dom" name="GetScrollParent" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Get element's scroll parent. Returns null if element passed
+/// 		is placed on its own stacking context (has position:fixed).
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get scroll parent for </param>
+/// </function>
+Fit.Dom.GetScrollParent = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	var pos = Fit.Dom.GetComputedStyle(elm, "position");
+
+	if (pos === "fixed")
+    {
+		return null; // No scroll parent when element has its own stacking context
+	}
+
+    while ((elm = elm.parentElement))
+    {
+		if (pos === "absolute" && Fit.Dom.GetComputedStyle(elm, "position") === "static") // static is default positioning
+        {
+			continue; // Skip parent if element is floating outside of it using absolute positioning
+		}
+
+		var regEx = /scroll|auto/;
+        var overflow = Fit.Dom.GetComputedStyle(elm, "overflow");
+		var overflowX = Fit.Dom.GetComputedStyle(elm, "overflow-x");
+		var overflowY = Fit.Dom.GetComputedStyle(elm, "overflow-y");
+
+		if (regEx.test(overflow) === true || regEx.test(overflowX) || regEx.test(overflowY))
+        {
+			return elm;
+		}
+	}
+
+	// Return document
+
+	return Fit.Dom.GetScrollDocument();
+}
+
+/// <function container="Fit.Dom" name="GetScollDocument" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Get scrolling document element. This is the cross browser
+/// 		equivalent of document.scrollingElement.
+/// 	</description>
+/// </function>
+Fit.Dom.GetScollDocument = function()
+{
+	if (Fit._internal.Dom.ScrollDocument === undefined)
+	{
+		if (document.scrollingElement)
+		{
+			Fit._internal.Dom.ScrollDocument = document.scrollingElement;
+		}
+		else
+		{
+			var iframe = document.createElement("iframe");
+			iframe.style.cssText = "height: 1px; position: fixed; top: -100px; left: -100px;";
+
+			document.documentElement.appendChild(iframe);
+			
+			var doc = iframe.contentWindow.document;
+			doc.write("<!DOCTYPE html><div style='height: 100px'>&nbsp;</div>");
+			doc.close();
+
+			if (doc.documentElement.scrollHeight > doc.body.scrollHeight)
+			{
+				Fit._internal.Dom.ScrollDocument = document.documentElement;
+			}
+			else
+			{
+				Fit._internal.Dom.ScrollDocument = document.body;
+			}
+
+			iframe.parentNode.removeChild(iframe);
+		}
+	}
+
+	return Fit._internal.Dom.ScrollDocument;
+}
+
 // Internal members
 
 Fit._internal.Dom.IsOffsetParentSupported = function() // Returns True if offsetParent can be used to determine whether an element is visible or not
