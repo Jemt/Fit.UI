@@ -904,13 +904,13 @@ Fit.Dom.GetScrollParent = function(elm)
 	return Fit.Dom.GetScrollDocument();
 }
 
-/// <function container="Fit.Dom" name="GetScollDocument" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetScrollDocument" access="public" static="true" returns="DOMElement">
 /// 	<description>
 /// 		Get scrolling document element. This is the cross browser
 /// 		equivalent of document.scrollingElement.
 /// 	</description>
 /// </function>
-Fit.Dom.GetScollDocument = function()
+Fit.Dom.GetScrollDocument = function()
 {
 	if (Fit._internal.Dom.ScrollDocument === undefined)
 	{

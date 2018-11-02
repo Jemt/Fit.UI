@@ -1822,18 +1822,18 @@ Fit.Controls.DropDown = function(ctlId)
 		// This is caused by using position:fixed of course.
 
 		var viewPortDimensions = Fit.Browser.GetViewPortDimensions();				// { Width, Height }
-		var controlPosition = Fit.Dom.GetPosition(itemContainer, true);				// { X, Y } within viewport
+		var controlPositionY = Fit.Dom.GetPosition(itemContainer, true).Y;			// Position from top
 		var innerDimensions = Fit.Dom.GetInnerDimensions(me.GetDomElement());		// { X, Y } with width/height of itemContainer including its margin and outline which itemContainer.offsetWidth/Height does not include
 		var spacingAboveAndBelow = innerDimensions.Y - itemContainer.offsetHeight;	// Margin and outline above and below itemContainer, in case this has been applied using CSS
-		//var spaceAboveControl = controlPosition.Y;									// Space available above control
-		var spaceBelowControl = viewPortDimensions.Height - (controlPosition.Y + innerDimensions.Y); // Space available below control
+		//var spaceAboveControl = controlPositionY;									// Space available above control
+		var spaceBelowControl = viewPortDimensions.Height - (controlPositionY + innerDimensions.Y); // Space available below control
 		//var mostSpaceAboveControl = spaceAboveControl > spaceBelowControl;			// True if there is more space available above control than below control
 		var spaceRequiredBelowControl = 100;										// Opens upwards if this amount of pixels is not available below control, and more space is available above control
 		var minimumDropDownHeight = 50;												// Ensures that drop down menu is never reduced to less than this amount of pixels in height
 		var spacingToBrowserEdge = 10;												// Makes sure that drop down menu has this amount of spacing (in pixels) to the edge of the browser
 
 		// More space is available above control than below control, AND the drop down menu does not have sufficient space available below the control (given by spaceRequiredBelowControl), so it is now being opened upwards instead.
-		// var condMoreSpaceAboveAndNotEnoughSpaceBelow = (mostSpaceAboveControl === true && controlPosition.Y + itemContainer.offsetHeight + spaceRequiredBelowControl + spacingAboveAndBelow > viewPortDimensions.Height);
+		// var condMoreSpaceAboveAndNotEnoughSpaceBelow = (mostSpaceAboveControl === true && controlPositionY + itemContainer.offsetHeight + spaceRequiredBelowControl + spacingAboveAndBelow > viewPortDimensions.Height);
 
 		// Sufficient space is not available below control, so it is now being opened upwards instead.
 		// Contrary to condMoreSpaceAboveAndNotEnoughSpaceBelow, this condition does not care about
@@ -1845,16 +1845,64 @@ Fit.Controls.DropDown = function(ctlId)
 		
 		if (condNotEnoughSpaceBelow === true) // Open upward
 		{
+			// Handle situation where the control is contained in a parent with scroll
+			// and the control has been partially scrolled out of view. In this case
+			// we do not want to position the drop down element where the (now hidden)
+			// top of the control is located in the viewport, but where the scrollable
+			// container starts.
+			// https://github.com/Jemt/Fit.UI/issues/51
+
+			var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement());
+
+			if (scrollParent !== Fit.Dom.GetScrollDocument())
+			{
+				// Control is positioned within a container with scroll.
+				// Calculate control position within scrollable container (scrollParent).
+
+				var scrollParentPositioning = Fit.Dom.GetComputedStyle(scrollParent, "position");
+				var relativePos = null;
+
+				if (Fit.Dom.GetComputedStyle(scrollParent, "position") === "static")
+				{
+					// Container must be positioned in order for GetRelativePosition to work.
+					// This is because a positioned element becomes the offsetParent to child
+					// elements which GetRelativePosition uses to calculate the position.
+
+					var orgPosVal = scrollParent.style.position;
+					scrollParent.style.position = "relative";
+
+					relativePos = Fit.Dom.GetRelativePosition(me.GetDomElement());
+					
+					scrollParent.style.position = orgPosVal;
+				}
+				else
+				{
+					relativePos = Fit.Dom.GetRelativePosition(me.GetDomElement());
+				}
+
+				// If position is negative it means the top of the control has been scrolled out of view
+
+				if (relativePos.Y < 0)
+				{
+					// Control has been scrolled out of view. Use scroll parent
+					// as offset for positioning the drop down element instead.
+
+					controlPositionY = Fit.Dom.GetPosition(scrollParent, true).Y;
+					controlPositionY = controlPositionY + parseInt(Fit.Dom.GetComputedStyle(scrollParent, "margin-top"));
+					controlPositionY = controlPositionY + parseInt(Fit.Dom.GetComputedStyle(scrollParent, "border-top-width"));
+				}
+			}
+
 			// Open upward as space required below control (given by spaceRequiredBelowControl) is not available
 
 			dropDownMenu.style.position = "fixed";	// Using fixed positioning to escape containers with overflow:scroll|hidden|auto
 			dropDownMenu.style.width = "auto";		// Picker by default has width:100% to assume the same width as the control
 			dropDownMenu.style.top = "";
-			dropDownMenu.style.bottom = (viewPortDimensions.Height - controlPosition.Y) + "px";
+			dropDownMenu.style.bottom = (viewPortDimensions.Height - controlPositionY) + "px";
 
 			// Optimize drop down height based on available space
 
-			var spaceAvailableAboveControl = controlPosition.Y - spacingToBrowserEdge;
+			var spaceAvailableAboveControl = controlPositionY - spacingToBrowserEdge;
 
 			if (spaceAvailableAboveControl < minimumDropDownHeight)
 			{
@@ -1890,7 +1938,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			dropDownMenu.style.position = "fixed";
 			dropDownMenu.style.width = "auto";
-			dropDownMenu.style.top = (controlPosition.Y + innerDimensions.Y) + "px";
+			dropDownMenu.style.top = (controlPositionY + innerDimensions.Y) + "px";
 			dropDownMenu.style.bottom = "";
 
 			// Optimize drop down height based on available space
