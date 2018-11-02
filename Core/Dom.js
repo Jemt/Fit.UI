@@ -423,10 +423,44 @@ Fit.Dom.Text = function(elm, value)
 	if (Fit.Validation.IsSet(value) === true)
 	{
 		if (elm.textContent)
+		{
 			elm.textContent = value;
+		}
 		else
+		{
+			// IE8 does not support textContent.
+			// https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent
+			// "Altering innerText in Internet Explorer (version 11 and below) removes child nodes from the element
+			// and permanently destroys all descendant text nodes. It is impossible to insert the nodes again into
+			// any other element or into the same element anymore."
+			// We therefore remove all nodes prior to changing the text value in Internet Explorer.
+			if (elm.children.length > 0)
+			{
+				Fit.Array.ForEach(Fit.Array.Copy(elm.children), function(c)
+				{
+					Fit.Dom.Remove(c);
+				});
+			}
+
 			elm.innerText = value;
+		}
 	}
+
+	// NOTICE: The properties textContent (requires IE9+) and innerText return very different values.
+	// https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent
+	// Code from script and style blocks are included with textContent, and while innerText
+	// does not, it also doesn't include text from elements hidden using CSS.
+	// But fortunately hidden elements are included in IE8, probably due to incorrect implementation.
+	// Since pretty much all browsers except for IE8 supports textContent,
+	// we allow the inconsistency; that innerText does not include code from script and style blocks.
+	// If we at some point realize that such behaviour is completely unacceptable, we can get a result
+	// very similar to textContent with IE8 using the code below:
+	// Fit.String.StripHtml(el.innerHTML).replace(/&nbsp;/g, " ");
+	// The only major difference is that line breaks and indentation is not identical.
+	// If we need even better consistency, we would need to make all browsers use the following code instead:
+	// Fit.String.StripHtml(el.innerHTML).replace(/^\s*([^\s].*?)\s*$/gm, "$1").replace(/\r/g, "").replace(/\n/g, " ").replace(/&nbsp;/g, " ");
+	// It takes innerHTML, removes all HTML, trims every line, remove line breaks between lines, and make sure non-breaking spaces are preserved.
+	// Both approaches come with a performance penelty, and frankly it's not worth it when IE9+ and all other browsers support textContent.
 
 	return (elm.textContent ? elm.textContent : elm.innerText);
 }
@@ -827,6 +861,88 @@ Fit.Dom.GetScrollPosition = function(elm)
 	pos.Y = Math.floor(pos.Y);
 
 	return pos;
+}
+
+/// <function container="Fit.Dom" name="GetScrollParent" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Get element's scroll parent. Returns null if element passed
+/// 		is placed on its own stacking context (has position:fixed).
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get scroll parent for </param>
+/// </function>
+Fit.Dom.GetScrollParent = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	var pos = Fit.Dom.GetComputedStyle(elm, "position");
+
+	if (pos === "fixed")
+    {
+		return null; // No scroll parent when element has its own stacking context
+	}
+
+    while ((elm = elm.parentElement))
+    {
+		if (pos === "absolute" && Fit.Dom.GetComputedStyle(elm, "position") === "static") // static is default positioning
+        {
+			continue; // Skip parent if element is floating outside of it using absolute positioning
+		}
+
+		var regEx = /scroll|auto/;
+        var overflow = Fit.Dom.GetComputedStyle(elm, "overflow");
+		var overflowX = Fit.Dom.GetComputedStyle(elm, "overflow-x");
+		var overflowY = Fit.Dom.GetComputedStyle(elm, "overflow-y");
+
+		if (regEx.test(overflow) === true || regEx.test(overflowX) || regEx.test(overflowY))
+        {
+			return elm;
+		}
+	}
+
+	// Return document
+
+	return Fit.Dom.GetScrollDocument();
+}
+
+/// <function container="Fit.Dom" name="GetScrollDocument" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Get scrolling document element. This is the cross browser
+/// 		equivalent of document.scrollingElement.
+/// 	</description>
+/// </function>
+Fit.Dom.GetScrollDocument = function()
+{
+	if (Fit._internal.Dom.ScrollDocument === undefined)
+	{
+		if (document.scrollingElement)
+		{
+			Fit._internal.Dom.ScrollDocument = document.scrollingElement;
+		}
+		else
+		{
+			var iframe = document.createElement("iframe");
+			iframe.style.cssText = "height: 1px; position: fixed; top: -100px; left: -100px;";
+
+			document.documentElement.appendChild(iframe);
+			
+			var doc = iframe.contentWindow.document;
+			doc.write("<!DOCTYPE html><div style='height: 100px'>&nbsp;</div>");
+			doc.close();
+
+			if (doc.documentElement.scrollHeight > doc.body.scrollHeight)
+			{
+				Fit._internal.Dom.ScrollDocument = document.documentElement;
+			}
+			else
+			{
+				Fit._internal.Dom.ScrollDocument = document.body;
+			}
+
+			iframe.parentNode.removeChild(iframe);
+		}
+	}
+
+	return Fit._internal.Dom.ScrollDocument;
 }
 
 // Internal members
