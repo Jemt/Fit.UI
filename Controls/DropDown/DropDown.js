@@ -1857,39 +1857,18 @@ Fit.Controls.DropDown = function(ctlId)
 			if (scrollParent !== Fit.Dom.GetScrollDocument())
 			{
 				// Control is positioned within a container with scroll.
-				// Calculate control position within scrollable container (scrollParent).
+				// Calculate position relative to viewport to determine
+				// whether control has been scrolled out of view.
 
-				var scrollParentPositioning = Fit.Dom.GetComputedStyle(scrollParent, "position");
-				var relativePos = null;
+				var scrollParentPosY = Fit.Dom.GetPosition(scrollParent, true).Y;
+				scrollParentPosY = scrollParentPosY + parseInt(Fit.Dom.GetComputedStyle(scrollParent, "margin-top"));
+				scrollParentPosY = scrollParentPosY + parseInt(Fit.Dom.GetComputedStyle(scrollParent, "border-top-width"));
 
-				if (Fit.Dom.GetComputedStyle(scrollParent, "position") === "static")
+				if (controlPositionY < scrollParentPosY)
 				{
-					// Container must be positioned in order for GetRelativePosition to work.
-					// This is because a positioned element becomes the offsetParent to child
-					// elements which GetRelativePosition uses to calculate the position.
-
-					var orgPosVal = scrollParent.style.position;
-					scrollParent.style.position = "relative";
-
-					relativePos = Fit.Dom.GetRelativePosition(me.GetDomElement());
-					
-					scrollParent.style.position = orgPosVal;
-				}
-				else
-				{
-					relativePos = Fit.Dom.GetRelativePosition(me.GetDomElement());
-				}
-
-				// If position is negative it means the top of the control has been scrolled out of view
-
-				if (relativePos.Y < 0)
-				{
-					// Control has been scrolled out of view. Use scroll parent
-					// as offset for positioning the drop down element instead.
-
-					controlPositionY = Fit.Dom.GetPosition(scrollParent, true).Y;
-					controlPositionY = controlPositionY + parseInt(Fit.Dom.GetComputedStyle(scrollParent, "margin-top"));
-					controlPositionY = controlPositionY + parseInt(Fit.Dom.GetComputedStyle(scrollParent, "border-top-width"));
+					// Relative to the viewport the control is positioned above the
+					// scroll container which means it has been scrolled out of view.
+					controlPositionY = scrollParentPosY;
 				}
 			}
 
