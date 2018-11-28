@@ -1487,7 +1487,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	/// </function>
 	this.Title = function(val)
 	{
-		Fit.Validation.ExpectStringValue(val, true);
+		Fit.Validation.ExpectString(val, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
