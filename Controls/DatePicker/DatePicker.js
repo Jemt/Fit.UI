@@ -21,6 +21,8 @@ Fit.Controls.DatePicker = function(ctlId)
 	var prevTimeVal = "";		// Previous valid time value as string (without date portion)
 	var locale = "en";			// Default ("", "en", and "en-US" is the same) - see this.regional[""] decleration in jquery-ui.js
 	var format = "MM/DD/YYYY";	// Default format for "en" locale (specified using Fit.UI format - jQuery UI DataPicker uses "mm/dd/yy" - see this.regional[""] decleration in jquery-ui.js)
+	var placeholderDate = null;	// Placeholder value for date
+	var placeholderTime = null;	// Placeholder value for time
 	var weeks = false;			// Whether to display week numbers or not
 	var jquery = undefined;		// jQuery instance
 	var datepicker = null;		// jQuery UI calendar widget
@@ -44,7 +46,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		input.type = "text";
 		input.autocomplete = "off";
 		input.spellcheck = false;
-		input.placeholder = Fit.Date.Format(new Date(), format);
+		input.placeholder = getDatePlaceholder();
 		input.tabIndex = ((isMobile === true) ? -1 : 0);
 
 		input.onkeydown = function(e)
@@ -545,7 +547,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 			format = val;
 			updateCalConf = true; // Update calendar widget settings
-			input.placeholder = Fit.Date.Format(new Date(), format);
+			input.placeholder = getDatePlaceholder();
 
 			me._internal.ExecuteWithNoOnChange(function()
 			{
@@ -574,6 +576,48 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 
 		return format;
+	}
+
+	/// <function container="Fit.Controls.DatePicker" name="DatePlaceholder" access="public" returns="string">
+	/// 	<description> Get/set date placeholder value. Returns Null if not set. </description>
+	/// 	<param name="val" type="string" default="undefined">
+	/// 		If defined, placeholder is updated. Pass Null to use default
+	/// 		placeholder, or an empty string to remove placeholder.
+	/// 	</param>
+	/// </function>
+	this.DatePlaceholder = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (val !== undefined) // Allow Null
+		{
+			placeholderDate = val;
+			input.placeholder = getDatePlaceholder();
+		}
+
+		return placeholderDate;
+	}
+
+	/// <function container="Fit.Controls.DatePicker" name="TimePlaceholder" access="public" returns="string">
+	/// 	<description> Get/set time placeholder value. Returns Null if not set. </description>
+	/// 	<param name="val" type="string" default="undefined">
+	/// 		If defined, placeholder is updated. Pass Null to use default
+	/// 		placeholder, or an empty string to remove placeholder.
+	/// 	</param>
+	/// </function>
+	this.TimePlaceholder = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (val !== undefined) // Allow Null
+		{
+			placeholderTime = val;
+
+			if (inputTime !== null)
+				inputTime.placeholder = getTimePlaceholder();
+		}
+
+		return placeholderTime;
 	}
 
 	this.WeekNumbers = function(val) // Not supported on mobile, and jQuery calendar is buggy: https://bugs.jqueryui.com/ticket/14907
@@ -625,7 +669,7 @@ Fit.Controls.DatePicker = function(ctlId)
 				inputTime.type = "text";
 				inputTime.autocomplete = "off";
 				inputTime.spellcheck = false;
-				inputTime.placeholder = Fit.Date.Format(new Date(), "hh:mm");
+				inputTime.placeholder = getTimePlaceholder();
 				inputTime.value = ((me.Date() !== null) ? "00:00" : "");
 				inputTime.tabIndex = ((isMobile === true) ? -1 : 0);
 
@@ -1070,6 +1114,16 @@ Fit.Controls.DatePicker = function(ctlId)
 		// 4) Insert JSON written to console into variable below.
 
 		return {"":"mm/dd/yy","en":"mm/dd/yy","en-US":"mm/dd/yy","da":"dd-mm-yy","af":"dd/mm/yy","ar-DZ":"dd/mm/yy","ar":"dd/mm/yy","az":"dd.mm.yy","be":"dd.mm.yy","bg":"dd.mm.yy","bs":"dd.mm.yy","ca":"dd/mm/yy","cs":"dd.mm.yy","cy-GB":"dd/mm/yy","de":"dd.mm.yy","el":"dd/mm/yy","en-AU":"dd/mm/yy","en-GB":"dd/mm/yy","en-NZ":"dd/mm/yy","eo":"dd/mm/yy","es":"dd/mm/yy","et":"dd.mm.yy","eu":"yy-mm-dd","fa":"yy/mm/dd","fi":"d.m.yy","fo":"dd-mm-yy","fr-CA":"yy-mm-dd","fr-CH":"dd.mm.yy","fr":"dd/mm/yy","gl":"dd/mm/yy","he":"dd/mm/yy","hi":"dd/mm/yy","hr":"dd.mm.yy.","hu":"yy.mm.dd.","hy":"dd.mm.yy","id":"dd/mm/yy","is":"dd.mm.yy","it-CH":"dd.mm.yy","it":"dd/mm/yy","ja":"yy/mm/dd","ka":"dd-mm-yy","kk":"dd.mm.yy","km":"dd-mm-yy","ko":"yy. m. d.","ky":"dd.mm.yy","lb":"dd.mm.yy","lt":"yy-mm-dd","lv":"dd.mm.yy","mk":"dd.mm.yy","ml":"dd/mm/yy","ms":"dd/mm/yy","nb":"dd.mm.yy","nl-BE":"dd/mm/yy","nl":"dd-mm-yy","nn":"dd.mm.yy","no":"dd.mm.yy","pl":"dd.mm.yy","pt-BR":"dd/mm/yy","pt":"dd/mm/yy","rm":"dd/mm/yy","ro":"dd.mm.yy","ru":"dd.mm.yy","sk":"dd.mm.yy","sl":"dd.mm.yy","sq":"dd.mm.yy","sr":"dd.mm.yy","sr-SR":"dd.mm.yy","sv":"yy-mm-dd","ta":"dd/mm/yy","th":"dd/mm/yy","tj":"dd.mm.yy","tr":"dd.mm.yy","uk":"dd.mm.yy","vi":"dd/mm/yy","zh-CN":"yy-mm-dd","zh-HK":"dd-mm-yy","zh-TW":"yy/mm/dd"};
+	}
+
+	function getDatePlaceholder()
+	{
+		return (placeholderDate !== null ? placeholderDate : Fit.Date.Format(new Date(), format));
+	}
+
+	function getTimePlaceholder()
+	{
+		return (placeholderTime !== null ? placeholderTime : Fit.Date.Format(new Date(), "hh:mm"));
 	}
 
 	init();
