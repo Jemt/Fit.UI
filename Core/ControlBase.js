@@ -186,7 +186,6 @@ Fit.Controls.ControlBase = function(controlId)
 	// ============================================
 
 	var me = this;
-	var id = me.GetId();
 	var container = me.GetDomElement();
 	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
 	var height = { Value: -1, Unit: "px" };
@@ -196,8 +195,10 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationExpr = null;
 	var validationError = null;
 	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation, 2 = Callback validation
-	var validationCallbackFunc = null;
-	var validationCallbackError = null;
+	var validationCallbackFunc = null;	// Obsolete - used by SetValidationCallback
+	var validationCallbackError = null;	// Obsolete - used by SetValidationCallback
+	var validationHandlerFunc = null;
+	var validationHandlerError = null;
 	var lazyValidation = false;
 	var hasValidated = false;
 	var blockAutoPostBack = false; // Used by AutoPostBack mechanism to prevent multiple postbacks, e.g on double click
@@ -309,7 +310,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		me = id = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = null;
 		base();
 	});
 
@@ -497,7 +498,10 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationCallback" access="public">
-	/// 	<description> Set callback function used to perform on-the-fly validation against control value </description>
+	/// 	<description>
+	/// 		DEPRECATED! Please use SetValidationHandler(..) instead.
+	/// 		Set callback function used to perform on-the-fly validation against control value.
+	/// 	</description>
 	/// 	<param name="cb" type="function" nullable="true"> Function receiving control value - must return True if value is valid, otherwise False </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -508,8 +512,30 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Validation.ExpectFunction(cb, true); // Allow Null/undefined which disables validation
 		Fit.Validation.ExpectString(errorMsg, true);
 
+		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationCallback - please use SetValidationHandler instead");
+
+		validationHandlerFunc = null;
 		validationCallbackFunc = (cb ? cb : null);;
 		validationCallbackError = (errorMsg ? errorMsg : null);
+
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="SetValidationHandler" access="public">
+	/// 	<description> Set callback function used to perform on-the-fly validation against control value </description>
+	/// 	<param name="cb" type="function" nullable="true">
+	/// 		Function receiving an instance of the control and its value.
+	/// 		An error message string must be returned if value is invalid,
+	/// 		otherwise Null or an empty string if the value is valid.
+	/// 	</param>
+	/// </function>
+	this.SetValidationHandler = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb, true); // Allow Null/undefined which disables validation
+
+		validationCallbackFunc = null;
+		validationHandlerFunc = (cb ? cb : null);
+		validationHandlerError = null;
 
 		me._internal.Validate();
 	}
@@ -525,7 +551,7 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		validationErrorType = -1;
 
-		if (validationExpr === null && validationCallbackFunc === null && required === false)
+		if (validationExpr === null && validationCallbackFunc === null && validationHandlerFunc === null && required === false)
 			return true;
 
 		var obj = me.Value();
@@ -543,9 +569,21 @@ Fit.Controls.ControlBase = function(controlId)
 			return false;
 		}
 
-		if (validationCallbackFunc !== null && validationCallbackFunc(val) === false)
+		if (validationHandlerFunc !== null)
 		{
-			validationErrorType = 2;
+			validationHandlerError = null;
+			var errorMessage = validationHandlerFunc(me, val);
+
+			if (errorMessage !== null && errorMessage !== "" && typeof(errorMessage) === "string")
+			{
+				validationErrorType = 2;
+				validationHandlerError = errorMessage;
+				return false;
+			}
+		}
+		else if (validationCallbackFunc !== null && validationCallbackFunc(val) === false)
+		{
+			validationErrorType = 3;
 			return false;
 		}
 
@@ -819,7 +857,9 @@ Fit.Controls.ControlBase = function(controlId)
 					me._internal.Data("errormessage", Fit.Language.Translations.Required);
 				else if (validationErrorType === 1 && validationError !== null)
 					me._internal.Data("errormessage", validationError.replace("\r", "").replace(/<br.*>/i, "\n"));
-				else if (validationErrorType === 2 && validationCallbackError !== null)
+				else if (validationErrorType === 2 && validationHandlerError !== null)
+					me._internal.Data("errormessage", validationHandlerError.replace("\r", "").replace(/<br.*>/i, "\n"));
+				else if (validationErrorType === 3 && validationCallbackError !== null)
 					me._internal.Data("errormessage", validationCallbackError.replace("\r", "").replace(/<br.*>/i, "\n"));
 			}
 			else

@@ -428,6 +428,23 @@ Fit.Browser.Log = function(msg) // msg not validated - any object or value (incl
 		console.log(msg);
 }
 
+/// <function container="Fit.Browser" name="LogDeprecated" access="public" static="true">
+/// 	<description> Log message about use of deprecated feature </description>
+/// 	<param name="msg" type="string"> Message to log </param>
+/// </function>
+Fit.Browser.LogDeprecated = function(msg)
+{
+	Fit.Validation.ExpectString(msg);
+	
+	if (window.console && console.warn)
+		console.warn(msg);
+	else
+		Fit.Browser.Log(msg);
+	
+	//if (window.console && console.trace)
+		//console.trace();
+}
+
 /// <function container="Fit.Browser" name="GetInfo" access="public" static="true" returns="object">
 /// 	<description> Returns cached object with browser information available through Name, Version, and Language properties </description>
 /// </function>
