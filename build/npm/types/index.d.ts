@@ -83,19 +83,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in object array
-		* @function Count
-		* @param {any} obj - Object array to count elements within
-		* @returns number
-		*/
-		public static Count(obj:any):number;
-		/**
 		* Returns number of elements in collection
 		* @function Count
 		* @param {any[]} arr - Collection to count elements within
 		* @returns number
 		*/
 		public static Count(arr:any[]):number;
+		/**
+		* Returns number of elements in object array
+		* @function Count
+		* @param {any} obj - Object array to count elements within
+		* @returns number
+		*/
+		public static Count(obj:any):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -109,16 +109,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through elements in array and passes each value to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any[]} arr - Array containing values to iterate through
-		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(arr:any[], callback:Function):boolean;
-		/**
 		* Iterates through object properties and passes each property name to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -129,6 +119,16 @@ declare namespace Fit
 		*/
 		public static ForEach(obj:any, callback:Function):boolean;
 		/**
+		* Iterates through elements in array and passes each value to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any[]} arr - Array containing values to iterate through
+		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(arr:any[], callback:Function):boolean;
+		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
 		* @param {any[]} arr - Array to search through
@@ -137,19 +137,19 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
-		* @function GetKeys
-		* @param {any[]} arr - Array to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(arr:any[]):any[];
-		/**
 		* Returns all keys (property names) in object
 		* @function GetKeys
 		* @param {any} obj - Object to get keys from
 		* @returns any[]
 		*/
 		public static GetKeys(obj:any):any[];
+		/**
+		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
+		* @function GetKeys
+		* @param {any[]} arr - Array to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(arr:any[]):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -318,6 +318,12 @@ declare namespace Fit
 		* @param {any} msg - Message or object to log
 		*/
 		public static Log(msg:any):void;
+		/**
+		* Log message about use of deprecated feature
+		* @function LogDeprecated
+		* @param {string} msg - Message to log
+		*/
+		public static LogDeprecated(msg:string):void;
 		/**
 		* Parses well-formed URLs and returns an object containing the following properties:
 		- Url:string (URL passed to function)
@@ -630,6 +636,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -669,7 +684,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -682,6 +698,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1070,6 +1094,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -1109,7 +1142,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -1122,6 +1156,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1205,6 +1247,14 @@ declare namespace Fit
 			*/
 			constructor(ctlId?:string);
 			/**
+			* Get/set date placeholder value. Returns Null if not set.
+			* @function DatePlaceholder
+			* @param {string} [val=undefined] - If defined, placeholder is updated. Pass Null to use default
+			placeholder, or an empty string to remove placeholder.
+			* @returns string
+			*/
+			public DatePlaceholder(val?:string):string;
+			/**
 			* Get/set format used by the DatePicker control. This will affect the format
 			in which the date is presented, as well as the value returned by the GetText function.
 			Format takes precedense over locale if set after locale is applied.
@@ -1265,6 +1315,14 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public Time(val?:boolean):boolean;
+			/**
+			* Get/set time placeholder value. Returns Null if not set.
+			* @function TimePlaceholder
+			* @param {string} [val=undefined] - If defined, placeholder is updated. Pass Null to use default
+			placeholder, or an empty string to remove placeholder.
+			* @returns string
+			*/
+			public TimePlaceholder(val?:string):string;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -1330,6 +1388,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -1369,7 +1436,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -1382,6 +1450,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -1898,6 +1974,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -1937,7 +2022,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -1950,6 +2036,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -2238,6 +2332,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -2277,7 +2380,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -2290,6 +2394,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -2481,6 +2593,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -2520,7 +2641,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -2533,6 +2655,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -3386,6 +3516,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -3425,7 +3564,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -3438,6 +3578,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -4151,6 +4299,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -4190,7 +4347,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -4203,6 +4361,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -5022,6 +5188,15 @@ declare namespace Fit
 			*/
 			public IsValid():boolean;
 			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
 			* Register OnBlur event handler which is invoked when control loses focus
 			* @function OnBlur
 			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
@@ -5061,7 +5236,8 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -5074,6 +5250,14 @@ declare namespace Fit
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
 			/**
 			* Get/set control value.
 			For controls supporting multiple selections: Set value by providing a string in one the following formats:
@@ -5603,6 +5787,21 @@ declare namespace Fit
 		*/
 		public static GetRelativePosition(elm:HTMLElement):any;
 		/**
+		* Get scrolling document element. This is the cross browser
+		equivalent of document.scrollingElement.
+		* @function GetScrollDocument
+		* @returns HTMLElement
+		*/
+		public static GetScrollDocument():HTMLElement;
+		/**
+		* Get element&#39;s scroll parent. Returns null if element passed
+		is placed on its own stacking context (has position:fixed).
+		* @function GetScrollParent
+		* @param {HTMLElement} elm - Element to get scroll parent for
+		* @returns HTMLElement
+		*/
+		public static GetScrollParent(elm:HTMLElement):HTMLElement;
+		/**
 		* Get number of pixels specified element&#39;s container(s)
 		have been scrolled. This gives us the total scroll value
 		for nested scrollable elements.
@@ -5708,21 +5907,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -5788,13 +5987,6 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -5812,6 +6004,19 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {number} eventId - Event ID identifying handler to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -5819,12 +6024,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
