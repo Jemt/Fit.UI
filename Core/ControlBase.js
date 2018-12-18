@@ -590,7 +590,15 @@ Fit.Controls.ControlBase = function(controlId)
 		return true;
 	}
 
-	this.LazyValidation = function(val) // Make control appear valid until user touches it, or until Fit.Controls.ValidateAll(..) is invoked
+	/// <function container="Fit.Controls.ControlBase" name="LazyValidation" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether control initially appears as valid, even
+	/// 		though it is not. It will appear invalid once the user touches the control,
+	/// 		or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, Lazy Validation is enabled/disabled </param>
+	/// </function>
+	this.LazyValidation = function(val)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
