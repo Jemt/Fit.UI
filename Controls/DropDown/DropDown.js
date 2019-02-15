@@ -44,6 +44,15 @@ Fit.Controls.DropDown = function(ctlId)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
 	var onOpenHandlers = [];					// Invoked when drop down is opened - takes one argument (sender (this))
 	var onCloseHandlers = [];					// Invoked when drop down is closed - takes one argument (sender (this))
+
+	// Picker - suppress events
+	var suppressUpdateItemSelectionState = false;
+	var suppressOnItemSelectionChanged = false;
+
+	// Text selection mode
+	var clearTextSelectionOnInputChange = false;
+	var prevTextSelection = "";
+	var textSelectionCallback = null;
 	
 	function init()
 	{
@@ -52,6 +61,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// Initial settings
 
 		me._internal.Data("multiselect", "false");
+		me._internal.Data("selectionmode", "visual");
 
 		if (Fit.Browser.GetInfo().IsMobile === true)
 			isMobile = true;
@@ -223,6 +233,45 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			if (Fit.Events.GetTarget(e).tagName !== "INPUT")
 				return Fit.Events.PreventDefault(e);
+		});
+
+		// Text selection mode
+
+		me.OnFocus(function()
+		{
+			if (me.TextSelectionMode() === true)
+			{
+				if (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge")
+				{
+					txtPrimary.readOnly = false; // ReadOnly set to true to make text-overflow:ellipsis work
+					setTimeout(function() { txtPrimary.blur(); txtPrimary.focus(); }, 0); // Change to ReadOnly is not applied immediately unless blurred and re-focused
+				}
+
+				clearTextSelectionOnInputChange = true;
+
+				//me.OpenDropDown(); // DISABLED - will also open control when gaining focus from tab navigation
+			}
+		});
+		
+		me.OnChange(function()
+		{
+			if (me.TextSelectionMode() === true)
+			{
+				updateTextSelection();
+			}
+		});
+
+		me.OnBlur(function()
+		{
+			if (me.TextSelectionMode() === true)
+			{
+				updateTextSelection(); // Update when blurred in case user have entered a value
+				
+				if (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge")
+				{
+					txtPrimary.readOnly = true; // ReadOnly set to true to make text-overflow:ellipsis work
+				}
+			}
 		});
 
 		// Append elements to the DOM
@@ -503,12 +552,74 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Events.RemoveHandler(document, eventId);
 		});
 
-		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = null;
+		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = null;
 
 		base();
 	});
 
 	// Misc. options
+
+	/// <function container="Fit.Controls.DropDown" name="TextSelectionMode" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set flag indicating whether to use Text Selection Mode (true) or Visual Selection Mode (false).
+	/// 		Visual Selection Mode is the default way selected items are displayed, but it may result in control
+	/// 		changing dimensions as items are added/removed. Text Selection Mode prevents this and gives the
+	/// 		user a traditional DropDown control instead.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables Text Selection Mode, False disables it (Visual Selection Mode) </param>
+	/// 	<param name="cb" type="function" default="undefined">
+	/// 		If defined, function will be called with DropDown being passed as an argument when selection text
+	/// 		needs to be updated. Function is expected to return a string representation of the selected items.
+	/// 	</param>
+	/// </function>
+	this.TextSelectionMode = function(val, cb)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+		Fit.Validation.ExpectFunction(cb, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && me.TextSelectionMode() === false)
+			{
+				textSelectionCallback = (cb ? cb : null);
+
+				updateTextSelection();
+
+				if (me.Focused() === false && (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge"))
+				{
+					txtPrimary.readOnly = true; // Necessary to make text-overflow:ellipsis work in IE and Edge - disabled in OnFocus handler
+				}
+			}
+			else if (val === false && me.TextSelectionMode() === true)
+			{
+				if (txtPrimary.value === prevTextSelection)
+				{
+					txtPrimary.value = "";
+				}
+				else
+				{
+					// User has changed value - clear and fire OnInputChanged.
+					// This only happens if Text Selection Mode is being disabled
+					// while control has focus and user have entered a value,
+					// since selection text is always updated when control lose focus.
+					me.ClearInput();
+				}
+				
+				clearTextSelectionOnInputChange = false;
+				prevTextSelection = "";
+				textSelectionCallback = null;
+
+				if (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge")
+				{
+					txtPrimary.readOnly = false;
+				}
+			}
+
+			me._internal.Data("selectionmode", (val === true ? "text" : "visual"));
+		}
+
+		return (me._internal.Data("selectionmode") === "text");
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="MultiSelectionMode" access="public" returns="boolean">
 	/// 	<description> Get/set flag indicating whether control allows for multiple selections </description>
@@ -529,9 +640,6 @@ Fit.Controls.DropDown = function(ctlId)
 	}
 
 	// Controlling selections
-
-	var suppressUpdateItemSelectionState = false;
-	var suppressOnItemSelectionChanged = false;
 
 	/// <function container="Fit.Controls.DropDown" name="GetPicker" access="public" returns="Fit.Controls.PickerBase">
 	/// 	<description> Get picker control used to add items to drop down control </description>
@@ -857,7 +965,10 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Clear input control value
 
-		me.ClearInput();
+		if (me.TextSelectionMode() === false)
+		{
+			me.ClearInput();
+		}
 
 		// Optimize tab order
 
@@ -1101,10 +1212,22 @@ Fit.Controls.DropDown = function(ctlId)
 		if (found === null)
 			return;
 
-		if (me.MultiSelectionMode() === false)
-			focusInput(txtPrimary);
-		else
-			focusInput(((txt !== null) ? txt : txtPrimary));
+		if (me.TextSelectionMode() === false)
+		{
+			// Do not assign focus in TextSelectionMode - only txtPrimary is visible,
+			// and while modern browsers will just ignore focus assignment for hidden
+			// inputs and keep focus where it is, IE8 will throw an error in a modal
+			// alert dialog with the following message:
+			// "ThrowError: Can't move focus to the control because it is invisible, not enabled, or of a type that does not accept the focus."
+			// Focus is changed internally in DropDown when de-selecting items, in which case
+			// one of the inputs belonging to one of the remaining hidden items will be assigned
+			// focus and trigger the error because it is hidden.
+
+			if (me.MultiSelectionMode() === false)
+				focusInput(txtPrimary);
+			else
+				focusInput(((txt !== null) ? txt : txtPrimary)); // Place focus in front of item to the right of removed element
+		}
 
 		Fit.Dom.Remove(found);
 
@@ -1138,6 +1261,9 @@ Fit.Controls.DropDown = function(ctlId)
 		inp.value = "";
 		inp.style.width = "";
 
+		if (inp === txtActive)
+			prevValue = "";
+
 		fireOnInputChanged("");
 
 		// Resetting width (above): Seems to be buggy with Chrome+SharePoint. Input sometime retains width and is incorrectly positioned above selected items,
@@ -1170,6 +1296,7 @@ Fit.Controls.DropDown = function(ctlId)
 			txt = partiallyHidden.previousSibling;
 
 		txt.value = val;
+		prevValue = val;
 		txtActive = txt;
 
 		fitWidthToContent(txt);
@@ -1381,21 +1508,45 @@ Fit.Controls.DropDown = function(ctlId)
 
 			setTimeout(function() // Timeout to queue event to have pasted value available
 			{
+				/*if (me.TextSelectionMode() === true && txt.value === prevTextSelection)
+				{
+					// User just copied selection text and pasted it again - ignore
+					// so we don't fire OnInputChanged below and change prevValue which
+					// will cause OnInputChanged to fire once again when control lose focus.
+					return;
+				}*/
+
+				if (txt.value === prevValue || txt.value === prevTextSelection)
+				{
+					return; // Skip event if user just copied text and pasted it again
+				}
+				
+				prevValue = txt.value;
 				var pastedValue = txt.value;
 
 				if (fireOnPaste(txt.value) === true)
 				{
-					fitWidthToContent(txt);
-					fireOnInputChanged(txt.value);
+					if (txt.value === pastedValue)
+					{
+						// No OnPaste handler altered input value by calling SetInputValue(..)
+
+						fitWidthToContent(txt);
+						fireOnInputChanged(txt.value);
+					}
 				}
 				else
 				{
 					// Paste canceled - restore old value, unless OnPaste handler called SetInputValue with a different value
 
 					if (txt.value === pastedValue)
+					{
 						txt.value = orgValue;
+						prevValue = txt.value;
+					}
 				}
 			}, 0);
+
+			clearTextSelectionOnInputChange = false;
 		}
 
 		txt.onfocus = function(e)
@@ -1405,11 +1556,13 @@ Fit.Controls.DropDown = function(ctlId)
 			if (initialFocus === true)
 			{
 				initialFocus = false;
-				me.ClearInput(txtPrimary);
+
+				if (me.TextSelectionMode() === false)
+					me.ClearInput(txtPrimary);
 			}
 
 			txtActive = txt;
-			prevValue = txtActive.value;
+			prevValue = (me.TextSelectionMode() === false ? txtActive.value : prevValue); // Do not assign text selection to prevValue - it should only hold changes made by user or by calls to SetInputValue(..)
 
 			clearAllInputsButActive();
 		}
@@ -1428,6 +1581,26 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		var timeOutId = -1;
+		var cancelScheduledFitWidthToContent = function()
+		{
+			if (timeOutId !== -1)
+				clearTimeout(timeOutId);
+		}
+		var scheduleFitWidthToContent = function(txtControl)
+		{
+			cancelScheduledFitWidthToContent();
+				
+			timeOutId = setTimeout(function()
+			{
+				if (me === null)
+				{
+					return; // Control was disposed shortly after removing characters
+				}
+
+				fitWidthToContent(txtControl);
+				timeOutId = -1;
+			}, 50);
+		}
 
 		txt.onkeydown = function(e) // Fires continuously for any key pressed - both characters and e.g backspace/delete/arrows etc. Key press may be canceled (change has not yet occured)
 		{
@@ -1447,8 +1620,32 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 			}
 
+			if (me.TextSelectionMode() === true && clearTextSelectionOnInputChange === true && txtEnabled === true)
+			{
+				// Clear input in Text Selection Mode if user starts entering a value
+
+				// Skip if key press is TAB, ENTER, ESC, LEFT, UP, RIGHT, or DOWN.
+				// Also ignore key press if combined with modifier keys (except if SHIFT+Key for upper case letters, of course).
+				var modKeys = Fit.Events.GetModifierKeys();
+				if (Fit.Array.Contains([9, 13, 27, 37, 38, 39, 40], ev.keyCode) === false && (modKeys.Shift === false || modKeys.KeyDown !== 16) && modKeys.Ctrl === false && modKeys.Alt === false && modKeys.Meta === false)
+				{
+					// User is entering a value - clear input before character is applied to input
+
+					clearTextSelectionOnInputChange = false;
+					txt.value = ""; // No need to update prevValue - this is not the value set by the user - see onkeyup which updates prevValue
+
+					return;
+				}
+			}
+
 			if (ev.keyCode === 9) // Tab
 			{
+				if (me.TextSelectionMode() === true)
+				{
+					me.CloseDropDown();
+					return;
+				}
+
 				if (ev.shiftKey === true) // Moving left
 				{
 					if (me.GetSelections().length === 0)
@@ -1491,13 +1688,31 @@ Fit.Controls.DropDown = function(ctlId)
 			else if (ev.keyCode === 40) // Arrow down
 			{
 				me.OpenDropDown(); // Make sure it is opened
+
+				if (me.TextSelectionMode() === true) // && (Fit.Browser.GetBrowser() !== "MSIE" || Fit.Browser.GetVersion() !== 8)
+				{
+					// Set cursor at the beginning of text field.
+					// Suppressing default behaviour to prevent cursor
+					// from jumping to the end. SetCaretPosition(..)
+					// is still necessary to make sure text value
+					// does not remain selected (blue selection) if
+					// focused was assigned using tab navigation.
+					Fit.Dom.SetCaretPosition(txtPrimary, 0);
+					Fit.Events.PreventDefault(ev);
+				}
 			}
 			else if (ev.keyCode === 37) // Arrow left
 			{
+				if (me.TextSelectionMode() === true)
+					return;
+
 				moveToInput("Prev");
 			}
 			else if (ev.keyCode === 39) // Arrow right
 			{
+				if (me.TextSelectionMode() === true)
+					return;
+
 				if (me.MultiSelectionMode() === false && partiallyHidden !== null)
 					return;
 
@@ -1512,6 +1727,16 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 			else if (ev.keyCode === 8) // Backspace - remove selection
 			{
+				if (me.TextSelectionMode() === true)
+				{
+					if (txtEnabled === false)
+					{
+						Fit.Events.PreventDefault(ev); // Prevent user from clearing input value
+					}
+
+					return;
+				}
+
 				if (txt.value.length === 0)
 				{
 					if (Fit.Browser.GetInfo().Name === "MSIE")
@@ -1533,27 +1758,25 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 				else
 				{
-					if (timeOutId !== -1)
-						clearTimeout(timeOutId);
-
 					// New length is not known when removing characters until OnKeyUp is fired.
 					// We won't wait for that. Instead we calculate the width "once in a while".
 					// Passing txt instance rather than txtActive, as the latter may change before
 					// timeout is reached and delegate is executed.
-					timeOutId = setTimeout(function()
-					{
-						if (me === null)
-						{
-							return; // Control was disposed shortly after removing characters
-						}
-
-						fitWidthToContent(txt);
-						timeOutId = -1;
-					}, 50);
+					scheduleFitWidthToContent(txt);
 				}
 			}
 			else if (ev.keyCode === 46) // Delete - remove selection
 			{
+				if (me.TextSelectionMode() === true)
+				{
+					if (txtEnabled === false)
+					{
+						Fit.Events.PreventDefault(ev); // Prevent user from clearing input value
+					}
+
+					return;
+				}
+
 				if (txt.value.length === 0)
 				{
 					var toRemove = null;
@@ -1570,14 +1793,11 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 				else
 				{
-					if (timeOutId !== null)
-						clearTimeout(timeOutId);
-
 					// New length is not known when removing characters until OnKeyUp is fired.
 					// We won't wait for that. Instead we calculate the width "once in a while".
 					// Passing txt instance rather than txtActive, as the latter may change before
 					// timeout is reached and delegate is executed.
-					timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 50);
+					scheduleFitWidthToContent(txt);
 				}
 			}
 			else if (ev.keyCode === 13) // Enter - notice that item selection is handled by (delegated to) picker when Enter is pressed - picker.OnItemSelectionChanged receives selected item
@@ -1598,25 +1818,40 @@ Fit.Controls.DropDown = function(ctlId)
 					return;
 				}
 
-				if (timeOutId !== null)
-					clearTimeout(timeOutId);
-
 				var mods = Fit.Events.GetModifierKeys();
 
-				if (mods.Ctrl === true || mods.Meta === true) // Queue operation to have value updated - this could be Ctrl/Cmd+X to cut or Ctrl/Cmd+V to paste
-					timeOutId = setTimeout(function() { fitWidthToContent(txt); timeOutId = null; }, 0);
-				else
-					fitWidthToContent(txt, txt.value + String.fromCharCode(ev.keyCode | ev.charCode)); // TODO: Will not work properly if multiple characters are selected, and just one character is entered - the input field will obtain an incorrect width until next key stroke. The solution is NOT to always use setTimeout since the delayed update is noticeable.
+				if ((mods.Ctrl === true || mods.Meta === true) && mods.KeyDown !== 16 && mods.KeyDown !== 91) // Queue operation to have value updated - this could be e.g. Ctrl/Cmd+X to cut. Real characters are handled in OnKeyPress.
+				{
+					scheduleFitWidthToContent(txt);
+				}
 			}
 		}
 
-		txt.onkeyup = function(e) // Fires only once when a key is released
+		txt.onkeypress = function(e) // Fires continuously (unless suppressed in OnKeyDown) - character codes are available when a real value is entered
+		{
+			var ev = Fit.Events.GetEvent(e);
+
+			if (ev.charCode > 0) // A real character/digit was entered if charCode is not 0 (zero)
+			{
+				fitWidthToContent(txt, txt.value + String.fromCharCode(ev.charCode)); // TODO: Will not work properly if multiple characters are selected, and just one character is entered - the input field will obtain an incorrect width until next key stroke. The solution is NOT to always use setTimeout since the delayed update is noticeable.
+			}
+		}
+
+		txt.onkeyup = function(e) // Fires only once when a key is released (unless suppressed in OnKeyDown)
 		{
 			var ev = Fit.Events.GetEvent(e);
 
 			if (ev.keyCode !== 37 && ev.keyCode !== 38 && ev.keyCode !== 39 && ev.keyCode !== 40 && ev.keyCode !== 27 && ev.keyCode !== 9 && ev.keyCode !== 16 && ev.ctrlKey === false && ev.keyCode !== 17) // Do not fire change event for: arrow keys, escape, tab, shift, and on paste (never fires when CTRL is held down (ev.ctrlKey true) or released (ev.keyCode 17))
 			{
-				if (txt.value !== prevValue)
+				if (me.TextSelectionMode() === true && txt.value === prevTextSelection)
+				{
+					// Do not fire OnInputChanged. Input value is identical to text selection
+					// so user probably pressed SPACE to toggle a selection (which doesn't change input value), or
+					// pressed some other none-character key (e.g CMD/SUPER or ALT/OPTION) which did not alter input value.
+					return;
+				}
+
+				if (txt.value !== prevValue /*&& (me.TextSelectionMode() === false || txt.value !== prevTextSelection)*/)
 				{
 					prevValue = txt.value;
 					fireOnInputChanged(txt.value);
@@ -2067,6 +2302,104 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		Fit.Validation.ExpectString(str);
 		return encodeURIComponent(str);
+	}
+
+	function updateTextSelection()
+	{
+		// Add selected items to input field
+
+		// Local flag controlling event behaviour - whether to fire OnInputChanged
+		// when programmatically updating input with selection text or not.
+		// Some developers want OnInputChanged fired always, while others only
+		// expect it to fire when the user enters a value, or when SetInputValue(..)
+		// is called from external code.
+		// True		= Always fire OnInputChanged.
+		// False	= Only fire when user enters a value or when SetInputValue(..) is
+		//            called. Do not fire OnInputChanged when TextSelection is updated.
+		var fireOnInputChangedEvent = false;
+
+		// If fireOnInputChangedEvent is false:
+		// Notice that in TextSelectionMode with fireOnInputChangedEvent=false the input field
+		// handles two states: The value set by TextSelectionMode, and the value set by
+		// either the user or a call to SetInputValue(..).
+		// Therefore, even when a text selection is set, the input field will still be
+		// considered empty in regards to how OnInputChanged fires.
+		// So an actual value has to be entered for OnInputChanged to fire.
+		// Clearing the text selection will not fire OnInputChanged since it is already
+		// considered empty.
+
+		if (fireOnInputChangedEvent === false && prevValue !== "")
+		{
+			// User entered a value which will now be removed and replaced.
+			// Make sure OnInputChanged handlers are fired - this is the same
+			// behaviour as in the ordinary visual selection mode
+			// which also clears the input once a selection is made.
+			me.ClearInput();
+		}
+
+		// Convert selected items to text
+
+		var text = "";
+
+		if (textSelectionCallback !== null)
+		{
+			text = textSelectionCallback(me);
+		}
+		else
+		{
+			var selections = me.GetSelections();
+
+			Fit.Array.ForEach(selections, function(selection)
+			{
+				text += (text !== "" ? ", " : "") + selection.Title;
+			});
+
+			if (me.MultiSelectionMode() === true && selections.length > 0)
+			{
+				text = "(" + selections.length + ") " + text;
+			}
+		}
+
+		// Set new text selection
+
+		if (fireOnInputChangedEvent === true)
+		{
+			//me.SetInputValue(text); // Notice: SetInputValue calls fitWidthToContent(..) which adjusts input size to fit value, and fires OnInputChanged event
+			if (txtPrimary.value !== text)
+			{
+				txtPrimary.value = text;
+				prevValue = text;
+				fireOnInputChanged(text);
+			}
+		}
+		else
+		{
+			txtPrimary.value = text;
+		}
+		
+		prevTextSelection = text;
+
+		// Set cursor position
+
+		// Make cursor move to end and scroll it into view.
+		// Unfortunately it will not make the field scroll to the right on IE
+		// and Edge, and it seems very difficult (impossible?) to get working.
+		// Other similar controls simply clear their selection when opened, and
+		// restore it when closed, which might be the only way to ensure the
+		// same experience across all browsers.
+		/*if (me.Focused() === true)
+		{
+			txtPrimary.blur();
+			txtPrimary.focus();
+		}*/
+
+		// Make cursor move to beginning of input field if focused
+		if (me.Focused() === true)
+		{
+			Fit.Dom.SetCaretPosition(txtPrimary, 0);
+		}
+
+		clearTextSelectionOnInputChange = true;
 	}
 
 	// Event dispatchers

@@ -226,3 +226,15 @@ div.FitUiControlDropDownPicker > *
 {
 	display: block; /* Make sure picker consumes the entire width of drop down (ControlBase is inline-block) */
 }
+
+/* Alternative rendering - Text Selection Mode */
+
+div.FitUiControlDropDown[data-selectionmode="text"] div[class="FitUiControlDropDownItems"] > span
+{
+	display: none; /* Hide selected items - will be represented using text instead */
+}
+div.FitUiControlDropDown[data-selectionmode="text"] div[class="FitUiControlDropDownItems"] > input
+{
+	text-overflow: ellipsis;
+	width: 100% !important; /* Using important to override inline style set by fitWidthToContent(..) */
+}

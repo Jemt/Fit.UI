@@ -706,6 +706,36 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 // For consistency we use Math.round/floor to make sure integers are
 // always returned on both modern and legacy browsers.
 
+/// <function container="Fit.Dom" name="SetCaretPosition" access="public" static="true">
+/// 	<description> Set caret position for input control </description>
+/// 	<param name="input" type="DOMElement"> Input element </param>
+/// 	<param name="pos" type="integer"> Integer value specifying caret position in input control </param>
+/// </function>
+Fit.Dom.SetCaretPosition = function(input, pos)
+{
+	Fit.Validation.ExpectDomElement(input);
+	Fit.Validation.ExpectInteger(pos);
+
+	// Notice: This will - unfortunately - not make input fields scroll
+	// its content if cursor is positioned "outside" of input's viewport.
+	// In Chrome this can be solved by blurring and re-focusing control
+	// after setting caret position - but that will not work across all browsers.
+
+	if (input.setSelectionRange) // Modern browsers
+	{
+		input.focus();
+		input.setSelectionRange(pos, pos);
+	}
+	else if (input.createTextRange) // IE8 and below
+	{
+		var range = input.createTextRange();
+		range.collapse(true);
+		range.moveEnd("character", pos);
+		range.moveStart("character", pos);
+		range.select();
+	}
+}
+
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
 /// 	<description>
 /// 		Get position for visible element.
