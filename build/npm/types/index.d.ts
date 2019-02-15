@@ -1909,6 +1909,18 @@ declare namespace Fit
 			* @param {(Fit.Controls.PickerBase|null)} pickerControl - Picker control extending from PickerBase
 			*/
 			public SetPicker(pickerControl:Fit.Controls.PickerBase | null):void;
+			/**
+			* Get/set flag indicating whether to use Text Selection Mode (true) or Visual Selection Mode (false).
+			Visual Selection Mode is the default way selected items are displayed, but it may result in control
+			changing dimensions as items are added/removed. Text Selection Mode prevents this and gives the
+			user a traditional DropDown control instead.
+			* @function TextSelectionMode
+			* @param {boolean} [val=undefined] - If defined, True enables Text Selection Mode, False disables it (Visual Selection Mode)
+			* @param {Function} [cb=undefined] - If defined, function will be called with DropDown being passed as an argument when selection text
+			needs to be updated. Function is expected to return a string representation of the selected items.
+			* @returns boolean
+			*/
+			public TextSelectionMode(val?:boolean, cb?:Function):boolean;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -4234,6 +4246,18 @@ declare namespace Fit
 			* @param {(Fit.Controls.PickerBase|null)} pickerControl - Picker control extending from PickerBase
 			*/
 			public SetPicker(pickerControl:Fit.Controls.PickerBase | null):void;
+			/**
+			* Get/set flag indicating whether to use Text Selection Mode (true) or Visual Selection Mode (false).
+			Visual Selection Mode is the default way selected items are displayed, but it may result in control
+			changing dimensions as items are added/removed. Text Selection Mode prevents this and gives the
+			user a traditional DropDown control instead.
+			* @function TextSelectionMode
+			* @param {boolean} [val=undefined] - If defined, True enables Text Selection Mode, False disables it (Visual Selection Mode)
+			* @param {Function} [cb=undefined] - If defined, function will be called with DropDown being passed as an argument when selection text
+			needs to be updated. Function is expected to return a string representation of the selected items.
+			* @returns boolean
+			*/
+			public TextSelectionMode(val?:boolean, cb?:Function):boolean;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -5880,6 +5904,13 @@ declare namespace Fit
 		*/
 		public static Replace(oldElm:Node, newElm:Node):void;
 		/**
+		* Set caret position for input control
+		* @function SetCaretPosition
+		* @param {HTMLElement} input - Input element
+		* @param {number} pos - Integer value specifying caret position in input control
+		*/
+		public static SetCaretPosition(input:HTMLElement, pos:number):void;
+		/**
 		* Get/set inner text of DOMElement
 		* @function Text
 		* @param {HTMLElement} elm - DOMElement to which text is added and/or returned from
@@ -5987,13 +6018,12 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler for specified event on given EventTarget
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to remove
+		* @param {number} eventId - Event ID identifying handler to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
 		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
@@ -6004,12 +6034,13 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
