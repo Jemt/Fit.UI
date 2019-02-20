@@ -594,7 +594,7 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 	<description>
 	/// 		Get/set value indicating whether control initially appears as valid, even
 	/// 		though it is not. It will appear invalid once the user touches the control,
-	/// 		or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+	/// 		or when control value is validated using Fit.Controls.ValidateAll(..).
 	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, Lazy Validation is enabled/disabled </param>
 	/// </function>
@@ -610,6 +610,10 @@ Fit.Controls.ControlBase = function(controlId)
 			{
 				me._internal.Data("valid", "true");
 				me._internal.Data("errormessage", null);
+			}
+			else
+			{
+				this._internal.Validate();
 			}
 		}
 
@@ -767,116 +771,117 @@ Fit.Controls.ControlBase = function(controlId)
 
 	// Private members (must be public in order to be accessible to controls extending from ControlBase)
 
-		this._internal.FireOnChange = function()
+	this._internal.FireOnChange = function()
+	{
+		hasValidated = true;
+		me._internal.Validate();
+		updateInternalState();
+
+		Fit.Array.ForEach(onChangeHandlers, function(cb)
 		{
-			hasValidated = true;
-			me._internal.Validate();
-			updateInternalState();
+			cb(me);
+		});
+	},
 
-			Fit.Array.ForEach(onChangeHandlers, function(cb)
-			{
-				cb(me);
-			});
-		},
+	this._internal.FireOnFocus = function()
+	{
+		me._internal.Data("focused", "true");
+		me._internal.Repaint();
 
-		this._internal.FireOnFocus = function()
+		Fit.Array.ForEach(onFocusHandlers, function(cb)
 		{
-			me._internal.Data("focused", "true");
-			me._internal.Repaint();
+			cb(me);
+		});
+	},
 
-			Fit.Array.ForEach(onFocusHandlers, function(cb)
-			{
-				cb(me);
-			});
-		},
+	this._internal.FireOnBlur = function()
+	{
+		me._internal.Data("focused", "false");
+		me._internal.Repaint();
 
-		this._internal.FireOnBlur = function()
+		Fit.Array.ForEach(onBlurHandlers, function(cb)
 		{
-			me._internal.Data("focused", "false");
-			me._internal.Repaint();
+			cb(me);
+		});
+	},
 
-			Fit.Array.ForEach(onBlurHandlers, function(cb)
-			{
-				cb(me);
-			});
-		},
+	this._internal.ExecuteWithNoOnChange = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
 
-		this._internal.ExecuteWithNoOnChange = function(cb)
+		var onChangeHandler = me._internal.FireOnChange;
+		me._internal.FireOnChange = function() {};
+
+		var error = null;
+
+		try // Try/catch to make absolutely sure OnChange handler is restored!
 		{
-			Fit.Validation.ExpectFunction(cb);
-
-			var onChangeHandler = me._internal.FireOnChange;
-			me._internal.FireOnChange = function() {};
-
-			var error = null;
-
-			try // Try/catch to make absolutely sure OnChange handler is restored!
-			{
-				cb();
-			}
-			catch (err)
-			{
-				error = err.message;
-			}
-
-			me._internal.FireOnChange = onChangeHandler;
-
-			if (error !== null)
-				Fit.Validation.ThrowError(error);
+			cb();
+		}
+		catch (err)
+		{
+			error = err.message;
 		}
 
-		this._internal.Data = function(key, val)
+		me._internal.FireOnChange = onChangeHandler;
+
+		if (error !== null)
+			Fit.Validation.ThrowError(error);
+	}
+
+	this._internal.Data = function(key, val)
+	{
+		Fit.Validation.ExpectStringValue(key);
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true || val === null)
+			Fit.Dom.Data(container, key, val);
+
+		return Fit.Dom.Data(container, key);
+	},
+
+	this._internal.AddDomElement = function(elm)
+	{
+		Fit.Validation.ExpectDomElement(elm);
+		Fit.Dom.InsertBefore(txtValue, elm); //Fit.Dom.Add(container, elm);
+	},
+
+	this._internal.RemoveDomElement = function(elm)
+	{
+		Fit.Validation.ExpectDomElement(elm);
+		Fit.Dom.Remove(elm);
+	},
+
+	this._internal.Validate = function(force)
+	{
+		Fit.Validation.ExpectBoolean(force, true);
+
+		// For LazyValidation the UI is only updated if control has focus, unless force is true
+		if (lazyValidation === true && me.Focused() === false && force !== true)
+			return;
+
+		var valid = me.IsValid();
+
+		me._internal.Data("valid", valid.toString());
+
+		if (valid === false)
 		{
-			Fit.Validation.ExpectStringValue(key);
-			Fit.Validation.ExpectString(val, true);
-
-			if (Fit.Validation.IsSet(val) === true || val === null)
-				Fit.Dom.Data(container, key, val);
-
-			return Fit.Dom.Data(container, key);
-		},
-
-		this._internal.AddDomElement = function(elm)
-		{
-			Fit.Validation.ExpectDomElement(elm);
-			Fit.Dom.InsertBefore(txtValue, elm); //Fit.Dom.Add(container, elm);
-		},
-
-		this._internal.RemoveDomElement = function(elm)
-		{
-			Fit.Validation.ExpectDomElement(elm);
-			Fit.Dom.Remove(elm);
-		},
-
-		this._internal.Validate = function(force)
-		{
-			Fit.Validation.ExpectBoolean(force, true);
-
-			if (lazyValidation === true && me.Focused() === false && force !== true)
-				return;
-
-			var valid = me.IsValid();
-
-			me._internal.Data("valid", valid.toString());
-
-			if (valid === false)
-			{
-				if (validationErrorType === 0)
-					me._internal.Data("errormessage", Fit.Language.Translations.Required);
-				else if (validationErrorType === 1 && validationError !== null)
-					me._internal.Data("errormessage", validationError.replace("\r", "").replace(/<br.*>/i, "\n"));
-				else if (validationErrorType === 2 && validationHandlerError !== null)
-					me._internal.Data("errormessage", validationHandlerError.replace("\r", "").replace(/<br.*>/i, "\n"));
-				else if (validationErrorType === 3 && validationCallbackError !== null)
-					me._internal.Data("errormessage", validationCallbackError.replace("\r", "").replace(/<br.*>/i, "\n"));
-			}
-			else
-			{
-				me._internal.Data("errormessage", null);
-			}
-
-			me._internal.Repaint();
+			if (validationErrorType === 0)
+				me._internal.Data("errormessage", Fit.Language.Translations.Required);
+			else if (validationErrorType === 1 && validationError !== null)
+				me._internal.Data("errormessage", validationError.replace("\r", "").replace(/<br.*>/i, "\n"));
+			else if (validationErrorType === 2 && validationHandlerError !== null)
+				me._internal.Data("errormessage", validationHandlerError.replace("\r", "").replace(/<br.*>/i, "\n"));
+			else if (validationErrorType === 3 && validationCallbackError !== null)
+				me._internal.Data("errormessage", validationCallbackError.replace("\r", "").replace(/<br.*>/i, "\n"));
 		}
+		else
+		{
+			me._internal.Data("errormessage", null);
+		}
+
+		me._internal.Repaint();
+	}
 
 	init();
 }

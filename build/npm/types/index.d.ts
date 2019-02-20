@@ -638,7 +638,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -1096,7 +1096,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -1390,7 +1390,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -1988,7 +1988,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -2346,7 +2346,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -2607,7 +2607,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -3530,7 +3530,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -4325,7 +4325,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
@@ -5214,7 +5214,7 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether control initially appears as valid, even
 			though it is not. It will appear invalid once the user touches the control,
-			or when control value is validated, e.g. using IsValid() or Fit.Controls.ValidateAll(..).
+			or when control value is validated using Fit.Controls.ValidateAll(..).
 			* @function LazyValidation
 			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
 			* @returns boolean
