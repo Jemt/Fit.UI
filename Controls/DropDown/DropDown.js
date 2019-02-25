@@ -1501,6 +1501,7 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		var txt = document.createElement("input");
 		txt.autocomplete = "off";
+		txt.spellcheck = false;
 
 		txt.onpaste = function(e)
 		{
