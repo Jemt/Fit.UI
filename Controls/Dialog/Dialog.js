@@ -31,6 +31,7 @@ Fit.Controls.Dialog = function(controlId)
 	var minHeight = null;
 	var maxHeight = null;
 	var mutationObserverId = -1;
+	var resizeHandlerId = -1;
 
 	var onDismissHandlers = [];
 
@@ -126,6 +127,7 @@ Fit.Controls.Dialog = function(controlId)
 					title = null;
 
 					setContentHeight();
+					updatePosition();
 				}
 			}
 			else
@@ -145,6 +147,7 @@ Fit.Controls.Dialog = function(controlId)
 				}
 
 				setContentHeight();
+				updatePosition();
 			}
 		}
 
@@ -161,8 +164,7 @@ Fit.Controls.Dialog = function(controlId)
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
-		// defaultValue must match width (for both modern browsers and legacy IE) in Dialog.css
-		var defaultValue = (Fit.Browser.GetInfo().Name !== "MSIE" || Fit.Browser.GetInfo().Version >= 9 ? { Value: -1, Unit: "px" } : { Value: 50, Unit: "%" });
+		var defaultValue = { Value: -1, Unit: "px" };
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -196,6 +198,8 @@ Fit.Controls.Dialog = function(controlId)
 					dialog.style.maxWidth = "";
 				}
 			}
+
+			updatePosition();
 		}
 
 		return (width !== null ? width : defaultValue);
@@ -226,6 +230,8 @@ Fit.Controls.Dialog = function(controlId)
 				minWidth = null;
 				dialog.style.minWidth = (width !== null ? "0" : ""); // Apply "0" (no min-width) if width is set
 			}
+
+			updatePosition();
 		}
 
 		return (minWidth !== null ? minWidth : (width !== null ? width : defaultValue));
@@ -256,6 +262,8 @@ Fit.Controls.Dialog = function(controlId)
 				maxWidth = null;
 				dialog.style.maxWidth = (width !== null ? "none" : ""); // Apply "none" (no max-width) if width is set
 			}
+
+			updatePosition();
 		}
 
 		return (maxWidth !== null ? maxWidth : (width !== null ? width : defaultValue));
@@ -288,6 +296,7 @@ Fit.Controls.Dialog = function(controlId)
 			}
 
 			setContentHeight();
+			updatePosition();
 		}
 
 		return (height !== null ? height : defaultValue);
@@ -320,6 +329,7 @@ Fit.Controls.Dialog = function(controlId)
 			}
 
 			setContentHeight();
+			updatePosition();
 		}
 
 		return (minHeight !== null ? minHeight : defaultValue);
@@ -352,6 +362,7 @@ Fit.Controls.Dialog = function(controlId)
 			}
 
 			setContentHeight();
+			updatePosition();
 		}
 
 		return (maxHeight !== null ? maxHeight : defaultValue);
@@ -392,6 +403,7 @@ Fit.Controls.Dialog = function(controlId)
 			}
 
 			setContentHeight();
+			updatePosition();
 		}
 
 		return content.innerHTML;
@@ -589,6 +601,7 @@ Fit.Controls.Dialog = function(controlId)
 		Fit.Dom.Add(buttons, btn.GetDomElement());
 
 		setContentHeight();
+		updatePosition();
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="RemoveButton" access="public">
@@ -624,6 +637,7 @@ Fit.Controls.Dialog = function(controlId)
 				}
 
 				setContentHeight();
+				updatePosition();
 
 				return false; // Break loop
 			}
@@ -657,6 +671,7 @@ Fit.Controls.Dialog = function(controlId)
 		buttons = null;
 
 		setContentHeight();
+		updatePosition();
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="IsOpen" access="public" returns="boolean">
@@ -676,11 +691,19 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (modal === true)
 			Fit.Dom.Add(document.body, layer);
-		
+
 		setContentHeight();
+		updatePosition();
+
 		mutationObserverId = Fit.Events.AddMutationObserver(dialog, function(elm)
 		{
 			setContentHeight();
+			updatePosition();
+		});
+
+		resizeHandlerId = Fit.Events.AddHandler(window, "resize", function(e)
+		{
+			updatePosition();
 		});
 	}
 
@@ -694,6 +717,9 @@ Fit.Controls.Dialog = function(controlId)
 
 		Fit.Events.RemoveMutationObserver(mutationObserverId);
 		mutationObserverId = -1;
+
+		Fit.Events.RemoveHandler(window, resizeHandlerId);
+		resizeHandlerId = -1;
 
 		Fit.Dom.Remove(dialog);
 
@@ -734,7 +760,12 @@ Fit.Controls.Dialog = function(controlId)
 			Fit.Events.RemoveMutationObserver(mutationObserverId);
 		}
 
-		me = dialog = title = titleButtons = cmdMaximize = cmdDismiss = content = buttons = modal = layer = width = minWidth = maxWidth = height = minHeight = maxHeight = mutationObserverId = onDismissHandlers = null;
+		if (resizeHandlerId !== -1)
+		{
+			Fit.Events.RemoveHandler(window, resizeHandlerId);
+		}
+
+		me = dialog = title = titleButtons = cmdMaximize = cmdDismiss = content = buttons = modal = layer = width = minWidth = maxWidth = height = minHeight = maxHeight = mutationObserverId = resizeHandlerId = onDismissHandlers = null;
 
 		base();
 	});
@@ -789,6 +820,25 @@ Fit.Controls.Dialog = function(controlId)
 
 			content.style.height = (dh - th - bh) + "px";
 		}
+	}
+
+	function updatePosition()
+	{
+		if (me.IsOpen() === false)
+			return;
+
+		var elm = me.GetDomElement();
+		var dim = Fit.Browser.GetViewPortDimensions();
+		var offsetLeft = Math.floor((dim.Width / 2) - (elm.offsetWidth / 2));	// Center horizontally - place center of dialog 1/2 (50%) from the left
+		var offsetTop = Math.floor((dim.Height / 3) - (elm.offsetHeight / 2));	// Place center of dialog 1/3 (33%) from the top
+
+		if (offsetTop < 0)
+			offsetTop = 0;
+		if (offsetLeft < 0)
+			offsetLeft = 0;
+
+		elm.style.left = offsetLeft + "px";
+		elm.style.top = offsetTop + "px";
 	}
 
 	function updateTitleButtons()

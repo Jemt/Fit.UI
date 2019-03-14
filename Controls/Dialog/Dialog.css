@@ -2,17 +2,11 @@ div.FitUiControlDialog
 {
 	border: 1px solid #333333;
 	background: #FFFFFF;
+	width: auto;
 	min-width: 280px; /* Must be identical to the value specified in MinimumWidth(..) in Dialog.js ! */
 	max-width: 800px; /* Must be identical to the value specified in MaximumWidth(..) in Dialog.js ! */
 
 	position: fixed;
-
-	/* Centering for Legacy browsers - unfortunately this does not work with width:auto, so it defaults to 50% */
-	width: 50%; /* Must be identical to the value specified in Width(..) in Dialog.js ! */
-	top: 5%;
-	left: 0px;
-	right: 0px;
-	margin: 0 auto;
 	z-index: 1200;
 }
 div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below */
@@ -20,18 +14,6 @@ div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below *
 	border: none;
 	box-shadow: 0px 0px 10px 0px #333333;
 	border-radius: 2px;
-
-	/* Centering for modern browsers - automatically fits to content */
-	width: auto;
-	margin: 0;
-	top: 25%;
-	left: 50%;
-	right: auto; /* Prevent dialog from stretching to the maximum width allowed - respect width:auto */
-	-webkit-transform: translate(-50%, -25%);
-	-moz-transform: translate(-50%, -25%);
-	-ms-transform: translate(-50%, -25%);
-	-o-transform: translate(-50%, -25%);
-	transform: translate(-50%, -25%);
 }
 div.FitUiControlDialog[data-maximized="true"]
 {
