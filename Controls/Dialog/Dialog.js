@@ -828,6 +828,24 @@ Fit.Controls.Dialog = function(controlId)
 			return;
 
 		var elm = me.GetDomElement();
+
+		// Updating the position may actually cause content to change dimensions,
+		// which in turn triggers the Mutation Observer registered to monitor the
+		// dialog element, which in turn triggers updatePosition() again.
+		// So this may result in dialog bouncing around a few times, especially when
+		// using tables with dynamic cell widths within the content area.
+		// The reason for this is because when the dialog is pushed to the right side
+		// of the viewport (when centered), it may be sqeezed if sufficient space is not
+		// available for the content, which may happen when the dialog is configured to scale
+		// with the content (default behaviour when no dimensions are set). This results in
+		// the Mutation Observer being triggered which in turn causes updatePosition()
+		// to be called again.
+		// Resetting the position reduces the risk of this happening since it allows
+		// for the content of the dialog to consume the space it needs, without
+		// causing resizing of the content once the dialog is positioned further down.
+		elm.style.left = "0px";
+		elm.style.top = "0px";
+		
 		var dim = Fit.Browser.GetViewPortDimensions();
 		var offsetLeft = Math.floor((dim.Width / 2) - (elm.offsetWidth / 2));	// Center horizontally - place center of dialog 1/2 (50%) from the left
 		var offsetTop = Math.floor((dim.Height / 3) - (elm.offsetHeight / 2));	// Place center of dialog 1/3 (33%) from the top

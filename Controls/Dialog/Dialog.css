@@ -7,6 +7,8 @@ div.FitUiControlDialog
 	max-width: 800px; /* Must be identical to the value specified in MaximumWidth(..) in Dialog.js ! */
 
 	position: fixed;
+	left: 0px;
+	top: 0px;
 	z-index: 1200;
 }
 div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below */
