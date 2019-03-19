@@ -51,7 +51,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	// Text selection mode
 	var clearTextSelectionOnInputChange = false;
-	var prevTextSelection = "";
+	var prevTextSelection = null;
 	var textSelectionCallback = null;
 	
 	function init()
@@ -606,7 +606,7 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 				
 				clearTextSelectionOnInputChange = false;
-				prevTextSelection = "";
+				prevTextSelection = null;
 				textSelectionCallback = null;
 
 				if (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge")
@@ -1517,10 +1517,14 @@ Fit.Controls.DropDown = function(ctlId)
 					return;
 				}*/
 
-				if (txt.value === prevValue || txt.value === prevTextSelection)
+				// DISABLED - does not make sense.
+				// Pasting a value would not fire OnInputChanged, but starting to delete
+				// the characters just pasted would. So pasting "ABC" would not fire anything, but
+				// pressing backspace would fire OnInputChanged with the value "AB" - that is odd.
+				/*if (txt.value === prevValue || txt.value === prevTextSelection)
 				{
 					return; // Skip event if user just copied text and pasted it again
-				}
+				}*/
 				
 				prevValue = txt.value;
 				var pastedValue = txt.value;
@@ -2378,7 +2382,7 @@ Fit.Controls.DropDown = function(ctlId)
 			txtPrimary.value = text;
 		}
 		
-		prevTextSelection = text;
+		prevTextSelection = (text !== "" ? text : null);
 
 		// Set cursor position
 
