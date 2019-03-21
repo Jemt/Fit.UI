@@ -703,6 +703,7 @@ Fit.Controls.Dialog = function(controlId)
 
 		resizeHandlerId = Fit.Events.AddHandler(window, "resize", function(e)
 		{
+			setContentHeight();
 			updatePosition();
 		});
 	}
