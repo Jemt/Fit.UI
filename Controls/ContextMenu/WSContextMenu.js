@@ -32,6 +32,9 @@ Fit.Controls.WSContextMenu = function(controlId)
 	// Public
 	// ============================================
 
+	// WSContextMenu has its own implementation of Show() because it is async.
+	// We want to fire OnShowing, load and WAIT for the data, and THEN open the context menu and call OnShown.
+	// We don't want to show the context menu or fire OnShown before it has been populated with data.
 	this.Show = function(x, y)
 	{
 		Fit.Validation.ExpectInteger(x, true);
@@ -39,16 +42,8 @@ Fit.Controls.WSContextMenu = function(controlId)
 
 		// Fire OnShowing event
 
-		if (me._internal.FireOnShowing() === false)
+		if (me._internal.ExecuteBeforeShowBehaviour() === false)
 			return;
-
-		// Close context menu if one is already open
-
-		if (Fit._internal.ContextMenu.Current !== null && Fit._internal.ContextMenu.Current !== me && Fit._internal.ContextMenu.Current.IsVisible() === true)
-		{
-			Fit._internal.ContextMenu.Current.Hide();
-			Fit._internal.ContextMenu.Current = null;
-		}
 
 		// Load data
 
@@ -63,46 +58,9 @@ Fit.Controls.WSContextMenu = function(controlId)
 				me.AddChild(createItemFromJson(c));
 			});
 
-			// Set position
+			// Show context menu
 
-			var pos = Fit.Events.GetPointerState().Coordinates.Document;
-
-			var posX = ((Fit.Validation.IsSet(x) === true) ? x : pos.X);
-			var posY = ((Fit.Validation.IsSet(y) === true) ? y : pos.Y);
-
-			me.GetDomElement().style.left = posX + "px";
-			me.GetDomElement().style.top = posY + "px";
-			me.GetDomElement().style.width = "auto"; // TreeView.Width(val, unit) cannot be used to set width:auto
-
-			// Add to DOM (context menu shows up)
-
-			if (me.IsVisible() === false) // Only append to DOM once - ContextMenu may have been rooted elsewhere by external code
-			{
-				Fit.Dom.Add(document.body, me.GetDomElement());
-				Fit._internal.ContextMenu.Current = me;
-			}
-
-			// Boundary detection
-
-			if (me.DetectBoundaries() === true)
-			{
-				var treeElm = me.GetDomElement();
-				Fit.Dom.Data(treeElm, "viewportcollision", "false");
-
-				if (Fit.Browser.GetViewPortDimensions().Height < (posY - Fit.Dom.GetScrollPosition(document.body).Y) + treeElm.offsetHeight)
-				{
-					Fit.Dom.Data(treeElm, "viewportcollision", "true");
-					treeElm.style.top = (posY - treeElm.offsetHeight) + "px";
-				}
-			}
-
-			// Focus context menu to allow keyboard navigation
-
-			me.Focused(true);
-
-			// Fire OnShown event
-
-			me._internal.FireOnShown();
+			me._internal.ExecuteShowBehaviour(x, y);
 		});
 	}
 

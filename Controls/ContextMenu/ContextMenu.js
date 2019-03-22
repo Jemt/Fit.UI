@@ -253,83 +253,10 @@ Fit.Controls.ContextMenu = function(controlId)
 		Fit.Validation.ExpectInteger(x, true);
 		Fit.Validation.ExpectInteger(y, true);
 
-		// Fire OnShowing event
-
-		if (fireEventHandlers(onShowing) === false)
+		if (me._internal.ExecuteBeforeShowBehaviour() === false)
 			return;
-
-		// Close context menu if one is already open
-
-		if (Fit._internal.ContextMenu.Current !== null && Fit._internal.ContextMenu.Current !== me && Fit._internal.ContextMenu.Current.IsVisible() === true)
-		{
-			Fit._internal.ContextMenu.Current.Hide();
-			Fit._internal.ContextMenu.Current = null;
-		}
-
-		// Set position
-
-		var pos = Fit.Events.GetPointerState().Coordinates.Document;
-
-		var posX = ((Fit.Validation.IsSet(x) === true) ? x : pos.X);
-		var posY = ((Fit.Validation.IsSet(y) === true) ? y : pos.Y);
-
-		tree.GetDomElement().style.left = posX + "px";
-		tree.GetDomElement().style.top = posY + "px";
-		tree.GetDomElement().style.width = "auto"; // TreeView.Width(val, unit) cannot be used to set width:auto
-
-		// Add to DOM
-
-		if (me.IsVisible() === false) // Only append to DOM once - ContextMenu may have been rooted elsewhere by external code
-		{
-			Fit.Dom.Add(document.body, tree.GetDomElement());
-			Fit._internal.ContextMenu.Current = me;
-		}
-
-		// Update all items to let them know if they have children that contains children.
-		// This lets us use CSS ( li[data-deep="true"] > ul > li { /* ... */ } ) to indent all children
-		// within an item if just one of them has children (hence we need to make room for an expand/collapse icon).
-
-		Fit.Array.Recurse(tree.GetChildren(), "GetChildren", function(child)
-		{
-			// Multiple children in the same level will cause their parent to get updated multiple times which is acceptable
-			
-			Fit.Dom.Data(child.GetDomElement(), "deep", "false");
-
-			if (child.GetChildren().length > 0)
-			{
-				if (child.GetParent() !== null)
-					Fit.Dom.Data(child.GetParent().GetDomElement(), "deep", "true");
-				else
-					Fit.Dom.Data(child.GetTreeView().GetDomElement().children[0].children[0] /* ul > li */, "deep", "true");
-			}
-		});
-
-		// Boundary detection
-
-		if (detectBoundaries === true)
-		{
-			var treeElm = tree.GetDomElement();
-			Fit.Dom.Data(treeElm, "viewportcollision", "false");
-
-			if (Fit.Browser.GetViewPortDimensions().Height < (posY - Fit.Dom.GetScrollPosition(document.body).Y) + treeElm.offsetHeight)
-			{
-				Fit.Dom.Data(treeElm, "viewportcollision", "true");
-				treeElm.style.top = (posY - treeElm.offsetHeight) + "px";
-			}
-		}
-
-		// Focus context menu to allow keyboard navigation
-
-		me.Focused(true);
-
-		// Fire OnShown event
-
-		fireEventHandlers(onShown);
-
-		// Make sure OnClick handler on document does not close
-		// Context Menu if triggered using left button.
-		Fit._internal.ContextMenu.SkipClickClose = true;
-		setTimeout(function() { Fit._internal.ContextMenu.SkipClickClose = false; }, 0);
+		
+		me._internal.ExecuteShowBehaviour(x, y);
 	}
 
 	/// <function container="Fit.Controls.ContextMenu" name="Hide" access="public">
@@ -576,25 +503,6 @@ Fit.Controls.ContextMenu = function(controlId)
 	// Private
 	// ============================================
 
-	this._internal = (this._internal ? this._internal : {});
-
-	this._internal.FireOnShowing = function()
-	{
-		return fireEventHandlers(onShowing);
-	}
-	this._internal.FireOnShown = function()
-	{
-		fireEventHandlers(onShown);
-	}
-	this._internal.FireOnHide = function()
-	{
-		fireEventHandlers(onHide);
-	}
-	this._internal.FireOnSelect = function()
-	{
-		fireEventHandlers(onSelect);
-	}
-
 	function fireEventHandlers(handlers, item) // Notice: item variable only provided for OnSelect event
 	{
 		var cancel = false;
@@ -672,6 +580,97 @@ Fit.Controls.ContextMenu = function(controlId)
 				Fit.Dom.RemoveClass(tree.GetDomElement(), "FitUi_Non_Existing_ContextMenu_Class");
 			}, 0);
 		}
+	}
+
+	this._internal = (this._internal ? this._internal : {});
+
+	this._internal.ExecuteBeforeShowBehaviour = function()
+	{
+		// Fire OnShowing event
+
+		if (fireEventHandlers(onShowing) === false)
+			return false;
+
+		// Close context menu if one is already open
+
+		if (Fit._internal.ContextMenu.Current !== null && Fit._internal.ContextMenu.Current !== me && Fit._internal.ContextMenu.Current.IsVisible() === true)
+		{
+			Fit._internal.ContextMenu.Current.Hide();
+			Fit._internal.ContextMenu.Current = null;
+		}
+
+		return true;
+	}
+
+	this._internal.ExecuteShowBehaviour = function(x, y)
+	{
+		Fit.Validation.ExpectInteger(x, true);
+		Fit.Validation.ExpectInteger(y, true);
+		
+		// Set position
+
+		var pos = Fit.Events.GetPointerState().Coordinates.Document;
+
+		var posX = ((Fit.Validation.IsSet(x) === true) ? x : pos.X);
+		var posY = ((Fit.Validation.IsSet(y) === true) ? y : pos.Y);
+
+		tree.GetDomElement().style.left = posX + "px";
+		tree.GetDomElement().style.top = posY + "px";
+		tree.GetDomElement().style.width = "auto"; // TreeView.Width(val, unit) cannot be used to set width:auto
+
+		// Add to DOM
+
+		if (me.IsVisible() === false) // Only append to DOM once - ContextMenu may have been rooted elsewhere by external code
+		{
+			Fit.Dom.Add(document.body, tree.GetDomElement());
+			Fit._internal.ContextMenu.Current = me;
+		}
+
+		// Update all items to let them know if they have children that contains children.
+		// This lets us use CSS ( li[data-deep="true"] > ul > li { /* ... */ } ) to indent all children
+		// within an item if just one of them has children (hence we need to make room for an expand/collapse icon).
+
+		Fit.Array.Recurse(tree.GetChildren(), "GetChildren", function(child)
+		{
+			// Multiple children in the same level will cause their parent to get updated multiple times which is acceptable
+			
+			Fit.Dom.Data(child.GetDomElement(), "deep", "false");
+
+			if (child.GetChildren().length > 0)
+			{
+				if (child.GetParent() !== null)
+					Fit.Dom.Data(child.GetParent().GetDomElement(), "deep", "true");
+				else
+					Fit.Dom.Data(child.GetTreeView().GetDomElement().children[0].children[0] /* ul > li */, "deep", "true");
+			}
+		});
+
+		// Boundary detection
+
+		if (detectBoundaries === true)
+		{
+			var treeElm = tree.GetDomElement();
+			Fit.Dom.Data(treeElm, "viewportcollision", "false");
+
+			if (Fit.Browser.GetViewPortDimensions().Height < (posY - Fit.Dom.GetScrollPosition(document.body).Y) + treeElm.offsetHeight)
+			{
+				Fit.Dom.Data(treeElm, "viewportcollision", "true");
+				treeElm.style.top = (posY - treeElm.offsetHeight) + "px";
+			}
+		}
+
+		// Focus context menu to allow keyboard navigation
+
+		me.Focused(true);
+
+		// Fire OnShown event
+
+		fireEventHandlers(onShown);
+
+		// Make sure OnClick handler on document does not close
+		// Context Menu if triggered using left button.
+		Fit._internal.ContextMenu.SkipClickClose = true;
+		setTimeout(function() { Fit._internal.ContextMenu.SkipClickClose = false; }, 0);
 	}
 
 	init();
