@@ -21,7 +21,7 @@ Fit.Validation.ExpectObject = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if (val.constructor !== Object)
+	if (!val || val.constructor !== Object)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a valid object");
 }
 
