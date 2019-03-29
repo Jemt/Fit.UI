@@ -211,7 +211,6 @@ Fit.Core.CreateOverride = function(originalFunction, newFunction)
 /// </function>
 Fit.Core.IsEqual = function(jsObj1, jsObj2)
 {
-
 	// TEST CASE: Example below is supposed to return: TRUE!
 	/*var f1 = function() { alert("Hello"); }
 	var f2 = f1;
@@ -310,10 +309,95 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 	return false;
 }
 
+/// <function container="Fit.Core" name="Merge" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Deep merges two objects and returns the resulting object.
+/// 		Take notice of the behaviour and restriction of Fit.Core.Clone(..) since
+/// 		the target object is first cloned using that function. The resulting object is
+/// 		then enriched with the data from the merge object.
+/// 		Property values on the merge object takes precedence over property values on the
+/// 		target object. Arrays are not merged but merely replaced if defined on the merge object.
+/// 	</description>
+/// 	<param name="targetObject" type="object"> Target object </param>
+/// 	<param name="mergeObject" type="object"> Merge object </param>
+/// </function>
+Fit.Core.Merge = function(targetObject, mergeObject)
+{
+	Fit.Validation.ExpectObject(targetObject);
+	Fit.Validation.ExpectObject(mergeObject);
+
+	/* // Test data
+	f1 = function() { alert("Hello"); };
+	f2 = function() { alert("Hello2"); };
+	x = {
+		str: "Hello world",
+		num: 123,
+		dec: 123.321,
+		num2: 1,
+		num3: parseFloat("abc"),
+		date: new Date("2014-12-01 13:02:23"),
+		bool: true,
+		bool2: false,
+		arr: [100, 200, 250, 400],
+		arr2: ["Hello", "world"],
+		arr3: [123, "hello", true, false, new Date("1990-01-20"), [1,2,3], { x: { "hapsen": f1, "hello": new Array(1,2,3) } }],
+		obj: { a: 123, b: 123.321, c: true, d: false, e: new Date("1993-06-25"), f: "hello", g: null, h: undefined, propNotFoundOnMergeObj: { name: "one", age: 11 } },
+		specialProp: { x: true, y: undefined, z: null, date: new Date() },
+		oneUn: undefined
+	};
+	y = {
+		str: "Hello world 2",
+		num: 222,
+		dec: 222.222,
+		num2: parseInt("abc"),
+		num3: 22.2,
+		date: new Date("2222-02-02 22:22:22"),
+		bool: false,
+		bool2: true,
+		arr: [2, 22, 222, 2222, 22222, 2222222222],
+		arr2: ["Hello2", "world2"],
+		arr3: [222, "hello2", false, true, new Date("2002-02-02"), [2], { x: { "hapsen2": f2, "hello2": new Array(2,2,2,2,2,2,2,2,2,2) } }],
+		obj: { a: 2, b: 2.2, c: false, d: true, e: new Date("2202-02-22"), f: "hello2", g: {}, h: null, newProp: { name: "two", age: 22, gender: "female" } },
+		two: { x: 2, y: true, z: undefined },
+		twoUn: undefined
+	};
+	var backupX = Fit.Core.Clone(x);
+	var backupY = Fit.Core.Clone(y);
+	var merged1 = Fit.Core.Merge(x, y);
+	var merged2 = Fit.Core.Merge(y, x);
+	console.log(merged1);
+	console.log(merged2);
+	console.log("Merges equal:", Fit.Core.IsEqual(merged1, merged2)); // Expecting False
+	console.log("X untouched:", Fit.Core.IsEqual(x, backupX)); // Expecting True
+	console.log("Y untouched:", Fit.Core.IsEqual(y, backupY)); // Expecting True*/
+
+	var isObject = function(val)
+	{
+		return (val !== undefined && val !== null && typeof(val) === "object" && (val instanceof Date) === false && (val instanceof Array) === false);
+	}
+
+	var newObject = Fit.Core.Clone(targetObject);
+
+	Fit.Array.ForEach(mergeObject, function(prop)
+	{
+		if (isObject(newObject[prop]) && isObject(mergeObject[prop]))
+		{
+			newObject[prop] = Fit.Core.Merge(newObject[prop], mergeObject[prop]);
+		}
+		else
+		{
+			newObject[prop] = mergeObject[prop];
+		}
+	});
+
+	return newObject;
+}
+
 /// <function container="Fit.Core" name="Clone" access="public" static="true" returns="object">
 /// 	<description>
 /// 		Clone JavaScript object. Supported object types and values:
-/// 		String, Number, Boolean, Date, Array, (JSON) Object, Function, Undefined, Null, NaN.
+/// 		String, Number, Boolean, Date, Array, (JSON) Object, Function, Undefined, Null, NaN,
+/// 		Infinity.
 /// 		Variables defined as undefined are left out of clone,
 /// 		since an undefined variable is equal to a variable defined as undefined.
 /// 		Notice that Arrays and Objects can contain supported object types and values only.
@@ -407,7 +491,7 @@ Fit._internal =
 {
 	Core:
 	{
-		VersionInfo: { Major: 1, Minor: 4, Patch: 7 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
+		VersionInfo: { Major: 1, Minor: 4, Patch: 8 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
 	}
 };
 

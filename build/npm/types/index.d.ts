@@ -109,16 +109,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through object properties and passes each property name to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any} obj - Object containing properties to iterate through
-		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(obj:any, callback:Function):boolean;
-		/**
 		* Iterates through elements in array and passes each value to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -129,6 +119,16 @@ declare namespace Fit
 		*/
 		public static ForEach(arr:any[], callback:Function):boolean;
 		/**
+		* Iterates through object properties and passes each property name to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any} obj - Object containing properties to iterate through
+		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(obj:any, callback:Function):boolean;
+		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
 		* @param {any[]} arr - Array to search through
@@ -137,19 +137,19 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys (property names) in object
-		* @function GetKeys
-		* @param {any} obj - Object to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(obj:any):any[];
-		/**
 		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
 		* @function GetKeys
 		* @param {any[]} arr - Array to get keys from
 		* @returns any[]
 		*/
 		public static GetKeys(arr:any[]):any[];
+		/**
+		* Returns all keys (property names) in object
+		* @function GetKeys
+		* @param {any} obj - Object to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(obj:any):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -5495,7 +5495,8 @@ declare namespace Fit
 		// Functions defined by Fit.Core
 		/**
 		* Clone JavaScript object. Supported object types and values:
-		String, Number, Boolean, Date, Array, (JSON) Object, Function, Undefined, Null, NaN.
+		String, Number, Boolean, Date, Array, (JSON) Object, Function, Undefined, Null, NaN,
+		Infinity.
 		Variables defined as undefined are left out of clone,
 		since an undefined variable is equal to a variable defined as undefined.
 		Notice that Arrays and Objects can contain supported object types and values only.
@@ -5592,6 +5593,19 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static IsEqual(jsObj1:any, jsObj2:any):boolean;
+		/**
+		* Deep merges two objects and returns the resulting object.
+		Take notice of the behaviour and restriction of Fit.Core.Clone(..) since
+		the target object is first cloned using that function. The resulting object is
+		then enriched with the data from the merge object.
+		Property values on the merge object takes precedence over property values on the
+		target object. Arrays are not merged but merely replaced if defined on the merge object.
+		* @function Merge
+		* @param {any} targetObject - Target object
+		* @param {any} mergeObject - Merge object
+		* @returns any
+		*/
+		public static Merge(targetObject:any, mergeObject:any):any;
 	}
 	/**
 	* 
@@ -6018,13 +6032,6 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6041,6 +6048,13 @@ declare namespace Fit
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		/**
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {number} eventId - Event ID identifying handler to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
