@@ -5,7 +5,7 @@ Stacking context, Z-index:
  - Error indicator			: 500
  - Drop down				: 1000
  - Dialog					: 1200
-   - Modal BG layer			: 1100
+	- Modal BG layer		: 1200
  - Context menu				: 1300 (mounted in <body>)
  - Calendar					: 1300 (mounted in <body>)
  - Dragging					: 99999
@@ -123,17 +123,17 @@ Stacking context, Z-index:
 
 .FitDragDropDraggableHandle
 {
-    cursor: move;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+	cursor: move;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
 }
 
 .FitDragDropDraggable.FitDragDropDragging
 {
-    opacity: 0.6;
-    z-index: 99999;
+	opacity: 0.6;
+	z-index: 99999;
 
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
 }

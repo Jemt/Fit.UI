@@ -687,10 +687,10 @@ Fit.Controls.Dialog = function(controlId)
 	/// </function>
 	this.Open = function()
 	{
-		Fit.Dom.Add(document.body, dialog);
-
 		if (modal === true)
 			Fit.Dom.Add(document.body, layer);
+
+		Fit.Dom.Add(document.body, dialog);
 
 		setContentHeight();
 		updatePosition();
