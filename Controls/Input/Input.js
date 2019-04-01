@@ -87,6 +87,11 @@ Fit.Controls.Input = function(ctlId)
 				elm.blur();
 		}
 
+		if (designEditor !== null)
+		{
+			return (designEditor._focused === true); // Focused element is found in an iFrame so we have to rely on the HTML Editor instance to provide this information
+		}
+
 		return (Fit.Dom.GetFocused() === elm);
 	}
 
@@ -652,10 +657,12 @@ Fit.Controls.Input = function(ctlId)
 				},
 				focus: function()
 				{
+					designEditor._focused = true;
 					me._internal.FireOnFocus();
 				},
 				blur: function()
 				{
+					delete designEditor._focused;
 					me._internal.FireOnBlur();
 				}
 			}
