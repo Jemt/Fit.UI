@@ -13,25 +13,35 @@ echo "" > Fit.UI.js
 
 if [[ "$1" == "umd" || "$2" == "umd" ]] ; then
 	cat Merge_umd_start >> Fit.UI.js
+	echo >> Fit.UI.js
 elif [[ "$1" == "ts" || "$2" == "ts" ]] ; then
 	echo "export var Fit = " >> Fit.UI.js
+	echo >> Fit.UI.js
 fi
 
 if [[ "$1" == "umd" || "$2" == "umd" || "$1" == "ts" || "$2" == "ts" ]] ; then
 	echo "(function(){" >> Fit.UI.js
+	echo >> Fit.UI.js
 fi
 
 # Merge core components first
 
 cat ../Core/Core.js >> Fit.UI.js
+echo >> Fit.UI.js
 cat ../Core/Validation.js >> Fit.UI.js
+echo >> Fit.UI.js
+
 cat ../Core/Styles.css > Fit.UI.css
+echo >> Fit.UI.css
 cat ../Resources/FontAwesome/css/font-awesome.css >> Fit.UI.css
+echo >> Fit.UI.css
 cat ../Resources/JqueryUI-1.11.4.custom/jquery-ui.css >> Fit.UI.css
+echo >> Fit.UI.css
 
 for file in `ls ../Core/*js | grep -v Core/Core.js | grep -v Core/Validation.js | grep -v Core/json2.js`
 do
 	cat $file >> Fit.UI.js
+	echo >> Fit.UI.js
 done
 
 # Merge UI controls
@@ -41,11 +51,13 @@ do
 	for file in `ls ../Controls/$dir | grep .js`
 	do
 		cat ../Controls/$dir/$file >> Fit.UI.js
+		echo >> Fit.UI.js
 	done
 
 	for file in `ls ../Controls/$dir | grep .css`
 	do
 		cat ../Controls/$dir/$file >> Fit.UI.css
+		echo >> Fit.UI.css
 	done
 done
 
@@ -53,10 +65,14 @@ done
 
 if [[ "$1" == "umd" || "$2" == "umd" ]] ; then
 	echo "return Fit;})();" >> Fit.UI.js
+	echo >> Fit.UI.js
 	cat Merge_umd_end >> Fit.UI.js
+	echo >> Fit.UI.js
 elif [[ "$1" == "ts" || "$2" == "ts" ]] ; then
 	echo "return Fit;})();" >> Fit.UI.js
+	echo >> Fit.UI.js
 	echo "export default Fit;" >> Fit.UI.js
+	echo >> Fit.UI.js
 fi
 
 # Minify JS and CSS
