@@ -32,12 +32,15 @@
     <script src="../Core/Data.js"></script>
     <script src="../Core/Dom.js"></script>
     <script src="../Core/DragDrop.js"></script>
-    <script src="../Core/Http.js"></script>
+	<script src="../Core/Http.js"></script>
+	<script src="../Core/Internationalization.js"></script>
     <script src="../Core/Language.js"></script>
     <script src="../Core/Loader.js"></script>
     <script src="../Core/Template.js"></script>
-    <script src="../Core/Validation.js"></script>
-    <script src="../Core/Events.js"></script> <!-- Must come last -->
+	<script src="../Core/Validation.js"></script>
+	<!-- Must come last - uses core functionality such as Fit.Validation, Fit.Array, etc. -->
+	<script src="../Core/i18n.js"></script>
+    <script src="../Core/Events.js"></script>
     
     <script type="text/javascript">
     // Tell Fit.UI that it is actually runs from the Debug folder, and not from where the Core files are loaded from.
@@ -52,9 +55,9 @@
         { Folder: "CheckBox", Components: ["CheckBox"] },
         { Folder: "ContextMenu", Components: ["ContextMenu", "WSContextMenu"] },
         { Folder: "DatePicker", Components: ["DatePicker"] },
-        { Folder: "Dialog", Components: ["Dialog"] },
+        { Folder: "Dialog", Components: ["Dialog"], Localized: true },
         { Folder: "DropDown", Components: ["PickerBase", "DropDown", "WSDropDown"] },
-        { Folder: "FilePicker", Components: ["FilePicker"] },
+        { Folder: "FilePicker", Components: ["FilePicker"], Localized: true },
         { Folder: "Input", Components: ["Input"] },
         { Folder: "ListView", Components: ["ListView", "WSListView"] },
         { Folder: "ProgressBar", Components: ["ProgressBar"] },
@@ -110,7 +113,12 @@
         Fit.Array.ForEach(controlInfo.Components, function(component)
         {
             Fit.Array.Add(controlsJs, { source: "../Controls/" + controlInfo.Folder + "/" + component + ".js" });
-        });
+		});
+		
+		if (controlInfo.Localized === true)
+		{
+			Fit.Array.Add(controlsJs, { source: "../Controls/" + controlInfo.Folder + "/i18n.js" });
+		}
     });
 
     Fit.Loader.LoadScripts(controlsJs, function()
