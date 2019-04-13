@@ -16,6 +16,7 @@ Fit.Controls.FilePicker = function(ctlId)
 
 	var me = this;
 	var button = null;
+	var buttonTitleEnforced = false;
 	var input = null;
 	var width = { Value: -1, Unit: "px" }; // Differs from default value on ControlBase which is 200px - here a value of -1 indicates width:auto
 	var url = null;
@@ -36,7 +37,6 @@ Fit.Controls.FilePicker = function(ctlId)
 		if (inputs.length === 0) // Modern control
 		{
 			button = new Fit.Controls.Button("Button" + me.GetId());
-			button.Title(Fit.Language.Translations.SelectFile);
 			button.Icon("upload"); // files-o
 			button.OnClick(function(sender) { input.click(); }); // Make sure Enter/Spacebar opens file dialog
 
@@ -50,6 +50,9 @@ Fit.Controls.FilePicker = function(ctlId)
 		me.Enabled(true);
 
 		me._internal.Data("legacy", (inputs.length > 0).toString());
+
+		Fit.Internationalization.OnLocaleChanged(localize);
+		localize();
 	}
 
 	function createUploadField()
@@ -237,7 +240,9 @@ Fit.Controls.FilePicker = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
-		me = button = input = width = url = files = inputs = onUploadHandlers = onProgressHandlers = onSuccessHandlers = onFailureHandlers = onCompletedHandlers = null; // onAbortHandlers
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
+		me = button = buttonTitleEnforced = input = width = url = files = inputs = onUploadHandlers = onProgressHandlers = onSuccessHandlers = onFailureHandlers = onCompletedHandlers = null; // onAbortHandlers
 		base();
 	});
 
@@ -335,6 +340,7 @@ Fit.Controls.FilePicker = function(ctlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			button.Title(val);
+			buttonTitleEnforced = true;
 			Fit.Dom.Add(button.GetDomElement(), input);
 		}
 
@@ -375,10 +381,6 @@ Fit.Controls.FilePicker = function(ctlId)
 				if (val === true && me.MultiSelectionMode() === false)
 				{
 					input.multiple = "multiple";
-
-					// Change title unless a custom title has been set
-					if (me.Title() === Fit.Language.Translations.SelectFile)
-						me.Title(Fit.Language.Translations.SelectFiles);
 				}
 				else if (val === false && me.MultiSelectionMode() === true)
 				{
@@ -386,10 +388,6 @@ Fit.Controls.FilePicker = function(ctlId)
 						me.Clear();
 
 					input.multiple = "";
-
-					// Change title unless a custom title has been set
-					if (me.Title() === Fit.Language.Translations.SelectFiles)
-						me.Title(Fit.Language.Translations.SelectFile);
 				}
 			}
 			else // Legacy control
@@ -398,6 +396,8 @@ Fit.Controls.FilePicker = function(ctlId)
 			}
 
 			me._internal.Data("multiple", val.toString());
+			
+			localize();
 		}
 
 		return (me._internal.Data("multiple") === "true");
@@ -641,6 +641,20 @@ Fit.Controls.FilePicker = function(ctlId)
 					picker.disabled = true;
 			}
 		});
+	}
+
+	function localize()
+	{
+		if (button === null)
+			return ""; // Legacy mode
+
+		if (buttonTitleEnforced === false)
+		{
+			var locale = Fit.Internationalization.GetLocale(me);
+			var buttonTitle = (me.MultiSelectionMode() === true ? locale.SelectFiles : locale.SelectFile);
+
+			button.Title(buttonTitle);
+		}
 	}
 
 	function getImagePreview(file) // file is an instance of File (native JS object type) - returns Image instance if preview can be created, otherwise Null

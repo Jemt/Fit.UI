@@ -20,7 +20,9 @@ Fit.Controls.DatePicker = function(ctlId)
 	var preVal = "";			// Previous valid date value as string (without time portion)
 	var prevTimeVal = "";		// Previous valid time value as string (without date portion)
 	var locale = "en";			// Default ("", "en", and "en-US" is the same) - see this.regional[""] decleration in jquery-ui.js
+	var localeEnforced = false;	// Whether locale was set by external code which takes precedence over locale set using Fit.Internationalization.Locale(..)
 	var format = "MM/DD/YYYY";	// Default format for "en" locale (specified using Fit.UI format - jQuery UI DataPicker uses "mm/dd/yy" - see this.regional[""] decleration in jquery-ui.js)
+	var formatEnforced = false;	// Whether format was set by external code which takes precedence over locale set using DatePicker.Locale(..) and Fit.Internationalization.Locale(..)
 	var placeholderDate = null;	// Placeholder value for date
 	var placeholderTime = null;	// Placeholder value for time
 	var weeks = false;			// Whether to display week numbers or not
@@ -216,6 +218,9 @@ Fit.Controls.DatePicker = function(ctlId)
 			}
 			me._internal.AddDomElement(inputMobile);
 		}
+
+		Fit.Internationalization.OnLocaleChanged(localize);
+		localize();
 	}
 
 	// ============================================
@@ -374,7 +379,9 @@ Fit.Controls.DatePicker = function(ctlId)
 			datepicker.datepicker("destroy");
 		}
 
-		me = input = inputTime = orgVal = preVal = prevTimeVal = locale = format = weeks = jquery = datepicker = startDate = open = focused = restoreView = isMobile = inputMobile = inputTimeMobile = null;
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
+		me = input = inputTime = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = weeks = jquery = datepicker = startDate = open = focused = restoreView = isMobile = inputMobile = inputTimeMobile = null;
 		base();
 	});
 
@@ -452,7 +459,8 @@ Fit.Controls.DatePicker = function(ctlId)
 	/// <function container="Fit.Controls.DatePicker" name="Locale" access="public" returns="string">
 	/// 	<description>
 	/// 		Get/set locale used by the DatePicker control. This will affect the
-	/// 		date format as well as the language used by the calendar widget.
+	/// 		date format, unless format has been set explicitely, as well as the language used by the calendar widget.
+	/// 		DatePicker locale takes precedence over locale set using Fit.Internationalization.Locale(..).
 	/// 		Call the GetLocales function to get a complete list of supported locales.
 	/// 	</description>
 	/// 	<param name="val" type="string" default="undefined"> If defined, locale is changed </param>
@@ -463,28 +471,8 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			var newFormat = getJqueryDateFormatFromLocale(val); // Null if locale does not exist
-
-			if (newFormat === null)
-				Fit.Validation.ThrowError("Unknown locale '" + val + "'");
-
-			var wasOpen = open;
-
-			if (wasOpen === true)
-			{
-				restoreView = true;
-				me.Hide();
-			}
-
-			locale = val;
-			updateCalConf = true; // Update calendar widget settings
-			me.Format(getFitUiDateFormat(newFormat));
-
-			if (wasOpen === true)
-			{
-				me.Show();
-				restoreView = false;
-			}
+			localeEnforced = true;
+			setLocale(val);
 		}
 
 		return locale;
@@ -494,7 +482,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	/// 	<description>
 	/// 		Get/set format used by the DatePicker control. This will affect the format
 	/// 		in which the date is presented, as well as the value returned by the GetText function.
-	/// 		Format takes precedense over locale if set after locale is applied.
+	/// 		Format takes precedense over locale.
 	/// 	</description>
 	/// 	<param name="val" type="string" default="undefined">
 	/// 		If defined, format is changed.
@@ -513,66 +501,8 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			// Validate format
-
-			try
-			{
-				// Notice: Fit.Date.Parse(..) produces a DateTime object that contains
-				// current Hours:Minutes:Seconds unless explicitly set, so we need to set
-				// those to prevent 'date' and 'parsed' variables from differing one second.
-
-				var date = Fit.Date.Parse("2016-06-24 00:00:00", "YYYY-MM-DD hh:mm:ss");
-				var dateStr = Fit.Date.Format(date, val + " hh:mm:ss");
-				var parsed = Fit.Date.Parse(dateStr, val + " hh:mm:ss");
-
-				if (date.getTime() !== parsed.getTime())
-					throw "Invalid"; // Catched below and re-thrown
-			}
-			catch (err)
-			{
-				Fit.Validation.ThrowError("Invalid date format '" + val + "'");
-			}
-
-			// Set format
-
-			var wasOpen = open;
-
-			if (wasOpen === true)
-			{
-				restoreView = true;
-				me.Hide();
-			}
-
-			var curVal = me.Value(); // The format is used by Value() to parse the date entered - get value before changing format
-
-			format = val;
-			updateCalConf = true; // Update calendar widget settings
-			input.placeholder = getDatePlaceholder();
-
-			me._internal.ExecuteWithNoOnChange(function()
-			{
-				// Preserve state
-
-				var ov = orgVal; // Value(val) changes orgVal to value passed, but it's used to determine whether control is dirty
-				var tv = ((inputTime !== null) ? inputTime.value : ""); // Value(val) removes time value if no date value is set
-
-				// Reformat value
-
-				me.Value(curVal); // Forces value to reformat and updates preVal with new format
-
-				// Restore state changed by Value(curVal) above
-
-				orgVal = ov;
-
-				if (inputTime !== null)
-					inputTime.value = tv;
-			});
-
-			if (wasOpen === true)
-			{
-				me.Show();
-				restoreView = false;
-			}
+			formatEnforced = true;
+			setFormat(val);
 		}
 
 		return format;
@@ -1124,6 +1054,130 @@ Fit.Controls.DatePicker = function(ctlId)
 	function getTimePlaceholder()
 	{
 		return (placeholderTime !== null ? placeholderTime : Fit.Date.Format(new Date(), "hh:mm"));
+	}
+
+	function setLocale(val)
+	{
+		Fit.Validation.ExpectString(val);
+
+		var newFormat = getJqueryDateFormatFromLocale(val); // Null if locale does not exist
+
+		if (newFormat === null)
+			Fit.Validation.ThrowError("Unknown locale '" + val + "'");
+
+		var wasOpen = open;
+
+		if (wasOpen === true)
+		{
+			restoreView = true;
+			me.Hide();
+		}
+
+		locale = val;
+		updateCalConf = true; // Update calendar widget settings
+
+		if (formatEnforced === false)
+		{
+			setFormat(getFitUiDateFormat(newFormat));
+		}
+
+		if (wasOpen === true)
+		{
+			me.Show();
+			restoreView = false;
+		}
+	}
+
+	function setFormat(val)
+	{
+		Fit.Validation.ExpectString(val);
+
+		// Validate format
+
+		try
+		{
+			// Notice: Fit.Date.Parse(..) produces a DateTime object that contains
+			// current Hours:Minutes:Seconds unless explicitly set, so we need to set
+			// those to prevent 'date' and 'parsed' variables from differing one second.
+
+			var date = Fit.Date.Parse("2016-06-24 00:00:00", "YYYY-MM-DD hh:mm:ss");
+			var dateStr = Fit.Date.Format(date, val + " hh:mm:ss");
+			var parsed = Fit.Date.Parse(dateStr, val + " hh:mm:ss");
+
+			if (date.getTime() !== parsed.getTime())
+				throw "Invalid"; // Catched below and re-thrown
+		}
+		catch (err)
+		{
+			Fit.Validation.ThrowError("Invalid date format '" + val + "'");
+		}
+
+		// Set format
+
+		var wasOpen = open;
+
+		if (wasOpen === true)
+		{
+			restoreView = true;
+			me.Hide();
+		}
+
+		var curDate = me.Date(); // The format is used by Value(), which is called by Date(), to parse the date entered - get DateTime value before changing format
+
+		format = val;
+		updateCalConf = true; // Update calendar widget settings
+		input.placeholder = getDatePlaceholder();
+
+		// Update input with new format
+		me._internal.ExecuteWithNoOnChange(function()
+		{
+			if (curDate !== null)
+			{
+				// Update input directly rather than using Value(..) since the input field still contains
+				// the old value which is formatted using the old format. This will cause a call to Value(..)
+				// to fail since it cannot parse the old string value using the new format applied.
+				// Notice that we only change the format of the DateTime value - not the actual date or time.
+				// Therefore, there is no need to update curVal.
+
+				input.value = Fit.Date.Format(curDate, format);
+				preVal = input.value;
+			}
+		});
+
+		if (wasOpen === true)
+		{
+			me.Show();
+			restoreView = false;
+		}
+	}
+
+	function localize()
+	{
+		if (localeEnforced === true)
+			return;
+
+		var newLocale = Fit.Internationalization.Locale();
+		var key = null;
+
+		// Transform Fit.UI's locale format (e.g. en or en_gb) to jQuery's locale format (e.g. en or en-GB)
+
+		if (newLocale.indexOf("_") !== -1) // E.g. de_AT
+		{
+			var info = newLocale.split("_");
+			key = info[0].toLowerCase() + "-" + info[1].toUpperCase();
+		}
+		else // e.g. de
+		{
+			key = newLocale.toLowerCase();
+		}
+
+		// Update locale
+
+		// Make sure locale exists - otherwise setLocale throws an error
+		if (Fit.Array.Contains(Fit.Array.GetKeys(getLocales()), key) === true)
+		{
+			setLocale(key);
+		}
 	}
 
 	init();

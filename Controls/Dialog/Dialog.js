@@ -907,17 +907,40 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 	Fit.Validation.ExpectBoolean(showCancel);
 	Fit.Validation.ExpectFunction(cb, true);
 
+	// Create dialog
+
 	var d = new Fit.Controls.Dialog();
 	d.Content(content.replace(/\n/g, "<br>"));
 	d.Modal(true);
 	Fit.Dom.AddClass(d.GetDomElement(), "FitUiControlDialogBase");
 
+	// Declare buttons
+
 	var cmdOk = new Fit.Controls.Button(Fit.Data.CreateGuid());
-	cmdOk.Title(Fit.Language.Translations.Ok);
+	var cmdCancel = null;
+
+	// Localization
+
+	var localize = function()
+	{
+		var locale = Fit.Internationalization.GetLocale(d);
+		
+		cmdOk.Title(locale.Ok);
+
+		if (cmdCancel !== null)
+			cmdCancel.Title(locale.Cancel);
+	};
+
+	Fit.Internationalization.OnLocaleChanged(localize);
+
+	// Configure and add buttons
+
 	cmdOk.Icon("check");
 	cmdOk.Type(Fit.Controls.ButtonType.Success);
 	cmdOk.OnClick(function(sender)
 	{
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
 		d.Dispose();
 
 		if (Fit.Validation.IsSet(cb) === true)
@@ -927,12 +950,13 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 
 	if (showCancel === true)
 	{
-		var cmdCancel = new Fit.Controls.Button(Fit.Data.CreateGuid());
-		cmdCancel.Title(Fit.Language.Translations.Cancel);
+		cmdCancel = new Fit.Controls.Button(Fit.Data.CreateGuid());
 		cmdCancel.Icon("ban");
 		cmdCancel.Type(Fit.Controls.ButtonType.Danger);
 		cmdCancel.OnClick(function(sender)
 		{
+			Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
 			d.Dispose();
 
 			if (Fit.Validation.IsSet(cb) === true)
@@ -940,6 +964,10 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 		});
 		d.AddButton(cmdCancel);
 	}
+
+	localize();
+
+	// Open dialog
 
 	d.Open();
 	cmdOk.Focused(true);

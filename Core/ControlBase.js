@@ -274,6 +274,8 @@ Fit.Controls.ControlBase = function(controlId)
 			if (lazyValidation === true)
 				me._internal.Validate(true);
 		});
+
+		Fit.Internationalization.OnLocaleChanged(localize);
 	}
 
 	// ============================================
@@ -310,6 +312,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = null;
 		base();
 	});
@@ -769,6 +772,15 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Data("dirty", ((me.IsDirty() === true) ? "true" : "false"));
 	}
 
+	function localize()
+	{
+		if (validationErrorType === 0 /*&& me._internal.Data("errormessage") !== null*/)
+		{
+			var locale = Fit.Internationalization.GetSystemLocale();
+			me._internal.Data("errormessage", locale.Translations.Required);
+		}
+	}
+
 	// Private members (must be public in order to be accessible to controls extending from ControlBase)
 
 	this._internal.FireOnChange = function()
@@ -867,7 +879,7 @@ Fit.Controls.ControlBase = function(controlId)
 		if (valid === false)
 		{
 			if (validationErrorType === 0)
-				me._internal.Data("errormessage", Fit.Language.Translations.Required);
+				me._internal.Data("errormessage", Fit.Internationalization.GetSystemLocale().Translations.Required);
 			else if (validationErrorType === 1 && validationError !== null)
 				me._internal.Data("errormessage", validationError.replace("\r", "").replace(/<br.*>/i, "\n"));
 			else if (validationErrorType === 2 && validationHandlerError !== null)
