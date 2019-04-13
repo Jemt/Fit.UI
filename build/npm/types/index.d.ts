@@ -1257,7 +1257,7 @@ declare namespace Fit
 			/**
 			* Get/set format used by the DatePicker control. This will affect the format
 			in which the date is presented, as well as the value returned by the GetText function.
-			Format takes precedense over locale if set after locale is applied.
+			Format takes precedence over locale.
 			* @function Format
 			* @param {string} [val=undefined] - If defined, format is changed.
 			The following tokens can be used to construct the format:
@@ -1294,7 +1294,8 @@ declare namespace Fit
 			public Hide():void;
 			/**
 			* Get/set locale used by the DatePicker control. This will affect the
-			date format as well as the language used by the calendar widget.
+			date format, unless format has been set explicitely, as well as the language used by the calendar widget.
+			DatePicker locale takes precedence over locale set using Fit.Internationalization.Locale(..).
 			Call the GetLocales function to get a complete list of supported locales.
 			* @function Locale
 			* @param {string} [val=undefined] - If defined, locale is changed
@@ -6041,6 +6042,13 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {number} eventId - Event ID identifying handler to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6049,19 +6057,6 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
-		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -6069,6 +6064,12 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
@@ -6085,6 +6086,82 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static StopPropagation(e?:Event):boolean;
+	}
+	/**
+	* 
+	* @class [Fit.Internationalization Internationalization]
+	*/
+	class Internationalization
+	{
+		// Functions defined by Fit.Internationalization
+		/**
+		* Register information such as translations related to a specific language and country.
+		* @function AddLocalization
+		* @param {Function} type - Object type associated with localization information - e.g. MyApp.ContactForm
+		* @param {Object} translations - Object array containing language and country specific information such as translations.
+		The object array must be indexed using locale keys, and &quot;en&quot; must be defined first.
+		Example: { &quot;en&quot;: {}, &quot;en_GB&quot;: {}, &quot;da&quot;: {} }
+		Every language inherits all the information from &quot;en&quot;, and country specific information
+		such as &quot;de_AT&quot; automatically inherits everything from &quot;de&quot; - in which case
+		&quot;de&quot; must be declared first.
+		Information can be obtained from within instances of the given type using:
+		Fit.Internationalization.GetLocale(this); // Translations for current locale
+		Fit.Internationalization.GetLocale(this, &quot;de_AT&quot;); // Translations for specific locale
+		Naturally &quot;this&quot; is an instance of MyApp.ContactForm in this example.
+		*/
+		public AddLocalization(type:Function, translations:Object):void;
+		/**
+		* Get type specific locale information registered using Fit.Internationalization.AddLocalization(..)
+		* @function GetLocale
+		* @param {any} instance - Instance of type used to register locale information
+		* @param {string} [locale=undefined] - If defined, information for specified locale such as en, en_GB, or da is returned.
+		If not found, en (en_US) is returned. If omitted, information for current locale is returned.
+		* @returns any
+		*/
+		public GetLocale(instance:any, locale?:string):any;
+		/**
+		* Get locale object such as:
+		{
+		     Formatting:
+		     {
+		         DecimalSeparator: &#39;.&#39;,
+		         ThousandsSeparator: &#39;,&#39;,
+		         DateFormat: &#39;MM/DD/YYYY&#39;,
+		         TimeFormat: &#39;hh:mm&#39;,
+		         TimeFormatLong: &#39;hh:mm:ss&#39;,
+		         ClockHours: 12 // 24 or 12 (AM/PM)
+		     },
+		     Translations:
+		     {
+		         Required: &#39;Field is required&#39;
+		     }
+		}
+		* @function GetSystemLocale
+		* @param {string} [localeKey=undefined] - If defined, specified locale such as en, en_GB, or da is returned. If not
+		found, en (en_US) is returned. If omitted, current locale is returned.
+		* @returns any
+		*/
+		public GetSystemLocale(localeKey?:string):any;
+		/**
+		* Get/set active locale. Value returned is a lower cased string such as
+		&quot;en&quot;, &quot;en_us&quot;, &quot;de&quot;, etc. Changing locale results in OnLocaleChanged being fired.
+		* @function Locale
+		* @param {string} [locale=undefined] - If defined, locale is updated with specified value (e.g. en, en_GB, da, etc.)
+		* @returns string
+		*/
+		public Locale(locale?:string):string;
+		/**
+		* Add event handler which is called if locale is changed
+		* @function OnLocaleChanged
+		* @param {Function} cb - Event handler which takes no arguments
+		*/
+		public OnLocaleChanged(cb:Function):void;
+		/**
+		* Remove event handler to avoid it being called when locale is changed
+		* @function RemoveOnLocaleChanged
+		* @param {Function} cb - Event handler to remove
+		*/
+		public RemoveOnLocaleChanged(cb:Function):void;
 	}
 	/**
 	* Loader is a useful mechanism for loading styleheets and JavaScript on demand in a non blocking manner.

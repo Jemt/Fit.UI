@@ -145,7 +145,7 @@ Fit.Internationalization.Locale = function(locale)
 /// 	<description>
 /// 		Register information such as translations related to a specific language and country.
 /// 	</description>
-/// 	<param name="type" type="Type">
+/// 	<param name="type" type="function">
 /// 		Object type associated with localization information - e.g. MyApp.ContactForm
 /// 	</param>
 /// 	<param name="translations" type="Object">
