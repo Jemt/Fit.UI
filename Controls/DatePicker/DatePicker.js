@@ -482,7 +482,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	/// 	<description>
 	/// 		Get/set format used by the DatePicker control. This will affect the format
 	/// 		in which the date is presented, as well as the value returned by the GetText function.
-	/// 		Format takes precedense over locale.
+	/// 		Format takes precedence over locale.
 	/// 	</description>
 	/// 	<param name="val" type="string" default="undefined">
 	/// 		If defined, format is changed.
