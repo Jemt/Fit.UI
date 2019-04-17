@@ -695,6 +695,21 @@ Fit.Controls.Dialog = function(controlId)
 		setContentHeight();
 		updatePosition();
 
+		// Notice that mutation observer will not be triggered if title is set or buttons have been added,
+		// and content is being updated using DOM, e.g. through GetContentDomElement() or an instance of
+		// Fit.Template rendered to the content DOM element.
+		// The reason for this can be found in setContentHeight() where a fixed height is being calculated,
+		// based on whether title and/or button(s) have been added, and assigned to the content element of the
+		// dialog. Therefore, in this case, changing the content of the content element through DOM (or an
+		// instance of Fit.Template) will not change the dimension of the content element, and therefore not
+		// trigger the mutation observer.
+		// The external code using the dialog must call a public function which in turn calls setContentHeight(),
+		// to have the dialog resize to its newly updated content - e.g. close and re-open the dialog, or update
+		// the title like dia.Title(dia.Title()).
+		// Making the observer monitor the entire dialog's DOM using the 'deep' flag would solve this problem in
+		// most causes, although not when dimensions change using styling (e.g. .style.height).
+		// Also, it would be more expensive, and could trigger height calculation even when not necessary, e.g.
+		// when changing a selection in a drop down control which changes the DOM.
 		mutationObserverId = Fit.Events.AddMutationObserver(dialog, function(elm)
 		{
 			setContentHeight();
