@@ -109,16 +109,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through elements in array and passes each value to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any[]} arr - Array containing values to iterate through
-		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(arr:any[], callback:Function):boolean;
-		/**
 		* Iterates through object properties and passes each property name to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -128,6 +118,16 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static ForEach(obj:any, callback:Function):boolean;
+		/**
+		* Iterates through elements in array and passes each value to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any[]} arr - Array containing values to iterate through
+		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(arr:any[], callback:Function):boolean;
 		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
@@ -6037,10 +6037,9 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
@@ -6053,9 +6052,10 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
@@ -6109,7 +6109,7 @@ declare namespace Fit
 		Fit.Internationalization.GetLocale(this, &quot;de_AT&quot;); // Translations for specific locale
 		Naturally &quot;this&quot; is an instance of MyApp.ContactForm in this example.
 		*/
-		public AddLocalization(type:Function, translations:Object):void;
+		public static AddLocalization(type:Function, translations:Object):void;
 		/**
 		* Get type specific locale information registered using Fit.Internationalization.AddLocalization(..)
 		* @function GetLocale
@@ -6118,7 +6118,7 @@ declare namespace Fit
 		If not found, en (en_US) is returned. If omitted, information for current locale is returned.
 		* @returns any
 		*/
-		public GetLocale(instance:any, locale?:string):any;
+		public static GetLocale(instance:any, locale?:string):any;
 		/**
 		* Get locale object such as:
 		{
@@ -6141,7 +6141,7 @@ declare namespace Fit
 		found, en (en_US) is returned. If omitted, current locale is returned.
 		* @returns any
 		*/
-		public GetSystemLocale(localeKey?:string):any;
+		public static GetSystemLocale(localeKey?:string):any;
 		/**
 		* Get/set active locale. Value returned is a lower cased string such as
 		&quot;en&quot;, &quot;en_us&quot;, &quot;de&quot;, etc. Changing locale results in OnLocaleChanged being fired.
@@ -6149,19 +6149,19 @@ declare namespace Fit
 		* @param {string} [locale=undefined] - If defined, locale is updated with specified value (e.g. en, en_GB, da, etc.)
 		* @returns string
 		*/
-		public Locale(locale?:string):string;
+		public static Locale(locale?:string):string;
 		/**
 		* Add event handler which is called if locale is changed
 		* @function OnLocaleChanged
 		* @param {Function} cb - Event handler which takes no arguments
 		*/
-		public OnLocaleChanged(cb:Function):void;
+		public static OnLocaleChanged(cb:Function):void;
 		/**
 		* Remove event handler to avoid it being called when locale is changed
 		* @function RemoveOnLocaleChanged
 		* @param {Function} cb - Event handler to remove
 		*/
-		public RemoveOnLocaleChanged(cb:Function):void;
+		public static RemoveOnLocaleChanged(cb:Function):void;
 	}
 	/**
 	* Loader is a useful mechanism for loading styleheets and JavaScript on demand in a non blocking manner.

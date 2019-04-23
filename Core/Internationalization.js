@@ -50,7 +50,7 @@ Fit.Internationalization._internal.AddSystemLocalization = function(locales) // 
 	});
 }
 
-/// <function container="Fit.Internationalization" name="GetSystemLocale" access="public" returns="object">
+/// <function container="Fit.Internationalization" name="GetSystemLocale" access="public" static="true" returns="object">
 /// 	<description>
 /// 		Get locale object such as:
 /// 		{
@@ -108,7 +108,7 @@ Fit.Internationalization.GetSystemLocale = function(localeKey)
 	return Fit.Core.Clone(found); // Clone to avoid changes
 }
 
-/// <function container="Fit.Internationalization" name="Locale" access="public" returns="string">
+/// <function container="Fit.Internationalization" name="Locale" access="public" static="true" returns="string">
 /// 	<description>
 /// 		Get/set active locale. Value returned is a lower cased string such as
 /// 		&quot;en&quot;, &quot;en_us&quot;, &quot;de&quot;, etc. Changing locale results in OnLocaleChanged being fired.
@@ -141,7 +141,7 @@ Fit.Internationalization.Locale = function(locale)
 // Localization - internationalization of apps
 // ====================================================
 
-/// <function container="Fit.Internationalization" name="AddLocalization" access="public">
+/// <function container="Fit.Internationalization" name="AddLocalization" access="public" static="true">
 /// 	<description>
 /// 		Register information such as translations related to a specific language and country.
 /// 	</description>
@@ -211,7 +211,7 @@ Fit.Internationalization.AddLocalization = function(type, translations) // May b
 	});
 }
 
-/// <function container="Fit.Internationalization" name="GetLocale" access="public" returns="object">
+/// <function container="Fit.Internationalization" name="GetLocale" access="public" static="true" returns="object">
 /// 	<description> Get type specific locale information registered using Fit.Internationalization.AddLocalization(..) </description>
 /// 	<param name="instance" type="object"> Instance of type used to register locale information </param>
 /// 	<param name="locale" type="string" default="undefined">
@@ -247,7 +247,7 @@ Fit.Internationalization.GetLocale = function(instance, locale)
 	return found;
 }
 
-/// <function container="Fit.Internationalization" name="OnLocaleChanged" access="public">
+/// <function container="Fit.Internationalization" name="OnLocaleChanged" access="public" static="true">
 /// 	<description> Add event handler which is called if locale is changed </description>
 /// 	<param name="cb" type="function"> Event handler which takes no arguments </param>
 /// </function>
@@ -257,7 +257,7 @@ Fit.Internationalization.OnLocaleChanged = function(cb)
 	Fit.Array.Add(Fit.Internationalization._internal.OnChangeHandlers, cb);
 }
 
-/// <function container="Fit.Internationalization" name="RemoveOnLocaleChanged" access="public">
+/// <function container="Fit.Internationalization" name="RemoveOnLocaleChanged" access="public" static="true">
 /// 	<description> Remove event handler to avoid it being called when locale is changed </description>
 /// 	<param name="cb" type="function"> Event handler to remove </param>
 /// </function>
