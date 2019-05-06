@@ -5790,11 +5790,13 @@ declare namespace Fit
 		/**
 		* Returns object with X and Y properties (integers) with inner dimensions of specified
 		container. Inner dimensions are width and height with padding and borders substracted.
+		The space consumed by scrollbars (if present) can optionally be substracted.
 		* @function GetInnerDimensions
 		* @param {HTMLElement} elm - Element to get inner dimensions for
+		* @param {boolean} [substractScrollbars=false] - Set True to substract space consumed by scrollbars
 		* @returns any
 		*/
-		public static GetInnerDimensions(elm:HTMLElement):any;
+		public static GetInnerDimensions(elm:HTMLElement, substractScrollbars?:boolean):any;
 		/**
 		* Returns first parent of specified type for a given element if found, otherwise Null
 		* @function GetParentOfType

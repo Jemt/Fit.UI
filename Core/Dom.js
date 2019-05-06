@@ -136,12 +136,21 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 /// 	<description>
 /// 		Returns object with X and Y properties (integers) with inner dimensions of specified
 /// 		container. Inner dimensions are width and height with padding and borders substracted.
+/// 		The space consumed by scrollbars (if present) can optionally be substracted.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get inner dimensions for </param>
+/// 	<param name="substractScrollbars" type="boolean" default="false"> Set True to substract space consumed by scrollbars </param>
 /// </function>
-Fit.Dom.GetInnerDimensions = function(elm)
+Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 {
 	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectBoolean(substractScrollbars, TextTrackCue);
+
+	// We do not substract scrollbars by default. Often we want to know what
+	// CAN fit in a container without scrollbars, in which case we need the measurement
+	// including any scrollbars currently present. Also, we do not want the result
+	// to differ by default if scrollbars appear and disappear depending on content.
+	// By default we want a consistent measurement.
 
 	var width = elm.offsetWidth;
 	var height = elm.offsetHeight;
@@ -150,16 +159,31 @@ Fit.Dom.GetInnerDimensions = function(elm)
 	{
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-left"));
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-right"));
-		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
-		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
+
+		if (substractScrollbars !== true)
+		{
+			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
+			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
+		}
 	}
 
 	if (height !== 0) // Height is 0 if element is either not visible, or truly 0px
 	{
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-top"));
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-bottom"));
-		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
-		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
+
+		if (substractScrollbars !== true)
+		{
+			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
+			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
+		}
+	}
+
+	// Substract scrollbars and borders
+	if (substractScrollbars === true)
+	{
+		width -= elm.offsetWidth - elm.clientWidth;
+		height -= elm.offsetHeight - elm.clientHeight;
 	}
 
 	return { X: Math.floor(width), Y: Math.floor(height) };
