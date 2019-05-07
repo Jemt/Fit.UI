@@ -136,6 +136,7 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 /// 	<description>
 /// 		Returns object with X and Y properties (integers) with inner dimensions of specified
 /// 		container. Inner dimensions are width and height with padding and borders substracted.
+/// 		Result returned will be as expected no matter the box-sizing model being used.
 /// 		The space consumed by scrollbars (if present) can optionally be substracted.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get inner dimensions for </param>
@@ -144,13 +145,23 @@ Fit.Dom.GetComputedStyle = function(elm, style)
 Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 {
 	Fit.Validation.ExpectDomElement(elm);
-	Fit.Validation.ExpectBoolean(substractScrollbars, TextTrackCue);
+	Fit.Validation.ExpectBoolean(substractScrollbars, true);
 
-	// We do not substract scrollbars by default. Often we want to know what
-	// CAN fit in a container without scrollbars, in which case we need the measurement
-	// including any scrollbars currently present. Also, we do not want the result
-	// to differ by default if scrollbars appear and disappear depending on content.
-	// By default we want a consistent measurement.
+	if (elm === document.documentElement) // If document element (<html>) is passed
+	{
+		// Measuring document.documentElement or anything else outside of document.body makes no sense.
+		// Content is added to document.body or children within, not within the document element. So the
+		// result returned for the document element would not give us any idea as to how much space is
+		// available in the document (body). Throw error to prevent programmers from creating unreliable apps.
+		Fit.Validation.ThrowError("Unable to determine inner dimensions for document element (<html>). Maybe you wanted Fit.Dom.GetInnerDimensions(document.body) or Fit.Browser.GetViewPortDimensions().");
+	}
+
+	// NOTICE:
+	// To get the inner dimensions of the document, pass document.body
+	// and not document.documentElement! But be aware that document.body
+	// does not have the document scrollbars - document.documentElement does.
+	// But the scrollbars may affect the amount of space available for document.body,
+	// which this function takes into account, just like any other scrollable container.
 
 	var width = elm.offsetWidth;
 	var height = elm.offsetHeight;
@@ -160,7 +171,10 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-left"));
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-right"));
 
-		if (substractScrollbars !== true)
+		// Substract borders unless dimensions without scrollbars are being requested,
+		// in which case borders are not included with calculation based on offsetWidth
+		// and clientWidth further down.
+		if (elm === document.body || substractScrollbars !== true)
 		{
 			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
 			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
@@ -172,18 +186,34 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-top"));
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-bottom"));
 
-		if (substractScrollbars !== true)
+		if (elm === document.body || substractScrollbars !== true)
 		{
+			// Substract borders unless dimensions without scrollbars are being requested,
+			// in which case borders are not included with calculation based on offsetHeight
+			// and clientHeight further down.
 			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
 			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
 		}
 	}
 
-	// Substract scrollbars and borders
 	if (substractScrollbars === true)
 	{
-		width -= elm.offsetWidth - elm.clientWidth;
-		height -= elm.offsetHeight - elm.clientHeight;
+		if (elm === document.body)
+		{
+			// For document.body the scrollbars are added outside of document.body rather than inside of it,
+			// causing the container to be squeezed a bit.
+			// Therefore the width of the scrollbars must be added to the width of the container to get the
+			// width without scrollbars.
+			// A horizontal scrollbar does not affect the height since content just grows vertically.
+			// This is different from width where content just overflows the boundaries of document.body.
+			width += Fit.Browser.GetViewPortDimensions().Width - document.documentElement.offsetWidth;
+		}
+		else
+		{
+			// Substract scrollbars and borders
+			width -= elm.offsetWidth - elm.clientWidth;
+			height -= elm.offsetHeight - elm.clientHeight;
+		}
 	}
 
 	return { X: Math.floor(width), Y: Math.floor(height) };
