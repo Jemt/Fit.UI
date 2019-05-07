@@ -5790,6 +5790,7 @@ declare namespace Fit
 		/**
 		* Returns object with X and Y properties (integers) with inner dimensions of specified
 		container. Inner dimensions are width and height with padding and borders substracted.
+		Result returned will be as expected no matter the box-sizing model being used.
 		The space consumed by scrollbars (if present) can optionally be substracted.
 		* @function GetInnerDimensions
 		* @param {HTMLElement} elm - Element to get inner dimensions for
