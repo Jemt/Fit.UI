@@ -61,6 +61,11 @@ do
 	done
 done
 
+# Insert placeholder needed to disable Debug Mode in production build.
+# Must be valid JS when passed through minifier.
+
+echo "Fit.Validation.Enabled(\"@DEBUGGING_MODE@\");" >> Fit.UI.js
+
 # Finalize module
 
 if [[ "$1" == "umd" || "$2" == "umd" ]] ; then
@@ -111,6 +116,11 @@ if [[ "$1" == "minify" || "$2" == "minify" ]] ; then
 		fi
 	fi
 fi
+
+# Debug/production mode
+
+sed -i '' -E 's/"@DEBUGGING_MODE@"/false/g' Fit.UI.min.js
+sed -i '' -E 's/"@DEBUGGING_MODE@"/true/g' Fit.UI.js
 
 # Done
 
