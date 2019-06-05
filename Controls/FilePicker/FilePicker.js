@@ -74,7 +74,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				// Add selected files to internal collection
 				Fit.Array.ForEach(inp.files, function(file)
 				{
-					Fit.Array.Add(files, { Filename: file.name, Type: file.type, Size: file.size, Id: Fit.Data.CreateGuid(), Processed: false, Input: inp, FileObject: file, GetImagePreview: function() { return getImagePreview(file); }, ServerResponse: null });
+					Fit.Array.Add(files, createFileInfo(file.name, file.type, file.size, inp, file));
 				});
 			}
 			else // Legacy control
@@ -112,7 +112,7 @@ Fit.Controls.FilePicker = function(ctlId)
 					}
 					else
 					{
-						file = { Filename: i.value, Type: "Unknown", Size: -1, Id: Fit.Data.CreateGuid(), Processed: false, Input: i, FileObject: null, GetImagePreview: function() { return null; }, ServerResponse: null };
+						file = createFileInfo(i.value.replace(/^C:\\fakepath\\/, ""), "Unknown", -1, i, null);
 					}
 
 					i._file = file;
@@ -691,7 +691,7 @@ Fit.Controls.FilePicker = function(ctlId)
 		{
 			if (Fit.Validation.IsSet(file) === true) // OnSuccess/OnFailure/OnProcess
 			{
-				var eventArgs = file;
+				var eventArgs = cloneFileInfo(file);
 				eventArgs.Progress = 100;
 
 				if (Fit.Validation.IsSet(progress) === true)
@@ -708,6 +708,25 @@ Fit.Controls.FilePicker = function(ctlId)
 		});
 
 		return !canceled;
+	}
+
+	function createFileInfo(filename, type, size, inputField, fileObject)
+	{
+		Fit.Validation.ExpectString(filename);
+		Fit.Validation.ExpectString(type);
+		Fit.Validation.ExpectNumber(size);
+		Fit.Validation.ExpectDomElement(inputField);
+		Fit.Validation.ExpectInstance(fileObject, File, true);
+
+		return { Filename: filename, Type: type, Size: size, Id: Fit.Data.CreateGuid(), Processed: false, Input: inputField, FileObject: fileObject || null, GetImagePreview: function() { return getImagePreview(fileObject); }, ServerResponse: null };
+	}
+
+	function cloneFileInfo(file) // Object as created by createFileInfo(..)
+	{
+		// We cannot use Fit.Core.Clone(..) since this is not a simple JSON object (DOM input field contained).
+		// Also notice that the clone's Input and GetImagePreview properties are references (shared with original object).
+
+		return { Filename: file.Filename, Type: file.Type, Size: file.Size, Id: file.Id, Processed: file.Processed, Input: file.Input, FileObject: file.FileObject, GetImagePreview: file.GetImagePreview, ServerResponse: file.ServerResponse };
 	}
 
 	// ============================================

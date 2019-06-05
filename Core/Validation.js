@@ -7,6 +7,28 @@ Fit._internal.Validation = {};
 Fit._internal.Validation.DebugMode = true;
 Fit._internal.Validation.Clone = null;
 
+// Ensure object types not found in all browsers
+(function()
+{
+	// window.event is of type MSEventObj in IE9 and above.
+	// Type used by Fit.Validation.ExpectEvent.
+	if (!window.MSEventObj)
+		window.MSEventObj = function() {};
+
+	// StaticNodeList type is produced by document.querySelectorAll(..) in Legacy IE.
+	// FileList type is not defined in Legacy IE.
+	// These types are used by Fit._internal.Validation.IsCollectionType.
+	if (!window.StaticNodeList)
+		window.StaticNodeList = function() {};
+	if (!window.FileList)
+		window.FileList = function() {};
+	
+	// File type not defined in Legacy IE.
+	// Make sure we can use Fit.Validation.ExpectInstance(selectedFileFromInput, File, true)
+	if (!window.File)
+		window.File = function() {};
+})();
+
 // ==========================================================
 // Type checking
 // ==========================================================
@@ -332,9 +354,6 @@ Fit.Validation.ExpectEvent = function(val, allowNotSet)
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if (!window.MSEventObj)
-		window.MSEventObj = function() {};
-
 	// IE9 and above: window.event is now of type MSEventObj (legacy),
 	// while an actual Event instance is passed to handlers as specified by W3C.
 	if ((val instanceof Event) === false && (val instanceof MSEventObj) === false)
@@ -451,11 +470,6 @@ Fit.Validation.Enabled = function(val)
 
 Fit._internal.Validation.IsCollectionType = function(val) // Used by Fit.Validation and Fit.Array
 {
-	if (!window.StaticNodeList)
-		window.StaticNodeList = function() {};
-	if (!window.FileList)
-		window.FileList = function() {};
-
 	if (val === null || val === undefined)
 		return false;
 	else if (val instanceof Array)
