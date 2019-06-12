@@ -26,3 +26,43 @@ div.FitUiControlFilePicker[data-legacy="true"] input
 {
 	display: block;
 }
+
+/* Dropzone */
+
+div.FitUiControlFilePicker[data-dropzone="true"]
+{
+	border-width: 2px;
+	border-style: dashed;
+}
+
+div.FitUiControlFilePicker[data-dropzone="true"][style*="height"]
+{
+	/* Make sure dropzone has a width when a height is configured,
+	   since dropzone container is positioned (taken out of flow),
+	   causing control to vertically collapse without a width. */
+	min-width: 15em;
+}
+
+div.FitUiControlFilePicker[data-dropzone="true"][style*="height"] > div /* dropzone container */
+{
+	/* Center dropzone container vertically when control height is set */
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 100%;
+}
+div.FitUiControlFilePicker[data-dropzone="true"] > div /* dropzone container */
+{
+	text-align: center;
+	padding: 1em;
+}
+
+div.FitUiControlFilePicker[data-dropzone="true"] div.FitUiControlButton
+{
+	margin-top: 0.75em;
+}
+
+div.FitUiControlFilePicker[data-dropzone="true"][data-dropping="true"]
+{
+	background-color: rgba(0, 0, 0, 0.05);
+}

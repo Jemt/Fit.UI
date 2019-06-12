@@ -16,12 +16,20 @@ Fit.Controls.FilePicker = function(ctlId)
 
 	var me = this;
 	var button = null;
-	var buttonTitleEnforced = false;
+	var buttonTitleEnforced = null;
 	var input = null;
 	var width = { Value: -1, Unit: "px" }; // Differs from default value on ControlBase which is 200px - here a value of -1 indicates width:auto
 	var url = null;
 	var files = [];
-	var inputs = []; // Legacy control - contains input controls when legacy mode is enabled (IE9 and older)
+	var autoUpload = false;
+
+	// Legacy control
+	var inputs = []; // Contains input controls when legacy mode is enabled (IE9 and older)
+	var inputsByFileId = {};
+	
+	var dropZoneLabel = null;
+	var dropZoneLabelEnforced = null;
+	var dropZoneContainer = null;
 
 	var onUploadHandlers = [];
 	var onProgressHandlers = [];
@@ -50,6 +58,7 @@ Fit.Controls.FilePicker = function(ctlId)
 		me.Enabled(true);
 
 		me._internal.Data("legacy", (inputs.length > 0).toString());
+		me._internal.Data("dropzone", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
 		localize();
@@ -69,17 +78,12 @@ Fit.Controls.FilePicker = function(ctlId)
 
 			if (inputs.length === 0) // Modern control
 			{
-				files = [];
-
-				// Add selected files to internal collection
-				Fit.Array.ForEach(inp.files, function(file)
-				{
-					Fit.Array.Add(files, createFileInfo(file.name, file.type, file.size, inp, file));
-				});
+				setValueFromFilesList(inp.files); // Also triggers OnChange and performs postback if AutoUpload is true
 			}
 			else // Legacy control
 			{
 				files = [];
+				inputsByFileId = {};
 
 				// Add selected files to internal collection
 
@@ -102,7 +106,7 @@ Fit.Controls.FilePicker = function(ctlId)
 
 					var file = null;
 
-					// Some files may have been uploaded earlier (e.g. if AutoPostBack is enabled or if user
+					// Some files may have been uploaded earlier (e.g. if AutoUpload is enabled or if user
 					// selects 3 files, triggers upload, selects another 5 files, and triggers upload again).
 					// Make sure file information is preserved for files already processed.
 
@@ -112,7 +116,7 @@ Fit.Controls.FilePicker = function(ctlId)
 					}
 					else
 					{
-						file = createFileInfo(i.value.replace(/^C:\\fakepath\\/, ""), "Unknown", -1, i, null);
+						file = createFileInfo(i.value.replace(/^C:\\fakepath\\/, ""), "Unknown", -1, null);
 					}
 
 					i._file = file;
@@ -120,17 +124,18 @@ Fit.Controls.FilePicker = function(ctlId)
 					// Add file information
 
 					Fit.Array.Add(files, file);
+					inputsByFileId[file.Id] = i;
 				});
 
 				// Make sure an empty upload control is always available in Multi Selection Mode, allowing for another file to be added
 				if (me.MultiSelectionMode() === true)
 					createUploadField();
+				
+				me._internal.FireOnChange();
+
+				if (me.AutoUpload() === true)
+					me.Upload();
 			}
-
-			me._internal.FireOnChange();
-
-			if (me.AutoPostBack() === true)
-				me.Upload();
 		}
 
 		if (inp.files && !Fit.Controls.FilePicker.ForceLegacyMode) // Modern control
@@ -152,6 +157,30 @@ Fit.Controls.FilePicker = function(ctlId)
 			Fit.Array.Add(inputs, inp);
 			me._internal.AddDomElement(inp);
 		}
+	}
+
+	function setValueFromFilesList(fileList)
+	{
+		Fit.Validation.ExpectInstance(fileList, FileList);
+
+		// Add selected files to internal collection
+
+		files = [];
+		Fit.Array.ForEach(fileList, function(file)
+		{
+			Fit.Array.Add(files, createFileInfo(file.name, file.type, file.size, file));
+
+			// Dropzone always allow for multiple files to be dropped - handle Single Selection Mode here
+			if (me.MultiSelectionMode() === false)
+				return false; // Break loop
+		});
+
+		// Fire OnChange and trigger upload if configured to upload automatically
+
+		me._internal.FireOnChange();
+
+		if (me.AutoUpload() === true)
+			me.Upload();
 	}
 
 	// ============================================
@@ -242,7 +271,7 @@ Fit.Controls.FilePicker = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = button = buttonTitleEnforced = input = width = url = files = inputs = onUploadHandlers = onProgressHandlers = onSuccessHandlers = onFailureHandlers = onCompletedHandlers = null; // onAbortHandlers
+		me = button = buttonTitleEnforced = input = width = url = files = autoUpload = inputs = inputsByFileId = dropZoneLabel = dropZoneLabelEnforced = dropZoneContainer = onUploadHandlers = onProgressHandlers = onSuccessHandlers = onFailureHandlers = onCompletedHandlers = null; // onAbortHandlers
 		base();
 	});
 
@@ -267,7 +296,7 @@ Fit.Controls.FilePicker = function(ctlId)
 			{
 				width = base(val, unit);
 
-				if (inputs.length === 0)
+				if (inputs.length === 0 && me.ShowDropZone() === false)
 					button.Width(100, "%");
 			}
 			else // Adjust width to content size
@@ -275,7 +304,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				width = { Value: -1, Unit: "px" }; // Any changes to this line must be dublicated to line declaring the width variable !
 				me.GetDomElement().style.width = "auto";
 
-				if (inputs.length === 0)
+				if (inputs.length === 0 && me.ShowDropZone() === false)
 					button.Width(-1);
 			}
 		}
@@ -293,10 +322,13 @@ Fit.Controls.FilePicker = function(ctlId)
 		{
 			base(val, unit);
 
-			if (val > -1) // Fixed height
-				button.Height(100, "%");
-			else // Adjust height to content size
-				button.Height(-1);
+			if (me.ShowDropZone() === false)
+			{
+				if (val > -1) // Fixed height
+					button.Height(100, "%");
+				else // Adjust height to content size
+					button.Height(-1);
+			}
 		}
 
 		return base();
@@ -326,25 +358,52 @@ Fit.Controls.FilePicker = function(ctlId)
 		return url;
 	}
 
-	/// <function container="Fit.Controls.FilePicker" name="Title" access="public" returns="string">
-	/// 	<description> Get/set file picker title </description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, file picker title is set to specified value </param>
+	/// <function container="Fit.Controls.FilePicker" name="ButtonText" access="public" returns="string">
+	/// 	<description> Get/set button text </description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, button text is set to specified value </param>
 	/// </function>
-	this.Title = function(val)
+	this.ButtonText = function(val)
 	{
 		Fit.Validation.ExpectString(val, true)
 
-		if (button === null)
-			return ""; // Legacy mode
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			buttonTitleEnforced = val;
+
+			if (button !== null) // Modern control
+			{
+				button.Title(val);
+				Fit.Dom.Add(button.GetDomElement(), input);
+			}
+		}
+
+		return (button !== null ? button.Title() : buttonTitleEnforced || ""); // Button is null in legacy mode
+	}
+	
+	// DEPRECATED
+	this.Title = function(val)
+	{
+		Fit.Browser.LogDeprecated("Use of deprecated function Title(..) on instance of Fit.Controls.FilePicker - please use ButtonText(..) instead");
+		return me.ButtonText(val);
+	}
+
+	/// <function container="Fit.Controls.FilePicker" name="DropZoneText" access="public" returns="string">
+	/// 	<description> Get/set drop zone text </description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, drop zone text is set to specified value </param>
+	/// </function>
+	this.DropZoneText = function(val)
+	{
+		Fit.Validation.ExpectString(val, true)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			button.Title(val);
-			buttonTitleEnforced = true;
-			Fit.Dom.Add(button.GetDomElement(), input);
+			dropZoneLabelEnforced = val;
+
+			if (dropZoneLabel !== null)
+				dropZoneLabel.innerHTML = val;
 		}
 
-		return button.Title();
+		return (dropZoneLabel !== null ? dropZoneLabel.innerHTML : dropZoneLabelEnforced || "");
 	}
 
 	/// <function container="Fit.Controls.FilePicker" name="GetFiles" access="public" returns="object[]">
@@ -355,7 +414,6 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Size:integer (File size in bytes)
 	/// 		 - Id:string (Unique file ID)
 	/// 		 - Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
-	/// 		 - Input:HTMLInputElement (Input control used as file picker)
 	/// 		 - FileObject:File (Native JS File object representing selected file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 	/// 		NOTICE: The following properties/functions are not available in Legacy Mode: Type, Size, FileObject, GetImagePreview().
@@ -435,12 +493,109 @@ Fit.Controls.FilePicker = function(ctlId)
 		return (me._internal.Data("enabled") === "true");
 	}
 
+	/// <function container="Fit.Controls.FilePicker" name="ShowDropZone" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control is displayed as a drop zone on supported browsers or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If specified, True enables drop zone, False disables it (default) </param>
+	/// </function>
+	this.ShowDropZone = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && inputs.length === 0) // Only available for modern control
+		{
+			if (val === true && dropZoneLabel === null)
+			{
+				dropZoneLabel = Fit.Dom.CreateElement("<div></div>");
+				dropZoneContainer = Fit.Dom.CreateElement("<div></div>");
+				
+				/*me.GetDomElement().ondragenter = function(e)
+				{
+					me._internal.Data("dropping", "true");
+				}*/
+
+				me.GetDomElement().ondragleave = function(e)
+				{
+					me._internal.Data("dropping", "false");
+				}
+
+				// OnDragOver must be overridden and suppressed to avoid files being opened in browser when dropped
+				me.GetDomElement().ondragover = function(e)
+				{
+					var ev = Fit.Events.GetEvent(e);
+					Fit.Events.PreventDefault(ev); // Prevent files from opening in browser
+
+					// OnDragEnter and OnDragLeave is not sufficient to update dropping state since user may enter dropzone (triggers OnDragEnter),
+					// then hover button (triggers OnDragLeave), and then hover dropzone again which unfortunately doesn't trigger OnDragEnter again.
+					me._internal.Data("dropping", "true");
+				}
+
+				me.GetDomElement().ondrop = function(e)
+				{
+					var ev = Fit.Events.GetEvent(e);
+					Fit.Events.PreventDefault(ev); // Prevent files from opening in browser
+					
+					setValueFromFilesList(ev.dataTransfer.files); // Also triggers OnChange and performs postback if AutoUpload is true
+					me._internal.Data("dropping", "false");
+				}
+
+				button.Width(-1);
+				button.Height(-1);
+
+				Fit.Dom.Add(dropZoneContainer, dropZoneLabel);
+				Fit.Dom.Add(dropZoneContainer, button.GetDomElement());
+				Fit.Dom.Add(me.GetDomElement(), dropZoneContainer);
+
+				localize();
+
+				me._internal.Data("dropping", "false");
+				me._internal.Data("dropzone", "true");
+			}
+			else if (val === false && dropZoneLabel !== null)
+			{
+				//me.GetDomElement().ondragenter = null;
+				me.GetDomElement().ondragleave = null;
+				me.GetDomElement().ondragover = null;
+				me.GetDomElement().ondrop = null;
+
+				button.Width(me.Width().Value, me.Width().Unit);
+				button.Height(me.Height().Value, me.Height().Unit);
+
+				Fit.Dom.Remove(dropZoneContainer);
+				Fit.Dom.Add(me.GetDomElement(), button.GetDomElement());
+
+				dropZoneLabel = null;
+				dropZoneContainer = null;
+
+				me._internal.Data("dropping", null);
+				me._internal.Data("dropzone", "false");
+			}
+		}
+
+		return (dropZoneLabel !== null);
+	}
+
 	/// <function container="Fit.Controls.FilePicker" name="IsLegacyModeEnabled" access="public" returns="boolean">
 	/// 	<description> Get value indicating whether control is in legacy mode (old fashion upload control) </description>
 	/// </function>
 	this.IsLegacyModeEnabled = function()
 	{
 		return (inputs.length > 0);
+	}
+
+	/// <function container="Fit.Controls.FilePicker" name="AutoUpload" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control automatically starts upload process when files are selected </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If specified, True enables auto upload, False disables it (default) </param>
+	/// </function>
+	this.AutoUpload = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			autoUpload = val;
+		}
+
+		return autoUpload;
 	}
 
 	/// <function container="Fit.Controls.FilePicker" name="Upload" access="public">
@@ -539,7 +694,7 @@ Fit.Controls.FilePicker = function(ctlId)
 			{
 				var enforcedOnModernBrowser = (Fit.Browser.GetInfo().Name !== "MSIE" || Fit.Browser.GetInfo().Version > 8);
 
-				var picker = file.Input;
+				var picker = inputsByFileId[file.Id];
 
 				var iFrame = null;
 				var form = null;
@@ -645,15 +800,21 @@ Fit.Controls.FilePicker = function(ctlId)
 
 	function localize()
 	{
-		if (button === null)
-			return ""; // Legacy mode
+		if (inputs.length > 0)
+			return; // Legacy mode - nothing to localize
 
-		if (buttonTitleEnforced === false)
+		var locale = Fit.Internationalization.GetLocale(me);
+
+		if (buttonTitleEnforced === null)
 		{
-			var locale = Fit.Internationalization.GetLocale(me);
 			var buttonTitle = (me.MultiSelectionMode() === true ? locale.SelectFiles : locale.SelectFile);
-
 			button.Title(buttonTitle);
+		}
+
+		if (dropZoneLabel !== null)
+		{
+			var dzText = (dropZoneLabelEnforced !== null ? dropZoneLabelEnforced : (me.MultiSelectionMode() === true ? locale.DropFiles : locale.DropFile));
+			dropZoneLabel.innerHTML = dzText;
 		}
 	}
 
@@ -710,15 +871,15 @@ Fit.Controls.FilePicker = function(ctlId)
 		return !canceled;
 	}
 
-	function createFileInfo(filename, type, size, inputField, fileObject)
+	function createFileInfo(filename, type, size, fileObject)
 	{
 		Fit.Validation.ExpectString(filename);
 		Fit.Validation.ExpectString(type);
 		Fit.Validation.ExpectNumber(size);
-		Fit.Validation.ExpectDomElement(inputField);
 		Fit.Validation.ExpectInstance(fileObject, File, true);
 
-		return { Filename: filename, Type: type, Size: size, Id: Fit.Data.CreateGuid(), Processed: false, Input: inputField, FileObject: fileObject || null, GetImagePreview: function() { return getImagePreview(fileObject); }, ServerResponse: null };
+		// IMPORTANT: Make sure changes to this object is also made to object returned by cloneFileInfo(..)
+		return { Filename: filename, Type: type, Size: size, Id: Fit.Data.CreateGuid(), Processed: false, FileObject: fileObject || null, GetImagePreview: function() { return getImagePreview(fileObject); }, ServerResponse: null };
 	}
 
 	function cloneFileInfo(file) // Object as created by createFileInfo(..)
@@ -726,7 +887,7 @@ Fit.Controls.FilePicker = function(ctlId)
 		// We cannot use Fit.Core.Clone(..) since this is not a simple JSON object (DOM input field contained).
 		// Also notice that the clone's Input and GetImagePreview properties are references (shared with original object).
 
-		return { Filename: file.Filename, Type: file.Type, Size: file.Size, Id: file.Id, Processed: file.Processed, Input: file.Input, FileObject: file.FileObject, GetImagePreview: file.GetImagePreview, ServerResponse: file.ServerResponse };
+		return { Filename: file.Filename, Type: file.Type, Size: file.Size, Id: file.Id, Processed: file.Processed, FileObject: file.FileObject, GetImagePreview: file.GetImagePreview, ServerResponse: file.ServerResponse };
 	}
 
 	// ============================================
@@ -759,7 +920,6 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Id:string (Unique file ID)
 	/// 		 - Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
 	/// 		 - Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
-	/// 		 - Input:HTMLInputElement (Input control used as file picker)
 	/// 		 - FileObject:File (Native JS File object representing given file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 	/// 		Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
@@ -785,7 +945,6 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Id:string (Unique file ID)
 	/// 		 - Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
 	/// 		 - Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
-	/// 		 - Input:HTMLInputElement (Input control used as file picker)
 	/// 		 - FileObject:File (Native JS File object representing given file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 	/// 		 - ServerResponse:string (Contains the response received from the server after a successful upload)
@@ -812,7 +971,6 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Id:string (Unique file ID)
 	/// 		 - Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
 	/// 		 - Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
-	/// 		 - Input:HTMLInputElement (Input control used as file picker)
 	/// 		 - FileObject:File (Native JS File object representing given file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 	/// 		Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
