@@ -83,19 +83,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in collection
-		* @function Count
-		* @param {any[]} arr - Collection to count elements within
-		* @returns number
-		*/
-		public static Count(arr:any[]):number;
-		/**
 		* Returns number of elements in object array
 		* @function Count
 		* @param {any} obj - Object array to count elements within
 		* @returns number
 		*/
 		public static Count(obj:any):number;
+		/**
+		* Returns number of elements in collection
+		* @function Count
+		* @param {any[]} arr - Collection to count elements within
+		* @returns number
+		*/
+		public static Count(arr:any[]):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -109,16 +109,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through object properties and passes each property name to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any} obj - Object containing properties to iterate through
-		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(obj:any, callback:Function):boolean;
-		/**
 		* Iterates through elements in array and passes each value to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -129,6 +119,16 @@ declare namespace Fit
 		*/
 		public static ForEach(arr:any[], callback:Function):boolean;
 		/**
+		* Iterates through object properties and passes each property name to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any} obj - Object containing properties to iterate through
+		* @param {Function} callback - Callback function accepting properties from the object, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(obj:any, callback:Function):boolean;
+		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
 		* @param {any[]} arr - Array to search through
@@ -137,19 +137,19 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
-		* @function GetKeys
-		* @param {any[]} arr - Array to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(arr:any[]):any[];
-		/**
 		* Returns all keys (property names) in object
 		* @function GetKeys
 		* @param {any} obj - Object to get keys from
 		* @returns any[]
 		*/
 		public static GetKeys(obj:any):any[];
+		/**
+		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
+		* @function GetKeys
+		* @param {any[]} arr - Array to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(arr:any[]):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -2124,6 +2124,27 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.FilePicker
 			/**
+			* Get/set value indicating whether control automatically starts upload process when files are selected
+			* @function AutoUpload
+			* @param {boolean} [val=undefined] - If specified, True enables auto upload, False disables it (default)
+			* @returns boolean
+			*/
+			public AutoUpload(val?:boolean):boolean;
+			/**
+			* Get/set button text
+			* @function ButtonText
+			* @param {string} [val=undefined] - If defined, button text is set to specified value
+			* @returns string
+			*/
+			public ButtonText(val?:string):string;
+			/**
+			* Get/set drop zone text
+			* @function DropZoneText
+			* @param {string} [val=undefined] - If defined, drop zone text is set to specified value
+			* @returns string
+			*/
+			public DropZoneText(val?:string):string;
+			/**
 			* Get/set value indicating whether control is enabled or not
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If specified, True enables control, False disables it
@@ -2143,7 +2164,6 @@ declare namespace Fit
 			- Size:integer (File size in bytes)
 			- Id:string (Unique file ID)
 			- Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
-			- Input:HTMLInputElement (Input control used as file picker)
 			- FileObject:File (Native JS File object representing selected file)
 			- GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 			NOTICE: The following properties/functions are not available in Legacy Mode: Type, Size, FileObject, GetImagePreview().
@@ -2185,7 +2205,6 @@ declare namespace Fit
 			- Id:string (Unique file ID)
 			- Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
 			- Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
-			- Input:HTMLInputElement (Input control used as file picker)
 			- FileObject:File (Native JS File object representing given file)
 			- GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 			Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
@@ -2205,7 +2224,6 @@ declare namespace Fit
 			- Id:string (Unique file ID)
 			- Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
 			- Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
-			- Input:HTMLInputElement (Input control used as file picker)
 			- FileObject:File (Native JS File object representing given file)
 			- GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 			Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
@@ -2225,7 +2243,6 @@ declare namespace Fit
 			- Id:string (Unique file ID)
 			- Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
 			- Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
-			- Input:HTMLInputElement (Input control used as file picker)
 			- FileObject:File (Native JS File object representing given file)
 			- GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
 			- ServerResponse:string (Contains the response received from the server after a successful upload)
@@ -2244,12 +2261,12 @@ declare namespace Fit
 			*/
 			public OnUpload(cb:Function):void;
 			/**
-			* Get/set file picker title
-			* @function Title
-			* @param {string} [val=undefined] - If defined, file picker title is set to specified value
-			* @returns string
+			* Get/set value indicating whether control is displayed as a drop zone on supported browsers or not
+			* @function ShowDropZone
+			* @param {boolean} [val=undefined] - If specified, True enables drop zone, False disables it (default)
+			* @returns boolean
 			*/
-			public Title(val?:string):string;
+			public ShowDropZone(val?:boolean):boolean;
 			/**
 			* Upload selected files. Each file will be uploaded using POST over individual HTTP connections,
 			and each file will be accessible from the POST data collection using the SelectedFile key.
@@ -5956,21 +5973,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -6060,6 +6077,12 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -6067,12 +6090,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
