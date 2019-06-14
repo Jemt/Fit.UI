@@ -1,3 +1,5 @@
+.DS_Store
+
 build/dist
 build/Fit.UI.css
 build/Fit.UI.min.css
