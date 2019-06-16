@@ -568,13 +568,16 @@ Fit.Controls.Dialog = function(controlId)
 						return;
 					}
 
-					if (disposeOnDismiss === true)
+					if (me !== null) // me is null if dialog was disposed from within OnDismiss handler
 					{
-						me.Dispose();
-					}
-					else
-					{
-						me.Close();
+						if (disposeOnDismiss === true)
+						{
+							me.Dispose();
+						}
+						else
+						{
+							me.Close();
+						}
 					}
 				});
 
