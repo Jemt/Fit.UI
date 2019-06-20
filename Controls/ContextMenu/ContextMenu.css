@@ -1,6 +1,7 @@
 div.FitUiControlContextMenu.FitUiControlTreeView
 {
 	border: 0.065em solid #BBBBBB;
+	border-width: 1px\9;
 	background-color: #FFFFFF;
 	color: #333333;
 	padding: 0.75em;
@@ -68,6 +69,7 @@ div.FitUiControlContextMenu.FitUiControlTreeView
 		z-index: 1300;
 
 		border: 0.065em solid #BBBBBB;
+		border-width: 1px\9;
 		background-color: #FFFFFF;
 		margin-top: -0.1em;					/* Compensate for padding */
 		transform: translateY(-0.065em);	/* Compensate for border */

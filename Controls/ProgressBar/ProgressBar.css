@@ -3,6 +3,7 @@ div.FitUiControlProgressBar
 	height: 2em; /* Equal height for all controls */
 	height: auto\9; /* Undo equal height for all controls in IE9 and below - assume height of content in legacy IE */
 	border: 0.065em solid #BBBBBB;
+	border-width: 1px\9;
 	border-radius: 3px;
 	white-space: nowrap;
 	/*vertical-align: bottom;*/ /* Moved to div.FitUiControl */

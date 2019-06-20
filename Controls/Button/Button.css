@@ -11,6 +11,7 @@ div.FitUiControlButton
 	padding: 0.3em 0.75em 0.3em 0.75em;
 	border-radius: 3px;
 	border-width: 0.065em;
+	border-width: 1px\9;
 	border-style: solid;
 
 	-webkit-user-select: none;

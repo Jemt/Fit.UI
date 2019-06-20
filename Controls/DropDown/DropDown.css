@@ -10,6 +10,7 @@ div.FitUiControlDropDownItems /* Item container */
 	min-height: 2em; /* Equal height for all controls */
 	min-height: 0\9; /* Undo equal height for all controls in IE9 and below - assume height of content in legacy IE which otherwise does not render control properly */
 	border: 0.065em solid #BBBBBB;
+	border-width: 1px\9;
 	border-radius: 2px;
 	padding: 0.1em;
 	background-color: white;
@@ -47,6 +48,7 @@ div.FitUiControlDropDownItems > i /* Box surrounding arrow icon */
 	border-top-right-radius: 4px;
 	border-bottom-right-radius: 4px;
 	border-left: 0.065em solid #BBBBBB;
+	border-left-width: 1px\9;
 	cursor: pointer;
 }
 div.FitUiControlDropDownItems > i:before
@@ -94,6 +96,7 @@ div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems 
 	display: inline-block;
 	padding: 0.15em 0.25em 0.15em 0.25em;
 	border: 0.065em solid silver;
+	border-width: 1px\9;
 	border-radius: 2px;
 	background-color: whitesmoke;
 }
@@ -192,8 +195,10 @@ div.FitUiControlDropDownPicker /* Picker container (drop down) */
 {
 	background-color: white;
 	border: 0.065em solid #BBBBBB;
+	border-width: 1px\9;
 	border-radius: 2px;
 	margin-top: -0.065em;
+	margin-top: -1px\9;
 	display: none;
 	min-height: 10px;
 
