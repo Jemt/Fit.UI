@@ -1,6 +1,6 @@
 div.FitUiControlDialog
 {
-	border: 1px solid #333333;
+	border: 0.065em solid #333333;
 	background: #FFFFFF;
 	width: auto;
 	min-width: 280px; /* Must be identical to the value specified in MinimumWidth(..) in Dialog.js ! */
@@ -62,7 +62,7 @@ div.FitUiControlDialogTitle,
 div.FitUiControlDialogTitleButtons
 {
 	background-color: white;
-	border-bottom: 1px solid silver;
+	border-bottom: 0.065em solid silver;
 	height: 3.2em;
 }
 
@@ -107,7 +107,7 @@ div.FitUiControlDialogButtons
 {
 	/*background-color: white;*/
 	padding: 0px;
-	border-top: 1px solid silver;
+	border-top: 0.065em solid silver;
 	text-align: right;
 }
 div.FitUiControlDialogButtons div.FitUiControlButton

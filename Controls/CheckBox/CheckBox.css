@@ -28,7 +28,7 @@ div.FitUiControlCheckBox[data-enabled="true"]:focus
 
 div.FitUiControlCheckBox > div
 {
-	border: 1px solid #909090;
+	border: 0.065em solid #BBBBBB;
 	border-radius: 2px;
 	margin-right: 0.3em;
 	color: #333333;

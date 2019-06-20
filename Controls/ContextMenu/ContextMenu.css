@@ -1,9 +1,9 @@
 div.FitUiControlContextMenu.FitUiControlTreeView
 {
-	border: 1px solid #A9A9A9;
+	border: 0.065em solid #BBBBBB;
 	background-color: #FFFFFF;
 	color: #333333;
-	padding: 10px;
+	padding: 0.75em;
 	position: absolute; /* top/left set using JS */
 	z-index: 1300;
 	cursor: pointer; /* Prevent arrow being shown between items (padding) */
@@ -67,10 +67,10 @@ div.FitUiControlContextMenu.FitUiControlTreeView
 		position: absolute;
 		z-index: 1300;
 
-		border: 1px solid #A9A9A9;
+		border: 0.065em solid #BBBBBB;
 		background-color: #FFFFFF;
-		margin-top: -0.1em;				/* Compensate for padding */
-		transform: translateY(-1px);	/* Compensate for border */
+		margin-top: -0.1em;					/* Compensate for padding */
+		transform: translateY(-0.065em);	/* Compensate for border */
 	}
 
 	/* Boundary detection - open upward */

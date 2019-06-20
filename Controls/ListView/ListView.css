@@ -6,7 +6,7 @@ div.FitUiControlListView
 
 div.FitUiControlListView > div /* List item */
 {
-	padding: 3px;
+	padding: 0.25em;
 	white-space: nowrap;
 }
 

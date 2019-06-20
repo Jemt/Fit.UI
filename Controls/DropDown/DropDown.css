@@ -2,14 +2,16 @@ div.FitUiControlDropDown
 {
 	min-width: 50px; /* In case width is set to 100% and control is squeezed */
 	text-align: left; /* To prevent incorrect rendering if parent contain has text-align:right */
-	vertical-align: bottom; /* Overflow:hidden (div.FitUiControlDropDownItems) changes the baseline for inline-block elements - see CSS specification (scroll to bottom): https://www.w3.org/TR/CSS2/visudet.html#propdef-vertical-align */
+	/*vertical-align: bottom;*/ /* Moved to div.FitUiControl */ /* Overflow:hidden (div.FitUiControlDropDownItems) changes the baseline for inline-block elements - see CSS specification (scroll to bottom): https://www.w3.org/TR/CSS2/visudet.html#propdef-vertical-align */
 }
 
 div.FitUiControlDropDownItems /* Item container */
 {
-	border: 1px solid gray;
+	min-height: 2em; /* Equal height for all controls */
+	min-height: 0\9; /* Undo equal height for all controls in IE9 and below - assume height of content in legacy IE which otherwise does not render control properly */
+	border: 0.065em solid #BBBBBB;
 	border-radius: 2px;
-	padding: 2px 2em 2px 3px;
+	padding: 0.1em;
 	background-color: white;
 	cursor: text;
 	white-space: normal; /* Make sure items wrap properly if used in container with nowrap */
@@ -27,7 +29,7 @@ div.FitUiControlDropDown[data-focused="true"][data-device="Tablet"] div.FitUiCon
 	   case the menu is closed and no input field has focus.
 	   This will be the case when removing items using the delete
 	   button on an item, without focusing the control first. */
-	border: 2px solid #1C74CE;
+	border: 0.07em solid #1C74CE;
 }
 div.FitUiControlDropDownItems:focus /* Remove outline when focus is temporarily assigned to prevent DropDown from losing focus */
 {
@@ -44,7 +46,7 @@ div.FitUiControlDropDownItems > i /* Box surrounding arrow icon */
 	background-color: white;
 	border-top-right-radius: 4px;
 	border-bottom-right-radius: 4px;
-	border-left: 1px solid #A9A9A9;
+	border-left: 0.065em solid #BBBBBB;
 	cursor: pointer;
 }
 div.FitUiControlDropDownItems > i:before
@@ -71,6 +73,14 @@ div.FitUiControlDropDownItems > span /* Selection container */
 {
 	display: inline-block;
 	white-space: nowrap;
+	margin-top: 0.225em; /* Overridden for Multi Selection Mode below, so this applies to Single Selection Mode only */
+
+	/* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - apply alternative margins */
+	margin-top: 0.1em\9;
+	margin-bottom: 0.1em\9;
+}
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span /* Selection container */
+{
 	margin-top: 0.1em;
 	margin-bottom: 0.1em;
 }
@@ -82,10 +92,16 @@ div.FitUiControlDropDownItems > span:focus /* Remove outline when focus is tempo
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span > span /* Selection (in multi selection mode only) */
 {
 	display: inline-block;
-	padding: 2px;
-	border: 1px solid silver;
+	padding: 0.15em 0.25em 0.15em 0.25em;
+	border: 0.065em solid silver;
 	border-radius: 2px;
 	background-color: whitesmoke;
+}
+
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span,
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > input
+{
+	font-size: 0.85em;
 }
 
 div.FitUiControlDropDownItems > span > span.FitUiControlDropDownInvalid /* Invalid selection */
@@ -95,7 +111,7 @@ div.FitUiControlDropDownItems > span > span.FitUiControlDropDownInvalid /* Inval
 
 div.FitUiControlDropDownItems > span > span > i /* Delete button */
 {
-	color: #CC0000;
+	color: #CCCCCC;
 	padding-left: 0.4em;
 	cursor: pointer;
 }
@@ -141,8 +157,24 @@ div.FitUiControlDropDownItems input
 	outline: none;
 
 	margin: 0px;
-	margin-top: -0.25em;
 	padding: 0px;
+}
+
+div.FitUiControlDropDownItems > input
+{
+	margin-top: 0.25em;		/* Align input vertically - will be unset when items are selected in which case input aligns with baseline */
+	margin-top: 0\9;		/* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
+}
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > input
+{
+	/* Align input vertically - will be unset when items are selected in which case input aligns with baseline */
+	/* Margin-top needs to be greater in Multi Selection Mode because font-size (em) has been reduced in this mode. */
+	margin-top: 0.4em;
+	margin-top: 0\9; /* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
+}
+div.FitUiControlDropDown div.FitUiControlDropDownItems > span + input
+{
+	margin-top: 0px; /* Remove margin when items are selected - will align with baseline */
 }
 
 div.FitUiControlDropDownItems span > span + input /* Right input in selection container */
@@ -159,9 +191,9 @@ div.FitUiControlDropDownItems input::-ms-clear /* Remove clear button in IE10 - 
 div.FitUiControlDropDownPicker /* Picker container (drop down) */
 {
 	background-color: white;
-	border: 1px solid gray;
+	border: 0.065em solid #BBBBBB;
 	border-radius: 2px;
-	margin-top: -1px;
+	margin-top: -0.065em;
 	display: none;
 	min-height: 10px;
 
@@ -229,12 +261,15 @@ div.FitUiControlDropDownPicker > *
 
 /* Alternative rendering - Text Selection Mode */
 
-div.FitUiControlDropDown[data-selectionmode="text"] div[class="FitUiControlDropDownItems"] > span
+div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItems > span
 {
 	display: none; /* Hide selected items - will be represented using text instead */
 }
-div.FitUiControlDropDown[data-selectionmode="text"] div[class="FitUiControlDropDownItems"] > input
+div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItems > input
 {
+	font-size: 1em;
 	text-overflow: ellipsis;
 	width: 100% !important; /* Using important to override inline style set by fitWidthToContent(..) */
+	margin-top: 0.2em;
+	margin-top: 0\9; /* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
 }

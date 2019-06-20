@@ -1,9 +1,11 @@
 div.FitUiControlProgressBar
 {
-	border: 1px solid #808080;
+	height: 2em; /* Equal height for all controls */
+	height: auto\9; /* Undo equal height for all controls in IE9 and below - assume height of content in legacy IE */
+	border: 0.065em solid #BBBBBB;
 	border-radius: 3px;
 	white-space: nowrap;
-	vertical-align: bottom;
+	/*vertical-align: bottom;*/ /* Moved to div.FitUiControl */
 	overflow: hidden;
 	cursor: default;
 
@@ -29,5 +31,8 @@ div.FitUiControlProgressBarStatus
 div.FitUiControlProgressBarStatus span
 {
 	display: inline-block;
-	padding: 4px;
+	padding-left: 0.2em;
+	padding-right: 0.2em;
+	line-height: 1.87em; /* Equal height for all controls - top and bottom borders (each 0.065em) substracted */
+	line-height: normal\9; /* Undo equal height for all controls in IE9 and below */
 }

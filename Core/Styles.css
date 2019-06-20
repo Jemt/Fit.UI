@@ -27,6 +27,7 @@ Stacking context, Z-index:
 {
 	display: inline-block;
 	width: 200px; /* Important: Update default width for Input control in DesignMode if this is changed! */
+	vertical-align: middle;
 
 	position: relative; /* Allow absolute positioning of children, relative to control container rather than document */
 }

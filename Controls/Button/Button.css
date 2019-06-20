@@ -2,13 +2,15 @@ div.FitUiControlButton
 {
 	cursor: pointer;
 	width: auto;
+	height: 2em; /* Equal height for all controls */
+	height: auto\9; /* Undo equal height for all controls in IE9 and below - assume height of content in legacy IE which does not render properly when input height is set to 100% of container */
 	text-align: center;
 	white-space: nowrap;
 	overflow: hidden;
-	vertical-align: bottom; /* Overflow:hidden (above) changes the baseline for inline-block elements - see CSS specification (scroll to bottom): https://www.w3.org/TR/CSS2/visudet.html#propdef-vertical-align */
+	/*vertical-align: bottom;*/ /* Moved to div.FitUiControl */ /* Overflow:hidden (above) changes the baseline for inline-block elements - see CSS specification (scroll to bottom): https://www.w3.org/TR/CSS2/visudet.html#propdef-vertical-align */
 	padding: 0.3em 0.75em 0.3em 0.75em;
 	border-radius: 3px;
-	border-width: 1px;
+	border-width: 0.065em;
 	border-style: solid;
 
 	-webkit-user-select: none;
@@ -17,7 +19,7 @@ div.FitUiControlButton
 	user-select: none;
 
 	/* data-type="Default" */
-	border-color: #CCCCCC;
+	border-color: #BBBBBB;
 	background-color: #FFFFFF;
 	color: #333333;
 }

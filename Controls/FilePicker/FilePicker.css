@@ -31,8 +31,7 @@ div.FitUiControlFilePicker[data-legacy="true"] input
 
 div.FitUiControlFilePicker[data-dropzone="true"]
 {
-	border-width: 2px;
-	border-style: dashed;
+	border: 0.15em dashed #BBBBBB;
 }
 
 div.FitUiControlFilePicker[data-dropzone="true"][style*="height"]
