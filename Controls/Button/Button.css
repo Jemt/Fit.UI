@@ -60,7 +60,7 @@ div.FitUiControlButton[data-type="Danger"]
 	color: #FFFFFF;
 }
 
-div.FitUiControlButton[style*="height"] > div
+div.FitUiControlButton > div
 {
 	/* Center icon and title vertically when height is set (works for
 	   block and inline-block). Does not work on IE8 which is fine.
@@ -75,9 +75,33 @@ div.FitUiControlButton[style*="height"] > div
 	transform: translateY(-50%);
 }
 
+@media all\0 /* Vertically align text and icon in IE8 */
+{
+	div.FitUiControlButton > div
+	{
+		/* Undo vertical alignment for modern browsers */
+		position: static;
+		top: 0;
+		-webkit-transform: none;
+		-moz-transform: none;
+		-ms-transform: none;
+		-o-transform: none;
+		transform: none;
+
+		display: table;
+		height: 100%;
+	}
+
+	div.FitUiControlButton > div > span
+	{
+		display: table-cell;
+		vertical-align: middle;
+	}
+}
+
 div.FitUiControlButton[data-icon][data-title] > div > span + span
 {
-	margin-left: 0.5em;
+	padding-left: 0.5em;
 }
 
 div.FitUiControlButton[data-enabled="false"]
