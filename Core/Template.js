@@ -446,7 +446,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 				}
 				else // String value
 				{
-					var sVal = (me.AllowUnsafeContent() === true ? obj : Fit.String.EncodeHtml(obj));
+					var sVal = (me.AllowUnsafeContent() === true ? obj.toString() : Fit.String.EncodeHtml(obj.toString()));
 					newHtml = newHtml.replace(new RegExp("{\\[" + key + "\\]}", "g"), sVal);
 				}
 			}
@@ -668,7 +668,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 					}
 					else // String value
 					{
-						var sVal = (me.AllowUnsafeContent() === true ? obj : Fit.String.EncodeHtml(obj));
+						var sVal = (me.AllowUnsafeContent() === true ? obj.toString() : Fit.String.EncodeHtml(obj.toString()));
 						itemHtml = itemHtml.replace(new RegExp("{\\[" + prop + "\\]}", "g"), sVal);
 					}
 				});
