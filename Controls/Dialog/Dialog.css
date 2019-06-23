@@ -120,7 +120,6 @@ div.FitUiControlDialogButtons div.FitUiControlButton
 div.FitUiControlDialogButtons div.FitUiControlButton + div.FitUiControlButton
 {
 	margin-left: 0px;
-	margin-top: 0px; /* In case buttons flow below each other if dialog gets too narrow */
 }
 
 div.FitUiControlDialogModalLayer
