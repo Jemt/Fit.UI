@@ -6057,6 +6057,15 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
@@ -6067,15 +6076,6 @@ declare namespace Fit
 		* @param {number} eventId - Event ID identifying handler to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
@@ -6502,8 +6502,8 @@ declare namespace Fit
 		* Once template is loaded, any placeholder or list will be accessible
 		through the Content property. A placeholder identified as UserRole
 		will be accessible as templateInstance.Content.UserRole.
-		UserRole is an object that can be set with either a string
-		or a DOMElement.
+		UserRole is a property that can be set with either a string,
+		an instance of a Fit.UI control, or a DOMElement.
 		A list identified as Users is accessible using
 		templateInstance.Content.Users. See Fit.TemplateList for
 		additional information.
@@ -6520,6 +6520,16 @@ declare namespace Fit
 		* @returns number
 		*/
 		public AddEventHandler(elmId:string, eventType:string, cb:Function):number;
+		/**
+		* Get/set flag indicating whether unsafe string values are handled or not.
+		If AllowUnsafeContent is True, arbitrary code can be added to the template
+		and will be intepreted by the browser. If AllowUnsafeContent is False,
+		potentially unsafe code will be encoded and displayed as is without interpretation.
+		* @function AllowUnsafeContent
+		* @param {boolean} [val=undefined] - If defined, handling of string encoding is changed to reflect value
+		* @returns boolean
+		*/
+		public AllowUnsafeContent(val?:boolean):boolean;
 		/**
 		* Dispose template to free up memory
 		* @function Dispose

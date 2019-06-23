@@ -65,8 +65,11 @@
 Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5sb97qtn/28/  --  http://fiddle.jshell.net/3rbq1r13/3/
 {
 	Fit.Validation.ExpectBoolean(refreshable, true);
+	Fit.Validation.ExpectBoolean(autoDispose, true);
 
 	var me = this;
+	var allowUnsafe = -1;		// -1 = default behaviour (see code) which may change in the future, 0 = protect against code injection, 1 = allow code injection
+	var unsafeWarned = false;
 	var htmlContent = "";
 	var container = null;
 	var pendingElements = [];	// Holds references to all DOMElements to be rendered: { Id:string, Element:DOMElements }
@@ -85,8 +88,8 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 	/// 		Once template is loaded, any placeholder or list will be accessible
 	/// 		through the Content property. A placeholder identified as UserRole
 	/// 		will be accessible as templateInstance.Content.UserRole.
-	/// 		UserRole is an object that can be set with either a string
-	/// 		or a DOMElement.
+	/// 		UserRole is a property that can be set with either a string,
+	/// 		an instance of a Fit.UI control, or a DOMElement.
 	/// 		A list identified as Users is accessible using
 	/// 		templateInstance.Content.Users. See Fit.TemplateList for
 	/// 		additional information.
@@ -126,6 +129,27 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 			cb(me, r.GetResponseText());
 		});
 		r.Start();
+	}
+
+	/// <function container="Fit.Template" name="AllowUnsafeContent" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set flag indicating whether unsafe string values are handled or not.
+	/// 		If AllowUnsafeContent is True, arbitrary code can be added to the template
+	/// 		and will be intepreted by the browser. If AllowUnsafeContent is False,
+	/// 		potentially unsafe code will be encoded and displayed as is without interpretation.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, handling of string encoding is changed to reflect value </param>
+	/// </function>
+	this.AllowUnsafeContent = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			allowUnsafe = (val === true ? 1 : 0);
+		}
+
+		return (allowUnsafe !== 0);
 	}
 
 	/// <function container="Fit.Template" name="Reset" access="public">
@@ -381,6 +405,12 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		// DOMElements added to template are added to DOM later - they are temporarily represented using <var> elements.
 		// Corresponding, event handlers are registered later when template is rendered to real DOM.
 
+		if (allowUnsafe === -1 && unsafeWarned === false)
+		{
+			unsafeWarned = true;
+			Fit.Browser.Log("WARNING: An instance of Fit.Template allows for unsafe content which could potentially lead to code injection (XSS attacks). The default behaviour for handling unsafe content will change in the future from allowing unsafe content to NOT allowing unsafe content which may break this application. Please explicitely set AllowUnsafeContent(bool) to ensure compatibility with future versions of Fit.UI.");
+		}
+
 		var newHtml = htmlContent;
 		Fit.Array.Clear(pendingElements); // Do not create new object - it will break references to collection on lists
 
@@ -416,7 +446,8 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 				}
 				else // String value
 				{
-					newHtml = newHtml.replace(new RegExp("{\\[" + key + "\\]}", "g"), obj);
+					var sVal = (me.AllowUnsafeContent() === true ? obj : Fit.String.EncodeHtml(obj));
+					newHtml = newHtml.replace(new RegExp("{\\[" + key + "\\]}", "g"), sVal);
 				}
 			}
 		});
@@ -637,7 +668,8 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 					}
 					else // String value
 					{
-						itemHtml = itemHtml.replace(new RegExp("{\\[" + prop + "\\]}", "g"), obj);
+						var sVal = (me.AllowUnsafeContent() === true ? obj : Fit.String.EncodeHtml(obj));
+						itemHtml = itemHtml.replace(new RegExp("{\\[" + prop + "\\]}", "g"), sVal);
 					}
 				});
 
