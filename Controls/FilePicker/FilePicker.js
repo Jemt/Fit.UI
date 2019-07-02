@@ -271,6 +271,11 @@ Fit.Controls.FilePicker = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
+		if (button !== null) // Modern control
+		{
+			button.Dispose();
+		}
+
 		me = button = buttonTitleEnforced = input = width = url = files = autoUpload = inputs = inputsByFileId = dropZoneLabel = dropZoneLabelEnforced = dropZoneContainer = onUploadHandlers = onProgressHandlers = onSuccessHandlers = onFailureHandlers = onCompletedHandlers = null; // onAbortHandlers
 		base();
 	});
