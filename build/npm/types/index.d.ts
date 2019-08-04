@@ -512,9 +512,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -524,9 +524,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Simple CheckBox control.
@@ -748,9 +748,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -760,9 +760,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Class from which all UI components extend
@@ -785,9 +785,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -797,9 +797,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* ContextMenu control allowing for quick access to select features.
@@ -929,9 +929,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -941,9 +941,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* 
@@ -987,9 +987,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing context menu item
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get parent item - returns Null for a root item
 			* @function GetParent
@@ -1206,9 +1206,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -1218,9 +1218,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* DatePicker control allowing user to easily pick a date and optionally time.
@@ -1501,9 +1501,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -1513,9 +1513,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Simple Dialog control with support for Fit.UI buttons.
@@ -1591,9 +1591,9 @@ declare namespace Fit
 			/**
 			* Get dialog content element
 			* @function GetContentDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetContentDomElement():HTMLElement;
+			public GetContentDomElement():Element;
 			/**
 			* Get/set dialog height - returns object with Value and Unit properties
 			* @function Height
@@ -1717,9 +1717,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -1729,9 +1729,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Drop Down Menu control allowing for single and multi selection.
@@ -2099,9 +2099,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -2111,9 +2111,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Control allowing for files to be selected locally and uploaded asynchronously.
@@ -2474,9 +2474,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -2486,9 +2486,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Input control which allows for one or multiple lines of
@@ -2735,9 +2735,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -2747,9 +2747,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Picker control which allows for entries
@@ -2807,9 +2807,9 @@ declare namespace Fit
 			* Overridden by control developers (required).
 			Get DOMElement representing control.
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -2917,9 +2917,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -2929,9 +2929,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Class from which all Picker Controls extend.
@@ -2972,9 +2972,9 @@ declare namespace Fit
 			* Overridden by control developers (required).
 			Get DOMElement representing control.
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -3124,9 +3124,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -3136,9 +3136,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* TreeView control allowing data to be listed in a structured manner.
@@ -3386,9 +3386,9 @@ declare namespace Fit
 			* Overridden by control developers (required).
 			Get DOMElement representing control.
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -3658,9 +3658,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -3670,9 +3670,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* 
@@ -3723,9 +3723,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing node
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get node depth in current hierarchy - root node is considered level 0
 			* @function GetLevel
@@ -3982,9 +3982,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -3994,9 +3994,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* WebService enabled Drop Down Menu control allowing for single and multi selection.
@@ -4453,9 +4453,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -4465,9 +4465,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* WebService enabled picker control which allows for entries
@@ -4603,9 +4603,9 @@ declare namespace Fit
 			* Overridden by control developers (required).
 			Get DOMElement representing control.
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -4713,9 +4713,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -4725,9 +4725,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* TreeView control allowing data from a
@@ -5070,9 +5070,9 @@ declare namespace Fit
 			* Overridden by control developers (required).
 			Get DOMElement representing control.
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -5342,9 +5342,9 @@ declare namespace Fit
 			/**
 			* Get DOMElement representing control
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Get unique Control ID
 			* @function GetId
@@ -5354,9 +5354,9 @@ declare namespace Fit
 			/**
 			* Render control, either inline or to element specified
 			* @function Render
-			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			* @param {Element} [toElement=undefined] - If defined, control is rendered to this element
 			*/
-			public Render(toElement?:HTMLElement):void;
+			public Render(toElement?:Element):void;
 		}
 		/**
 		* Enum values determining visual appearance of button controls
@@ -5707,35 +5707,35 @@ declare namespace Fit
 		/**
 		* Add element to container
 		* @function Add
-		* @param {HTMLElement} container - Add element to this container
+		* @param {Element} container - Add element to this container
 		* @param {Node} elm - Element, Text, or Comment to add to container
 		*/
-		public static Add(container:HTMLElement, elm:Node):void;
+		public static Add(container:Element, elm:Node):void;
 		/**
 		* Add CSS class to element if not already found
 		* @function AddClass
-		* @param {HTMLElement} elm - Element on which CSS class is to be added
+		* @param {Element} elm - Element on which CSS class is to be added
 		* @param {string} cls - CSS class name
 		*/
-		public static AddClass(elm:HTMLElement, cls:string):void;
+		public static AddClass(elm:Element, cls:string):void;
 		/**
 		* Get/set attribute on DOMElement
 		* @function Attribute
-		* @param {HTMLElement} elm - DOMElement to which attribute is set and/or returned from
+		* @param {Element} elm - DOMElement to which attribute is set and/or returned from
 		* @param {string} name - Name of attribute to set or retrieve
 		* @param {string} [value=undefined] - If defined, attribute is updated with specified value.
 		Passing Null results in attribute being removed.
 		* @returns string
 		*/
-		public static Attribute(elm:HTMLElement, name:string, value?:string):string;
+		public static Attribute(elm:Element, name:string, value?:string):string;
 		/**
 		* Check whether given element is found in given container at any given level in object hierarchy
 		* @function Contained
-		* @param {HTMLElement} container - Container expected to contain element
+		* @param {Element} container - Container expected to contain element
 		* @param {Node} elm - Element expected to be found in container&#39;s object hierarchy
 		* @returns boolean
 		*/
-		public static Contained(container:HTMLElement, elm:Node):boolean;
+		public static Contained(container:Element, elm:Node):boolean;
 		/**
 		* Create element with the specified HTML content.
 		HTML content is (by default) wrapped in a &lt;div&gt; if it produced multiple elements.
@@ -5752,13 +5752,13 @@ declare namespace Fit
 		/**
 		* Get/set data attribute on DOMElement
 		* @function Data
-		* @param {HTMLElement} elm - DOMElement to which data attribute is set and/or returned from
+		* @param {Element} elm - DOMElement to which data attribute is set and/or returned from
 		* @param {string} name - Name of data attribute to set or retrieve
 		* @param {string} [value=undefined] - If defined, data attribute is updated with specified value.
 		Passing Null results in data attribute being removed.
 		* @returns string
 		*/
-		public static Data(elm:HTMLElement, name:string, value?:string):string;
+		public static Data(elm:Element, name:string, value?:string):string;
 		/**
 		* Get style value applied after stylesheets have been loaded.
 		An empty string or null may be returned if style has not been defined or does not exist.
@@ -5766,20 +5766,20 @@ declare namespace Fit
 		not capable of calculating these - use the fullly qualified property name (e.g. border-left-color
 		or padding-left).
 		* @function GetComputedStyle
-		* @param {HTMLElement} elm - Element which contains desired CSS style value
+		* @param {Element} elm - Element which contains desired CSS style value
 		* @param {string} style - CSS style property name
 		* @returns string
 		*/
-		public static GetComputedStyle(elm:HTMLElement, style:string):string;
+		public static GetComputedStyle(elm:Element, style:string):string;
 		/**
 		* Get container responsible for hiding given element.
 		Element passed will be returned if hidden itself.
 		Returns Null if element is visible, or has not been rooted in DOM yet.
 		* @function GetConcealer
 		* @param {Node} elm - Element to get concealer for
-		* @returns HTMLElement
+		* @returns Element
 		*/
-		public static GetConcealer(elm:Node):HTMLElement;
+		public static GetConcealer(elm:Node):Element;
 		/**
 		* Get number of levels specified element is nested in DOM.
 		HTMLElement is at level 0, HTMLBodyElement is at level 1,
@@ -5793,47 +5793,47 @@ declare namespace Fit
 		* Returns element currently focused. If no element is focused, the document body is returned.
 		Null will be returned if the document has not been loaded yet.
 		* @function GetFocused
-		* @returns HTMLElement
+		* @returns Element
 		*/
-		public static GetFocused():HTMLElement;
+		public static GetFocused():Element;
 		/**
 		* Get element position within parent element.
 		Notice that Text and Comment nodes are ignored.
 		* @function GetIndex
-		* @param {HTMLElement} elm - Element to get index for
+		* @param {Element} elm - Element to get index for
 		* @returns number
 		*/
-		public static GetIndex(elm:HTMLElement):number;
+		public static GetIndex(elm:Element):number;
 		/**
 		* Returns object with X and Y properties (integers) with inner dimensions of specified
 		container. Inner dimensions are width and height with padding and borders substracted.
 		Result returned will be as expected no matter the box-sizing model being used.
 		The space consumed by scrollbars (if present) can optionally be substracted.
 		* @function GetInnerDimensions
-		* @param {HTMLElement} elm - Element to get inner dimensions for
+		* @param {Element} elm - Element to get inner dimensions for
 		* @param {boolean} [substractScrollbars=false] - Set True to substract space consumed by scrollbars
 		* @returns any
 		*/
-		public static GetInnerDimensions(elm:HTMLElement, substractScrollbars?:boolean):any;
+		public static GetInnerDimensions(elm:Element, substractScrollbars?:boolean):any;
 		/**
 		* Returns first parent of specified type for a given element if found, otherwise Null
 		* @function GetParentOfType
 		* @param {Node} element - Element to find parent for
 		* @param {string} parentType - Tagname of parent element to look for
-		* @returns HTMLElement
+		* @returns Element
 		*/
-		public static GetParentOfType(element:Node, parentType:string):HTMLElement;
+		public static GetParentOfType(element:Node, parentType:string):Element;
 		/**
 		* Get position for visible element.
 		Object returned contains an X and Y property
 		with the desired integer values (pixels).
 		Null will be returned if element is not visible.
 		* @function GetPosition
-		* @param {HTMLElement} elm - Element to get position for
+		* @param {Element} elm - Element to get position for
 		* @param {boolean} [relativeToViewport=false] - Set True to get element position relative to viewport rather than to document which may exceed the viewport
 		* @returns any
 		*/
-		public static GetPosition(elm:HTMLElement, relativeToViewport?:boolean):any;
+		public static GetPosition(elm:Element, relativeToViewport?:boolean):any;
 		/**
 		* Get element position relative to a positioned parent or ancestor (offsetParent).
 		Coordinates returned are relative to document if no positioned parent or ancestor is found.
@@ -5841,25 +5841,25 @@ declare namespace Fit
 		Object returned contains an X and Y property with the desired integer values (pixels).
 		Notice that Null is returned in case element is not rooted yet (added to DOM) or invisible.
 		* @function GetRelativePosition
-		* @param {HTMLElement} elm - Element to get position for
+		* @param {Element} elm - Element to get position for
 		* @returns any
 		*/
-		public static GetRelativePosition(elm:HTMLElement):any;
+		public static GetRelativePosition(elm:Element):any;
 		/**
 		* Get scrolling document element. This is the cross browser
 		equivalent of document.scrollingElement.
 		* @function GetScrollDocument
-		* @returns HTMLElement
+		* @returns Element
 		*/
-		public static GetScrollDocument():HTMLElement;
+		public static GetScrollDocument():Element;
 		/**
 		* Get element&#39;s scroll parent. Returns null if element passed
 		is placed on its own stacking context (has position:fixed).
 		* @function GetScrollParent
-		* @param {HTMLElement} elm - Element to get scroll parent for
-		* @returns HTMLElement
+		* @param {Element} elm - Element to get scroll parent for
+		* @returns Element
 		*/
-		public static GetScrollParent(elm:HTMLElement):HTMLElement;
+		public static GetScrollParent(elm:Element):Element;
 		/**
 		* Get number of pixels specified element&#39;s container(s)
 		have been scrolled. This gives us the total scroll value
@@ -5873,11 +5873,11 @@ declare namespace Fit
 		/**
 		* Check whether given DOMElement has specified CSS class registered - returns True if found, otherwise False
 		* @function HasClass
-		* @param {HTMLElement} elm - Element for which CSS class may be registered
+		* @param {Element} elm - Element for which CSS class may be registered
 		* @param {string} cls - CSS class name
 		* @returns boolean
 		*/
-		public static HasClass(elm:HTMLElement, cls:string):boolean;
+		public static HasClass(elm:Element, cls:string):boolean;
 		/**
 		* Insert DOMNode after another DOMNode
 		* @function InsertAfter
@@ -5890,11 +5890,11 @@ declare namespace Fit
 		Notice that position is relative to contained DOM Elements.
 		Text and Comment nodes are ignored.
 		* @function InsertAt
-		* @param {HTMLElement} container - Container to insert element into
+		* @param {Element} container - Container to insert element into
 		* @param {number} position - Position (index) to insert element at
 		* @param {Node} newElm - Element to insert
 		*/
-		public static InsertAt(container:HTMLElement, position:number, newElm:Node):void;
+		public static InsertAt(container:Element, position:number, newElm:Node):void;
 		/**
 		* Insert DOMNode before another DOMNode
 		* @function InsertBefore
@@ -5927,10 +5927,10 @@ declare namespace Fit
 		/**
 		* Remove CSS class from element if found
 		* @function RemoveClass
-		* @param {HTMLElement} elm - Element from which CSS class is to be removed
+		* @param {Element} elm - Element from which CSS class is to be removed
 		* @param {string} cls - CSS class name
 		*/
-		public static RemoveClass(elm:HTMLElement, cls:string):void;
+		public static RemoveClass(elm:Element, cls:string):void;
 		/**
 		* Replace element with another one
 		* @function Replace
@@ -5941,25 +5941,25 @@ declare namespace Fit
 		/**
 		* Set caret position for input control
 		* @function SetCaretPosition
-		* @param {HTMLElement} input - Input element
+		* @param {Element} input - Input element
 		* @param {number} pos - Integer value specifying caret position in input control
 		*/
-		public static SetCaretPosition(input:HTMLElement, pos:number):void;
+		public static SetCaretPosition(input:Element, pos:number):void;
 		/**
 		* Get/set inner text of DOMElement
 		* @function Text
-		* @param {HTMLElement} elm - DOMElement to which text is added and/or returned from
+		* @param {Element} elm - DOMElement to which text is added and/or returned from
 		* @param {string} [value=undefined] - If defined, inner text is updated with specified value
 		* @returns string
 		*/
-		public static Text(elm:HTMLElement, value?:string):string;
+		public static Text(elm:Element, value?:string):string;
 		/**
 		* Wraps element in container element while preserving position in DOM if rooted
 		* @function Wrap
 		* @param {Node} elementToWrap - Element to wrap
-		* @param {HTMLElement} container - Container to wrap element within
+		* @param {Element} container - Container to wrap element within
 		*/
-		public static Wrap(elementToWrap:Node, container:HTMLElement):void;
+		public static Wrap(elementToWrap:Node, container:Element):void;
 	}
 	/**
 	* Event handler functionality
@@ -5995,12 +5995,12 @@ declare namespace Fit
 		Important: Mutation observers should be removed when no longer needed for better performance!
 		To remove an observer from within the observer function itself, simply call disconnect().
 		* @function AddMutationObserver
-		* @param {HTMLElement} elm - DOMElement to observe
+		* @param {Element} elm - DOMElement to observe
 		* @param {Function} obs - JavaScript observer function to register - receives reference to DOMElement being observed when updated
 		* @param {boolean} [deep=false] - Flag indicating whether to check for modifications within element (children and character data) - this could potentially be expensive
 		* @returns number
 		*/
-		public static AddMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):number;
+		public static AddMutationObserver(elm:Element, obs:Function, deep?:boolean):number;
 		/**
 		* Get event argument related to event just fired in a cross browser compatible manner
 		* @function GetEvent
@@ -6030,9 +6030,9 @@ declare namespace Fit
 		* Get a reference to the object that is affected by an event
 		* @function GetTarget
 		* @param {Event} [e=undefined] - Event argument
-		* @returns HTMLElement
+		* @returns Element
 		*/
-		public static GetTarget(e?:Event):HTMLElement;
+		public static GetTarget(e?:Event):Element;
 		/**
 		* Registers OnReady handler which gets fired when DOM is ready for manipulation, or if it is already ready
 		* @function OnDomReady
@@ -6055,27 +6055,27 @@ declare namespace Fit
 		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {Element} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		public static RemoveHandler(element:Element, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {Element} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		public static RemoveHandler(element:Element, event:string, eventFunction:Function):void;
 		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {Element} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {number} eventId - Event ID identifying handler to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		public static RemoveHandler(element:Element, eventId:number):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
@@ -6085,11 +6085,11 @@ declare namespace Fit
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
-		* @param {HTMLElement} elm - DOMElement being observed
+		* @param {Element} elm - DOMElement being observed
 		* @param {Function} obs - JavaScript observer function to remove
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
-		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
+		public static RemoveMutationObserver(elm:Element, obs:Function, deep?:boolean):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
@@ -6566,9 +6566,9 @@ declare namespace Fit
 		/**
 		* Render template, either inline or to element specified
 		* @function Render
-		* @param {HTMLElement} [toElement=undefined] - If defined, template is rendered to this element
+		* @param {Element} [toElement=undefined] - If defined, template is rendered to this element
 		*/
-		public Render(toElement?:HTMLElement):void;
+		public Render(toElement?:Element):void;
 		/**
 		* Resets template - all data and event handlers are removed. Change is not pushed to DOM automatically.
 		* @function Reset
@@ -6835,16 +6835,16 @@ declare namespace Fit
 			/**
 			* Constructor - create instance of Draggable class
 			* @function Draggable
-			* @param {HTMLElement} domElm - Element to turn into draggable object
-			* @param {HTMLElement} [domTriggerElm=undefined] - Element that triggers dragging (optional)
+			* @param {Element} domElm - Element to turn into draggable object
+			* @param {Element} [domTriggerElm=undefined] - Element that triggers dragging (optional)
 			*/
-			constructor(domElm:HTMLElement, domTriggerElm?:HTMLElement);
+			constructor(domElm:Element, domTriggerElm?:Element);
 			/**
 			* Get draggable DOM element
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Add event handler which constantly gets fired when dragging takes place
 			* @function OnDragging
@@ -6879,15 +6879,15 @@ declare namespace Fit
 			/**
 			* Constructor - create instance of DropZone class
 			* @function DropZone
-			* @param {HTMLElement} domElm - Element to turn into dropzone object
+			* @param {Element} domElm - Element to turn into dropzone object
 			*/
-			constructor(domElm:HTMLElement);
+			constructor(domElm:Element);
 			/**
 			* Get dropzone DOM element
 			* @function GetDomElement
-			* @returns HTMLElement
+			* @returns Element
 			*/
-			public GetDomElement():HTMLElement;
+			public GetDomElement():Element;
 			/**
 			* Add event handler which gets fired when draggable is dropped on dropzone
 			* @function OnDrop

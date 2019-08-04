@@ -613,7 +613,7 @@ function Parser()
 		}
 
 		if (type === "DOMElement")
-			return "HTMLElement";
+			return "Element";
 		else if (type === "DOMNode")
 			return "Node";
 		else if (type === "array")
