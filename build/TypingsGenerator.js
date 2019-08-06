@@ -613,7 +613,7 @@ function Parser()
 		}
 
 		if (type === "DOMElement")
-			return "Element";
+			return "HTMLElement"; // An object of type DOMElement in Fit.UI is actually an instance of HTMLElement - see Fit.Validation.ExpectElement(..) for details
 		else if (type === "DOMNode")
 			return "Node";
 		else if (type === "array")
