@@ -111,6 +111,9 @@ Fit.Controls.Component = function(controlId)
 
 			setTimeout(function()
 			{
+				if (me === null)
+					return; // Control has been disposed
+
 				cb();
 
 				Fit.Dom.AddClass(me.GetDomElement(), "FitUi_Non_Existing_ControlBase_Class");

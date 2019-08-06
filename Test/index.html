@@ -34,6 +34,11 @@
 	<script type="text/javascript">
 		Fit._internal.Validation.DebugMode = false; // Only suppresses any alerts - type checking remains enabled
 
+		if (Fit.Browser.GetBrowser() === "MSIE" && window.console)
+		{
+			console.log("WARNING: Older versions of Internet Explorer may have difficulties running the entire Test Suite due to poor performance. Consider restricting testing to just one module at a time using the Test URL parameter: ?Test=Core/Http");
+		}
+
 		function executeTestCases(testId, testCases)
 		{
 			QUnit.module(testId);
@@ -107,26 +112,29 @@
 	</script>
 
 	<script type="text/javascript">
-		var qs = Fit.Browser.GetQueryString();
-		var targets = [ "Core/Validation", "Core/Core", "Core/Array", "Core/Browser", "Core/Cookies", "Core/Data", "Core/Dom", "Core/Http", "Controls/Input", "Controls/TreeView" ];
-		Tests = {};
-
-		Fit.Loader.LoadStyleSheets([ { source: "Common.css" } ], function(styles)
+		Fit.Events.OnDomReady(function()
 		{
-			Fit.Loader.LoadScripts([ { source: "Common.js" }, { source: "ControlBase.js" } ], function(scripts)
-			{
-				Fit.Array.ForEach(targets, function(target)
-				{
-					if (qs.Parameters["Test"] === undefined || qs.Parameters["Test"] === target)
-					{
-						Fit.Loader.LoadScript(target + ".js", function(src)
-						{
-							var testCases = Tests; // Tests defined in test case file (globally accessible)
-							Tests = {};
+			var qs = Fit.Browser.GetQueryString();
+			var targets = [ "Core/Validation", "Core/Core", "Core/Array", "Core/Browser", "Core/Cookies", "Core/Data", "Core/Dom", "Core/Http", "Controls/Input", "Controls/TreeView" ];
+			Tests = {};
 
-							executeTestCases(target, testCases);
-						});
-					}
+			Fit.Loader.LoadStyleSheets([ { source: "Common.css" } ], function(styles)
+			{
+				Fit.Loader.LoadScripts([ { source: "Common.js" }, { source: "ControlBase.js" } ], function(scripts)
+				{
+					Fit.Array.ForEach(targets, function(target)
+					{
+						if (qs.Parameters["Test"] === undefined || qs.Parameters["Test"] === target)
+						{
+							Fit.Loader.LoadScript(target + ".js", function(src)
+							{
+								var testCases = Tests; // Tests defined in test case file (globally accessible)
+								Tests = {};
+
+								executeTestCases(target, testCases);
+							});
+						}
+					});
 				});
 			});
 		});

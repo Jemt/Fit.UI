@@ -502,16 +502,19 @@ Fit._internal.Core.EnsureStyles = function()
 
 	Fit._internal.Core.StylesEnsured = true;
 
-	var elm = Fit.Dom.CreateElement("<div class='FitUiStyleCheck'></div>");
-	Fit.Dom.Add(document.body, elm);
-
-	if (Fit.Dom.GetComputedStyle(elm, "width") !== "20px")
+	Fit.Events.OnDomReady(function() // In case function is called too early in which case document.body will be null
 	{
-		Fit.Browser.Log("Lazy loading Fit.UI stylesheet. It is recommended to add a stylesheet reference to Fit.UI.min.css to prevent temporarily unstyled content.");
-		Fit.Loader.LoadStyleSheet(Fit.GetUrl() + "/Fit.UI.min.css");
-	}
+		var elm = Fit.Dom.CreateElement("<div class='FitUiStyleCheck'></div>");
+		Fit.Dom.Add(document.body, elm);
 
-	Fit.Dom.Remove(elm);
+		if (Fit.Dom.GetComputedStyle(elm, "width") !== "20px")
+		{
+			Fit.Browser.Log("Lazy loading Fit.UI stylesheet. It is recommended to add a stylesheet reference to Fit.UI.min.css to prevent temporarily unstyled content.");
+			Fit.Loader.LoadStyleSheet(Fit.GetUrl() + "/Fit.UI.min.css");
+		}
+
+		Fit.Dom.Remove(elm);
+	});
 }
 
 ;(function()

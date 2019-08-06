@@ -234,7 +234,13 @@ UnitTestHelper.TestValues =
 	},
 	{
 		Type: "function",
-		Values: [ function() { alert(123456789); console.log(987654321); }, Fit.Validation.IsSet, alert ]
+		// Legacy IE does not return "function" for all native JS functions when passed to typeof(..),
+		// so we can't test e.g. alert or window.open in this case. Passing native JS functions is not
+		// common though, and they can always be wrapped.
+		Values: typeof(alert) === "function" ?
+			[ function() { alert(123456789); console.log(987654321); }, Fit.Validation.IsSet, alert ]
+		:
+			[ function() { alert(123456789); console.log(987654321); }, Fit.Validation.IsSet ]
 	},
 	{
 		Type: "window",
