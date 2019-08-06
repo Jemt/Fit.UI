@@ -184,8 +184,13 @@ UnitTestHelper.TestValues =
 		Values: [ document.body.children ]
 	},
 	{
-		Type: "DOMElement",
+		Type: "DOMElement", // Actually an HTMLElement
 		Values: [ document.body, document.createElement("div") ]
+	},
+	{
+		Type: "XMLElement",
+		// Legacy IE does not support DOMParser
+		Values: window.DOMParser ? [ (new DOMParser()).parseFromString("<root></root>", "text/xml").getElementsByTagName("root")[0] ] : []
 	},
 	{
 		Type: "TextNode",

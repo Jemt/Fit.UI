@@ -44,10 +44,10 @@ UnitTestHelper.Validation.CreateUnitTest("ExpectTypeArray (number)", Fit.Validat
 UnitTestHelper.Validation.CreateUnitTest("ExpectInstanceArray", Fit.Validation.ExpectInstanceArray, [ "Fit.Controls.ControlBase[]" ], Fit.Controls.ControlBase);
 UnitTestHelper.Validation.CreateUnitTest("ExpectCollection", Fit.Validation.ExpectCollection, [ "string[]", "integer[]", "float[]", "object[]", "Fit.Controls.ControlBase[]", "NodeList", "HTMLCollection" ]);
 UnitTestHelper.Validation.CreateUnitTest("ExpectRegExp", Fit.Validation.ExpectRegExp, [ "RegExp" ]);
-UnitTestHelper.Validation.CreateUnitTest("ExpectElementNode", Fit.Validation.ExpectDomElement, [ "DOMElement" ]);
-UnitTestHelper.Validation.CreateUnitTest("ExpectCommentNode", Fit.Validation.ExpectCommentNode, [ "CommentNode" ]);
-UnitTestHelper.Validation.CreateUnitTest("ExpectTextNode", Fit.Validation.ExpectTextNode, [ "TextNode" ]);
-UnitTestHelper.Validation.CreateUnitTest("ExpectNode", Fit.Validation.ExpectNode, [ "DOMElement", "TextNode", "CommentNode" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectElement", Fit.Validation.ExpectDomElement, [ "DOMElement" ]);
+//UnitTestHelper.Validation.CreateUnitTest("ExpectCommentNode", Fit.Validation.ExpectCommentNode, [ "CommentNode" ]);
+//UnitTestHelper.Validation.CreateUnitTest("ExpectTextNode", Fit.Validation.ExpectTextNode, [ "TextNode" ]);
+UnitTestHelper.Validation.CreateUnitTest("ExpectNode", Fit.Validation.ExpectNode, [ "DOMElement", "XMLElement", "TextNode", "CommentNode" ]);
 UnitTestHelper.Validation.CreateUnitTest("ExpectWindow", Fit.Validation.ExpectWindow, [ "window" ]);
 UnitTestHelper.Validation.CreateUnitTest("ExpectFunction", Fit.Validation.ExpectFunction, [ "function" ]);
 UnitTestHelper.Validation.CreateUnitTest("ExpectInstance", Fit.Validation.ExpectInstance, [ "Fit.Controls.ControlBase" ], Fit.Controls.ControlBase);

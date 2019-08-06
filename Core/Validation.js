@@ -229,48 +229,67 @@ Fit.Validation.ExpectRegExp = function(val, allowNotSet)
 		Fit.Validation.ThrowError("Value '" + val + "' is not an instance of RegExp");
 }
 
-/// <function container="Fit.Validation" name="ExpectElementNode" access="public" static="true">
-/// 	<description> Throws error if passed object is not an instance of Element </description>
+/// <function container="Fit.Validation" name="ExpectElement" access="public" static="true">
+/// 	<description> Throws error if passed object is not an instance of HTMLElement </description>
 /// 	<param name="val" type="object"> Object to validate </param>
 /// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
 /// </function>
-Fit.Validation.ExpectElementNode = function(val, allowNotSet) // DOMElement
+Fit.Validation.ExpectElement = function(val, allowNotSet) // DOMElement (actually HTMLElement)
 {
+	// All elements within the HTML DOM tree inherits from Element except for Comments, CDATA, and Text nodes.
+	// But most elements from an XML document (also excluding Comments, CDATA, and Text nodes) also
+	// inherit from Element.
+	// (new DOMParser()).parseFromString("<root></root>", "text/xml").getElementsByTagName("root")[0] instanceof Element; // Returns true
+	// However, Fit.UI is for building HTML applications, and is therefore not expected to handle XML elements.
+	// Therefore, despite the function name ExpectElement, it actually ensures that the passed element is an instance of HTMLElement.
+	// (new DOMParser()).parseFromString("<root></root>", "text/xml").getElementsByTagName("root")[0] instanceof HTMLElement; // Returns false
+
+	// More about HTMLElement vs Element vs Node, as well as the nodeType property:
+	// https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement
+	// https://developer.mozilla.org/en-US/docs/Web/API/Element
+	// https://developer.mozilla.org/en-US/docs/Web/API/Node
+	// https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+	// The inheritance chain looks like this: EventTarget <= Node <= Element <= HTMLElement
+
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((val instanceof Element) === false)
-		Fit.Validation.ThrowError("Value '" + val + "' is not a DOMElement");
+	// The HTMLElement interface is not available in legacy IE, in which case we use feature detection instead
+	if ((window.HTMLElement && (val instanceof HTMLElement) === false) || (val instanceof Element) === false || (val.style instanceof CSSStyleDeclaration) === false)
+		Fit.Validation.ThrowError("Value '" + val + "' is not an HTMLElement");
 }
-Fit.Validation.ExpectDomElement = Fit.Validation.ExpectElementNode; // Backward compatibility
+Fit.Validation.ExpectDomElement = Fit.Validation.ExpectElement;		// Backward compatibility
+Fit.Validation.ExpectElementNode = Fit.Validation.ExpectElement;	// Backward compatibility
 
-/// <function container="Fit.Validation" name="ExpectTextNode" access="public" static="true">
-/// 	<description> Throws error if passed object is not an instance of Text </description>
-/// 	<param name="val" type="object"> Object to validate </param>
-/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
-/// </function>
-Fit.Validation.ExpectTextNode = function(val, allowNotSet) // DOMText
+// DISABLED - not in use internally, and not supported by legacy IE
+// <function container="Fit.Validation" name="ExpectTextNode" access="public" static="true">
+// 	<description> Throws error if passed object is not an instance of Text </description>
+// 	<param name="val" type="object"> Object to validate </param>
+// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+// </function>
+/*Fit.Validation.ExpectTextNode = function(val, allowNotSet) // DOMText
 {
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
 	if ((val instanceof Text) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a Text node");
-}
+}*/
 
-/// <function container="Fit.Validation" name="ExpectCommentNode" access="public" static="true">
-/// 	<description> Throws error if passed object is not an instance of Comment </description>
-/// 	<param name="val" type="object"> Object to validate </param>
-/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
-/// </function>
-Fit.Validation.ExpectCommentNode = function(val, allowNotSet) // DOMComment
+// DISABLED - not in use internally, and not supported by legacy IE
+// <function container="Fit.Validation" name="ExpectCommentNode" access="public" static="true">
+// 	<description> Throws error if passed object is not an instance of Comment </description>
+// 	<param name="val" type="object"> Object to validate </param>
+// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+// </function>
+/*Fit.Validation.ExpectCommentNode = function(val, allowNotSet) // DOMComment
 {
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
 	if ((val instanceof Comment) === false)
 		Fit.Validation.ThrowError("Value '" + val + "' is not a Comment node");
-}
+}*/
 
 /// <function container="Fit.Validation" name="ExpectNode" access="public" static="true">
 /// 	<description> Throws error if passed object is not an instance of Element, Text, or Comment </description>
@@ -282,7 +301,11 @@ Fit.Validation.ExpectNode = function(val, allowNotSet) // DOMNode
 	if (allowNotSet === true && (val === undefined || val === null))
 		return;
 
-	if ((val instanceof Element) === false && (val instanceof Text) === false && (val instanceof Comment) === false)
+	// The Text and Comment interfaces are not available in legacy IE so we use feature detection instead.
+	// We assume we have a valid Node instance if it exposes common functions and properties of a Node instance,
+	// and has the appropriate nodeType: 1 = Element, 3 = Text, 8 = Comment. More on node types here:
+	// https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+	if (!val.cloneNode || !val.nodeName || !val.nodeType || (val.nodeType !== 1 && val.nodeType !== 3 && val.nodeType !== 8)) 
 		Fit.Validation.ThrowError("Value '" + val + "' is not a Node (Element, Text, or Comment)");
 }
 
