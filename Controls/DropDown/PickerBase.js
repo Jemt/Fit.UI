@@ -221,6 +221,22 @@ Fit.Controls.PickerBase = function()
 		});
 	}
 
+	/// <function container="Fit.Controls.PickerBase" name="GetItemByValue" access="public" returns="object">
+	/// 	<description>
+	/// 		Overridden by control developers (optional).
+	/// 		Host control may invoke this function, for instance to update the title of selected items,
+	/// 		to make sure these properly reflect the state of data displayed in the picker.
+	/// 		Function returns Null when not implemented or when an item is not found. If found, an object
+	/// 		with the following signature is returned: { Title: string, Value: string }.
+	/// 	</description>
+	/// 	<param name="val" type="string"> Value of item to retrieve </param>
+	/// </function>
+	this.GetItemByValue = function(val)
+	{
+		Fit.Validation.ExpectString(val);
+		return null;
+	}
+
 	/// <function container="Fit.Controls.PickerBase" name="HandleEvent" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (optional).
