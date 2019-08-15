@@ -572,15 +572,10 @@ Fit.Controls.TreeView = function(ctlId)
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="ExpandAll" access="public">
-	/// 	<description>
-	/// 		Expand all nodes, optionally to a maximum depth.
-	/// 		Callback is invoked once all nodes have been expanded.
-	/// 		The following argument is passed to callback: Sender (TreeView).
-	/// 	</description>
+	/// 	<description> Expand all nodes, optionally to a maximum depth </description>
 	/// 	<param name="maxDepth" type="integer" default="undefined"> Optional maximum depth to expand nodes </param>
-	/// 	<param name="cb" type="function" default="undefined"> Optional callback invoked once nodes have been expanded </param>
 	/// </function>
-	this.ExpandAll = function(maxDepth, cb) // Overridden by WSTreeView - callback support to make signature compatible with WSTreeView where nodes may be loaded async.
+	this.ExpandAll = function(maxDepth) // Overridden by WSTreeView
 	{
 		Fit.Validation.ExpectInteger(maxDepth, true);
 		Fit.Validation.ExpectFunction(cb, true);

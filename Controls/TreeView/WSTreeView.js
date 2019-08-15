@@ -29,12 +29,23 @@ Fit.Controls.WSTreeView = function(ctlId)
 	var preSelected = {};
 	var orgSelected = [];
 	var loadDataOnInit = true;
+	var dataLoading = false;			// True when requesting data via Reload, EnsureData, and SelectAll
+	var nodesLoading = 0;				// Value is above zero when nodes are being loaded when expanded
+	var recursiveNodeLoadCount = -1;	// Value used by recursivelyLoadAllNodes(..) to keep track of progress when chain loading nodes
+	var onDataLoadedCallback = [];
 	var selectAllMode = Fit.Controls.WSTreeViewSelectAllMode.Progressively;
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
 	var onAbortHandlers = [];
 	var onPopulatedHandlers = [];
+	var baseSelected = this.Selected;	// Used by Selected(..), Value(), and SetSelections(..)
 
+	// Support for ExpandAll which may trigger WebService requests to load data.
+	// We therefore need to keep some state to resume ExpandAll when nodes are received,
+	// which is done using the WSTreeView's OnPopulated event further down.
+	var expandCollapseAllMode = -1;			// 0 = Collapse, 1 = Expand
+	var expandCollapseAllMaxDepth = 99999;	// The maximum depth to expand/collapse
+	
 	function init()
 	{
 		rootNode = me.GetDomElement().firstChild.firstChild._internal.Node;
@@ -55,9 +66,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnToggle(function(sender, node)
 		{
+			/*
 			if (node.Expanded() === true) // Node is currently expanded and will now become collapsed
 				return;
-
+			
 			if (node.GetDomElement()._internal.WSDone === true)
 				return;
 
@@ -92,6 +104,72 @@ Fit.Controls.WSTreeView = function(ctlId)
 			});
 
 			return false; // Cancel toggle, will be "resumed" when data is loaded
+			*/
+
+			// Load node data when expanded
+
+			if (node.Expanded() === true) // Node is currently expanded and will now become collapsed
+				return;
+
+			if (dataLoading === true && node.GetDomElement()._internal.WSHasChildren === true && node.GetDomElement()._internal.WSDone !== true)
+			{
+				// Node contains remote children that has not yet been loaded, and 
+				// data is currently being loaded, e.g. by EnsureData(..), Reload(..),
+				// or SelectAll(..). Adding request to process queue.
+				onDataLoaded(function() { node.Expanded(true); });
+				return false;
+			}
+
+			if (node.GetDomElement()._internal.WSLoading === true)
+			{
+				// Data for this node is currently being loaded.
+				// Return False to cancel toggle to prevent user from being
+				// able to expand node (and re-trigger data load) multiple times.
+				return false;
+			}
+
+			var dataStartedLoading = loadNodeData(node, function(nodePopulated) // Returns False if there are no remote nodes to load, or if request is suppressed using an OnRequest handler
+			{
+				// Children now loaded and populated
+
+				nodesLoading--;
+
+				delete node.GetDomElement()._internal.WSLoading;
+				node.Expanded(true); // Unfortunately causes both OnToggle and OnToggled to be fired, although OnToggle has already been fired once (canceled below)
+
+				if (nodesLoading === 0)
+				{
+					// Reload, SelectAll, or EnsureData may have been called while
+					// node was loading - make sure they are resumed from process queue.
+					fireOnDataLoadedAndPopulated();
+				}
+			});
+
+			if (dataStartedLoading === true)
+			{
+				// Prevent e.g. EnsureData, Reload, and SelectAll from loading while current node
+				// is being loaded and populated.
+				// We cannot use the dataLoading variable for this though, as it would also prevent the
+				// user from expanding (and requesting data for) multiple nodes simultaneously since this OnToggle
+				// handler prevents the user from expanding nodes if dataLoading is True (set by EnsureData/Reload/etc).
+				// Instead we use nodesLoading which is incremented and decremented when node data is requested and populated.
+				// EnsureData(..), Reload(..) and other functions fetching data checks this variable, and
+				// if its value is above zero, the functions will reschedule and run after all requested
+				// nodes are done loading.
+				nodesLoading++;
+
+				node.GetDomElement()._internal.WSLoading = true;
+				return false; // Cancel toggle, will be "resumed" (triggered again in loadNodeData callback above) when data is loaded
+			}
+			
+			if (dataStartedLoading === false && node.GetDomElement()._internal.WSHasChildren === true && node.GetChildren().length === 1 && node.GetChildren()[0].Value() === "__" && node.GetChildren()[0].Title() === "__")
+			{
+				// Node has remote children and no pre-populated children, but data load
+				// was not started, meaning it was suppressed using an OnRequest handler.
+				// Prevent node from expanding since it will reveal the place holder node making
+				// parent node expandable.
+				return false;
+			}
 		});
 
 		//{ SelectAll - Mode: Progressively
@@ -105,7 +183,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 		// requests when expanded. OnChange will fire multiple times.
 		// Chain loading is made possible using the OnPopulated handler which automatically expands children received.
 
-		me.OnSelectAll(function(sender, eventArgs)
+		// DISABLED - SelectAll in Progressive Mode is now handled by SelectAll function override
+		// along with the new node loader mechanish (loadNodeData and recursivelyLoadAllNodes)
+		// also used by EnsureData.
+		/*me.OnSelectAll(function(sender, eventArgs)
 		{
 			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
 				return;
@@ -148,9 +229,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 			});
 
 			// Event handler complete - caller (TreeView.SelectAll) takes over now, selecting and expanded node and its children, causing those with HasChildren:true to load
-		});
+		});*/
 
-		me.OnPopulated(function(sender, eventArgs)
+		/*me.OnPopulated(function(sender, eventArgs)
 		{
 			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
 				return;
@@ -195,7 +276,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				if (fireOnChange === true)
 					me._internal.FireOnChange();
 			}
-		});
+		});*/
 
 		//}
 
@@ -213,7 +294,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		me.OnSelectAll(function(sender, eventArgs)
 		{
 			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Instantly)
-				return;
+				return; // Progressive Mode is handled in WSTreeView.SelectAll function override
 
 			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
 			var internal = node.GetDomElement()._internal;
@@ -339,6 +420,28 @@ Fit.Controls.WSTreeView = function(ctlId)
 		});
 
 		//}
+
+		// ExpandAll(..) support.
+		// Using the OnPopulated event to progressively expand nodes is more
+		// complicated than just loading all nodes first with recursivelyLoadAllNodes(..),
+		// and via its callback, which is fired when all nodes are loaded, expand all the nodes.
+		// But the approach using OnPopulated to resume the ExpandAll operation has the advantage
+		// that the user can visually see the progress as nodes expand and their children start loading.
+		me.OnPopulated(function(sender, eventArgs)
+		{
+			if (expandCollapseAllMode === -1)
+				return;
+
+			var node = eventArgs.Node;
+
+			if (node === null)
+				return; // Root node populated
+			
+			if (node.GetLevel() + 1 < expandCollapseAllMaxDepth)
+			{
+				expandCollapseNodesRecursively(node.GetChildren(), expandCollapseAllMode, expandCollapseAllMaxDepth);
+			}
+		});
 	}
 
 	/// <function container="Fit.Controls.WSTreeView" name="Url" access="public" returns="string">
@@ -373,7 +476,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
 	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
 	/// 	</description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// 	<param name="val" type="string" default="undefined" nullable="true"> If defined, enables JSONP and updates JSONP callback argument </param>
 	/// </function>
 	this.JsonpCallback = function(val)
 	{
@@ -407,6 +510,86 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		return selectAllMode;
 	}
+
+	// See documentation on TreeView
+	this.SelectAll = Fit.Core.CreateOverride(this.SelectAll, function(select, selectAllNode)
+	{
+		Fit.Validation.ExpectBoolean(select);
+		Fit.Validation.ExpectInstance(selectAllNode, Fit.Controls.TreeViewNode, true);
+
+		// TBD: Add support for completed callback (?).
+		// EnsureData, which is also based on the new node loader mechanism
+		// (loadNodeData and recursivelyLoadAllNodes) keeps track of progress
+		// and knows when all nodes have been loaded, so we could easily
+		// add support for a callback or an event such as OnSelectAllComplete.
+		// We already have an event called OnSelectAll which fires prior to
+		// selection changes.
+		// We can implement this when/if needed at some point. See EnsureData
+		// for inspiration.
+
+		if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
+		{
+			// Fit.Controls.WSTreeViewSelectAllMode.Instantly Mode is handled with
+			// OnSelectAll, OnResponse, and OnPopulated handlers registered in init()
+			// when TreeView.SelectAll (base) is invoked below.
+			base(select, selectAllNode);
+			return;
+		}
+
+		// Progressive Mode - how it works:
+		// Nodes are loaded progressively (chain loaded) from WebService.
+		// Nodes with children not loaded yet will be loaded and populated.
+		// WebService may return multiple levels of nodes, or even the complete hierarchy, but Progressive Mode
+		// will never be able to quarantee that only one request is made, since the node triggering Select All
+		// may already have multiple children loaded with HasChildren set to True, which will spawn individual
+		// requests when expanded.
+		// To select all nodes and ensure only one request is made, set SelectAllMode
+		// to Fit.Controls.WSTreeViewSelectAllMode.Instantly and make sure the server
+		// returns the entire children hierarchy for a given target node.
+
+		if (dataLoading === true || nodesLoading > 0)
+		{
+			// Data is currently loading - postpone by adding request to process queue
+			onDataLoaded(function() { me.SelectAll(select, selectAllNode); });
+			return;
+		}
+		
+		var baseSelectAll = base; // Reference to original SelectAll function on TreeView class
+		var exec = function()
+		{
+			dataLoading = true;
+
+			recursivelyLoadAllNodes(selectAllNode || null, function() // Fired when all nodes have been loaded
+			{
+				baseSelectAll(select, selectAllNode);
+
+				dataLoading = false;
+				// If support for a completed callback or OnSelectAllComplete event is added,
+				// make sure callback/event is invoked/fired between dataLoading=false and
+				// fireOnDataLoadedAndPopulated() to allow the callback to be trigger before
+				// queued requests, just like the implementation in Reload and EnsureData.
+				fireOnDataLoadedAndPopulated();
+			},
+			function(nodePopulated) // Fired for every node loaded
+			{
+				nodePopulated.Expanded(true);
+			});
+		};
+
+		if (loadDataOnInit === true) // No data loaded yet
+		{
+			var selected = me.Selected(); // Save selection which is cleared when Reload() is called
+			me.Reload(function(sender) // Will change loadDataOnInit to False
+			{
+				exec();
+			});
+			me.Selected(selected); // Restore selection
+		}
+		else // Data already (partially) loaded - often just the root nodes
+		{
+			exec();
+		}
+	});
 
 	// See documentation on TreeView
 	this.RemoveAllChildren = Fit.Core.CreateOverride(this.RemoveAllChildren, function()
@@ -456,23 +639,106 @@ Fit.Controls.WSTreeView = function(ctlId)
 	{
 		Fit.Validation.ExpectFunction(cb, true);
 
-		me.RemoveAllChildren(true); // True to dispose objects
 		preSelected = {};
+
+		if (dataLoading === true || nodesLoading > 0)
+		{
+			// Data is currently loading - postpone by adding request to process queue
+			onDataLoaded(function() { me.Reload(cb); });
+			return;
+		}
+
+		dataLoading = true;
 
 		getData(null, function(node, eventArgs)
 		{
+			me.RemoveAllChildren(true); // True to dispose objects
+			
 			Fit.Array.ForEach(eventArgs.Children, function(jsonChild)
 			{
 				me.AddChild(createNodeFromJson(jsonChild));
 			});
 
+			dataLoading = false;
+
 			if (Fit.Validation.IsSet(cb) === true)
 			{
 				cb(me); // Fires when nodes are populated (above), but before OnPopulated is fired by getData(..)
 			}
+
+			fireOnDataLoadedAndPopulated();
 		});
 
 		loadDataOnInit = false;
+	}
+
+	/// <function container="Fit.Controls.WSTreeView" name="EnsureData" access="public">
+	/// 	<description>
+	/// 		Ensure all data from WebService.
+	/// 		Contrary to Reload(..), this function does not clear selected
+	/// 		values, or remove nodes already loaded - it merely loads data
+	/// 		not already loaded.
+	/// 	</description>
+	/// 	<param name="callback" type="function" default="undefined">
+	/// 		If defined, callback function is invoked when all nodes have been loaded
+	/// 		and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
+	/// 	</param>
+	/// </function>
+	this.EnsureData = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb, true);
+
+		if (dataLoading === true || nodesLoading > 0)
+		{
+			// Data is currently loading - postpone by adding request to process queue
+			onDataLoaded(function() { me.EnsureData(cb); });
+			return;
+		}
+
+		var exec = function()
+		{
+			dataLoading = true;
+
+			recursivelyLoadAllNodes(null, function() // Fired when all nodes have been loaded
+			{
+				dataLoading = false;
+
+				if (Fit.Validation.IsSet(cb) === true)
+				{
+					cb(me);
+				}
+
+				fireOnDataLoadedAndPopulated();
+			});
+		};
+
+		if (loadDataOnInit === true) // No data loaded yet
+		{
+			var selected = me.Selected(); // Save selection which is cleared when Reload() is called
+			me.Reload(function(sender) // Will change loadDataOnInit to False
+			{
+				exec();
+			});
+			me.Selected(selected); // Restore selection
+		}
+		else // Data already (partially) loaded - often just the root nodes
+		{
+			exec();
+		}
+	}
+
+	// See documentation on TreeView
+	this.ExpandAll = function(maxDepth)
+	{
+		Fit.Validation.ExpectInteger(maxDepth, true);
+		setExpandedStateForAllNodes(1, maxDepth);
+	}
+
+	// See documentation on TreeView
+	this.CollapseAll = function(maxDepth)
+	{
+		Fit.Validation.ExpectInteger(maxDepth, true);
+		setExpandedStateForAllNodes(0, maxDepth);
 	}
 
 	// See documentation on ControlBase
@@ -563,7 +829,6 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 	</description>
 	/// 	<param name="val" type="Fit.Controls.TreeViewNode[]" default="undefined"> If defined, provided nodes are selected </param>
 	/// </function>
-	var baseSelected = me.Selected; // Used by Selected(..), Value(), and SetSelections(..)
 	this.Selected = function(val)
 	{
 		Fit.Validation.ExpectArray(val, true);
@@ -668,7 +933,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	// See documentation on ControlBase
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		me = url = jsonpCallback = preSelected = orgSelected = loadDataOnInit = onRequestHandlers = onResponseHandlers = onPopulatedHandlers = baseRender = baseSelected = null;
+		me = url = jsonpCallback = preSelected = orgSelected = loadDataOnInit = dataLoading = nodesLoading = recursiveNodeLoadCount = onDataLoadedCallback = onRequestHandlers = onResponseHandlers = onPopulatedHandlers = baseSelected = expandCollapseAllMode = expandCollapseAllMaxDepth = null;
 
 		base();
 	});
@@ -1007,6 +1272,27 @@ Fit.Controls.WSTreeView = function(ctlId)
 		return true;
 	}
 
+	function onDataLoaded(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onDataLoadedCallback, cb);
+	}
+
+	function fireOnDataLoadedAndPopulated()
+	{
+		// Immediately clear collection. If multiple callbacks are registered,
+		// chances are that only the first will run, and the remaining will be
+		// re-scheduled again - so we need the collection to be cleared before
+		// invoking callbacks.
+		var orgOnDataLoadedCallback = onDataLoadedCallback;
+		onDataLoadedCallback = [];
+
+		Fit.Array.ForEach(orgOnDataLoadedCallback, function(cb)
+		{
+			cb();
+		});
+	}
+
 	function createNodeFromJson(jsonNode)
 	{
 		Fit.Validation.ExpectIsSet(jsonNode);
@@ -1100,6 +1386,202 @@ Fit.Controls.WSTreeView = function(ctlId)
 		});
 
 		return fullyLoaded;
+	}
+
+	// Loads node data and returns True if data is being loaded, False if no data needs to be loaded.
+	// Does not load nodes recursively! Use recursivelyLoadAllNodes(..) for that!
+	function loadNodeData(node, cb) // Populated node is passed to callback
+	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
+		Fit.Validation.ExpectFunction(cb, true);
+
+		if (node.GetDomElement()._internal.WSDone === true)
+		{
+			return false; // Data has already been loaded
+		}
+
+		if (node.GetDomElement()._internal.WSHasChildren === false)
+		{
+			return false; // No remote children to load
+		}
+
+		// Get data
+
+		var canceled = !getData(node, function(n, eventArgs) // Callback fired when data is ready
+		{
+			// Remove place holder child which served the purpose of making the node expandable
+
+			var expanderNode = node.GetChild("__");
+
+			if (expanderNode !== null) // Does not exist if node was partially pre-populated server side
+			{
+				node.RemoveChild(expanderNode);
+			}
+
+			// Populate node
+
+			Fit.Array.ForEach(eventArgs.Children, function(c)
+			{
+				node.AddChild(createNodeFromJson(c));
+			});
+
+			node.GetDomElement()._internal.WSDone = true;
+
+			// Invoke callback
+
+			if (Fit.Validation.IsSet(cb) === true)
+			{
+				cb(node);
+			}
+		});
+		
+		return canceled === false;
+	}
+
+	// Load all children for given node recursively.
+	// No arguments are passed to cbComplete - populated node is passed to cbProgress.
+	function recursivelyLoadAllNodes(targetNode, cbComplete, cbProgress, isSubCall)
+	{
+		Fit.Validation.ExpectInstance(targetNode, Fit.Controls.TreeViewNode, true);
+		Fit.Validation.ExpectFunction(cbComplete, true);
+		Fit.Validation.ExpectFunction(cbProgress, true);
+		Fit.Validation.ExpectBoolean(isSubCall, true);
+
+		if (isSubCall !== true)
+		{
+			recursiveNodeLoadCount = 0;
+		}
+
+		var nodes = null;
+		
+		if (targetNode === null)
+		{
+			nodes = me.GetChildren();
+		}
+		else
+		{
+			nodes = targetNode.GetChildren();
+		}
+
+		var anythingToLoad = false;
+
+		Fit.Array.ForEach(nodes, function(node)
+		{
+			var dataStartedLoading = loadNodeData(node, function(n) // True if node has remote children that will be loaded, False if no remote children is available to be loaded
+			{
+				if (Fit.Validation.IsSet(cbProgress) === true)
+				{
+					cbProgress(n);
+				}
+
+				recursiveNodeLoadCount--;
+
+				recursivelyLoadAllNodes(node, cbComplete, cbProgress, true);
+
+				if (recursiveNodeLoadCount === 0)
+				{
+					if (Fit.Validation.IsSet(cbComplete) === true)
+					{
+						cbComplete();
+					}
+				}
+			});
+
+			if (dataStartedLoading === true)
+			{
+				anythingToLoad = true;
+				recursiveNodeLoadCount++;
+			}
+			else
+			{
+				// No remote children to load, but node may have existing children that could have remote children
+
+				if (Fit.Validation.IsSet(cbProgress) === true)
+				{
+					cbProgress(node);
+				}
+
+				if (recursivelyLoadAllNodes(node, cbComplete, cbProgress, true) === true)
+				{
+					anythingToLoad = true;
+				}
+			}
+		});
+
+		if (isSubCall !== true && anythingToLoad === false && Fit.Validation.IsSet(cbComplete) === true)
+		{
+			cbComplete();
+		}
+
+		return anythingToLoad;
+	}
+
+	// Progressively expand nodes. Nodes containing remote children will keep
+	// expanding when nodes are loaded and populated, which is handled by
+	// an OnToggle handler registered in init().
+	function setExpandedStateForAllNodes(expandMode, maxDepth)
+	{
+		Fit.Validation.ExpectInteger(expandMode); // 0 = Collapse, 1 = Expand
+		Fit.Validation.ExpectInteger(maxDepth, true);
+
+		if (dataLoading === true || nodesLoading > 0)
+		{
+			// Data is currently loading - postpone by adding request to process queue.
+			// This also applies when collapsing nodes, since the operation currently loading
+			// data may be ExpandAll or SelectAll (which also expand nodes), which should be allowed
+			// to finish first.
+			onDataLoaded(function() { setExpandedStateForAllNodes(expandMode, maxDepth); });
+			return;
+		}
+
+		// Save state to allow operation to be resumed as nodes are progressively
+		// loaded and populated. State is used in OnPopulated handler registered in init().
+
+		expandCollapseAllMode = -1;
+		expandCollapseAllMaxDepth = 99999;
+
+		if (Fit.Validation.IsSet(maxDepth) === true)
+		{
+			if (maxDepth < 1)
+				return;
+
+			expandCollapseAllMaxDepth = maxDepth;
+		}
+
+		expandCollapseAllMode = expandMode;
+
+		// Load data and start expanding/collapsing
+
+		if (loadDataOnInit === true && expandCollapseAllMode === 1)
+		{
+			var selected = me.Selected();
+			me.Reload(function(sender)
+			{
+				expandCollapseNodesRecursively(me.GetChildren(), expandCollapseAllMode, expandCollapseAllMaxDepth);
+			});
+			me.Selected(selected);
+		}
+		else // Data already loaded
+		{
+			expandCollapseNodesRecursively(me.GetChildren(), expandCollapseAllMode, expandCollapseAllMaxDepth);
+		}
+	}
+
+	function expandCollapseNodesRecursively(nodes, expandCollapseMode, maxDepth)
+	{
+		Fit.Validation.ExpectInstanceArray(nodes, Fit.Controls.TreeViewNode);
+		Fit.Validation.ExpectInteger(expandCollapseMode);
+		Fit.Validation.ExpectInteger(maxDepth);
+
+		Fit.Array.CustomRecurse(nodes, function(node)
+		{
+			if (expandCollapseMode === 1)
+				node.Expanded(true);
+			else if (expandCollapseMode === 0)
+				node.Expanded(false);
+			
+			return (node.GetLevel() + 1 < maxDepth ? node.GetChildren() : null);
+		});
 	}
 
 	function fireEventHandlers(handlers, eventArgs)
