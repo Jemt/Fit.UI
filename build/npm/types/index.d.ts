@@ -137,19 +137,19 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys (property names) in object
-		* @function GetKeys
-		* @param {any} obj - Object to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(obj:any):any[];
-		/**
 		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
 		* @function GetKeys
 		* @param {any[]} arr - Array to get keys from
 		* @returns any[]
 		*/
 		public static GetKeys(arr:any[]):any[];
+		/**
+		* Returns all keys (property names) in object
+		* @function GetKeys
+		* @param {any} obj - Object to get keys from
+		* @returns any[]
+		*/
+		public static GetKeys(obj:any):any[];
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -1922,6 +1922,25 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public TextSelectionMode(val?:boolean, cb?:Function):boolean;
+			/**
+			* Update title of selected items based on data in associated picker control.
+			An array of updated items are returned. Each object has the following properties:
+			- Title: string (Updated title)
+			- Value: string (Unique item value)
+			- Exists: boolean (True if item still exists, False if not)
+			This is useful if selections are stored in a database, and
+			available items may have their titles changed over time. Invoking
+			this function will ensure that the selection displayed to the user
+			reflects the actual state of data in the picker control. Be aware
+			that this function can only update selected items if a picker has been
+			associated (see SetPicker(..)), and it contains the data from which
+			selected items are to be updated.
+			Items that no longer exists in picker&#39;s data will not automatically
+			be removed.
+			* @function UpdateSelected
+			* @returns any[]
+			*/
+			public UpdateSelected():any[];
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -2812,6 +2831,17 @@ declare namespace Fit
 			public GetDomElement():HTMLElement;
 			/**
 			* Overridden by control developers (optional).
+			Host control may invoke this function, for instance to update the title of selected items,
+			to make sure these properly reflect the state of data displayed in the picker.
+			Function returns Null when not implemented or when an item is not found. If found, an object
+			with the following signature is returned: { Title: string, Value: string }.
+			* @function GetItemByValue
+			* @param {string} val - Value of item to retrieve
+			* @returns any
+			*/
+			public GetItemByValue(val:string):any;
+			/**
+			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
 			picker control to handle keyboard navigation with keys such as
 			arrow up/down/left/right, enter, space, etc.
@@ -2975,6 +3005,17 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
+			/**
+			* Overridden by control developers (optional).
+			Host control may invoke this function, for instance to update the title of selected items,
+			to make sure these properly reflect the state of data displayed in the picker.
+			Function returns Null when not implemented or when an item is not found. If found, an object
+			with the following signature is returned: { Title: string, Value: string }.
+			* @function GetItemByValue
+			* @param {string} val - Value of item to retrieve
+			* @returns any
+			*/
+			public GetItemByValue(val:string):any;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -3201,12 +3242,24 @@ declare namespace Fit
 			*/
 			public Clear(preserveNonSelectable?:boolean):void;
 			/**
+			* Collapse all nodes, optionally to a maximum depth
+			* @function CollapseAll
+			* @param {number} [maxDepth=undefined] - Optional maximum depth to collapse nodes
+			*/
+			public CollapseAll(maxDepth?:number):void;
+			/**
 			* Get/set instance of ContextMenu control triggered when right clicking nodes in TreeView
 			* @function ContextMenu
 			* @param {(Fit.Controls.ContextMenu|null)} contextMenu - If defined, assignes ContextMenu control to TreeView
 			* @returns Fit.Controls.ContextMenu
 			*/
 			public ContextMenu(contextMenu:Fit.Controls.ContextMenu | null):Fit.Controls.ContextMenu;
+			/**
+			* Expand all nodes, optionally to a maximum depth
+			* @function ExpandAll
+			* @param {number} [maxDepth=undefined] - Optional maximum depth to expand nodes
+			*/
+			public ExpandAll(maxDepth?:number):void;
 			/**
 			* Get all nodes across all children and their children, in a flat structure
 			* @function GetAllNodes
@@ -3389,6 +3442,17 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
+			/**
+			* Overridden by control developers (optional).
+			Host control may invoke this function, for instance to update the title of selected items,
+			to make sure these properly reflect the state of data displayed in the picker.
+			Function returns Null when not implemented or when an item is not found. If found, an object
+			with the following signature is returned: { Title: string, Value: string }.
+			* @function GetItemByValue
+			* @param {string} val - Value of item to retrieve
+			* @returns any
+			*/
+			public GetItemByValue(val:string):any;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -4008,6 +4072,22 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.WSDropDown
 			/**
+			* Automatically update title of selected items based on data from WebService.
+			Contrary to UpdateSelected(), AutoUpdateSelected() automatically loads all
+			data from the associated WebService before updating the selected items.
+			The callback function is invoked when selected items have been updated.
+			The following arguments are passed to function:
+			- Sender (WSDropDown)
+			- An array of updated items, each with a Title (string), Value (string), and Exists (boolean) property.
+			Notice that items that no longer exists in picker&#39;s data, will NOT automatically be removed.
+			To obtain all items with the most current state (both updated and unmodified selections), use;
+			dropdown.AutoUpdateSelected(function(sender, updated) { console.log(&quot;All selected&quot;, dropdown.GetSelections); });
+			For additiona details see UpdateSelected().
+			* @function AutoUpdateSelected
+			* @param {Function} [cb=undefined] - Optional callback function invoked when selected items have been updated
+			*/
+			public AutoUpdateSelected(cb?:Function):void;
+			/**
 			* Get WSListView control used to display data in a flat list view
 			* @function GetListView
 			* @returns Fit.Controls.WSListView
@@ -4276,6 +4356,25 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public TextSelectionMode(val?:boolean, cb?:Function):boolean;
+			/**
+			* Update title of selected items based on data in associated picker control.
+			An array of updated items are returned. Each object has the following properties:
+			- Title: string (Updated title)
+			- Value: string (Unique item value)
+			- Exists: boolean (True if item still exists, False if not)
+			This is useful if selections are stored in a database, and
+			available items may have their titles changed over time. Invoking
+			this function will ensure that the selection displayed to the user
+			reflects the actual state of data in the picker control. Be aware
+			that this function can only update selected items if a picker has been
+			associated (see SetPicker(..)), and it contains the data from which
+			selected items are to be updated.
+			Items that no longer exists in picker&#39;s data will not automatically
+			be removed.
+			* @function UpdateSelected
+			* @returns any[]
+			*/
+			public UpdateSelected():any[];
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -4537,8 +4636,10 @@ declare namespace Fit
 			/**
 			* Load/reload data from WebService
 			* @function Reload
+			* @param {Function} [cb=undefined] - If defined, callback function is invoked when data has been loaded
+			and populated - takes Sender (Fit.Controls.WSListView) as an argument.
 			*/
-			public Reload():void;
+			public Reload(cb?:Function):void;
 			/**
 			* Get/set URL to WebService responsible for providing data to control.
 			WebService must deliver data in the following JSON format:
@@ -4606,6 +4707,17 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
+			/**
+			* Overridden by control developers (optional).
+			Host control may invoke this function, for instance to update the title of selected items,
+			to make sure these properly reflect the state of data displayed in the picker.
+			Function returns Null when not implemented or when an item is not found. If found, an object
+			with the following signature is returned: { Title: string, Value: string }.
+			* @function GetItemByValue
+			* @param {string} val - Value of item to retrieve
+			* @returns any
+			*/
+			public GetItemByValue(val:string):any;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -4748,13 +4860,23 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.WSTreeView
 			/**
+			* Ensure all data from WebService.
+			Contrary to Reload(..), this function does not clear selected
+			values, or remove nodes already loaded - it merely loads data
+			not already loaded.
+			* @function EnsureData
+			* @param {Function} [callback=undefined] - If defined, callback function is invoked when all nodes have been loaded
+			and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
+			*/
+			public EnsureData(callback?:Function):void;
+			/**
 			* Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
 			Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
 			* @function JsonpCallback
-			* @param {string} [val=undefined] - If defined, enables JSONP and updates JSONP callback argument
+			* @param {(string|null)} [val=undefined] - If defined, enables JSONP and updates JSONP callback argument
 			* @returns string
 			*/
-			public JsonpCallback(val?:string):string;
+			public JsonpCallback(val?:string | null):string;
 			/**
 			* Add event handler fired if data request is canceled.
 			Function receives two arguments:
@@ -4891,12 +5013,24 @@ declare namespace Fit
 			*/
 			public Clear(preserveNonSelectable?:boolean):void;
 			/**
+			* Collapse all nodes, optionally to a maximum depth
+			* @function CollapseAll
+			* @param {number} [maxDepth=undefined] - Optional maximum depth to collapse nodes
+			*/
+			public CollapseAll(maxDepth?:number):void;
+			/**
 			* Get/set instance of ContextMenu control triggered when right clicking nodes in TreeView
 			* @function ContextMenu
 			* @param {(Fit.Controls.ContextMenu|null)} contextMenu - If defined, assignes ContextMenu control to TreeView
 			* @returns Fit.Controls.ContextMenu
 			*/
 			public ContextMenu(contextMenu:Fit.Controls.ContextMenu | null):Fit.Controls.ContextMenu;
+			/**
+			* Expand all nodes, optionally to a maximum depth
+			* @function ExpandAll
+			* @param {number} [maxDepth=undefined] - Optional maximum depth to expand nodes
+			*/
+			public ExpandAll(maxDepth?:number):void;
 			/**
 			* Get all nodes across all children and their children, in a flat structure
 			* @function GetAllNodes
@@ -5073,6 +5207,17 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
+			/**
+			* Overridden by control developers (optional).
+			Host control may invoke this function, for instance to update the title of selected items,
+			to make sure these properly reflect the state of data displayed in the picker.
+			Function returns Null when not implemented or when an item is not found. If found, an object
+			with the following signature is returned: { Title: string, Value: string }.
+			* @function GetItemByValue
+			* @param {string} val - Value of item to retrieve
+			* @returns any
+			*/
+			public GetItemByValue(val:string):any;
 			/**
 			* Overridden by control developers (optional).
 			Host control dispatches keyboard events to this function to allow
@@ -5973,21 +6118,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -6053,6 +6198,14 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6064,18 +6217,16 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
@@ -6084,12 +6235,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
