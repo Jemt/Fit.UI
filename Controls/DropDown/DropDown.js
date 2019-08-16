@@ -656,7 +656,7 @@ Fit.Controls.DropDown = function(ctlId)
 	this.SetPicker = function(pickerControl)
 	{
 		Fit.Validation.ExpectInstance(pickerControl, Fit.Controls.PickerBase, true);
-
+		
 		// Remove existing picker
 
 		if (picker !== null)
@@ -705,7 +705,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			if (suppressOnItemSelectionChanged === true)
 				return; // Skip - already processing OnItemSelectionChanged - may be invoked multiple times if e.g. switching selection in Single Selection Mode (existing item removed + new item selected)
-
+			
 			var txt = null;
 
 			// Prevent this.AddSelection and this.RemoveSelection from calling
@@ -1242,6 +1242,54 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		fireOnChange();
+	}
+
+	/// <function container="Fit.Controls.DropDown" name="UpdateSelected" access="public" returns="object[]">
+	/// 	<description>
+	/// 		Update title of selected items based on data in associated picker control.
+	/// 		An array of updated items are returned. Each object has the following properties:
+	/// 		 - Title: string (Updated title)
+	/// 		 - Value: string (Unique item value)
+	/// 		 - Exists: boolean (True if item still exists, False if not)
+	/// 		This is useful if selections are stored in a database, and
+	/// 		available items may have their titles changed over time. Invoking
+	/// 		this function will ensure that the selection displayed to the user
+	/// 		reflects the actual state of data in the picker control. Be aware
+	/// 		that this function can only update selected items if a picker has been
+	/// 		associated (see SetPicker(..)), and it contains the data from which
+	/// 		selected items are to be updated.
+	/// 		Items that no longer exists in picker's data will not automatically
+	/// 		be removed.
+	/// 	</description>
+	/// </function>
+	this.UpdateSelected = function()
+	{
+		if (me.GetPicker() === null)
+		{
+			return [];
+		}
+
+		var updated = [];
+		var selections = me.GetSelections();
+
+		Fit.Array.ForEach(selections, function(selected)
+		{
+			var pickerItem = me.GetPicker().GetItemByValue(selected.Value);
+
+			if (pickerItem !== null)
+			{
+				var elm = getSelectionElementByValue(selected.Value);
+				elm.childNodes[0].nodeValue = Fit.String.StripHtml(pickerItem.Title);
+				
+				Fit.Array.Add(updated, { Title: pickerItem.Title, Value: selected.Value, Exists: true });
+			}
+			else
+			{
+				Fit.Array.Add(updated, { Title: selected.Title, Value: selected.Value, Exists: false });
+			}
+		});
+
+		return updated;
 	}
 
 	// Controlling input field
@@ -1876,6 +1924,12 @@ Fit.Controls.DropDown = function(ctlId)
 	function getSelectionElements() // Return spans containing Title and Value (also include elements marked as invalid selections)
 	{
 		return itemContainer.querySelectorAll("span[data-value]");
+	}
+
+	function getSelectionElementByValue(value)
+	{
+		Fit.Validation.ExpectString(value);
+		return itemContainer.querySelector("span[data-value='" + encode(value) + "']");
 	}
 
 	function fitWidthToContent(input, val) // Set width of input field equivalent to its content
