@@ -15,6 +15,8 @@ Fit.Controls.WSContextMenu = function(controlId)
 	var me = this;
 	var url = null;
 	var jsonpCallback = null;
+	var dataLoading = false;
+	var onDataLoadedCallback = [];
 
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
@@ -40,12 +42,21 @@ Fit.Controls.WSContextMenu = function(controlId)
 		Fit.Validation.ExpectInteger(x, true);
 		Fit.Validation.ExpectInteger(y, true);
 
+		if (dataLoading === true)
+		{
+			// Data is currently loading - postpone by adding request to process queue
+			onDataLoaded(function() { me.Show(x, y); });
+			return;
+		}
+
 		// Fire OnShowing event
 
 		if (me._internal.ExecuteBeforeShowBehaviour() === false)
 			return;
 
 		// Load data
+
+		dataLoading = true;
 
 		getData(function(eventArgs)
 		{
@@ -61,6 +72,11 @@ Fit.Controls.WSContextMenu = function(controlId)
 			// Show context menu
 
 			me._internal.ExecuteShowBehaviour(x, y);
+
+			// Invoke onDataLoaded callbacks
+
+			dataLoading = false;
+			fireOnDataLoaded();
 		});
 	}
 
@@ -269,6 +285,28 @@ Fit.Controls.WSContextMenu = function(controlId)
 		// Invoke request
 
 		request.Start();
+	}
+
+	function onDataLoaded(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onDataLoadedCallback, cb);
+	}
+
+	function fireOnDataLoaded()
+	{
+		// Copied from WSTreeView.
+		// Immediately clear collection. If multiple callbacks are registered,
+		// chances are that only the first will run, and the remaining will be
+		// re-scheduled again - so we need the collection to be cleared before
+		// invoking callbacks.
+		var orgOnDataLoadedCallback = onDataLoadedCallback;
+		onDataLoadedCallback = [];
+
+		Fit.Array.ForEach(orgOnDataLoadedCallback, function(cb)
+		{
+			cb();
+		});
 	}
 
 	function createItemFromJson(jsonNode)

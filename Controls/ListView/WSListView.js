@@ -15,6 +15,8 @@ Fit.Controls.WSListView = function(ctlId)
 	var me = this;
 	var url = null;
 	var jsonpCallback = null;
+	var dataLoading = false;
+	var onDataLoadedCallback = [];
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
 	var onAbortHandlers = [];
@@ -75,10 +77,35 @@ Fit.Controls.WSListView = function(ctlId)
 
 	/// <function container="Fit.Controls.WSListView" name="Reload" access="public">
 	/// 	<description> Load/reload data from WebService </description>
+	/// 	<param name="cb" type="function" default="undefined">
+	/// 		If defined, callback function is invoked when data has been loaded
+	/// 		and populated - takes Sender (Fit.Controls.WSListView) as an argument.
+	/// 	</param>
 	/// </function>
-	this.Reload = function()
+	this.Reload = function(cb)
 	{
-		getData();
+		Fit.Validation.ExpectFunction(cb, true);
+
+		if (dataLoading === true)
+		{
+			// Data is currently loading - postpone by adding request to process queue
+			onDataLoaded(function() { me.Reload(cb); });
+			return;
+		}
+
+		dataLoading = true;
+
+		getData(function() // Callback is invoked when nodes are populated, but before OnPopulated is fired by getData(..)
+		{
+			dataLoading = false;
+
+			if (Fit.Validation.IsSet(cb) === true)
+			{
+				cb(me);
+			}
+
+			fireOnDataLoaded();
+		});
 	}
 
 	// See documentation on PickerBase
@@ -86,7 +113,7 @@ Fit.Controls.WSListView = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
-		me = url = jsonpCallback = onRequestHandlers = onResponseHandlers = onAbortHandlers = onPopulatedHandlers = null;
+		me = url = jsonpCallback = dataLoading = onDataLoadedCallback = onRequestHandlers = onResponseHandlers = onAbortHandlers = onPopulatedHandlers = null;
 		base();
 	});
 
@@ -171,8 +198,10 @@ Fit.Controls.WSListView = function(ctlId)
 	// Private
 	// ============================================
 
-	function getData()
+	function getData(cb)
 	{
+		Fit.Validation.ExpectFunction(cb, true);
+
 		if (url === null)
 			Fit.Validation.ThrowError("Unable to get data, no WebService URL has been specified");
 
@@ -224,6 +253,13 @@ Fit.Controls.WSListView = function(ctlId)
 			{
 				populate(item);
 			});
+
+			// Invoke callback
+
+			if (Fit.Validation.IsSet(cb) === true)
+			{
+				cb();
+			}
 
 			// Fire OnPopulated
 
@@ -277,6 +313,28 @@ Fit.Controls.WSListView = function(ctlId)
 		// Invoke request
 
 		request.Start();
+	}
+
+	function onDataLoaded(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onDataLoadedCallback, cb);
+	}
+
+	function fireOnDataLoaded()
+	{
+		// Copied from WSTreeView.
+		// Immediately clear collection. If multiple callbacks are registered,
+		// chances are that only the first will run, and the remaining will be
+		// re-scheduled again - so we need the collection to be cleared before
+		// invoking callbacks.
+		var orgOnDataLoadedCallback = onDataLoadedCallback;
+		onDataLoadedCallback = [];
+
+		Fit.Array.ForEach(orgOnDataLoadedCallback, function(cb)
+		{
+			cb();
+		});
 	}
 
 	function populate(jsonItem)

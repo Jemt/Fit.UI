@@ -232,7 +232,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		{
 			// Data is currently loading - postpone by adding request to process queue
 			onDataLoaded(function() { me.AutoUpdateSelected(cb); });
-			return false;
+			return;
 		}
 
 		if (autoUpdatedSelections !== null)
