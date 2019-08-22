@@ -19,7 +19,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	var search = "";
 	var forceNewSearch = false;
-	var dataLoading = false;
+	var hideLinesForFlatData = true;
+	var dataRequested = false;		// Flag indicating whether TreeView data has been requested or not - determines whether a call to ensureTreeViewData() actually loads data or not
+	var dataLoading = false;		// Flag indicating whether TreeView data is currently being loaded by WSDropDown internals (awaiting response) - will not be True when user expand nodes to load children, or when invoking e.g. dd.GetTreeView.Reload()
+	var requestCount = 0;			// Counter to keep track of nodes for which data is currently being loaded, no matter how it was being loaded (via WSDropDown internals, programmatically on WSTreeView from external code, or by user expanding nodes)
 	var onDataLoadedCallback = [];
 	var suppressTreeOnOpen = false;
 	var timeOut = null;
@@ -93,9 +96,6 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		// Create TreeView
 
-		var initialLoad = true;
-		var dataRequested = false;
-		var requestCount = 0;
 
 		tree = new Fit.Controls.WSTreeView(ctlId + "__WSTreeView");
 		tree.Selectable(true); // Make nodes selectable by default when added
@@ -126,6 +126,17 @@ Fit.Controls.WSDropDown = function(ctlId)
 			if (requestCount === 0)
 			{
 				cmdOpen.className = classes;
+
+				// Make sure to fire internal OnDataLoaded event in case a WebService operation
+				// was invoked on DropDown while WSTreeView was loading data, e.g. triggered by
+				// a user interaction such as expanding a node.
+				// DropDown takes care of firing internal event OnDataLoaded if dataLoading is True,
+				// in which case DropDown triggered the initial WebService operation and knows when
+				// it has finished.
+				if (dataLoading === false)
+				{
+					fireOnDataLoaded();
+				}
 			}
 		});
 		tree.OnAbort(function(sender, eventArgs)
@@ -137,11 +148,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 			if (requestCount === 0)
 			{
 				cmdOpen.className = classes;
+
+				if (dataLoading === false) // See comment to related code in OnResponse handler above
+				{
+					fireOnDataLoaded();
+				}
 			}
 		});
 		tree.OnPopulated(function(sender, eventArgs)
 		{
-			if (initialLoad === true)
+			if (hideLinesForFlatData === true && tree.Lines() === true) // Lines are off by default but might have been enabled like so: dd.GetTreeView().Lines(true)
 			{
 				// Disable helper lines if no children are contained
 
@@ -162,7 +178,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 					//tree.GetDomElement().style.marginLeft = "-2em";
 				}
 
-				initialLoad = false;
+				hideLinesForFlatData = false;
 			}
 		});
 		tree.OnSelectAll(function(sender, eventArgs)
@@ -186,19 +202,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			}
 
 			me.SetPicker(tree);
-
-			if (dataRequested === false)
-			{
-				dataLoading = true;
-
-				var selected = tree.Selected(); // Save selection which is cleared when Reload() is called
-				tree.Reload(function(sender)
-				{
-					dataLoading = false;
-					fireOnDataLoaded();
-				});
-				tree.Selected(selected); // Restore selection
-			}
+			ensureTreeViewData();
 		});
 	}
 
@@ -228,7 +232,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	{
 		Fit.Validation.ExpectFunction(cb, true);
 
-		if (dataLoading === true && autoUpdatedSelections === null)
+		if (requestCount > 0)
 		{
 			// Data is currently loading - postpone by adding request to process queue
 			onDataLoaded(function() { me.AutoUpdateSelected(cb); });
@@ -239,7 +243,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		{
 			if (Fit.Validation.IsSet(cb) === true)
 			{
-				cb(me, autoUpdatedSelections);
+				cb(me, Fit.Array.Copy(autoUpdatedSelections)); // Copy to prevent changes to internal array
 			}
 
 			return;
@@ -247,24 +251,46 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		dataLoading = true;
 
-		tree.EnsureData(function(sender)
+		var ensure = function()
 		{
-			// Picker must be set when calling UpdateSelected() on
-			// DropDown from which WSDropDown inherits. Selected items
-			// are updated based on data loaded by the picker control.
-			me.SetPicker(tree);
-
-			autoUpdatedSelections = me.UpdateSelected();
-
-			dataLoading = false;
-
-			if (Fit.Validation.IsSet(cb) === true)
+			tree.EnsureData(function(sender)
 			{
-				cb(me, autoUpdatedSelections);
-			}
+				// Ensure all nodes in case only a subset is returned
+				// when requesting root nodes via tree.Reload(..)
 
-			fireOnDataLoaded();
-		});
+				// Picker must be set when calling UpdateSelected() on
+				// DropDown from which WSDropDown inherits. Selected items
+				// are updated based on data loaded by the picker control.
+				me.SetPicker(tree);
+
+				autoUpdatedSelections = me.UpdateSelected();
+
+				dataLoading = false;
+
+				if (Fit.Validation.IsSet(cb) === true)
+				{
+					cb(me, Fit.Array.Copy(autoUpdatedSelections)); // Copy to prevent changes to internal array
+				}
+
+				fireOnDataLoaded();
+			});
+		}
+
+		if (dataRequested === false)
+		{
+			// Notice that dataRequested may have been set to False in ClearData(..), which is why
+			// we first call Reload to fetch initial data, since it also discards any existing nodes.
+
+			tree.Reload(true, function(sender)
+			{
+				ensure(); // Get remaining nodes in case WebService did not return the entire hierarchy at once (Progressive Mode)
+			});
+		}
+		else
+		{
+			// Some data has already been loaded - make sure we get the rest
+			ensure();
+		}
 	}
 
 	/// <function container="Fit.Controls.WSDropDown" name="Url" access="public" returns="string">
@@ -314,6 +340,52 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return list.JsonpCallback();
 	}
 
+	/// <function container="Fit.Controls.WSDropDown" name="ClearData" access="public">
+	/// 	<description>
+	/// 		Call this function to make control reload data when needed,
+	/// 		ensuring that the user will see the most recent values available.
+	/// 		Operation may be postponed if data is currently loading from WebService.
+	/// 		Use callback to pick up execution once data has been cleared.
+	/// 		Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+	/// 	</description>
+	/// 	<param name="cb" type="function" default="undefined">
+	/// 		If defined, callback is invoked when data is cleared
+	/// 	</param>
+	/// </function>
+	this.ClearData = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb, true);
+		
+		// Postpone if WebService operation is currently running
+
+		if (requestCount > 0)
+		{
+			// Data is currently loading - postpone by adding request to process queue
+			onDataLoaded(function() { me.ClearData(cb); });
+			return;
+		}
+
+		// Clear data/cache/state
+
+		hideLinesForFlatData = true;	// Make TreeView hide helper lines if nodes received have no children	
+		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
+		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
+
+		// Invoke callback
+
+		if (Fit.Validation.IsSet(cb) === true)
+		{
+			cb(me);
+		}
+
+		// Immediately load TreeView data if DropDown is open and TreeView is active picker
+
+		if (me.IsDropDownOpen() === true && me.GetPicker() === tree)
+		{
+			ensureTreeViewData(); // Will not load anything if callback above triggered data load, e.g. by calling AutoUpdateSelected(..)
+		}
+	}
+
 	/// <function container="Fit.Controls.WSDropDown" name="MultiSelectionMode" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether control allows for multiple selections simultaneously </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables support for multiple selections, False disables it </param>
@@ -355,7 +427,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		list.Destroy();
 		tree.Destroy();
 
-		me = list = tree = search = forceNewSearch = dataLoading = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -437,6 +509,28 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// ============================================
 	// Private
 	// ============================================
+
+	function ensureTreeViewData(/*cb*/)
+	{
+		//Fit.Validation.ExpectFunction(cb, true);
+
+		if (dataRequested === false)
+		{
+			dataLoading = true;
+
+			tree.Reload(true, function(sender)
+			{
+				dataLoading = false;
+
+				/*if (Fit.Validation.IsSet(cb) === true)
+				{
+					cb(me);
+				}*/
+
+				fireOnDataLoaded();
+			});
+		}
+	}
 
 	function searchData(value)
 	{
