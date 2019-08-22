@@ -4088,6 +4088,16 @@ declare namespace Fit
 			*/
 			public AutoUpdateSelected(cb?:Function):void;
 			/**
+			* Call this function to make control reload data when needed,
+			ensuring that the user will see the most recent values available.
+			Operation may be postponed if data is currently loading from WebService.
+			Use callback to pick up execution once data has been cleared.
+			Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+			* @function ClearData
+			* @param {Function} [cb=undefined] - If defined, callback is invoked when data is cleared
+			*/
+			public ClearData(cb?:Function):void;
+			/**
 			* Get WSListView control used to display data in a flat list view
 			* @function GetListView
 			* @returns Fit.Controls.WSListView
@@ -4892,6 +4902,8 @@ declare namespace Fit
 			public OnAbort(cb:Function):void;
 			/**
 			* Add event handler fired when TreeView has been populated with nodes.
+			Node is not populated and event is not fired though if node is disposed
+			or detached from TreeView while data is loading from WebService.
 			Function receives two arguments:
 			Sender (Fit.Controls.WSTreeView) and EventArgs object.
 			EventArgs object contains the following properties:
@@ -4931,16 +4943,13 @@ declare namespace Fit
 			*/
 			public OnResponse(cb:Function):void;
 			/**
-			* Reload data from WebService. This will clear any selections, which are not
-			restored. Use the approach below to restore selections after reload.
-			var selected = tree.Selected();
-			tree.Reload();
-			tree.Selected(selected);
+			* Reload data from WebService
 			* @function Reload
+			* @param {boolean} [keepSelections=undefined] - If defined, True will preserve selections, False will remove them (default)
 			* @param {Function} [cb=undefined] - If defined, callback function is invoked when root nodes have been loaded
 			and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
 			*/
-			public Reload(cb?:Function):void;
+			public Reload(keepSelections?:boolean, cb?:Function):void;
 			/**
 			* Get/set flag indicating whether WebService returns the complete hierarchy when
 			Select All is triggered (Instantly), or loads data for each level individually
@@ -6202,6 +6211,15 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
@@ -6212,15 +6230,6 @@ declare namespace Fit
 		* @param {number} eventId - Event ID identifying handler to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
