@@ -56,9 +56,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		{
 			if (loadDataOnInit === true)
 			{
-				var selected = me.Selected(); // Save selection which is cleared when Reload() is called
-				me.Reload();
-				me.Selected(selected); // Restore selection
+				me.Reload(true);
 			}
 
 			Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
@@ -134,8 +132,11 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 				nodesLoading--;
 
-				delete node.GetDomElement()._internal.WSLoading;
-				node.Expanded(true); // Unfortunately causes both OnToggle and OnToggled to be fired, although OnToggle has already been fired once (canceled below)
+				if (nodeDisposedOrDetached(node) === false)
+				{
+					delete node.GetDomElement()._internal.WSLoading;
+					node.Expanded(true); // Unfortunately causes both OnToggle and OnToggled to be fired, although OnToggle has already been fired once (canceled below)
+				}
 
 				if (nodesLoading === 0)
 				{
@@ -314,9 +315,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 			{
 				setTimeout(function() // Postpone call to Reload to allow SelectAll to fire all OnSelectAll listeners before requesting data, causing OnRequest to fire
 				{
-					var selected = me.Selected(); // Keep PreSelections (Reload(..) removes all selections))
-					me.Reload();
-					me.Selected(selected); // Restore selections
+					me.Reload(true);
 				}, 0);
 			}
 			else
@@ -570,7 +569,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				// queued requests, just like the implementation in Reload and EnsureData.
 				fireOnDataLoadedAndPopulated();
 			},
-			function(nodePopulated) // Fired for every node loaded
+			function(nodePopulated) // Fired for every node loaded, except if node has been disposed or detached while loading
 			{
 				nodePopulated.Expanded(true);
 			});
@@ -578,12 +577,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		if (loadDataOnInit === true) // No data loaded yet
 		{
-			var selected = me.Selected(); // Save selection which is cleared when Reload() is called
-			me.Reload(function(sender) // Will change loadDataOnInit to False
+			me.Reload(true, function(sender) // Will change loadDataOnInit to False
 			{
 				exec();
 			});
-			me.Selected(selected); // Restore selection
 		}
 		else // Data already (partially) loaded - often just the root nodes
 		{
@@ -592,10 +589,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 	});
 
 	// See documentation on TreeView
-	this.RemoveAllChildren = Fit.Core.CreateOverride(this.RemoveAllChildren, function()
+	this.RemoveAllChildren = Fit.Core.CreateOverride(this.RemoveAllChildren, function(dispose)
 	{
+		Fit.Validation.ExpectBoolean(dispose, true);
+
 		preSelected = {}; // Clear preselections to avoid auto selection of nodes added later
-		base();
+		base(dispose);
 	});
 
 	// See documentation on TreeView
@@ -605,7 +604,17 @@ Fit.Controls.WSTreeView = function(ctlId)
 		Fit.Validation.ExpectBoolean(multi, true);
 		Fit.Validation.ExpectBoolean(showSelAll, true);
 
-		preSelected = {}; // Clear preselections to ensure same behaviour as TreeView.Selectable(..) which clear selections - avoid auto selection if nodes are loaded later
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (Fit.Array.Count(preSelected) > 0)
+			{
+				// Help developers - it might be confusing that changing Selectable state also clears selection
+				Fit.Browser.Debug("WSTreeView: Selectable changed - PreSelections will be cleared");
+			}
+
+			preSelected = {}; // Clear preselections to ensure same behaviour as TreeView.Selectable(..) which clear selections - avoid auto selection if nodes are loaded later
+		}
+
 		return base(val, multi, showSelAll);
 	});
 
@@ -623,37 +632,89 @@ Fit.Controls.WSTreeView = function(ctlId)
 	});
 
 	/// <function container="Fit.Controls.WSTreeView" name="Reload" access="public">
-	/// 	<description>
-	/// 		Reload data from WebService. This will clear any selections, which are not
-	/// 		restored. Use the approach below to restore selections after reload.
-	/// 		var selected = tree.Selected();
-	/// 		tree.Reload();
-	/// 		tree.Selected(selected);
-	/// 	</description>
+	/// 	<description> Reload data from WebService </description>
+	/// 	<param name="keepSelections" type="boolean" default="undefined">
+	/// 		If defined, True will preserve selections, False will remove them (default)
+	/// 	</param>
 	/// 	<param name="cb" type="function" default="undefined">
 	/// 		If defined, callback function is invoked when root nodes have been loaded
 	/// 		and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
 	/// 	</param>
 	/// </function>
-	this.Reload = function(cb)
+	this.Reload = function(a, b) // Correct signature: Reload(boolean, function)
 	{
+		// Backward compatibility - temporary support for deprecated Reload signature: Reload([callback])
+
+		var keepSelections = undefined;
+		var cb = undefined;
+
+		if (typeof(a) === "boolean")
+		{
+			// Correct signature used: Reload([bool[, callback]])
+
+			keepSelections = a;
+			cb = b;
+		}
+		else if (typeof(a) === "function")
+		{
+			// Deprecated signature used: Reload([callback])
+
+			keepSelections = b;
+			cb = a;
+
+			Fit.Browser.Log("WARNING: Using deprecated function signature for WSTreeView.Reload(callback) which will be removed in the future - please use Reload(boolean, callback) instead");
+		}
+
+		// End of backward compatibility for deprecated Reload signature
+
+		Fit.Validation.ExpectBoolean(keepSelections, true);
 		Fit.Validation.ExpectFunction(cb, true);
 
-		preSelected = {};
+		// Postpone operation if currently loading data
 
 		if (dataLoading === true || nodesLoading > 0)
 		{
 			// Data is currently loading - postpone by adding request to process queue
-			onDataLoaded(function() { me.Reload(cb); });
+			onDataLoaded(function() { me.Reload(keepSelections, cb); });
 			return;
 		}
+
+		// Preserve selection if instructed to.
+		// Nodes will automatatically be selected again once data has been loaded.
+
+		var selected = me.Selected();
+		var newPreselection = {};
+
+		if (keepSelections === true)
+		{
+			Fit.Array.ForEach(selected, function(node)
+			{
+				newPreselection[node.Value()] = {Title: node.Title(), Value: node.Value()};
+			});
+		}
+
+		// Remove nodes - OnChange is not fire if selection is preserved (keepSelections)
+
+		me._internal.ExecuteWithNoOnChange(function()
+		{
+			me.RemoveAllChildren(true); // True to dispose objects - also clears selections, including preselections
+		});
+
+		preSelected = newPreselection;
+
+		// Fire OnChange if selection was cleared (not preserved above)
+
+		if (Fit.Array.Count(selected) > 0 && Fit.Array.Count(newPreselection) === 0)
+		{
+			me._internal.FireOnChange();
+		}
+
+		// Load data
 
 		dataLoading = true;
 
 		getData(null, function(node, eventArgs)
-		{
-			me.RemoveAllChildren(true); // True to dispose objects
-			
+		{	
 			Fit.Array.ForEach(eventArgs.Children, function(jsonChild)
 			{
 				me.AddChild(createNodeFromJson(jsonChild));
@@ -712,14 +773,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 			});
 		};
 
-		if (loadDataOnInit === true) // No data loaded yet
+		if (me.GetChildren().length === 0) // No nodes in TreeView - we check against node count instead of loadDataOnInit since we want to be able to re-ensure nodes in case they we initially loaded and later removed
 		{
-			var selected = me.Selected(); // Save selection which is cleared when Reload() is called
-			me.Reload(function(sender) // Will change loadDataOnInit to False
+			me.Reload(true, function(sender) // Will change loadDataOnInit to False
 			{
 				exec();
 			});
-			me.Selected(selected); // Restore selection
 		}
 		else // Data already (partially) loaded - often just the root nodes
 		{
@@ -831,7 +890,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// </function>
 	this.Selected = function(val)
 	{
-		Fit.Validation.ExpectArray(val, true);
+		Fit.Validation.ExpectInstanceArray(val, Fit.Controls.TreeViewNode, true);
 
 		// Setter
 
@@ -839,14 +898,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 		{
 			// Exclude nodes not belonging to TreeView - trying to select them
 			// will cause an error to be thrown from TreeView.Selected (base).
-			// Nodes excluded is added as preselections instead.
+			// Nodes excluded are added as preselections instead.
 
 			var toSelect = [];
 
 			Fit.Array.ForEach(val, function(n)
 			{
-				Fit.Validation.ExpectInstance(n, Fit.Controls.TreeViewNode);
-
 				var node = ((n.GetTreeView() === me) ? n : me.GetChild(n.Value(), true)); // Try GetChild(..) in case node was constructed, but with a value of an existing node
 
 				if (node !== null)
@@ -885,6 +942,13 @@ Fit.Controls.WSTreeView = function(ctlId)
 					fireOnChange = true;
 				}
 			});
+
+			// Fire OnChange
+
+			if (fireOnChange === true)
+			{
+				me._internal.FireOnChange();
+			}
 		}
 
 		// Getter
@@ -1089,6 +1153,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// <function container="Fit.Controls.WSTreeView" name="OnPopulated" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when TreeView has been populated with nodes.
+	/// 		Node is not populated and event is not fired though if node is disposed
+	/// 		or detached from TreeView while data is loading from WebService.
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.WSTreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
@@ -1163,6 +1229,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			// Fire getData callback
 
+			// WARNING: node might have been disposed - WebService communication is async!
 			cb(node, eventArgs); // Callback is responsible for populating TreeView
 
 			// Remove loading indicator
@@ -1175,7 +1242,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			// Select nodes found in preselections
 
-			if (Fit.Core.IsEqual(preSelected, {}) === false) // Prevent nodes from being iterated if no preselections are found
+			var hasBeenDisposedOrDetached = node !== null && nodeDisposedOrDetached(node);
+
+			if (hasBeenDisposedOrDetached === false && Fit.Core.IsEqual(preSelected, {}) === false) // Prevent nodes from being iterated if no preselections are found
 			{
 				// Notice: OnChange is not fired! It has already been fired when PreSelections were added.
 				// They are also included when e.g. WSTreeView.Value() is called to obtain current selections.
@@ -1194,9 +1263,21 @@ Fit.Controls.WSTreeView = function(ctlId)
 				});
 			}
 
-			// Fire OnPopulated
+			// Fire OnPopulated.
+			// Contrary to OnRequest, OnResponse, and OnAbort, OnPopulated does not
+			// fire if node has been disposed or detached, in which case WSTreeView
+			// will not have populated the node.
+			// OnRequest/OnResponse/OnAbort handlers can check whether a given node
+			// has been disposed or detached like this:
+			// var disposed = node.GetDomElement() === null;
+			// var detached = !disposed && node.GetTreeView() === null;
+			// var moved = !disposed && node.GetTreeView() !== myTreeViewInstance;
+			// var disposedOrDetached = node.GetDomElement() === null || node.GetTreeView() === null;
 
-			fireEventHandlers(onPopulatedHandlers, eventArgs);
+			if (hasBeenDisposedOrDetached === false)
+			{
+				fireEventHandlers(onPopulatedHandlers, eventArgs);
+			}
 		}
 
 		var onFailure = function(httpStatusCode)
@@ -1214,7 +1295,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			if (node !== null) // Null when requesting root nodes
 			{
-				delete node.GetDomElement()._internal.WSLoading;
+				if (nodeDisposedOrDetached(node) === false)
+				{
+					delete node.GetDomElement()._internal.WSLoading;
+				}
 			}
 
 			fireEventHandlers(onAbortHandlers, eventArgs);
@@ -1388,6 +1472,28 @@ Fit.Controls.WSTreeView = function(ctlId)
 		return fullyLoaded;
 	}
 
+	// Check whether a node has been disposed or detached from TreeView.
+	// We use this function when loading nodes async, to make sure the
+	// nodes are still in working order when data is received, which will
+	// not be the case for a node that has been disposed (destroyed).
+	// Also, a node that has been detached should no longer affect this
+	// TreeView instance.
+	function nodeDisposedOrDetached(node)
+	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
+		
+		// Return True if node is either disposed or no longer attached to TreeView.
+		// GetTreeView() returns Null if node has been removed from TreeView, or a
+		// TreeView instance different from this one, if attached to another TreeView.
+		// NOTICE: Moving a node currently being loaded will not work properly.
+		// It will not have its _internal state updated to reflect its proper
+		// state. If this is needed, search for calls to nodeDisposedOrDetached(..),
+		// and make sure the node is updated if only detached, but do NOT process
+		// it any further (e.g. expand it), nor let it affect state within the initial
+		// TreeView from which it was moved. And make sure to test it properly!
+		return node.GetDomElement() === null || node.GetTreeView() !== me;
+	}
+
 	// Loads node data and returns True if data is being loaded, False if no data needs to be loaded.
 	// Does not load nodes recursively! Use recursivelyLoadAllNodes(..) for that!
 	function loadNodeData(node, cb) // Populated node is passed to callback
@@ -1409,28 +1515,32 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		var canceled = !getData(node, function(n, eventArgs) // Callback fired when data is ready
 		{
-			// Remove place holder child which served the purpose of making the node expandable
-
-			var expanderNode = node.GetChild("__");
-
-			if (expanderNode !== null) // Does not exist if node was partially pre-populated server side
+			if (nodeDisposedOrDetached(node) === false)
 			{
-				node.RemoveChild(expanderNode);
+				// Remove place holder child which served the purpose of making the node expandable
+
+				var expanderNode = node.GetChild("__");
+
+				if (expanderNode !== null) // Does not exist if node was partially pre-populated server side
+				{
+					node.RemoveChild(expanderNode);
+				}
+
+				// Populate node
+
+				Fit.Array.ForEach(eventArgs.Children, function(c)
+				{
+					node.AddChild(createNodeFromJson(c));
+				});
+
+				node.GetDomElement()._internal.WSDone = true;
 			}
-
-			// Populate node
-
-			Fit.Array.ForEach(eventArgs.Children, function(c)
-			{
-				node.AddChild(createNodeFromJson(c));
-			});
-
-			node.GetDomElement()._internal.WSDone = true;
 
 			// Invoke callback
 
 			if (Fit.Validation.IsSet(cb) === true)
 			{
+				// WARNING: node might have been disposed - WebService communication is async!
 				cb(node);
 			}
 		});
@@ -1469,14 +1579,19 @@ Fit.Controls.WSTreeView = function(ctlId)
 		{
 			var dataStartedLoading = loadNodeData(node, function(n) // True if node has remote children that will be loaded, False if no remote children is available to be loaded
 			{
-				if (Fit.Validation.IsSet(cbProgress) === true)
+				var hasBeenDisposed = nodeDisposedOrDetached(node);
+
+				if (hasBeenDisposed === false && Fit.Validation.IsSet(cbProgress) === true)
 				{
-					cbProgress(n);
+					cbProgress(node);
 				}
 
 				recursiveNodeLoadCount--;
 
-				recursivelyLoadAllNodes(node, cbComplete, cbProgress, true);
+				if (hasBeenDisposed === false)
+				{
+					recursivelyLoadAllNodes(node, cbComplete, cbProgress, true);
+				}
 
 				if (recursiveNodeLoadCount === 0)
 				{
@@ -1554,12 +1669,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		if (loadDataOnInit === true && expandCollapseAllMode === 1)
 		{
-			var selected = me.Selected();
-			me.Reload(function(sender)
+			me.Reload(true, function(sender)
 			{
 				expandCollapseNodesRecursively(me.GetChildren(), expandCollapseAllMode, expandCollapseAllMaxDepth);
 			});
-			me.Selected(selected);
 		}
 		else // Data already loaded
 		{

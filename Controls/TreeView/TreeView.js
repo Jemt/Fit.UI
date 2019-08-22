@@ -459,6 +459,13 @@ Fit.Controls.TreeView = function(ctlId)
 			selected = createInternalCollection();
 
 			// Deselect all children and make sure they are configured identically
+
+			if (me.Value() !== "")
+			{
+				// Help developers - it might be confusing that changing Selectable state also clears selection
+				Fit.Browser.Debug("TreeView: Selectable changed - Selections will be cleared");
+			}
+
 			executeWithNoOnChange(function() // Prevent n.Selected(false) from firering OnChange event
 			{
 				executeRecursively(rootNode, function(n)
