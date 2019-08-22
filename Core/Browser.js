@@ -428,6 +428,12 @@ Fit.Browser.Log = function(msg) // msg not validated - any object or value (incl
 		console.log(msg);
 }
 
+Fit.Browser.Debug = function(msg) // msg not validated - any object or value (including null/undefined) can be logged
+{
+	if (window.console && Fit._internal.Validation.DebugMode === true)
+		console.log(msg);
+}
+
 /// <function container="Fit.Browser" name="LogDeprecated" access="public" static="true">
 /// 	<description> Log message about use of deprecated feature </description>
 /// 	<param name="msg" type="string"> Message to log </param>
