@@ -1,9 +1,9 @@
 {
   "name": "fit-ui",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "title": "Fit.UI",
   "description": "Object Oriented framework for building rich User Interfaces",
-  "main": "dist/Fit.UI.min.js",
+  "main": "dist/Fit.UI.js",
   "types": "types/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
