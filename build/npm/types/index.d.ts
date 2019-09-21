@@ -1662,7 +1662,17 @@ declare namespace Fit
 			*/
 			public Modal(val?:boolean):boolean;
 			/**
-			* Add event handler fired when dialog is being dismissed (closed).
+			* Add event handler fired when dialog is closed or dismissed.
+			Use this event to react to dialog being closed, no matter
+			the cause. Use OnDismiss event to detect when user closed it.
+			Action can be suppressed by returning False.
+			Function receives one argument: Sender (Fit.Controls.Dialog)
+			* @function OnClose
+			* @param {Function} cb - Event handler function
+			*/
+			public OnClose(cb:Function):void;
+			/**
+			* Add event handler fired when dialog is being dismissed by the user.
 			Action can be suppressed by returning False.
 			Function receives one argument: Sender (Fit.Controls.Dialog)
 			* @function OnDismiss
