@@ -34,6 +34,8 @@ Fit.Controls.Dialog = function(controlId)
 	var resizeHandlerId = -1;
 
 	var onDismissHandlers = [];
+	var onCloseHandlers = [];
+	var isClosing = false;
 
 	// ============================================
 	// Init
@@ -742,16 +744,39 @@ Fit.Controls.Dialog = function(controlId)
 		if (me.IsOpen() === false)
 			return;
 
-		Fit.Events.RemoveMutationObserver(mutationObserverId);
-		mutationObserverId = -1;
+		if (isClosing === true) // Guard against infinite loop if Dispose(), which calls Close(), is called from within an OnClose handler
+			return;
 
-		Fit.Events.RemoveHandler(window, resizeHandlerId);
-		resizeHandlerId = -1;
+		var canceled = false;
+		isClosing = true;
 
-		Fit.Dom.Remove(dialog);
+		Fit.Array.ForEach(onCloseHandlers, function(cb)
+		{
+			if (cb(me) === false)
+			{
+				canceled = true;
+				return false; // Break loop
+			}
+		});
 
-		if (layer !== null)
-			Fit.Dom.Remove(layer);
+		isClosing = false;
+
+		if (canceled === true)
+			return;
+
+		if (me !== null) // me is null if dialog was disposed from within an OnClose handler
+		{
+			Fit.Events.RemoveMutationObserver(mutationObserverId);
+			mutationObserverId = -1;
+
+			Fit.Events.RemoveHandler(window, resizeHandlerId);
+			resizeHandlerId = -1;
+
+			Fit.Dom.Remove(dialog);
+
+			if (layer !== null)
+				Fit.Dom.Remove(layer);
+		}
 	}
 
 	this.Render = function(toElement) // Override Render() on Fit.Controls.Component
@@ -761,8 +786,17 @@ Fit.Controls.Dialog = function(controlId)
 
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
+		me.Close(); // Closes and triggers OnClose event, but only if dialog is open
+
+		if (me === null) // me is null if dialog was disposed from within an OnClose handler
+		{
+			return;
+		}
+
 		if (layer !== null)
+		{
 			Fit.Dom.Remove(layer);
+		}
 		
 		if (cmdMaximize !== null)
 		{
@@ -792,7 +826,7 @@ Fit.Controls.Dialog = function(controlId)
 			Fit.Events.RemoveHandler(window, resizeHandlerId);
 		}
 
-		me = dialog = title = titleButtons = cmdMaximize = cmdDismiss = content = buttons = modal = layer = width = minWidth = maxWidth = height = minHeight = maxHeight = mutationObserverId = resizeHandlerId = onDismissHandlers = null;
+		me = dialog = title = titleButtons = cmdMaximize = cmdDismiss = content = buttons = modal = layer = width = minWidth = maxWidth = height = minHeight = maxHeight = mutationObserverId = resizeHandlerId = onDismissHandlers = onCloseHandlers = isClosing = null;
 
 		base();
 	});
@@ -803,7 +837,7 @@ Fit.Controls.Dialog = function(controlId)
 
 	/// <function container="Fit.Controls.Dialog" name="OnDismiss" access="public">
 	/// 	<description>
-	/// 		Add event handler fired when dialog is being dismissed (closed).
+	/// 		Add event handler fired when dialog is being dismissed by the user.
 	/// 		Action can be suppressed by returning False.
 	/// 		Function receives one argument: Sender (Fit.Controls.Dialog)
 	/// 	</description>
@@ -813,6 +847,22 @@ Fit.Controls.Dialog = function(controlId)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onDismissHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="OnClose" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when dialog is closed or dismissed.
+	/// 		Use this event to react to dialog being closed, no matter
+	/// 		the cause. Use OnDismiss event to detect when user closed it.
+	/// 		Action can be suppressed by returning False.
+	/// 		Function receives one argument: Sender (Fit.Controls.Dialog)
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnClose = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onCloseHandlers, cb);
 	}
 
 	// ============================================

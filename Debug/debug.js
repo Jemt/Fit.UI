@@ -1,4 +1,5 @@
 var view = new Fit.Template(true);
+view.AllowUnsafeContent(false);
 view.LoadUrl("debug.html", function(sender)
 {
     var item = null;
