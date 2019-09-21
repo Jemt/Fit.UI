@@ -579,6 +579,8 @@ Fit.Events.AddHandler(document, "touchmove", function(e)
 Fit._internal.Events.MutationObservers = [];
 Fit._internal.Events.MutationObserverIds = -1;
 Fit._internal.Events.MutationObserverIntervalId = -1;
+Fit._internal.Events.MutationCheckExecuting = false;
+Fit._internal.Events.MutationRegisterPostponed = [];
 
 /// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true" returns="integer">
 /// 	<description>
@@ -597,6 +599,14 @@ Fit.Events.AddMutationObserver = function(elm, obs, deep)
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectFunction(obs);
 	Fit.Validation.ExpectBoolean(deep, true);
+
+	// Postpone if check is running
+
+	if (Fit._internal.Events.MutationCheckExecuting === true)
+	{
+		Fit.Array.Add(Fit._internal.Events.MutationRegisterPostponed, { Task: "Add", Element: elm, Observer: obs, Deep: deep === true });
+		return;
+	}
 
 	// Configure event handlers responsible for triggering mutation check
 
@@ -665,6 +675,20 @@ Fit.Events.RemoveMutationObserver = function()
 		Fit.Validation.ExpectInteger(id);
 	}
 
+	if (Fit._internal.Events.MutationCheckExecuting === true)
+	{
+		if (Fit.Validation.IsSet(id) === true)
+		{
+			Fit.Array.Add(Fit._internal.Events.MutationRegisterPostponed, { Task: "Remove", Id: id });
+		}
+		else
+		{
+			Fit.Array.Add(Fit._internal.Events.MutationRegisterPostponed, { Task: "Remove", Element: elm, Observer: obs, Deep: deep === true });
+		}
+
+		return;
+	}
+
 	var found = null;
 
 	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)
@@ -697,10 +721,45 @@ Fit.Events.RemoveMutationObserver = function()
 
 Fit._internal.Events.CheckMutations = function()
 {
+	// Guard against changes to mutation observer collection while running CheckMutations().
+	// This is necessary in case a running mutation observer, triggered from CheckMutations(),
+	// results in another mutation observer being added/removed. We do not want to change a
+	// collection being iterated, and we do not want to risk invoking mutation observers that
+	// have been removed.
+	Fit._internal.Events.MutationCheckExecuting = true;
+	
 	var toRemove = [];
 
 	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)
 	{
+		// Skip mutation observers removed while CheckMutations() was running
+
+		var skipRemovedObserver = false;
+
+		Fit.Array.ForEach(Fit._internal.Events.MutationRegisterPostponed, function(mop)
+		{
+			if (mop.Task === "Add")
+			{
+				return; // Skip, only check for removals
+			}
+
+			if ((Fit.Validation.IsSet(mop.Id) === true && mop.Id === mo.Id) || (mop.Element === mo.Element && mop.Observer === mo.Observer && mo.Deep === ((Fit.Validation.IsSet(mo.Deep) === true) ? mo.Deep : false)))
+			{
+				// Observer has been scheduled for removal - do not invoke it
+
+				skipRemovedObserver = true;
+				return false; // Break loop
+			}
+
+		});
+
+		if (skipRemovedObserver === true)
+		{
+			return; // Skip, scheduled for removal
+		}
+
+		// Calculate and compare hashes revealing changes to element
+
 		var newHash = 0;
 		var dimensions = mo.Element.offsetWidth + "x" + mo.Element.offsetHeight;
 
@@ -713,6 +772,8 @@ Fit._internal.Events.CheckMutations = function()
 			var clone = mo.Element.cloneNode(false);
 			newHash = Fit.String.Hash(clone.outerHTML + dimensions)
 		}
+
+		// Trigger mutation observer if element has changed
 
 		if (mo.Hash !== newHash)
 		{
@@ -763,10 +824,38 @@ Fit._internal.Events.CheckMutations = function()
 		}
 	});
 
+	// Remove observers that called disconnect()
+
 	Fit.Array.ForEach(toRemove, function(mo)
 	{
 		Fit.Events.RemoveMutationObserver(mo.Element, mo.Observer, mo.Deep);
 	});
+
+	// Handle mutation observers that were added/removed
+	// while CheckMutations() invoked existing mutation observers.
+
+	Fit._internal.Events.MutationCheckExecuting = false;
+
+	Fit.Array.ForEach(Fit._internal.Events.MutationRegisterPostponed, function(mo)
+	{
+		if (mo.Task === "Add")
+		{
+			Fit.Events.AddMutationObserver(mo.Element, mo.Observer, mo.Deep);
+		}
+		else // if (mo.Task === "Remove")
+		{
+			if (Fit.Validation.IsSet(mo.Id) === true)
+			{
+				Fit.Events.RemoveMutationObserver(mo.Id);
+			}
+			else
+			{
+				Fit.Events.RemoveMutationObserver(mo.Element, mo.Observer, mo.Deep);
+			}
+		}
+	});
+
+	Fit._internal.Events.MutationRegisterPostponed = [];
 }
 
 // ==============================================
