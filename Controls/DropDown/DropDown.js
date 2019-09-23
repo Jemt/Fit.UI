@@ -411,12 +411,12 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			if (value !== -1)
 			{
-				dropDownMenu.style.width = "auto"; // Adjust width to content
+				dropDownMenu.style.width = "auto"; // Adjust width to content - notice that optimizeDropDownPosition(..) and resetDropDownPosition() also manipulate the width property!
 				dropDownMenu.style.maxWidth = value + ((Fit.Validation.IsSet(unit) === true) ? unit : "px");
 			}
 			else
 			{
-				dropDownMenu.style.width = "";
+				dropDownMenu.style.width = (me.DetectBoundaries() === true ? dropDownMenu.style.width : ""); // Preserve width value if DetectBoundaries is enabled since it also modifies this property
 				dropDownMenu.style.maxWidth = "";
 			}
 		}
@@ -2169,7 +2169,7 @@ Fit.Controls.DropDown = function(ctlId)
 			// Open upward as space required below control (given by spaceRequiredBelowControl) is not available
 
 			dropDownMenu.style.position = "fixed";	// Using fixed positioning to escape containers with overflow:scroll|hidden|auto
-			dropDownMenu.style.width = "auto";		// Picker by default has width:100% to assume the same width as the control
+			dropDownMenu.style.width = "auto";		// Picker by default has width:100% to assume the same width as the control, except if DropDownMaxWidth is set, in which case it is already "auto"
 			dropDownMenu.style.top = "";
 			dropDownMenu.style.bottom = (viewPortDimensions.Height - controlPositionY) + "px";
 
@@ -2257,7 +2257,7 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		// Reset changes made by optimizeDropDownPosition()
 		dropDownMenu.style.position = "";
-		dropDownMenu.style.width = "";
+		dropDownMenu.style.width = (me.DropDownMaxWidth().Value > -1 ? dropDownMenu.style.width : ""); // Preserve width if DropDownMaxWidth is enabled since it also modifies this property
 		dropDownMenu.style.bottom = "";
 		dropDownMenu.style.top = "";
 
