@@ -468,6 +468,21 @@ Fit.Core.Clone = function(obj)
 		{
 			return Infinity;
 		}
+		else if (org instanceof RegExp)
+		{
+			var flags = "";
+
+			if (org.ignoreCase)
+				flags += "i";
+			if (org.global)
+				flags += "g";
+			if (org.multiline)
+				flags += "m";
+			if (org.sticky) // Notice that sticky is not supported in legacy IE
+				flags += "y";
+			
+			return new RegExp(org.source, flags);
+		}
 		else if (org && typeof(org) === "object") // Recursively fix children (object/array)
 		{
 			for (var p in org)
@@ -491,7 +506,7 @@ Fit._internal =
 {
 	Core:
 	{
-		VersionInfo: { Major: 1, Minor: 8, Patch: 3 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
+		VersionInfo: { Major: 1, Minor: 8, Patch: 4 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
 	}
 };
 
