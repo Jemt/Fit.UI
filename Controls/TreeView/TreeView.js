@@ -511,7 +511,7 @@ Fit.Controls.TreeView = function(ctlId)
 					var node = ((n.GetTreeView() === me) ? n : me.GetChild(n.Value(), true)); // Try GetChild(..) in case node was constructed, but with a valid value
 
 					if (node === null)
-						Fit.Validation.ThrowError("Node is not assiciated with this TreeView, unable to change selection");
+						Fit.Validation.ThrowError("Node is not associated with this TreeView, unable to change selection");
 
 					Fit.Array.Add(selectedOrg, node);
 					node.Selected(true); // Adds node to internal selected collection through TreeViewNodeInterface
