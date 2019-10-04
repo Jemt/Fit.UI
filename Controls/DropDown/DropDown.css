@@ -13,6 +13,7 @@ div.FitUiControlDropDownItems /* Item container */
 	border-width: 1px\9;
 	border-radius: 2px;
 	padding: 0.1em;
+	padding-right: 2em; /* Compensate for drop down arrow button to avoid items being partially hidden behind it */
 	background-color: white;
 	cursor: text;
 	white-space: normal; /* Make sure items wrap properly if used in container with nowrap */
