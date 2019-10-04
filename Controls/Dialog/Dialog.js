@@ -13,6 +13,8 @@ Fit.Controls.Dialog = function(controlId)
 
 	var me = this;
 	var dialog = me.GetDomElement();
+	var focusTrapStart = null;
+	var focusTrapEnd = null;
 	var title = null;
 	var titleButtons = null;
 	var cmdMaximize = null;
@@ -48,41 +50,19 @@ Fit.Controls.Dialog = function(controlId)
 		Fit.Dom.Data(dialog, "framed", "false");
 		Fit.Dom.Data(dialog, "maximized", "false");
 
+		focusTrapStart = document.createElement("div");
+		focusTrapStart.tabIndex = 0;
+		Fit.Dom.Add(dialog, focusTrapStart);
+
+		focusTrapEnd = document.createElement("div");
+		focusTrapEnd.tabIndex = 0;
+		Fit.Dom.Add(dialog, focusTrapEnd);
+
 		content = createContentElement();
-		Fit.Dom.Add(dialog, content);
+		Fit.Dom.InsertAfter(focusTrapStart, content);
 
 		layer = document.createElement("div");
 		Fit.Dom.AddClass(layer, "FitUiControlDialogModalLayer");
-
-		// Keep tab navigation within modal dialog
-
-		Fit.Events.AddHandler(dialog, "keydown", function(e)
-		{
-			var ev = Fit.Events.GetEvent(e);
-			var key = Fit.Events.GetModifierKeys();
-
-			if (modal === true && buttons !== null && ev.keyCode === 9) // Tab key
-			{
-				var buttonFocused = Fit.Dom.GetFocused();
-
-				if (ev.shiftKey === false)
-				{
-					if (buttonFocused === buttons.children[buttons.children.length - 1])
-					{
-						buttons.children[0].focus();
-						Fit.Events.PreventDefault(ev);
-					}
-				}
-				else
-				{
-					if (buttonFocused === buttons.children[0])
-					{
-						buttons.children[buttons.children.length - 1].focus();
-						Fit.Events.PreventDefault(ev);
-					}
-				}
-			}
-		});
 
 		// Focus first button when clicking dialog or modal layer
 
@@ -107,6 +87,25 @@ Fit.Controls.Dialog = function(controlId)
 		{
 			if (buttons !== null && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
 				buttons.children[0].focus();
+		});
+
+		// Keep tab navigation within modal dialog
+
+		Fit.Events.AddHandler(dialog, "keydown", function(e)
+		{
+			var ev = Fit.Events.GetEvent(e);
+
+			if (modal === true && ev.keyCode === 9) // Tab key
+			{
+				if (ev.shiftKey === true && Fit.Events.GetTarget(ev) === focusTrapStart) // Tabbing backwards
+				{
+					Fit.Events.PreventDefault(ev);
+				}
+				else if (ev.shiftKey === false && Fit.Events.GetTarget(ev) === focusTrapEnd) // Tabbing forward
+				{
+					Fit.Events.PreventDefault(ev);
+				}
+			}
 		});
 	}
 
@@ -146,7 +145,7 @@ Fit.Controls.Dialog = function(controlId)
 				{
 					title = document.createElement("div");
 					Fit.Dom.AddClass(title, "FitUiControlDialogTitle");
-					Fit.Dom.InsertAt(dialog, 0, title);
+					Fit.Dom.InsertAfter(focusTrapStart, title);
 				}
 
 				Fit.Dom.Text(title, val);
@@ -388,6 +387,14 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
+			if (val !== modal && me.IsOpen() === true)
+			{
+				if (val === true)
+					Fit.Dom.InsertBefore(dialog, layer);
+				else
+					Fit.Dom.Remove(layer);
+			}
+
 			modal = val;
 		}
 
@@ -608,7 +615,7 @@ Fit.Controls.Dialog = function(controlId)
 		{
 			buttons = document.createElement("div");
 			Fit.Dom.AddClass(buttons, "FitUiControlDialogButtons");
-			Fit.Dom.Add(dialog, buttons);
+			Fit.Dom.InsertBefore(focusTrapEnd, buttons);
 		}
 
 		Fit.Dom.Add(buttons, btn.GetDomElement());
@@ -700,6 +707,9 @@ Fit.Controls.Dialog = function(controlId)
 	/// </function>
 	this.Open = function()
 	{
+		if (me.IsOpen() === true)
+			return;
+
 		if (modal === true)
 			Fit.Dom.Add(document.body, layer);
 
@@ -708,6 +718,7 @@ Fit.Controls.Dialog = function(controlId)
 		setContentHeight();
 		updatePosition();
 
+		// Make dimensions and position adjust to dynamic content (added/removed/manipulated through DOM or Fit.Template).
 		// Notice that mutation observer will not be triggered if title is set or buttons have been added,
 		// and content is being updated using DOM, e.g. through GetContentDomElement() or an instance of
 		// Fit.Template rendered to the content DOM element.
@@ -992,7 +1003,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 
 	// Declare buttons
 
-	var cmdOk = new Fit.Controls.Button(Fit.Data.CreateGuid());
+	var cmdOk = new Fit.Controls.Button();
 	var cmdCancel = null;
 
 	// Localization
@@ -1026,7 +1037,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 
 	if (showCancel === true)
 	{
-		cmdCancel = new Fit.Controls.Button(Fit.Data.CreateGuid());
+		cmdCancel = new Fit.Controls.Button();
 		cmdCancel.Icon("ban");
 		cmdCancel.Type(Fit.Controls.ButtonType.Danger);
 		cmdCancel.OnClick(function(sender)
@@ -1045,10 +1056,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 
 	// Open dialog
 
-	d.Open();
-	cmdOk.Focused(true);
-
-	return d;
+	return { Dialog: d, ConfirmButton: cmdOk, CancelButton: cmdCancel }; // NOTICE: CancelButton might be null !
 }
 
 /// <function container="Fit.Controls.Dialog" name="Alert" access="public" static="true">
@@ -1061,11 +1069,13 @@ Fit.Controls.Dialog.Alert = function(content, cb)
 	Fit.Validation.ExpectString(content);
 	Fit.Validation.ExpectFunction(cb, true);
 
-	Fit.Controls.Dialog._internal.BaseDialog(content, false, function(res)
+	var baseDialog = Fit.Controls.Dialog._internal.BaseDialog(content, false, function(res)
 	{
 		if (Fit.Validation.IsSet(cb) === true)
 			cb();
 	});
+	baseDialog.Dialog.Open();
+	baseDialog.ConfirmButton.Focused(true);
 }
 
 /// <function container="Fit.Controls.Dialog" name="Confirm" access="public" static="true">
@@ -1081,7 +1091,9 @@ Fit.Controls.Dialog.Confirm = function(content, cb)
 	Fit.Validation.ExpectString(content);
 	Fit.Validation.ExpectFunction(cb);
 
-	Fit.Controls.Dialog._internal.BaseDialog(content, true, cb);
+	var baseDialog = Fit.Controls.Dialog._internal.BaseDialog(content, true, cb);
+	baseDialog.Dialog.Open();
+	baseDialog.ConfirmButton.Focused(true);
 }
 
 /// <function container="Fit.Controls.Dialog" name="Prompt" access="public" static="true">
@@ -1103,7 +1115,7 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 	txt.Width(100, "%");
 	txt.Value(defaultValue);
 
-	var dia = Fit.Controls.Dialog._internal.BaseDialog(content + "<br><br>", true, function(res)
+	var baseDialog = Fit.Controls.Dialog._internal.BaseDialog(content + "<br><br>", true, function(res)
 	{
 		// Notice: Dialog is disposed at this point!
 		
@@ -1120,6 +1132,20 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 		}
 	});
 
-	Fit.Dom.Add(dia.GetContentDomElement(), txt.GetDomElement());
+	Fit.Events.AddHandler(baseDialog.Dialog.GetDomElement(), "keydown", function(e)
+	{
+		if (e.keyCode === 13 && txt.Focused() === true) // ENTER
+		{
+			baseDialog.ConfirmButton.Click();
+		}
+		else if (e.keyCode === 27) // ESC
+		{
+			baseDialog.CancelButton.Click();
+		}
+	});
+
+	Fit.Dom.Add(baseDialog.Dialog.GetContentDomElement(), txt.GetDomElement());
+
+	baseDialog.Dialog.Open();
 	txt.Focused(true);
 }

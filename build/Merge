@@ -119,7 +119,9 @@ fi
 
 # Debug/production mode
 
-sed -i '' -E 's/"@DEBUGGING_MODE@"/false/g' Fit.UI.min.js
+if [ -f Fit.UI.min.js ] ; then
+	sed -i '' -E 's/"@DEBUGGING_MODE@"/false/g' Fit.UI.min.js
+fi
 sed -i '' -E 's/"@DEBUGGING_MODE@"/true/g' Fit.UI.js
 
 # Done
