@@ -165,19 +165,6 @@ Fit.Controls.ListView = function(controlId)
 	{
 		Fit.Validation.ExpectString(value);
 		return getItemElement(value) !== null;
-
-		/*var exists = false;
-
-		Fit.Array.ForEach(list.children, function(child)
-		{
-			if (decode(Fit.Dom.Data(child, "value")) === value)
-			{
-				exists = true;
-				return false;
-			}
-		});
-
-		return exists;*/
 	}
 
 	/// <function container="Fit.Controls.ListView" name="RemoveItem" access="public">
@@ -194,15 +181,6 @@ Fit.Controls.ListView = function(controlId)
 		{
 			Fit.Dom.Remove(item);
 		}
-
-		/*Fit.Array.ForEach(Fit.Array.Copy(list.children), function(child)
-		{
-			if (decode(Fit.Dom.Data(child, "value")) === value)
-			{
-				Fit.Dom.Remove(child);
-				return false;
-			}
-		});*/
 	}
 
 	/// <function container="Fit.Controls.ListView" name="RemoveItems" access="public">
