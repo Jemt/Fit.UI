@@ -40,7 +40,7 @@ Fit.Controls.ListView = function(controlId)
 			while (elm.parentElement !== list)
 				elm = elm.parentElement;
 
-			setActive(elm);
+			setActive(elm, true); // true = do not scroll into view - it already is
 
 			// Fire OnChanging and OnChange events
 
@@ -139,6 +139,24 @@ Fit.Controls.ListView = function(controlId)
 		list.appendChild(entry);
 	}
 
+	/// <function container="Fit.Controls.ListView" name="GetItem" access="public" returns="object">
+	/// 	<description> Get item by value - returns object with Title (string) and Value (string) properties if found, otherwise Null </description>
+	/// 	<param name="value" type="string"> Value of item to retrieve </param>
+	/// </function>
+	this.GetItem = function(value)
+	{
+		Fit.Validation.ExpectString(value);
+
+		var itemElm = getItemElement(value);
+
+		if (itemElm !== null)
+		{
+			return convertItemElementToObject(itemElm);
+		}
+
+		return null;
+	}
+
 	/// <function container="Fit.Controls.ListView" name="HasItem" access="public" returns="boolean">
 	/// 	<description> Returns value indicating whether control contains item with specified value </description>
 	/// 	<param name="value" type="string"> Value of item to check for </param>
@@ -146,8 +164,9 @@ Fit.Controls.ListView = function(controlId)
 	this.HasItem = function(value)
 	{
 		Fit.Validation.ExpectString(value);
+		return getItemElement(value) !== null;
 
-		var exists = false;
+		/*var exists = false;
 
 		Fit.Array.ForEach(list.children, function(child)
 		{
@@ -158,7 +177,7 @@ Fit.Controls.ListView = function(controlId)
 			}
 		});
 
-		return exists;
+		return exists;*/
 	}
 
 	/// <function container="Fit.Controls.ListView" name="RemoveItem" access="public">
@@ -169,14 +188,21 @@ Fit.Controls.ListView = function(controlId)
 	{
 		Fit.Validation.ExpectString(value);
 
-		Fit.Array.ForEach(Fit.Array.Copy(list.children), function(child)
+		var item = getItemElement(value);
+
+		if (item !== null)
+		{
+			Fit.Dom.Remove(item);
+		}
+
+		/*Fit.Array.ForEach(Fit.Array.Copy(list.children), function(child)
 		{
 			if (decode(Fit.Dom.Data(child, "value")) === value)
 			{
 				Fit.Dom.Remove(child);
 				return false;
 			}
-		});
+		});*/
 	}
 
 	/// <function container="Fit.Controls.ListView" name="RemoveItems" access="public">
@@ -191,6 +217,24 @@ Fit.Controls.ListView = function(controlId)
 	// ============================================
 	// PickerBase interface
 	// ============================================
+
+	this.GetItemByValue = function(val)
+	{
+		Fit.Validation.ExpectString(val);
+		return me.GetItem(val);
+	}
+
+	this.RevealItemInView = function(val)
+	{
+		Fit.Validation.ExpectString(val);
+
+		var itemElm = getItemElement(val);
+
+		if (itemElm !== null)
+		{
+			setActive(itemElm);
+		}
+	}
 
     this.HandleEvent = function(e)
     {
@@ -269,9 +313,34 @@ Fit.Controls.ListView = function(controlId)
 	// Private
 	// ============================================
 
-	function setActive(elm)
+	function getItemElement(value)
+	{
+		Fit.Validation.ExpectString(value);
+
+		var found = null;
+
+		Fit.Array.ForEach(list.children, function(child)
+		{
+			if (decode(Fit.Dom.Data(child, "value")) === value)
+			{
+				found = child;
+				return false;
+			}
+		});
+
+		return found;
+	}
+
+	function convertItemElementToObject(elm)
+	{
+		Fit.Validation.ExpectDomElement(elm);
+		return { Title: Fit.Dom.Text(elm), Value: Fit.Dom.Data(elm, "value") }; // Using Text(..) to get rid of HTML formatting
+	}
+
+	function setActive(elm, suppressScrollIntoView)
 	{
 		Fit.Validation.ExpectDomElement(elm, true);
+		Fit.Validation.ExpectBoolean(suppressScrollIntoView, true);
 
 		if (active !== null)
 			Fit.Dom.Data(active, "active", "false");
@@ -282,8 +351,11 @@ Fit.Controls.ListView = function(controlId)
 		{
 			Fit.Dom.Data(active, "active", "true");
 
-			list.scrollTop = active.offsetHeight * Fit.Dom.GetIndex(active); // Alternative to active.scrollIntoView(true) which unfortunately also scrolls main view
-			repaint();
+			if (suppressScrollIntoView !== true)
+			{
+				list.scrollTop = active.offsetHeight * Fit.Dom.GetIndex(active); // Alternative to active.scrollIntoView(true) which unfortunately also scrolls main view
+				repaint();
+			}
 		}
 	}
 

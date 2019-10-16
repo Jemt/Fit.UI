@@ -237,6 +237,19 @@ Fit.Controls.PickerBase = function()
 		return null;
 	}
 
+	/// <function container="Fit.Controls.PickerBase" name="RevealItemInView" access="public">
+	/// 	<description>
+	/// 		Overridden by control developers (optional).
+	/// 		Host control may invoke this function to reveal a selected item in
+	/// 		the picker control. Often this means having the item scrolled into view.
+	/// 	</description>
+	/// 	<param name="val" type="string"> Value of item to reveal in view </param>
+	/// </function>
+	this.RevealItemInView = function(val)
+	{
+		Fit.Validation.ExpectString(val);
+	}
+
 	/// <function container="Fit.Controls.PickerBase" name="HandleEvent" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (optional).

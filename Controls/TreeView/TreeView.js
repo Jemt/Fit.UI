@@ -49,6 +49,7 @@ Fit.Controls.TreeView = function(ctlId)
 	var multiSelect = false;
 	var showSelectAll = false; // TBD: Never implemented - can be achieved using ContextMenu. Remove or implement?
 	var allowDeselect = true;
+	var revealExpandedNodes = false;
 
 	var selected = createInternalCollection();
 	var selectedOrg = [];
@@ -585,18 +586,12 @@ Fit.Controls.TreeView = function(ctlId)
 	this.ExpandAll = function(maxDepth) // Overridden by WSTreeView
 	{
 		Fit.Validation.ExpectInteger(maxDepth, true);
-		Fit.Validation.ExpectFunction(cb, true);
 
 		Fit.Array.CustomRecurse(me.GetChildren(), function(node)
 		{
 			node.Expanded(true);
 			return (node.GetLevel() + 1 < (maxDepth || 99999) ? node.GetChildren() : null);
 		});
-
-		if (Fit.Validation.IsSet(cb) === true)
-		{
-			cb(me);
-		}
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="CollapseAll" access="public">
@@ -967,8 +962,8 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			me.Destroy(true); // PickerBase.Destroy()
 		}
-
-		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isPicker = activeNode = isIe8 = null;
+		
+		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isPicker = activeNode = isIe8 = null;
 	});
 
 	// ============================================
@@ -1162,6 +1157,32 @@ Fit.Controls.TreeView = function(ctlId)
 		return null;
 	}
 
+	this.RevealItemInView = function(val)
+	{
+		Fit.Validation.ExpectString(val);
+
+		var node = me.GetChild(val, true);
+
+		if (node !== null)
+		{
+			// Expand parent nodes if selected node is a child node.
+			// But only expand nodes automatically the first time to
+			// allow user to collapse nodes and have them remain collapsed.
+			if (revealExpandedNodes === false)
+			{
+				revealExpandedNodes = true;
+
+				var parent = node;
+				while ((parent = parent.GetParent()) !== null)
+				{
+					parent.Expanded(true);
+				}
+			}
+
+			focusNode(node);
+		}
+	}
+
 	this.UpdateItemSelection = function(itemValue, selected)
 	{
 		Fit.Validation.ExpectString(itemValue);
@@ -1278,6 +1299,19 @@ Fit.Controls.TreeView = function(ctlId)
 	function focusNode(node)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
+
+		// Only set node active if it is visible (not hidden by collapsed parent, not
+		// hidden by closed DropDown control when used as picker, not hidden using
+		// styles such as display:none, and not disconnected from (not rooted in) DOM).
+		// RevealItemInView() may be triggered asynchronously by WSDropDown when loading
+		// nodes, in which case user may have closed dropdown while waiting for data,
+		// resulting in node no longer being visible to focus.
+		// We use offsetParent further down which is only available for elements in
+		// the render tree - "visible" elements.
+		if (Fit.Dom.IsVisible(node.GetDomElement()) === false)
+		{
+			return;
+		}
 
 		if (isPicker === true)
 		{

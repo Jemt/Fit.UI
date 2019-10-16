@@ -656,6 +656,9 @@ Fit.Controls.DropDown = function(ctlId)
 	this.SetPicker = function(pickerControl)
 	{
 		Fit.Validation.ExpectInstance(pickerControl, Fit.Controls.PickerBase, true);
+
+		if (pickerControl === picker)
+			return; // Already active picker
 		
 		// Remove existing picker
 
@@ -1420,7 +1423,6 @@ Fit.Controls.DropDown = function(ctlId)
 		if (Fit._internal.DropDown.Current !== null && Fit._internal.DropDown.Current !== me)
 			Fit._internal.DropDown.Current.CloseDropDown();
 
-
 		// Do this before displaying drop down to prevent dropdown with position:absolute
 		// from changing height of document which may cause page to temporarily scroll, hence
 		// result in incorrect measurement of control position in optimizeDropDownPosition().
@@ -1434,6 +1436,18 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit._internal.DropDown.Current = me;
 
 		fireOnDropDownOpen();
+
+		// Scroll selected item into view in Single Selection Mode.
+		// This needs to be done after fireOnDropDownOpen() is invoked
+		// because it fires PickerBase.OnShow which in TreeView resets
+		// the scroll position.
+		// NOTICE: WSDropDown also calls RevealItemInView(..) when
+		// root nodes have been populated.
+
+		if (me.MultiSelectionMode() === false && me.GetSelections().length === 1)
+		{
+			me.GetPicker().RevealItemInView(me.GetSelections()[0].Value);
+		}
 	}
 
 	/// <function container="Fit.Controls.DropDown" name="CloseDropDown" access="public">

@@ -180,6 +180,28 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 				hideLinesForFlatData = false;
 			}
+
+			// Scroll selected item into view in Single Selection Mode.
+			// NOTICE: DropDown also calls RevealItemInView(..) when
+			// dropdown is opened. But for WSDropDown there are (most often)
+			// no nodes initially, so we make sure to call RevealItemInView(..)
+			// below when root nodes have been loaded and populated.
+			// We only want to do this for root nodes - otherwise the selected
+			// item would constantly be scrolled into view while user expand nodes
+			// with remote children.
+			// This works even for nested items if they are returned in the initial
+			// call for root nodes. It will not work if nodes are loaded programmatically
+			// using e.g. WSDropDown.AutoUpdateSelected() or WSTreeView.ExpandAll() though,
+			// if the selected item is returned in a secondary request for remote children.
+			// To support this scenario we would need to carry information about whether
+			// the request was made programmatically or triggered via a user interaction,
+			// which would complicate things, so for now we are satisfied with the current
+			// implementation.
+
+			if (eventArgs.Node === null && me.MultiSelectionMode() === false && me.GetSelections().length === 1)
+			{
+				tree.RevealItemInView(me.GetSelections()[0].Value);
+			}
 		});
 		tree.OnSelectAll(function(sender, eventArgs)
 		{
