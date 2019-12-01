@@ -114,6 +114,105 @@ Tests.Count = function()
 	]
 }
 
+Tests.HasItems = function()
+{
+	var arr = [ 1, 2, 3, 4, 5 ];
+	var arr2 = [];
+	var objArr = { a: 1, b: 2, c: 3, d: 4, e:5 };
+	var objArr2 = {};
+	var nodes = UnitTestHelper.Array.CreateList().children;
+	var nodes2 = document.createElement("div").children;
+
+	var resultArray = false;
+	var resultArray2 = false;
+	var resultObjectArray = false;
+	var resultObjectArray2 = false;
+	var resultNodeList = false;
+	var resultNodeList2 = false;
+
+	this.Description = "Can determine whether array and object array has item(s)";
+
+	this.Execute = function()
+	{
+		resultArray = Fit.Array.HasItems(arr);
+		resultArray2 = Fit.Array.HasItems(arr2);
+		resultObjectArray = Fit.Array.HasItems(objArr);
+		resultObjectArray2 = Fit.Array.HasItems(objArr2);
+		resultNodeList = Fit.Array.HasItems(nodes);
+		resultNodeList2 = Fit.Array.HasItems(nodes2);
+	}
+
+	this.Assertions =
+	[
+		{
+			Message: "HasItems works for native array with items",
+			Expected: true,
+			GetResult: function()
+			{
+				return resultArray;
+			}
+		},
+		{
+			Message: "HasItems works for native array without items",
+			Expected: false,
+			GetResult: function()
+			{
+				return resultArray2;
+			}
+		},
+		{
+			Message: "HasItems works for object array with items",
+			Expected: true,
+			GetResult: function()
+			{
+				return resultObjectArray;
+			}
+		},
+		{
+			Message: "HasItems works for object array without items",
+			Expected: false,
+			GetResult: function()
+			{
+				return resultObjectArray2;
+			}
+		},
+		{
+			Message: "HasItems works for node list with items",
+			Expected: true,
+			GetResult: function()
+			{
+				return resultNodeList;
+			}
+		},
+		{
+			Message: "HasItems works for node list without items",
+			Expected: false,
+			GetResult: function()
+			{
+				return resultNodeList2;
+			}
+		},
+		{
+			Message: "Performance for HasItems check (50.000 iterations, all three arrays containing data) - see time usage",
+			Expected: true,
+			GetResult: function()
+			{
+				var elements = [arr, objArr, nodes];
+
+				for (var i = 0 ; i < 50000 ; i++)
+				{
+					for (var j = 0 ; j < elements.length ; j++)
+					{
+						Fit.Array.HasItems(elements[j]);
+					}
+				}
+
+				return true;
+			}
+		}
+	]
+}
+
 Tests.Recurse = function()
 {
 	var level1 = false;

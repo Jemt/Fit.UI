@@ -47,9 +47,9 @@ Fit.Controls.ListView = function(controlId)
 			// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
 			// not keep track of selection state. In theory item could very well already be selected in host control.
 			// Event handlers should not trust boolean to reveal selection in host control, only in picker.
-			if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), false) === true)
+			if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), false, false) === true)
 			{
-				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), true);
+				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), true, false);
 				me._internal.FireOnItemSelectionComplete();
 			}
 		}
@@ -246,9 +246,9 @@ Fit.Controls.ListView = function(controlId)
 					// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
 					// not keep track of selection state. In theory item could very well already be selected in host control.
 					// Event handlers should not trust boolean to reveal selection in host control, only in picker.
-					if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), false) === true)
+					if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), false, false) === true)
 					{
-						me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), true);
+						me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), true, false);
 						me._internal.FireOnItemSelectionComplete();
 					}
 				}

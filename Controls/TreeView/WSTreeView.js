@@ -106,6 +106,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			// Load node data when expanded
 
+			if (node.IsBehavioralNode() === true)
+				return; // Do not request data for behavioral node
+
 			if (node.Expanded() === true) // Node is currently expanded and will now become collapsed
 				return;
 
@@ -142,7 +145,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				{
 					// Reload, SelectAll, or EnsureData may have been called while
 					// node was loading - make sure they are resumed from process queue.
-					fireOnDataLoadedAndPopulated();
+					fireOnDataLoadedToResumeProcessQueue();
 				}
 			});
 
@@ -516,6 +519,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 		Fit.Validation.ExpectBoolean(select);
 		Fit.Validation.ExpectInstance(selectAllNode, Fit.Controls.TreeViewNode, true);
 
+		// NOTICE: Selecting thousands of nodes using SelectAll may result in very poor performance
+		// due to the large amount of DOM manipulation. The control goes through a full state change
+		// for every single item being selected or de-selected, so all events fire and reflows are
+		// triggered for visible items.
+		// To increase performance, temporarily hide TreeView with display:none while SelectAll is being performed.
+
 		// TBD: Add support for completed callback (?).
 		// EnsureData, which is also based on the new node loader mechanism
 		// (loadNodeData and recursivelyLoadAllNodes) keeps track of progress
@@ -560,19 +569,36 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			recursivelyLoadAllNodes(selectAllNode || null, function() // Fired when all nodes have been loaded
 			{
-				baseSelectAll(select, selectAllNode);
+				/*//baseSelectAll(select, selectAllNode);
+				baseSelectAll(select, selectAllNode, true); // Passing True to suppress firing of OnSelectAllComplete event (internal argument)
+				dataLoading = false;
+				me._internal.FireOnSelectAllComplete(select, selectAllNode);
+				fireOnDataLoadedToResumeProcessQueue();*/
+
+				// This callback passed to recursivelyLoadAllNodes(..) is fired BEFORE OnPopulated
+				// is fired, so if SelectAll results in multiple nodes loading data async, we may experience
+				// events firing like so:
+				//  - OnPopulated(sender, node1) fired
+				//  - OnPopulated(sender, node2) fired
+				//  - OnPopulated(sender, node3) fired
+				//  - SelectAll(sender, nodeA) fired
+				//  - SelectAllComplete(sender, nodeA) fired
+				//  - OnPopulated(sender, node4) fired
+				// Notice how the last node will have OnPopulated called after OnSelect and OnSelectComplete,
+				// while all the other nodes had it called prior to that. Such inconsistency is no good. And
+				// since SelectAll is async anyways, we might as well just queue the execution of SelectAll
+				// using setTimeout(..) allowing for the last OnPopulated event to fire first.
+				// This way we can also let baseSelectAll(..) handle execution of both OnSelectAll and OnSelectAllComplete.
+				// https://github.com/Jemt/Fit.UI/issues/84
 
 				dataLoading = false;
-				// If support for a completed callback or OnSelectAllComplete event is added,
-				// make sure callback/event is invoked/fired between dataLoading=false and
-				// fireOnDataLoadedAndPopulated() to allow the callback to be trigger before
-				// queued requests, just like the implementation in Reload and EnsureData.
-				fireOnDataLoadedAndPopulated();
-			},
+				fireOnDataLoadedToResumeProcessQueue();
+				setTimeout(function() { baseSelectAll(select, selectAllNode); }, 0); // Allow OnPopulated to fire first in recursivelyLoadAllNodes => loadNodeData => getData
+			}/*,
 			function(nodePopulated) // Fired for every node loaded, except if node has been disposed or detached while loading
 			{
-				nodePopulated.Expanded(true);
-			});
+				//nodePopulated.Expanded(true); // DISABLED: This hurts performance significantly for large TreeViews (10-15.000 nodes) as a huge amounts of DOM elements needs to be pushed to render tree, e.g. when opening/closing dropdown hosting TreeView
+			}*/);
 		};
 
 		if (loadDataOnInit === true) // No data loaded yet
@@ -713,7 +739,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		dataLoading = true;
 
-		getData(null, function(node, eventArgs)
+		getData(null, function(node, eventArgs) // Notice: node argument is null when requesting root nodes
 		{	
 			Fit.Array.ForEach(eventArgs.Children, function(jsonChild)
 			{
@@ -722,12 +748,19 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			dataLoading = false;
 
-			if (Fit.Validation.IsSet(cb) === true)
+			rootNode.GetDomElement()._internal.WSDone = true;
+
+			/*if (Fit.Validation.IsSet(cb) === true)
 			{
 				cb(me); // Fires when nodes are populated (above), but before OnPopulated is fired by getData(..)
-			}
+			}*/
 
-			fireOnDataLoadedAndPopulated();
+			fireOnDataLoadedToResumeProcessQueue();
+
+			if (Fit.Validation.IsSet(cb) === true)
+			{
+				setTimeout(function() { cb(me); }, 0); // Allow OnPopulated to fire first in recursivelyLoadAllNodes => loadNodeData => getData - see WSTreeView.SelectAll(..) for details
+			}
 		});
 
 		loadDataOnInit = false;
@@ -764,12 +797,17 @@ Fit.Controls.WSTreeView = function(ctlId)
 			{
 				dataLoading = false;
 
-				if (Fit.Validation.IsSet(cb) === true)
+				/*if (Fit.Validation.IsSet(cb) === true)
 				{
 					cb(me);
-				}
+				}*/
 
-				fireOnDataLoadedAndPopulated();
+				fireOnDataLoadedToResumeProcessQueue();
+
+				if (Fit.Validation.IsSet(cb) === true)
+				{
+					setTimeout(function() { cb(me); }, 0); // Allow OnPopulated to fire first in recursivelyLoadAllNodes => loadNodeData => getData - see WSTreeView.SelectAll(..) for details
+				}
 			});
 		};
 
@@ -1060,10 +1098,11 @@ Fit.Controls.WSTreeView = function(ctlId)
 	});
 
 	// See documentation on PickerBase
-	this.UpdateItemSelection = Fit.Core.CreateOverride(this.UpdateItemSelection, function(itemValue, selected)
+	this.UpdateItemSelection = Fit.Core.CreateOverride(this.UpdateItemSelection, function(itemValue, selected, programmaticallyChanged)
 	{
 		Fit.Validation.ExpectString(itemValue);
 		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectBoolean(programmaticallyChanged);
 
 		if (me.GetChild(itemValue, true) === null) // Node not loaded yet, update preselections
 		{
@@ -1083,7 +1122,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		}
 		else // Update nodes already loaded
 		{
-			if (base(itemValue, selected) === false) // Fires OnSelect, OnItemSelectionChanging, OnSelected, OnItemSelectionChanged, and OnChange
+			if (base(itemValue, selected, programmaticallyChanged) === false) // Fires OnSelect, OnItemSelectionChanging, OnSelected, OnItemSelectionChanged, and OnChange
 				return false;
 		}
 	});
@@ -1175,6 +1214,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 	// Private
 	// ============================================
 
+	// Several functions end up calling getData(..) which is a bit confusing.
+	// The following link has a drawing that clarifies how this works: https://github.com/Jemt/Fit.UI/issues/83
 	function getData(node, cb)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode, true); // Node is null when requesting root nodes
@@ -1362,7 +1403,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		Fit.Array.Add(onDataLoadedCallback, cb);
 	}
 
-	function fireOnDataLoadedAndPopulated()
+	function fireOnDataLoadedToResumeProcessQueue()
 	{
 		// Immediately clear collection. If multiple callbacks are registered,
 		// chances are that only the first will run, and the remaining will be
@@ -1577,6 +1618,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		Fit.Array.ForEach(nodes, function(node)
 		{
+			if (node.IsBehavioralNode() === true)
+				return; // Do not request data for behavioral node
+
 			var dataStartedLoading = loadNodeData(node, function(n) // True if node has remote children that will be loaded, False if no remote children is available to be loaded
 			{
 				var hasBeenDisposed = nodeDisposedOrDetached(node);

@@ -82,6 +82,33 @@ Fit.Array.Count = function(obj)
 	Fit.Validation.ThrowError("Unsupported collection type passed - unable to determine number of contained elements");
 }
 
+/// <function container="Fit.Array" name="HasItems" access="public" static="true" returns="boolean">
+/// 	<description> Returns True if collection has items, otherwise False </description>
+/// 	<param name="arr" type="array"> Collection to investigate </param>
+/// </function>
+/// <function container="Fit.Array" name="HasItems" access="public" static="true" returns="boolean">
+/// 	<description> Returns True if collection has items, otherwise False </description>
+/// 	<param name="obj" type="object"> Object array to investigate </param>
+/// </function>
+Fit.Array.HasItems = function(obj)
+{
+	if (Fit._internal.Validation.IsCollectionType(obj) === true)
+	{
+		return obj.length > 0;
+	}
+	else if (typeof(obj) === "object")
+	{
+		for (var i in obj)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	Fit.Validation.ThrowError("Unsupported collection type passed - unable to determine number of contained elements");
+}
+
 /// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
 /// 	<description>
 /// 		Recursively iterates through objects in array and passes each object to the provided callback function.

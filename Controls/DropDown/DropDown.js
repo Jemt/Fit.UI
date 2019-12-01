@@ -15,6 +15,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	var me = this;								// Access to members from event handlers (where "this" may have a different meaning)
 	var itemContainer = null;					// Container for selected items and input fields
+	var itemCollection = {};					// Indexed collection for selected items (for fast lookup)
 	var arrow = null;							// Arrow button used to open/close drop down menu
 	var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
 	var spanFitWidth = null;					// Span element used to calculate text width - used to dynamically control width of input fields
@@ -274,6 +275,24 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		});
 
+		// PickerBase - make picker aware of focused state of host control
+
+		me.OnFocus(function()
+		{
+			if (picker !== null)
+			{
+				picker._internal.ReportFocused(true);
+			}
+		});
+
+		me.OnBlur(function()
+		{
+			if (picker !== null)
+			{
+				picker._internal.ReportFocused(false);
+			}
+		});
+
 		// Append elements to the DOM
 
 		Fit.Dom.Add(hidden, spanFitWidth);
@@ -304,10 +323,12 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			invalidMessage = msg;
 
-			Fit.Array.ForEach(getSelectionElements(), function(selection)
+			Fit.Array.ForEach(itemCollection, function(key)
 			{
-				if (Fit.Dom.HasClass(selection, "FitUiControlDropDownInvalid") === true)
-					Fit.Dom.Attribute(selection, "title", invalidMessage);
+				var selection = itemCollection[key];
+
+				if (selection.Valid === false)
+					Fit.Dom.Attribute(selection.DomElement, "title", invalidMessage);
 			});
 		}
 
@@ -444,7 +465,7 @@ Fit.Controls.DropDown = function(ctlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			orgSelections = [];
-			var fireChange = (getSelectionElements().length > 0 || val !== ""); // Fire OnChange if current selections are cleared, and/or if new selections are set
+			var fireChange = (Fit.Array.HasItems(itemCollection) === true || val !== ""); // Fire OnChange if current selections are cleared, and/or if new selections are set
 
 			me._internal.ExecuteWithNoOnChange(function()
 			{
@@ -552,7 +573,7 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Events.RemoveHandler(document, eventId);
 		});
 
-		me = itemContainer = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = null;
+		me = itemContainer = itemCollection = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = null;
 
 		base();
 	});
@@ -674,6 +695,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		pickerControl._internal.InitializePicker();
+		pickerControl._internal.ReportFocused(me.Focused());
 
 		picker = pickerControl;
 		Fit.Dom.Add(dropDownMenu, picker.GetDomElement());
@@ -747,7 +769,7 @@ Fit.Controls.DropDown = function(ctlId)
 					txt = txtPrimary;
 			}
 
-			if (isMobile === false || focusInputOnMobile === true)
+			if (eventArgs.ProgrammaticallyChanged === false && (isMobile === false || focusInputOnMobile === true))
 			{
 				focusAssigned = true; // Clicking the picker causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
 				focusInput(((txt !== null) ? txt : txtActive));
@@ -816,7 +838,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			try // Make sure we can set suppressOnItemSelectionChanged false again, so drop down remains in a functioning state
 			{
-				res = picker.UpdateItemSelection(value, true);
+				res = picker.UpdateItemSelection(value, true, me.Focused() === false);
 			}
 			catch (err) { error = err; }
 
@@ -851,7 +873,7 @@ Fit.Controls.DropDown = function(ctlId)
 			if (error !== null)
 				Fit.Validation.ThrowError(error);
 
-			if (getSelectionElements().length > 0) // A picker prevented selected item from being removed
+			if (Fit.Array.HasItems(itemCollection) === true) // A picker prevented selected item from being removed
 				return;
 		}
 
@@ -945,7 +967,8 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		// Add title and delete button to title box
-		Fit.Dom.Add(item, document.createTextNode(Fit.String.StripHtml(title)));
+		var titleWithoutHtml = Fit.String.StripHtml(title);
+		Fit.Dom.Add(item, document.createTextNode(titleWithoutHtml));
 		Fit.Dom.Add(item, cmdDelete);
 
 		// Add elements to item container
@@ -965,6 +988,9 @@ Fit.Controls.DropDown = function(ctlId)
 			before = txtPrimary;
 
 		itemContainer.insertBefore(container, before);
+
+		var itemObject = createItemObject(titleWithoutHtml, value, valid !== false, item); //convertItemElementToItemObject(item);
+		itemCollection[itemObject.Value] = itemObject;
 
 		// Clear input control value
 
@@ -1052,18 +1078,18 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(includeInvalid, true);
 
-		var selections = Fit.Array.ToArray(itemContainer.children); // Convert NodeList to JS Array, since RemoveAt takes an instance of Array
-
-		// Remove two last elements from array which are not selections (primary input field and arrow button)
-		Fit.Array.RemoveAt(selections, selections.length - 1);
-		Fit.Array.RemoveAt(selections, selections.length - 1);
-
 		var toReturn = [];
-		Fit.Array.ForEach(selections, function(selection)
+
+		Fit.Array.ForEach(itemCollection, function(key)
 		{
-			if (includeInvalid === true || Fit.Dom.HasClass(selection.children[1], "FitUiControlDropDownInvalid") === false)
-				Fit.Array.Add(toReturn, { Title: Fit.Dom.Text(selection.children[1]), Value: decode(Fit.Dom.Data(selection.children[1], "value")), Valid: !Fit.Dom.HasClass(selection.children[1], "FitUiControlDropDownInvalid") });
+			var selection = itemCollection[key];
+
+			if (includeInvalid === true || selection.Valid === true)
+			{
+				Fit.Array.Add(toReturn, { Title: selection.Title, Value: selection.Value, Valid: selection.Valid });
+			}
 		});
+
 		return toReturn;
 	}
 
@@ -1074,17 +1100,15 @@ Fit.Controls.DropDown = function(ctlId)
 	this.GetSelectionByValue = function(val)
 	{
 		Fit.Validation.ExpectString(val);
-
-		var found = null;
-		Fit.Array.ForEach(me.GetSelections(), function(selection)
+		
+		var selection = itemCollection[val] || null;
+		
+		if (selection !== null)
 		{
-			if (selection.Value === val)
-			{
-				found = selection;
-				return false; // Break loop
-			}
-		});
-		return found;
+			return { Title: selection.Title, Value: selection.Value, Valid: selection.Valid };
+		}
+
+		return null;
 	}
 
 	/// <function container="Fit.Controls.DropDown" name="ClearSelections" access="public">
@@ -1097,8 +1121,10 @@ Fit.Controls.DropDown = function(ctlId)
 
 		me._internal.ExecuteWithNoOnChange(function() // picker.UpdateItemSelection results in OnChange being fired
 		{
-			Fit.Array.ForEach(getSelectionElements(), function(selection)
+			Fit.Array.ForEach(itemCollection, function(key)
 			{
+				var selection = itemCollection[key];
+
 				if (picker !== null)
 				{
 					// Notice: Picker fires OnItemSelectionChanged when picker.UpdateItemSelection(..) is invoked
@@ -1114,7 +1140,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 					try // Make sure we can set suppressOnItemSelectionChanged false again, so drop down remains in a functioning state
 					{
-						var res = picker.UpdateItemSelection(decode(Fit.Dom.Data(selection, "value")), false); // OnItemSelectionChanging and OnItemSelectionChanged are fired if picker recognizes item, causing it to be removed in drop down's OnItemSelectionChanged handler (unless canceled, in which case False is returned)
+						var res = picker.UpdateItemSelection(selection.Value, false, me.Focused() === false); // OnItemSelectionChanging and OnItemSelectionChanged are fired if picker recognizes item, causing it to be removed in drop down's OnItemSelectionChanged handler (unless canceled, in which case False is returned)
 					}
 					catch (err) { error = err; }
 
@@ -1123,14 +1149,14 @@ Fit.Controls.DropDown = function(ctlId)
 					if (error !== null)
 						Fit.Validation.ThrowError(error);
 
-					if (res !== false && selection.parentElement.parentElement !== null)
+					if (res !== false && selection.DomElement.parentElement.parentElement !== null)
 					{
 						// Element was not removed (still rooted in DOM), because picker did not recognize
 						// it (did not fire OnItemSelectionChanged) which would otherwise have triggered Drop
 						// Down's OnItemSelectionChanged handler, which in turn would have called RemoveSelection.
 						// And we know it did not cancel change since picker.UpdateItemSelection did not return False.
 						// It is fine to remove item.
-						Fit.Dom.Remove(selection.parentElement);
+						Fit.Dom.Remove(selection.DomElement.parentElement);
 					}
 
 					if (res !== false)
@@ -1138,10 +1164,12 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 				else
 				{
-					Fit.Dom.Remove(selection.parentElement);
+					Fit.Dom.Remove(selection.DomElement.parentElement);
 					fireEvent = true;
 				}
 			});
+
+			itemCollection = {};
 		});
 
 		focusAssigned = wasFocused;
@@ -1184,7 +1212,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			try // Make sure we can set suppressOnItemSelectionChanged false again, so drop down remains in a functioning state
 			{
-				res = picker.UpdateItemSelection(value, false);
+				res = picker.UpdateItemSelection(value, false, me.Focused() === false);
 			}
 			catch (err) { error = err; }
 
@@ -1200,20 +1228,15 @@ Fit.Controls.DropDown = function(ctlId)
 		var found = null;
 		var txt = null;
 
-		Fit.Array.ForEach(getSelectionElements(), function(selection)
-		{
-			if (decode(Fit.Dom.Data(selection, "value")) === value)
-			{
-				if (me.MultiSelectionMode() === true && selection.parentElement.nextSibling !== null && selection.parentElement.nextSibling !== txtPrimary)
-					txt = selection.parentElement.nextSibling.children[0];
+		var itemObject = itemCollection[value] || null;
 
-				found = selection.parentElement;
-				return false;
-			}
-		});
-
-		if (found === null)
+		if (itemObject === null)
 			return;
+		
+		if (me.MultiSelectionMode() === true && itemObject.DomElement.parentElement.nextSibling !== null && itemObject.DomElement.parentElement.nextSibling !== txtPrimary)
+			txt = itemObject.DomElement.parentElement.nextSibling.children[0];
+
+		found = itemObject.DomElement.parentElement;
 
 		if (me.TextSelectionMode() === false)
 		{
@@ -1233,6 +1256,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		Fit.Dom.Remove(found);
+		delete itemCollection[value];
 
 		if (me.MultiSelectionMode() === false)
 		{
@@ -1240,7 +1264,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 		else
 		{
-			if (getSelectionElements().length === 0)
+			if (Fit.Array.HasItems(itemCollection) === false)
 				optimizeTabOrder(); // Make sure txtPrimary can receive focus using Tab or Shift+Tab
 		}
 
@@ -1935,15 +1959,38 @@ Fit.Controls.DropDown = function(ctlId)
 		return txt;
 	}
 
-	function getSelectionElements() // Return spans containing Title and Value (also include elements marked as invalid selections)
+	function createItemObject(title, value, valid, domElement)
 	{
-		return itemContainer.querySelectorAll("span[data-value]");
+		Fit.Validation.ExpectString(title);
+		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectBoolean(valid);
+		Fit.Validation.ExpectDomElement(domElement);
+
+		return { Title: title, Value: value, Valid: valid, DomElement: domElement };
 	}
+	/*function convertItemElementToItemObject(itemElm)
+	{
+		Fit.Validation.ExpectDomElement(itemElm);
+		return { Title: Fit.Dom.Text(itemElm), Value: decode(Fit.Dom.Data(itemElm, "value")), Valid: Fit.Dom.HasClass(itemElm, "FitUiControlDropDownInvalid") === false, DomElement: itemElm };
+	}*/
 
 	function getSelectionElementByValue(value)
 	{
 		Fit.Validation.ExpectString(value);
-		return itemContainer.querySelector("span[data-value='" + encode(value) + "']");
+
+		var item = itemCollection[value] || null;
+		return item !== null ? item.DomElement : null;
+	}
+
+	function getFirstSelectionElement()
+	{
+		var first = null;
+		Fit.Array.ForEach(itemCollection, function(key)
+		{
+			first = itemCollection[key].DomElement;
+			return false;
+		})
+		return first;
 	}
 
 	function fitWidthToContent(input, val) // Set width of input field equivalent to its content
@@ -2085,8 +2132,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (me.MultiSelectionMode() === false) // Single Selection Mode
 		{
-			var selections = getSelectionElements();
-			partiallyHidden = ((selections.length > 0 && selections[0].parentElement.offsetWidth + 1 > Fit.Dom.GetInnerWidth(itemContainer)) ? selections[0] : null); // Adding 1px to offsetWidth - otherwise right aligned cursor may become hidden behind drop down arrow box
+			var firstSelection = getFirstSelectionElement();
+			partiallyHidden = ((firstSelection !== null && firstSelection.parentElement.offsetWidth + 1 > Fit.Dom.GetInnerWidth(itemContainer)) ? firstSelection : null); // Adding 1px to offsetWidth - otherwise right aligned cursor may become hidden behind drop down arrow box
 
 			var inputs = itemContainer.querySelectorAll("input");
 			Fit.Array.ForEach(inputs, function(input)
@@ -2101,8 +2148,10 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			partiallyHidden = null;
 
-			Fit.Array.ForEach(getSelectionElements(), function(item)
+			Fit.Array.ForEach(itemCollection, function(key)
 			{
+				var item = itemCollection[key].DomElement;
+
 				if (item.parentElement.offsetWidth + 1 > Fit.Dom.GetInnerWidth(itemContainer)) // Adding 1px to offsetWidth - otherwise right aligned cursor may become hidden behind drop down arrow box
 					item.nextSibling.tabIndex = -1; // Item is partially hidden - disable right search field
 				else

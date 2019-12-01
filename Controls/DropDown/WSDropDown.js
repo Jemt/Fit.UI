@@ -207,7 +207,19 @@ Fit.Controls.WSDropDown = function(ctlId)
 		{
 			// Make sure focus is lost when SelectAll is invoked. Otherwise control will
 			// reassign focus every time an item is added which is very expensive performance wise.
-			me.Focused(false);
+			// DISABLED: This is simply to annoying for the user as dropdown closes when Focused(false) is called.
+			// Also, due to the implementation of DropDown.Focused(..), it only closes when control has focus
+			// which it won't have if SelectAll is triggered using e.g. a ContextMenu, since the ContextMenu becomes
+			// focused when clicked. So the inconsistency is also annoying. Furthermore automatically closing or
+			// changing focus takes away control from the developer implementing the SelectAll behaviour.
+			//me.Focused(false);
+
+			// NOTICE: Selecting thousands of nodes using SelectAll may result in very poor performance
+			// due to the large amount of DOM manipulation. Both the TreeView and DropDown goes through a full
+			// state change for every single item being selected or deselected, so all events fire and reflows are
+			// triggered for visible items.
+			// To increase performance, temporarily hide TreeView and/or DropDown with display:none while SelectAll
+			// is being performed. Switching to TextSelectionMode may also increase performance significantly.
 
 			// Make sure TreeView is the active picker to have changes synchronized with
 			// drop down control (in case SelectAll is triggered programmatically).

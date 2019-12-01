@@ -617,10 +617,18 @@ Fit.Dom.IsVisible = function(elm)
 	// Determine visibility quickly using offsetParent if possible.
 	// Notice that offsetParent is always Null for an element with
 	// position:fixed, in which case this check will not suffice.
-	if (Fit._internal.Dom.IsOffsetParentSupported() === true && Fit.Dom.GetComputedStyle(elm, "position") !== "fixed" && elm !== document.body && elm !== document.body.parentElement) // <html>, <body>, and elements with position:fixed have no offsetParent
+	// Also <html> and <body> have no offsetParent (null).
+	if (Fit._internal.Dom.IsOffsetParentSupported() === true && Fit.Dom.GetComputedStyle(elm, "position") !== "fixed" && elm !== document.body && elm !== document.body.parentElement)
 	{
 		return (elm.offsetParent !== null);
 	}
+	/*if (Fit._internal.Dom.IsOffsetParentSupported() === true)
+	{
+		if (elm.offsetParent !== null)
+		{
+			return true;
+		}
+	}*/
 
 	// Traverse DOM bottom-up to determine whether element or any ancestors have display:none set
 

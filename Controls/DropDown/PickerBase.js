@@ -5,9 +5,9 @@
 /// 	UpdateItemSelectionState, HandleEvent.
 /// 	Picker Control must fire OnItemSelectionChanging and OnItemSelectionChanged when an item's
 /// 	selection state is being changed, which is done by invoking
-/// 	this._internal.FireOnItemSelectionChanging(title:string, value:string, currentSelectionState:boolean)
+/// 	this._internal.FireOnItemSelectionChanging(title:string, value:string, currentSelectionState:boolean, programmaticallyChanged:boolean)
 /// 	and
-/// 	this._internal.FireOnItemSelectionChanged(title:string, value:string, newSelectionState:boolean).
+/// 	this._internal.FireOnItemSelectionChanged(title:string, value:string, newSelectionState:boolean, programmaticallyChanged:boolean).
 /// 	Notice that FireOnItemSelectionChanging may return False, which must prevent item from being
 /// 	selected, and at the same time prevent FireOnItemSelectionChanged from being called.
 /// 	Changing an item selection may cause OnItemSelectionChanging and OnItemSelectionChanged to be
@@ -168,11 +168,11 @@ Fit.Controls.PickerBase = function()
 	/// 		var item = getItem(value);
 	/// 		if (item !== null)
 	/// 		{
-	/// 			&#160;&#160;&#160;&#160; if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+	/// 			&#160;&#160;&#160;&#160; if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected, programmaticallyChanged) === false)
 	/// 			&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; return false;
 	///
 	/// 			&#160;&#160;&#160;&#160; item.SetSelected(selected);
-	/// 			&#160;&#160;&#160;&#160; this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+	/// 			&#160;&#160;&#160;&#160; this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected, programmaticallyChanged);
 	/// 		}
 	///
 	/// 		Both events are fired by passing the given item's title, value, and current selection state.
@@ -182,11 +182,13 @@ Fit.Controls.PickerBase = function()
 	/// 	</description>
 	/// 	<param name="value" type="string"> Item value </param>
 	/// 	<param name="selected" type="boolean"> True if item was selected, False if item was deselected </param>
+	/// 	<param name="programmaticallyChanged" type="boolean"> True if item was selected programmatically (not by user interaction), False otherwise </param>
 	/// </function>
-	this.UpdateItemSelection = function(value, selected)
+	this.UpdateItemSelection = function(value, selected, programmaticallyChanged) // Actually the current use of programmaticallyChanged is more like "control has focus" - used for performance optimizations
 	{
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectBoolean(programmaticallyChanged);
 
 		// Default implementation fires both events, even though specialized control may not know
 		// anything about the given item selected/deselected. This is necessary in order to support
@@ -194,10 +196,10 @@ Fit.Controls.PickerBase = function()
 
 		// It's safe to assume that current selection state is equal to !selected since host control will
 		// never call UpdateItemSelection with the current value of the given item, only the desired value.
-		if (me._internal.FireOnItemSelectionChanging("", value, !selected) === false)
+		if (me._internal.FireOnItemSelectionChanging("", value, !selected, programmaticallyChanged) === false)
 			return false;
 
-		me._internal.FireOnItemSelectionChanged("", value, selected);
+		me._internal.FireOnItemSelectionChanged("", value, selected, programmaticallyChanged);
 	}
 
 	/// <function container="Fit.Controls.PickerBase" name="SetSelections" access="public">
@@ -294,6 +296,10 @@ Fit.Controls.PickerBase = function()
 	{
 	}
 
+	this._internal.ReportFocused = function(value) // Called by Host Control to tell picker when it is focused/blurred
+	{
+	}
+
 	this._internal.FireOnShow = function() // Called by Host Control
 	{
 		Fit.Array.ForEach(onShowHandlers, function(handler)
@@ -310,32 +316,34 @@ Fit.Controls.PickerBase = function()
 		});
 	},
 
-	this._internal.FireOnItemSelectionChanging = function(title, value, selected) // Called by Picker Control
+	this._internal.FireOnItemSelectionChanging = function(title, value, selected, programmaticallyChanged) // Called by Picker Control
 	{
 		Fit.Validation.ExpectString(title);
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectBoolean(programmaticallyChanged);
 
 		var cancel = false;
 
 		Fit.Array.ForEach(onChangingHandlers, function(handler)
 		{
-			if (handler(me, { Title: title, Value: value, Selected: selected }) === false)
+			if (handler(me, { Title: title, Value: value, Selected: selected, ProgrammaticallyChanged: programmaticallyChanged }) === false)
 				cancel = true;
 		});
 
 		return !cancel;
 	}
 
-	this._internal.FireOnItemSelectionChanged = function(title, value, selected) // Called by Picker Control
+	this._internal.FireOnItemSelectionChanged = function(title, value, selected, programmaticallyChanged) // Called by Picker Control
 	{
 		Fit.Validation.ExpectString(title);
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectBoolean(programmaticallyChanged);
 
 		Fit.Array.ForEach(onChangeHandlers, function(handler)
 		{
-			handler(me, { Title: title, Value: value, Selected: selected });
+			handler(me, { Title: title, Value: value, Selected: selected, ProgrammaticallyChanged: programmaticallyChanged });
 		});
 	}
 

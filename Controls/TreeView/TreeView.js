@@ -56,16 +56,12 @@ Fit.Controls.TreeView = function(ctlId)
 
 	var ctx = null; // Context menu
 
-	// These events fire when user interacts with the tree,
-	// NOT when nodes are manipulated programmatically!
-	// OnSelect and OnToggle can be canceled by returning False.
-	// OnChange event is always fired when state of nodes are
-	// manipulated, also when done programmatically.
 	var onSelectHandlers = [];
 	var onSelectedHandlers = [];
 	var onToggleHandlers = [];
 	var onToggledHandlers = [];
 	var onSelectAllHandlers = [];
+	var onSelectAllCompleteHandlers = [];
 	var onContextMenuHandlers = [];
 
 	var forceClear = false;
@@ -536,20 +532,26 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 	<description> Select all nodes </description>
 	/// 	<param name="selected" type="boolean"> Value indicating whether to select or deselect nodes </param>
 	/// 	<param name="selectAllNode" type="Fit.Controls.TreeViewNode" default="undefined">
-	/// 		If specified, given node is selected/deselected along with all its children.
+	/// 		If specified, children under given node is selected/deselected recursively.
 	/// 		If not specified, all nodes contained in TreeView will be selected/deselected.
 	/// 	</param>
 	/// </function>
-	this.SelectAll = function(selected, selectAllNode)
+	this.SelectAll = function(selected, selectAllNode/*, suppressOnSelectAllCompletedCallback*/) // suppressOnSelectAllCompletedCallback is for internal use only!
 	{
 		Fit.Validation.ExpectBoolean(selected);
 		Fit.Validation.ExpectInstance(selectAllNode, Fit.Controls.TreeViewNode, true);
+
+		// NOTICE: Selecting thousands of nodes using SelectAll may result in very poor performance
+		// due to the large amount of DOM manipulation. The control goes through a full state change
+		// for every single item being selected or deselected, so all events fire and reflows are
+		// triggered for visible items.
+		// To increase performance, temporarily hide TreeView with display:none while SelectAll is being performed.
 
 		var node = (selectAllNode ? selectAllNode : null); // Null = select all nodes, Set = select only children under passed node
 
 		// Fire OnSelectAll event
 
-		if (fireEventHandlers(onSelectAllHandlers, { Node: node, Selected: selected }) === false)
+		if (me._internal.FireOnSelectAll(selected, node) === false)
 			return; // Event handler canceled event
 
 		// Change selection and expand (all nodes)
@@ -558,7 +560,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 		executeWithNoOnChange(function() // Prevent OnChange from firing every time a node's selection state is changed
 		{
-			var nodes = ((node !== null) ? [node] : rootNode.GetChildren());
+			var nodes = ((node !== null) ? node.GetChildren() : rootNode.GetChildren());
 
 			Fit.Array.Recurse(nodes, "GetChildren", function(child)
 			{
@@ -571,9 +573,14 @@ Fit.Controls.TreeView = function(ctlId)
 					}
 				}
 
-				child.Expanded(true);
+				//child.Expanded(true); // DISABLED - This hurts performance significantly for large TreeViews (10-15.000 nodes) as a huge amounts of DOM elements needs to be pushed to render tree, e.g. when opening/closing dropdown hosting TreeView
 			});
 		});
+
+		//if (suppressOnSelectAllCompletedCallback !== true)
+		//{
+		me._internal.FireOnSelectAllComplete(selected, node);
+		//}
 
 		if (changed === true)
 			me._internal.FireOnChange();
@@ -809,11 +816,13 @@ Fit.Controls.TreeView = function(ctlId)
 	/// <function container="Fit.Controls.TreeView" name="AddChild" access="public">
 	/// 	<description> Add node to TreeView </description>
 	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to add </param>
+	/// 	<param name="atIndex" type="integer" default="undefined"> Optional index at which node is added </param>
 	/// </function>
-	this.AddChild = function(node)
+	this.AddChild = function(node, atIndex)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
-		rootNode.AddChild(node);
+		Fit.Validation.ExpectInteger(atIndex, true);
+		rootNode.AddChild(node, atIndex);
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="RemoveChild" access="public">
@@ -963,7 +972,7 @@ Fit.Controls.TreeView = function(ctlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 		
-		me = rootContainer = rootNode = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onContextMenuHandlers = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = isPicker = activeNode = isIe8 = null;
+		me = rootContainer = rootNode = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
 	});
 
 	// ============================================
@@ -1046,6 +1055,23 @@ Fit.Controls.TreeView = function(ctlId)
 		Fit.Array.Add(onSelectAllHandlers, cb);
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="OnSelectAllComplete" access="public">
+	/// 	<description>
+	/// 		Add event handler fired when Select All operation has completed.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Node: Fit.Controls.TreeViewNode instance
+	/// 		 - Selected: Boolean value indicating new selection state
+	/// 	</description>
+	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// </function>
+	this.OnSelectAllComplete = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onSelectAllCompleteHandlers, cb);
+	}
+
 	/// <function container="Fit.Controls.TreeView" name="OnContextMenu" access="public">
 	/// 	<description>
 	/// 		Add event handler fired before context menu is shown.
@@ -1068,6 +1094,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	var isPicker = false;
 	var activeNode = null;
+	var hostFocused = false;
 
 	this.OnShow(function(sender)
 	{
@@ -1080,12 +1107,12 @@ Fit.Controls.TreeView = function(ctlId)
 	this.OnSelect(function(sender, node)
 	{
 		// Handlers may return False which will prevent node from being selected, and OnSelected from being fired
-		return me._internal.FireOnItemSelectionChanging(node.Title(), node.Value(), node.Selected());
+		return me._internal.FireOnItemSelectionChanging(node.Title(), node.Value(), node.Selected(), hostFocused === false);
 	});
 
 	this.OnSelected(function(sender, node)
 	{
-		me._internal.FireOnItemSelectionChanged(node.Title(), node.Value(), node.Selected());
+		me._internal.FireOnItemSelectionChanged(node.Title(), node.Value(), node.Selected(), hostFocused === false);
 	});
 
 	this.OnChange(function(sender)
@@ -1183,10 +1210,11 @@ Fit.Controls.TreeView = function(ctlId)
 		}
 	}
 
-	this.UpdateItemSelection = function(itemValue, selected)
+	this.UpdateItemSelection = function(itemValue, selected, programmaticallyChanged)
 	{
 		Fit.Validation.ExpectString(itemValue);
 		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectBoolean(programmaticallyChanged);
 
 		var node = me.GetChild(itemValue, true);
 
@@ -1202,9 +1230,33 @@ Fit.Controls.TreeView = function(ctlId)
 		}
 	}
 
+	this._internal = (this._internal ? this._internal : {});
+
 	this._internal.InitializePicker = function() // Override function from PickerBase
 	{
 		isPicker = true;
+	}
+
+	this._internal.ReportFocused = function(focused) // Override function from PickerBase
+	{
+		Fit.Validation.ExpectBoolean(focused);
+		hostFocused = focused;
+	}
+
+	this._internal.FireOnSelectAll = function(selected, node) // Make function available to derivatives
+	{
+		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode, true);
+
+		return fireEventHandlers(onSelectAllHandlers, { Selected: selected, Node: node || null });
+	}
+
+	this._internal.FireOnSelectAllComplete = function(selected, node) // Make function available to derivatives
+	{
+		Fit.Validation.ExpectBoolean(selected);
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode, true);
+
+		fireEventHandlers(onSelectAllCompleteHandlers, { Selected: selected, Node: node || null });
 	}
 
     this.HandleEvent = function(e)
@@ -1541,6 +1593,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	var childrenIndexed = {};
 	var childrenArray = [];
 	var lastChild = null;
+	var behavioralNodeCallback = null;
 
 	// ============================================
 	// Init
@@ -1632,6 +1685,35 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		return (Fit.Dom.Data(elmLi, "state") === "expanded");
 	}
 
+	/// <function container="Fit.Controls.TreeViewNode" name="SetBehavioralNodeCallback" access="public">
+	/// 	<description>
+	/// 		Set callback invoked when node is selected.
+	/// 		A behavioral node is not considered data, so selecting it will not change
+	/// 		the control value. Since the node is not considered data, it will not trigger
+	/// 		the OnSelect and OnSelected TreeView events either.
+	/// 		Callback receives two arguments:
+	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Node: Fit.Controls.TreeViewNode instance
+	/// 		 - Selected: Boolean value indicating new selection state
+	/// 		Callback may cancel changed selection state by returning False.
+	/// 	</description>
+	/// 	<param name="func" type="function"> Callback function invoked when node is selected - Null disables behavioral state </param>
+	/// </function>
+	this.SetBehavioralNodeCallback = function(func)
+	{
+		Fit.Validation.ExpectFunction(func !== null ? func : function() {});
+		behavioralNodeCallback = func;
+	}
+
+	/// <function container="Fit.Controls.TreeViewNode" name="IsBehavioralNode" access="public" returns="boolean">
+	/// 	<description> Returns True if this is a behavioral node, otherwise False - see SetBehavioralNodeCallback for more details </description>
+	/// </function>
+	this.IsBehavioralNode = function()
+	{
+		return behavioralNodeCallback !== null;
+	}
+
 	/// <function container="Fit.Controls.TreeViewNode" name="Selectable" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether user can change node selection state </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables node selection, False disables it </param>
@@ -1705,7 +1787,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	/// 	</description>
 	/// 	<param name="select" type="boolean" default="undefined"> If defined, True selects node, False deselects it </param>
 	/// </function>
-	this.Selected = function(select)
+	this.Selected = function(select, suppressOnChange) // suppressOnChange is for internal use only!
 	{
 		Fit.Validation.ExpectBoolean(select, true);
 
@@ -1721,10 +1803,23 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		{
 			var tv = elmLi._internal.TreeView;
 
+			if (behavioralNodeCallback !== null)
+			{
+				if (behavioralNodeCallback(me.GetTreeView(), { Node: me, Selected: !me.Selected() }) === false)
+				{
+					return (Fit.Dom.Data(elmLi, "selected") === "true");
+				}
+			}
+
 			// Fire OnSelect event
 
-			if (tv !== null && tv.FireSelect(me) === false)
-				return (Fit.Dom.Data(elmLi, "selected") === "true");
+			if (behavioralNodeCallback === null)
+			{
+				if (tv !== null && tv.FireSelect(me) === false)
+				{
+					return (Fit.Dom.Data(elmLi, "selected") === "true");
+				}
+			}
 
 			var wasSelected = me.Selected();
 
@@ -1739,22 +1834,26 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 
 			if (tv !== null)
 				tv.Repaint();
+			
+			// Synchronize selection to TreeView (unless this was a behavioral node (not a data node))
 
-			// Synchronize selection to TreeView
-
-			if (tv !== null)
+			if (behavioralNodeCallback === null && tv !== null)
 			{
 				if (select === true && wasSelected === false)
 				{
 					tv.Select(me);
 					tv.FireSelected(me);
-					tv.FireOnChange();
+
+					if (suppressOnChange !== true)
+						tv.FireOnChange();
 				}
 				else if (select === false && wasSelected === true)
 				{
 					tv.Deselect(me);
 					tv.FireSelected(me);
-					tv.FireOnChange();
+
+					if (suppressOnChange !== true)
+						tv.FireOnChange();
 				}
 			}
 		}
@@ -1788,7 +1887,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	{
 		if (!elmLi.parentElement)
 			return null; // Not rooted in another node yet
-		if (!elmLi.parentElement.parentElement._internal || !elmLi.parentElement.parentElement._internal.TreeView) // Notice: _internal may have been set by e.g. Fit.Events.AddHandler
+			if (!elmLi.parentElement.parentElement._internal || !elmLi.parentElement.parentElement._internal.TreeView) // Notice: _internal may have been set by e.g. Fit.Events.AddHandler
 			return null; // Rooted, but not in another node - most likely rooted in TreeView UL container
 		if (elmLi.parentElement.parentElement._internal.Node.Value() === "TREEVIEW_ROOT_NODE")
 			return null; // Indicate top by returning Null when root node is reached
@@ -1823,13 +1922,28 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		return level;
 	}
 
+	/// <function container="Fit.Controls.TreeViewNode" name="GetIndex" access="public" returns="integer">
+	/// 	<description> Get node index (position in parent node or TreeView) - returns -1 if node has not been added yet </description>
+	/// </function>
+	this.GetIndex = function()
+	{
+		if (me.GetTreeView() === null)
+		{
+			return -1;
+		}
+
+		return Fit.Dom.GetIndex(me.GetDomElement());
+	}
+
 	/// <function container="Fit.Controls.TreeViewNode" name="AddChild" access="public">
 	/// 	<description> Add child node </description>
 	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to add </param>
+	/// 	<param name="atIndex" type="integer" default="undefined"> Optional index at which node is added </param>
 	/// </function>
-	this.AddChild = function(node)
+	this.AddChild = function(node, atIndex)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
+		Fit.Validation.ExpectInteger(atIndex, true);
 
 		// Remove node from existing parent if already rooted.
 		// This is important to make sure that TreeView, from which
@@ -1855,21 +1969,45 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 			Fit.Dom.Data(elmLi, "state", "collapsed");
 		}
 
-		// Make sure last node is marked as such, allowing for specialized CSS behaviour
-		if (lastChild !== null)
-			Fit.Dom.Data(lastChild.GetDomElement(), "last", "false");
-		Fit.Dom.Data(node.GetDomElement(), "last", "true");
-		lastChild = node;
+		if (Fit.Validation.IsSet(atIndex) === false || lastChild === null || atIndex > lastChild.GetIndex())
+		{
+			// Make sure last node is marked as such, allowing for specialized CSS behaviour
+			if (lastChild !== null)
+				Fit.Dom.Data(lastChild.GetDomElement(), "last", "false");
+			Fit.Dom.Data(node.GetDomElement(), "last", "true");
+			lastChild = node;
+		}
 
 		// Add child to DOM and internal collections
-		elmUl.appendChild(node.GetDomElement());
-		childrenIndexed[node.Value()] = node;
-		Fit.Array.Add(childrenArray, node);
+		if (lastChild === node)
+		{
+			elmUl.appendChild(node.GetDomElement());
+			childrenIndexed[node.Value()] = node;
+			Fit.Array.Add(childrenArray, node);
+		}
+		else
+		{
+			Fit.Dom.InsertAt(elmUl, atIndex, node.GetDomElement());
+			childrenIndexed[node.Value()] = node;
+			Fit.Array.Insert(childrenArray, atIndex, node);
+		}
 
 		// Changing data attribute above requires repaint in IE8
 		// for dynamically added nodes to render helper lines properly.
 		if (elmLi._internal.TreeView !== null)
 			elmLi._internal.TreeView.Repaint();
+		
+		// Behavioral node support
+		
+		if (node.IsBehavioralNode() === true)
+		{
+			executeRecursively(node, function(n)
+			{
+				n.GetDomElement()._internal.TreeView = elmLi._internal.TreeView;
+			});
+
+			return; // Skip remaining wiring - behavioral nodes are not considered data, so it should not fire OnSelect, OnSelected, and OnChange
+		}
 
 		// Configure TreeView association and synchronize selection state
 
@@ -1907,7 +2045,10 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 				// Notice that TreeViewNodeInterface is temporarily removed to prevent
 				// node.Selected(true) from firing events - we do not want OnChange to be
 				// fired multiple times, so we fire only OnSelect and OnSelected below.
-				node.GetDomElement()._internal.TreeView = null;
+				// DISABLED: This is garbage! Functions such as node.GetTreeView() or node.Expanded(true)
+				// will not work properly with this approach from e.g. an OnSelected event handler! Fixed
+				// by passing an argument to node.Selected(..) instead which suppresses the OnChange event.
+				/*node.GetDomElement()._internal.TreeView = null;
 
 				if (tv.FireSelect(node) === true)
 				{
@@ -1917,7 +2058,15 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 					fireOnChange = true;
 				}
 
-				node.GetDomElement()._internal.TreeView = tv;
+				node.GetDomElement()._internal.TreeView = tv;*/
+
+				var wasSelected = node.Selected();
+				var newSelection = node.Selected(true, true); // Second True is an internal argument suppressing firing of the OnChange event
+
+				if (wasSelected !== newSelection)
+				{
+					fireOnChange = true;
+				}
 			});
 
 			// Fire OnChange if selections were made
@@ -2065,7 +2214,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		}
 
 		// Dispose private members
-		me = elmLi = elmUl = cmdToggle = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = null;
+		me = elmLi = elmUl = cmdToggle = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = behavioralNodeCallback = null;
 	}
 
 	/// <function container="Fit.Controls.TreeViewNode" name="GetDomElement" access="public" returns="DOMElement">

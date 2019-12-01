@@ -151,6 +151,20 @@ declare namespace Fit
 		*/
 		public static GetKeys(obj:any):any[];
 		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any[]} arr - Collection to investigate
+		* @returns boolean
+		*/
+		public static HasItems(arr:any[]):boolean;
+		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any} obj - Object array to investigate
+		* @returns boolean
+		*/
+		public static HasItems(obj:any):boolean;
+		/**
 		* Insert object into array at specified index
 		* @function Insert
 		* @param {any[]} arr - Array into which object is inserted
@@ -2941,11 +2955,11 @@ declare namespace Fit
 			var item = getItem(value);
 			if (item !== null)
 			{
-				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected, programmaticallyChanged) === false)
 					return false;
 			
 				item.SetSelected(selected);
-				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected, programmaticallyChanged);
 			}
 			
 			Both events are fired by passing the given item&#39;s title, value, and current selection state.
@@ -2955,8 +2969,9 @@ declare namespace Fit
 			* @function UpdateItemSelection
 			* @param {string} value - Item value
 			* @param {boolean} selected - True if item was selected, False if item was deselected
+			* @param {boolean} programmaticallyChanged - True if item was selected programmatically (not by user interaction), False otherwise
 			*/
-			public UpdateItemSelection(value:string, selected:boolean):void;
+			public UpdateItemSelection(value:string, selected:boolean, programmaticallyChanged:boolean):void;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -2995,9 +3010,9 @@ declare namespace Fit
 		UpdateItemSelectionState, HandleEvent.
 		Picker Control must fire OnItemSelectionChanging and OnItemSelectionChanged when an item&#39;s
 		selection state is being changed, which is done by invoking
-		this._internal.FireOnItemSelectionChanging(title:string, value:string, currentSelectionState:boolean)
+		this._internal.FireOnItemSelectionChanging(title:string, value:string, currentSelectionState:boolean, programmaticallyChanged:boolean)
 		and
-		this._internal.FireOnItemSelectionChanged(title:string, value:string, newSelectionState:boolean).
+		this._internal.FireOnItemSelectionChanged(title:string, value:string, newSelectionState:boolean, programmaticallyChanged:boolean).
 		Notice that FireOnItemSelectionChanging may return False, which must prevent item from being
 		selected, and at the same time prevent FireOnItemSelectionChanged from being called.
 		Changing an item selection may cause OnItemSelectionChanging and OnItemSelectionChanged to be
@@ -3125,11 +3140,11 @@ declare namespace Fit
 			var item = getItem(value);
 			if (item !== null)
 			{
-				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected, programmaticallyChanged) === false)
 					return false;
 			
 				item.SetSelected(selected);
-				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected, programmaticallyChanged);
 			}
 			
 			Both events are fired by passing the given item&#39;s title, value, and current selection state.
@@ -3139,8 +3154,9 @@ declare namespace Fit
 			* @function UpdateItemSelection
 			* @param {string} value - Item value
 			* @param {boolean} selected - True if item was selected, False if item was deselected
+			* @param {boolean} programmaticallyChanged - True if item was selected programmatically (not by user interaction), False otherwise
 			*/
-			public UpdateItemSelection(value:string, selected:boolean):void;
+			public UpdateItemSelection(value:string, selected:boolean, programmaticallyChanged:boolean):void;
 		}
 		/**
 		* ProgressBar control useful for indicating progress.
@@ -3252,8 +3268,9 @@ declare namespace Fit
 			* Add node to TreeView
 			* @function AddChild
 			* @param {Fit.Controls.TreeViewNode} node - Node to add
+			* @param {number} [atIndex=undefined] - Optional index at which node is added
 			*/
-			public AddChild(node:Fit.Controls.TreeViewNode):void;
+			public AddChild(node:Fit.Controls.TreeViewNode, atIndex?:number):void;
 			/**
 			* Get/set value indicating whether user is allowed to deselect nodes.
 			By default the user is allowed to deselect nodes.
@@ -3381,6 +3398,17 @@ declare namespace Fit
 			*/
 			public OnSelectAll(cb:Function):void;
 			/**
+			* Add event handler fired when Select All operation has completed.
+			Function receives two arguments:
+			Sender (Fit.Controls.TreeView) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Node: Fit.Controls.TreeViewNode instance
+			- Selected: Boolean value indicating new selection state
+			* @function OnSelectAllComplete
+			* @param {Function} cb - Event handler function
+			*/
+			public OnSelectAllComplete(cb:Function):void;
+			/**
 			* Add event handler fired when node is selected or deselected.
 			Selection can not be canceled. Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
@@ -3431,7 +3459,7 @@ declare namespace Fit
 			* Select all nodes
 			* @function SelectAll
 			* @param {boolean} selected - Value indicating whether to select or deselect nodes
-			* @param {Fit.Controls.TreeViewNode} [selectAllNode=undefined] - If specified, given node is selected/deselected along with all its children.
+			* @param {Fit.Controls.TreeViewNode} [selectAllNode=undefined] - If specified, children under given node is selected/deselected recursively.
 			If not specified, all nodes contained in TreeView will be selected/deselected.
 			*/
 			public SelectAll(selected:boolean, selectAllNode?:Fit.Controls.TreeViewNode):void;
@@ -3570,11 +3598,11 @@ declare namespace Fit
 			var item = getItem(value);
 			if (item !== null)
 			{
-				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected, programmaticallyChanged) === false)
 					return false;
 			
 				item.SetSelected(selected);
-				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected, programmaticallyChanged);
 			}
 			
 			Both events are fired by passing the given item&#39;s title, value, and current selection state.
@@ -3584,8 +3612,9 @@ declare namespace Fit
 			* @function UpdateItemSelection
 			* @param {string} value - Item value
 			* @param {boolean} selected - True if item was selected, False if item was deselected
+			* @param {boolean} programmaticallyChanged - True if item was selected programmatically (not by user interaction), False otherwise
 			*/
-			public UpdateItemSelection(value:string, selected:boolean):void;
+			public UpdateItemSelection(value:string, selected:boolean, programmaticallyChanged:boolean):void;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -3790,8 +3819,9 @@ declare namespace Fit
 			* Add child node
 			* @function AddChild
 			* @param {Fit.Controls.TreeViewNode} node - Node to add
+			* @param {number} [atIndex=undefined] - Optional index at which node is added
 			*/
-			public AddChild(node:Fit.Controls.TreeViewNode):void;
+			public AddChild(node:Fit.Controls.TreeViewNode, atIndex?:number):void;
 			/**
 			* Destroys object to free up memory
 			* @function Dispose
@@ -3832,6 +3862,12 @@ declare namespace Fit
 			*/
 			public GetDomElement():HTMLElement;
 			/**
+			* Get node index (position in parent node or TreeView) - returns -1 if node has not been added yet
+			* @function GetIndex
+			* @returns number
+			*/
+			public GetIndex():number;
+			/**
 			* Get node depth in current hierarchy - root node is considered level 0
 			* @function GetLevel
 			* @returns number
@@ -3856,6 +3892,12 @@ declare namespace Fit
 			*/
 			public HasCheckbox():boolean;
 			/**
+			* Returns True if this is a behavioral node, otherwise False - see SetBehavioralNodeCallback for more details
+			* @function IsBehavioralNode
+			* @returns boolean
+			*/
+			public IsBehavioralNode():boolean;
+			/**
 			* Remove child node - this does not result in TreeView.OnSelect and TreeView.OnSelected being fired for selected nodes
 			* @function RemoveChild
 			* @param {Fit.Controls.TreeViewNode} node - Node to remove
@@ -3878,6 +3920,21 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public Selected(select?:boolean):boolean;
+			/**
+			* Set callback invoked when node is selected.
+			A behavioral node is not considered data, so selecting it will not change
+			the control value. Since the node is not considered data, it will not trigger
+			the OnSelect and OnSelected TreeView events either.
+			Callback receives two arguments:
+			Sender (Fit.Controls.TreeView) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Node: Fit.Controls.TreeViewNode instance
+			- Selected: Boolean value indicating new selection state
+			Callback may cancel changed selection state by returning False.
+			* @function SetBehavioralNodeCallback
+			* @param {Function} func - Callback function invoked when node is selected - Null disables behavioral state
+			*/
+			public SetBehavioralNodeCallback(func:Function):void;
 			/**
 			* Get/set node title
 			* @function Title
@@ -4860,11 +4917,11 @@ declare namespace Fit
 			var item = getItem(value);
 			if (item !== null)
 			{
-				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected, programmaticallyChanged) === false)
 					return false;
 			
 				item.SetSelected(selected);
-				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected, programmaticallyChanged);
 			}
 			
 			Both events are fired by passing the given item&#39;s title, value, and current selection state.
@@ -4874,8 +4931,9 @@ declare namespace Fit
 			* @function UpdateItemSelection
 			* @param {string} value - Item value
 			* @param {boolean} selected - True if item was selected, False if item was deselected
+			* @param {boolean} programmaticallyChanged - True if item was selected programmatically (not by user interaction), False otherwise
 			*/
-			public UpdateItemSelection(value:string, selected:boolean):void;
+			public UpdateItemSelection(value:string, selected:boolean, programmaticallyChanged:boolean):void;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -5055,8 +5113,9 @@ declare namespace Fit
 			* Add node to TreeView
 			* @function AddChild
 			* @param {Fit.Controls.TreeViewNode} node - Node to add
+			* @param {number} [atIndex=undefined] - Optional index at which node is added
 			*/
-			public AddChild(node:Fit.Controls.TreeViewNode):void;
+			public AddChild(node:Fit.Controls.TreeViewNode, atIndex?:number):void;
 			/**
 			* Get/set value indicating whether user is allowed to deselect nodes.
 			By default the user is allowed to deselect nodes.
@@ -5184,6 +5243,17 @@ declare namespace Fit
 			*/
 			public OnSelectAll(cb:Function):void;
 			/**
+			* Add event handler fired when Select All operation has completed.
+			Function receives two arguments:
+			Sender (Fit.Controls.TreeView) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Node: Fit.Controls.TreeViewNode instance
+			- Selected: Boolean value indicating new selection state
+			* @function OnSelectAllComplete
+			* @param {Function} cb - Event handler function
+			*/
+			public OnSelectAllComplete(cb:Function):void;
+			/**
 			* Add event handler fired when node is selected or deselected.
 			Selection can not be canceled. Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
@@ -5234,7 +5304,7 @@ declare namespace Fit
 			* Select all nodes
 			* @function SelectAll
 			* @param {boolean} selected - Value indicating whether to select or deselect nodes
-			* @param {Fit.Controls.TreeViewNode} [selectAllNode=undefined] - If specified, given node is selected/deselected along with all its children.
+			* @param {Fit.Controls.TreeViewNode} [selectAllNode=undefined] - If specified, children under given node is selected/deselected recursively.
 			If not specified, all nodes contained in TreeView will be selected/deselected.
 			*/
 			public SelectAll(selected:boolean, selectAllNode?:Fit.Controls.TreeViewNode):void;
@@ -5367,11 +5437,11 @@ declare namespace Fit
 			var item = getItem(value);
 			if (item !== null)
 			{
-				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected) === false)
+				if (this._internal.FireOnItemSelectionChanging(item.Title, item.Value, item.Selected, programmaticallyChanged) === false)
 					return false;
 			
 				item.SetSelected(selected);
-				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected);
+				this._internal.FireOnItemSelectionChanged(item.Title, item.Value, item.Selected, programmaticallyChanged);
 			}
 			
 			Both events are fired by passing the given item&#39;s title, value, and current selection state.
@@ -5381,8 +5451,9 @@ declare namespace Fit
 			* @function UpdateItemSelection
 			* @param {string} value - Item value
 			* @param {boolean} selected - True if item was selected, False if item was deselected
+			* @param {boolean} programmaticallyChanged - True if item was selected programmatically (not by user interaction), False otherwise
 			*/
-			public UpdateItemSelection(value:string, selected:boolean):void;
+			public UpdateItemSelection(value:string, selected:boolean, programmaticallyChanged:boolean):void;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control
@@ -6271,14 +6342,6 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
-		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6295,6 +6358,20 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -6302,12 +6379,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).

@@ -118,6 +118,125 @@ Tests.ComputedStyles = function()
 	}
 }
 
+Tests.DomVisibility = function()
+{
+	// Visible
+	var domElmNormalVisible = Fit.Dom.CreateElement("<div style=''>Test</div>");
+	var domElmPositionAbsVisible = Fit.Dom.CreateElement("<div style='position: absolute;'>Test</div>");
+	var domElmPositionFixVisible = Fit.Dom.CreateElement("<div style='position: fixed;'>Test</div>");
+	var domElmVisibilityHidden = Fit.Dom.CreateElement("<div style='visibility: hidden;'>Test</div>");
+
+	// Invisible
+	var domElmNormalInvisible = Fit.Dom.CreateElement("<div style='display: none;'>Test</div>");
+	var domElmPositionAbsInvisible = Fit.Dom.CreateElement("<div style='position: absolute; display: none;'>Test</div>");
+	var domElmPositionFixInvisible = Fit.Dom.CreateElement("<div style='position: fixed; display: none;'>Test</div>");
+	var domElmNormalNotMounted = Fit.Dom.CreateElement("<div style='display: block;'>Test</div>"); // Do not mount this!
+
+	this.Description = "Visibility for DOM elements can be determined";
+
+	this.Execute = function()
+	{
+		document.body.appendChild(domElmNormalVisible);
+		document.body.appendChild(domElmPositionAbsVisible);
+		document.body.appendChild(domElmPositionFixVisible);
+
+		document.body.appendChild(domElmNormalInvisible);
+		document.body.appendChild(domElmPositionAbsInvisible);
+		document.body.appendChild(domElmPositionFixInvisible);
+
+		document.body.appendChild(domElmVisibilityHidden);
+	}
+
+	this.Assertions =
+	[
+		// Visible DOM elements
+		{
+			Message: "Can determine visibility for mounted div with no styling",
+			Expected: true,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmNormalVisible));
+			}
+		},
+		{
+			Message: "Can determine visibility for mounted div with position:absolute",
+			Expected: true,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmPositionAbsVisible));
+			}
+		},
+		{
+			Message: "Can determine visibility for mounted div with position:fixed",
+			Expected: true,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmPositionFixVisible));
+			}
+		},
+		{
+			Message: "Can determine visibility for div with visibility:hidden",
+			Expected: true,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmVisibilityHidden));
+			}
+		},
+
+		// Invisible DOM elements
+		{
+			Message: "Can determine visibility for mounted div with display:none",
+			Expected: false,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmNormalInvisible));
+			}
+		},
+		{
+			Message: "Can determine visibility for mounted div with position:absolute;display:none",
+			Expected: false,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmPositionAbsInvisible));
+			}
+		},
+		{
+			Message: "Can determine visibility for mounted div with position:fixed;display:none",
+			Expected: false,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmPositionFixInvisible));
+			}
+		},
+		{
+			Message: "Can determine visibility for div not mounted in DOM",
+			Expected: false,
+			GetResult: function()
+			{
+				return (Fit.Dom.IsVisible(domElmNormalNotMounted));
+			}
+		},
+		{
+			Message: "Performance for visibility lookups (50.000 iterations, all elements) - see time usage",
+			Expected: true,
+			GetResult: function()
+			{
+				var elements = [domElmNormalVisible, domElmPositionAbsVisible, domElmPositionFixVisible, domElmNormalInvisible, domElmPositionAbsInvisible, domElmPositionFixInvisible, domElmVisibilityHidden];
+
+				for (var i = 0 ; i < 50000 ; i++)
+				{
+					for (var j = 0 ; j < elements.length ; j++)
+					{
+						Fit.Dom.IsVisible(elements[j]);
+					}
+				}
+
+				return true;
+			}
+		},
+	]
+}
+
 ;(function()
 {
 	var structures = [ "div", "ul", "table" ];
