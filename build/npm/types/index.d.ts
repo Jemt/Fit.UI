@@ -4172,14 +4172,15 @@ declare namespace Fit
 			/**
 			* Automatically update title of selected items based on data from WebService.
 			Contrary to UpdateSelected(), AutoUpdateSelected() automatically loads all
-			data from the associated WebService before updating the selected items.
+			data from the associated WebService before updating the selected items, but
+			only if one or more items are selected.
 			The callback function is invoked when selected items have been updated.
 			The following arguments are passed to function:
 			- Sender (WSDropDown)
 			- An array of updated items, each with a Title (string), Value (string), and Exists (boolean) property.
 			Notice that items that no longer exists in picker&#39;s data, will NOT automatically be removed.
 			To obtain all items with the most current state (both updated and unmodified selections), use;
-			dropdown.AutoUpdateSelected(function(sender, updated) { console.log(&quot;All selected&quot;, dropdown.GetSelections); });
+			dropdown.AutoUpdateSelected(function(sender, updated) { console.log(&quot;All selected&quot;, dropdown.GetSelections()); });
 			For additiona details see UpdateSelected().
 			* @function AutoUpdateSelected
 			* @param {Function} [cb=undefined] - Optional callback function invoked when selected items have been updated
