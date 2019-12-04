@@ -119,10 +119,10 @@ div.FitUiControlDropDownItems > span > span > i /* Delete button */
 	padding-left: 0.4em;
 	cursor: pointer;
 }
-div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems > span > span > i /* Delete button in selection (in single selection mode only) */
-{
+/*div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems > span > span > i*/ /* Delete button in selection (in single selection mode only) */
+/*{
 	display: none;
-}
+}*/
 div.FitUiControlDropDownItems > span > span > i:focus /* Remove outline when focus is temporarily assigned to prevent DropDown from losing focus */
 {
 	outline: none;
