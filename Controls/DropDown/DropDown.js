@@ -2143,6 +2143,12 @@ Fit.Controls.DropDown = function(ctlId)
 
 			if (partiallyHidden !== null)
 				inputs[0].tabIndex = 0;
+
+			if (firstSelection !== null)
+			{
+				var cmdDelete = firstSelection.querySelector("i");
+				cmdDelete.tabIndex = ((partiallyHidden !== null) ? -1 : 0);
+			}
 		}
 		else // Multi Selection Mode
 		{
