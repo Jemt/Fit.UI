@@ -54,6 +54,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var clearTextSelectionOnInputChange = false;
 	var prevTextSelection = null;
 	var textSelectionCallback = null;
+	var cmdToggleTextMode = null;
 	
 	function init()
 	{
@@ -63,6 +64,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		me._internal.Data("multiselect", "false");
 		me._internal.Data("selectionmode", "visual");
+		me._internal.Data("selectionmodetoggle", "false");
 
 		if (Fit.Browser.GetInfo().IsMobile === true)
 			isMobile = true;
@@ -573,7 +575,7 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Events.RemoveHandler(document, eventId);
 		});
 
-		me = itemContainer = itemCollection = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = null;
+		me = itemContainer = itemCollection = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
@@ -637,9 +639,58 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 
 			me._internal.Data("selectionmode", (val === true ? "text" : "visual"));
+
+			if (cmdToggleTextMode !== null)
+			{
+				if (val === true)
+				{
+					Fit.Dom.RemoveClass(cmdToggleTextMode, "fa-compress");
+					Fit.Dom.AddClass(cmdToggleTextMode, "fa-expand");
+				}
+				else
+				{
+					{
+						Fit.Dom.RemoveClass(cmdToggleTextMode, "fa-expand");
+						Fit.Dom.AddClass(cmdToggleTextMode, "fa-compress");
+					}
+				}
+			}
 		}
 
 		return (me._internal.Data("selectionmode") === "text");
+	}
+
+	/// <function container="Fit.Controls.Input" name="SelectionModeToggle" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text) </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables toggle button, False disables it </param>
+	/// </function>
+	this.SelectionModeToggle = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && cmdToggleTextMode === null)
+			{
+				cmdToggleTextMode = document.createElement("span");
+				cmdToggleTextMode.onclick = function()
+				{
+					me.TextSelectionMode(!me.TextSelectionMode());
+				}
+				Fit.Dom.AddClass(cmdToggleTextMode, "fa");
+				Fit.Dom.AddClass(cmdToggleTextMode, me.TextSelectionMode() === true ? "fa-expand" : "fa-compress");
+				me._internal.AddDomElement(cmdToggleTextMode);
+				me._internal.Data("selectionmodetoggle", "true");
+			}
+			else if (val === false && cmdToggleTextMode !== null)
+			{
+				me._internal.RemoveDomElement(cmdToggleTextMode);
+				cmdToggleTextMode = null;
+				me._internal.Data("selectionmodetoggle", "false");
+			}
+		}
+
+		return (cmdToggleTextMode !== null);
 	}
 
 	/// <function container="Fit.Controls.DropDown" name="MultiSelectionMode" access="public" returns="boolean">

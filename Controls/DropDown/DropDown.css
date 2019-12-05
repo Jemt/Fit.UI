@@ -279,3 +279,16 @@ div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItem
 	margin-top: 0.2em;
 	margin-top: 0\9; /* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
 }
+
+/* Selection Mode toggle button (switch between Text and Visual Selection Mode) */
+
+div.FitUiControlDropDown > span.fa
+{
+	position: absolute;
+	top: 0.5em;
+	right: -1.5em;
+}
+div.FitUiControlDropDown[data-selectionmodetoggle="true"]
+{
+    margin-right: 2em;
+}

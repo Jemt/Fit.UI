@@ -42,19 +42,15 @@ div.FitUiControlInput[data-valid="false"] textarea:first-child
 }
 
 /* Maximize button */
-div.FitUiControlInput
-{
-	position: relative;
-}
-div.FitUiControlInput span.fa
+div.FitUiControlInput > span.fa
 {
 	position: absolute;
 	top: 0px;
-	right: -1.2em;
+	right: -1.5em;
 }
 div.FitUiControlInput[data-maximizable="true"]
 {
-    margin-right: 1.4em;
+    margin-right: 2em;
 }
 
 /* Remove outline when input has focus */
