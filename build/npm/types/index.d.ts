@@ -1921,6 +1921,13 @@ declare namespace Fit
 			*/
 			public RemoveSelection(value:string):void;
 			/**
+			* Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text)
+			* @function SelectionModeToggle
+			* @param {boolean} [val=undefined] - If defined, True enables toggle button, False disables it
+			* @returns boolean
+			*/
+			public SelectionModeToggle(val?:boolean):boolean;
+			/**
 			* Set value of text field which is automatically cleared the first time control
 			receives focus. Notice that this function should be called after AddSelection(..),
 			since adding selections causes the value of the text field to be cleared.
@@ -2594,13 +2601,6 @@ declare namespace Fit
 			* @returns string
 			*/
 			public Placeholder(val?:string):string;
-			/**
-			* Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text)
-			* @function SelectionModeToggle
-			* @param {boolean} [val=undefined] - If defined, True enables toggle button, False disables it
-			* @returns boolean
-			*/
-			public SelectionModeToggle(val?:boolean):boolean;
 			/**
 			* Get/set input type (e.g. Text, Password, Email, etc.)
 			* @function Type
@@ -4446,6 +4446,13 @@ declare namespace Fit
 			* @param {string} value - Value of selected item to remove
 			*/
 			public RemoveSelection(value:string):void;
+			/**
+			* Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text)
+			* @function SelectionModeToggle
+			* @param {boolean} [val=undefined] - If defined, True enables toggle button, False disables it
+			* @returns boolean
+			*/
+			public SelectionModeToggle(val?:boolean):boolean;
 			/**
 			* Set value of text field which is automatically cleared the first time control
 			receives focus. Notice that this function should be called after AddSelection(..),

@@ -660,7 +660,7 @@ Fit.Controls.DropDown = function(ctlId)
 		return (me._internal.Data("selectionmode") === "text");
 	}
 
-	/// <function container="Fit.Controls.Input" name="SelectionModeToggle" access="public" returns="boolean">
+	/// <function container="Fit.Controls.DropDown" name="SelectionModeToggle" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text) </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables toggle button, False disables it </param>
 	/// </function>
