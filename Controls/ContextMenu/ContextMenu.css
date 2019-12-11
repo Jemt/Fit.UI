@@ -30,14 +30,14 @@ div.FitUiControlContextMenu.FitUiControlTreeView
 		padding-left: 1.5em; /* Make room for expand/collapse icon */
 	}
 	div.FitUiControlContextMenu.FitUiControlTreeView li ul li > span,
-	div.FitUiControlContextMenu.FitUiControlTreeView li ul li:focus > span,
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-picker="false"] li ul li:focus > span,
 	div.FitUiControlContextMenu.FitUiControlTreeView li ul li[data-active="true"] > span
 	{
 		padding: 0px 1em 0px 0px;
 	}
 
 	/* Remove highlighting border for selected item - use background color instead */
-	div.FitUiControlContextMenu.FitUiControlTreeView li ul li:focus > span
+	div.FitUiControlContextMenu.FitUiControlTreeView[data-picker="false"] li ul li:focus > span
 	{
 		border: none;
 	}
