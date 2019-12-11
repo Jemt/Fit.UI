@@ -83,19 +83,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in collection
-		* @function Count
-		* @param {any[]} arr - Collection to count elements within
-		* @returns number
-		*/
-		public static Count(arr:any[]):number;
-		/**
 		* Returns number of elements in object array
 		* @function Count
 		* @param {any} obj - Object array to count elements within
 		* @returns number
 		*/
 		public static Count(obj:any):number;
+		/**
+		* Returns number of elements in collection
+		* @function Count
+		* @param {any[]} arr - Collection to count elements within
+		* @returns number
+		*/
+		public static Count(arr:any[]):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -109,16 +109,6 @@ declare namespace Fit
 		*/
 		public static CustomRecurse(arr:any[], callback:Function):boolean;
 		/**
-		* Iterates through elements in array and passes each value to the provided callback function.
-		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
-		* @function ForEach
-		* @param {any[]} arr - Array containing values to iterate through
-		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
-		Return False from callback to break loop.
-		* @returns boolean
-		*/
-		public static ForEach(arr:any[], callback:Function):boolean;
-		/**
 		* Iterates through object properties and passes each property name to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
@@ -129,6 +119,16 @@ declare namespace Fit
 		*/
 		public static ForEach(obj:any, callback:Function):boolean;
 		/**
+		* Iterates through elements in array and passes each value to the provided callback function.
+		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+		* @function ForEach
+		* @param {any[]} arr - Array containing values to iterate through
+		* @param {Function} callback - Callback function accepting values from the array, passed in turn.
+		Return False from callback to break loop.
+		* @returns boolean
+		*/
+		public static ForEach(arr:any[], callback:Function):boolean;
+		/**
 		* Returns index of object in array if found, otherwise a value of -1 is returned
 		* @function GetIndex
 		* @param {any[]} arr - Array to search through
@@ -137,13 +137,6 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
-		* @function GetKeys
-		* @param {any[]} arr - Array to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(arr:any[]):any[];
-		/**
 		* Returns all keys (property names) in object
 		* @function GetKeys
 		* @param {any} obj - Object to get keys from
@@ -151,12 +144,12 @@ declare namespace Fit
 		*/
 		public static GetKeys(obj:any):any[];
 		/**
-		* Returns True if collection has items, otherwise False
-		* @function HasItems
-		* @param {any[]} arr - Collection to investigate
-		* @returns boolean
+		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
+		* @function GetKeys
+		* @param {any[]} arr - Array to get keys from
+		* @returns any[]
 		*/
-		public static HasItems(arr:any[]):boolean;
+		public static GetKeys(arr:any[]):any[];
 		/**
 		* Returns True if collection has items, otherwise False
 		* @function HasItems
@@ -164,6 +157,13 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static HasItems(obj:any):boolean;
+		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any[]} arr - Collection to investigate
+		* @returns boolean
+		*/
+		public static HasItems(arr:any[]):boolean;
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -2897,6 +2897,18 @@ declare namespace Fit
 			*/
 			public MaxHeight(value?:number, unit?:string):any;
 			/**
+			* Register OnFocusIn event handler which is invoked when picker gains focus
+			* @function OnFocusIn
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusIn(cb:Function):void;
+			/**
+			* Register OnFocusOut event handler which is invoked when picker loses focus
+			* @function OnFocusOut
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusOut(cb:Function):void;
+			/**
 			* Register event handler fired when picker control is hidden in host control.
 			The following argument is passed to event handler function: Sender (PickerBase).
 			* @function OnHide
@@ -3028,6 +3040,8 @@ declare namespace Fit
 		changes complete, which is done by invoking this._internal.FireOnItemSelectionComplete().
 		OnItemSelectionComplete should only fire if a change was made (changes can be canceled using
 		OnItemSelectionChanging).
+		Picker control is also to invoke this._internal.FireOnFocusIn() if control gains focus, and
+		this._internal.FireOnFocusOut() if control loses focus.
 		* @class [Fit.Controls.PickerBase PickerBase]
 		*/
 		class PickerBase
@@ -3081,6 +3095,18 @@ declare namespace Fit
 			* @returns any
 			*/
 			public MaxHeight(value?:number, unit?:string):any;
+			/**
+			* Register OnFocusIn event handler which is invoked when picker gains focus
+			* @function OnFocusIn
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusIn(cb:Function):void;
+			/**
+			* Register OnFocusOut event handler which is invoked when picker loses focus
+			* @function OnFocusOut
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusOut(cb:Function):void;
 			/**
 			* Register event handler fired when picker control is hidden in host control.
 			The following argument is passed to event handler function: Sender (PickerBase).
@@ -3539,6 +3565,18 @@ declare namespace Fit
 			* @returns any
 			*/
 			public MaxHeight(value?:number, unit?:string):any;
+			/**
+			* Register OnFocusIn event handler which is invoked when picker gains focus
+			* @function OnFocusIn
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusIn(cb:Function):void;
+			/**
+			* Register OnFocusOut event handler which is invoked when picker loses focus
+			* @function OnFocusOut
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusOut(cb:Function):void;
 			/**
 			* Register event handler fired when picker control is hidden in host control.
 			The following argument is passed to event handler function: Sender (PickerBase).
@@ -4867,6 +4905,18 @@ declare namespace Fit
 			*/
 			public MaxHeight(value?:number, unit?:string):any;
 			/**
+			* Register OnFocusIn event handler which is invoked when picker gains focus
+			* @function OnFocusIn
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusIn(cb:Function):void;
+			/**
+			* Register OnFocusOut event handler which is invoked when picker loses focus
+			* @function OnFocusOut
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusOut(cb:Function):void;
+			/**
 			* Register event handler fired when picker control is hidden in host control.
 			The following argument is passed to event handler function: Sender (PickerBase).
 			* @function OnHide
@@ -5386,6 +5436,18 @@ declare namespace Fit
 			* @returns any
 			*/
 			public MaxHeight(value?:number, unit?:string):any;
+			/**
+			* Register OnFocusIn event handler which is invoked when picker gains focus
+			* @function OnFocusIn
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusIn(cb:Function):void;
+			/**
+			* Register OnFocusOut event handler which is invoked when picker loses focus
+			* @function OnFocusOut
+			* @param {Function} cb - Event handler function which accepts Sender (PickerBase)
+			*/
+			public OnFocusOut(cb:Function):void;
 			/**
 			* Register event handler fired when picker control is hidden in host control.
 			The following argument is passed to event handler function: Sender (PickerBase).
@@ -6277,21 +6339,21 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to register
-		* @returns number
-		*/
-		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
-		/**
-		* Registers handler for specified event on given EventTarget and returns Event ID
-		* @function AddHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Function} eventFunction - JavaScript function to register
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to register
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:string, eventFunction:Function):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -6357,21 +6419,6 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
-		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6381,6 +6428,27 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		/**
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {number} eventId - Event ID identifying handler to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -6388,12 +6456,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).

@@ -820,11 +820,12 @@ Fit.Controls.DropDown = function(ctlId)
 					txt = txtPrimary;
 			}
 
-			if (eventArgs.ProgrammaticallyChanged === false && (isMobile === false || focusInputOnMobile === true))
-			{
-				focusAssigned = true; // Clicking the picker causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
-				focusInput(((txt !== null) ? txt : txtActive));
-			}
+			// DISABLED: Now handled using picker.OnFocus(..) handler further down - see https://github.com/Jemt/Fit.UI/issues/86 for details
+			// if (eventArgs.ProgrammaticallyChanged === false && (isMobile === false || focusInputOnMobile === true))
+			// {
+			// 	focusAssigned = true; // Clicking the picker causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
+			// 	focusInput(((txt !== null) ? txt : txtActive));
+			// }
 
 			suppressUpdateItemSelectionState = false;
 		});
@@ -841,6 +842,16 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				me._internal.FireOnChange();
 				fireChangeEvent = false;
+			}
+		});
+
+		picker.OnFocusIn(function(sender)
+		{
+			if (isMobile === false || focusInputOnMobile === true)
+			{
+				// Steal back focus - DropDown should remain the focused control
+				focusAssigned = true; // Clicking the picker causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
+				focusInput(txtActive);
 			}
 		});
 	}

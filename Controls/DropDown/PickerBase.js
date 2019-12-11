@@ -16,6 +16,8 @@
 /// 	changes complete, which is done by invoking this._internal.FireOnItemSelectionComplete().
 /// 	OnItemSelectionComplete should only fire if a change was made (changes can be canceled using
 /// 	OnItemSelectionChanging).
+/// 	Picker control is also to invoke this._internal.FireOnFocusIn() if control gains focus, and
+/// 	this._internal.FireOnFocusOut() if control loses focus.
 /// </container>
 Fit.Controls.PickerBase = function()
 {
@@ -28,6 +30,8 @@ Fit.Controls.PickerBase = function()
 	var onChangingHandlers = [];
 	var onChangeHandlers = [];
 	var onCompleteHandlers = [];
+	var onFocusHandlers = [];
+	var onBlurHandlers = [];
 
 	// ============================================
 	// Public
@@ -141,6 +145,26 @@ Fit.Controls.PickerBase = function()
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onCompleteHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.PickerBase" name="OnFocusIn" access="public">
+	/// 	<description> Register OnFocusIn event handler which is invoked when picker gains focus </description>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (PickerBase) </param>
+	/// </function>
+	this.OnFocusIn = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onFocusHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.PickerBase" name="OnFocusOut" access="public">
+	/// 	<description> Register OnFocusOut event handler which is invoked when picker loses focus </description>
+	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (PickerBase) </param>
+	/// </function>
+	this.OnFocusOut = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onBlurHandlers, cb);
 	}
 
 	// ============================================
@@ -350,6 +374,22 @@ Fit.Controls.PickerBase = function()
 	this._internal.FireOnItemSelectionComplete = function() // Called by Picker Control
 	{
 		Fit.Array.ForEach(onCompleteHandlers, function(handler)
+		{
+			handler(me);
+		});
+	}
+
+	this._internal.FireOnFocusIn = function() // Called by Picker Control
+	{
+		Fit.Array.ForEach(onFocusHandlers, function(handler)
+		{
+			handler(me);
+		});
+	}
+
+	this._internal.FireOnFocusOut = function() // Called by Picker Control
+	{
+		Fit.Array.ForEach(onBlurHandlers, function(handler)
 		{
 			handler(me);
 		});

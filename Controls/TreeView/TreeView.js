@@ -79,6 +79,7 @@ Fit.Controls.TreeView = function(ctlId)
 		me._internal.Data("selectable", "false");
 		me._internal.Data("multiselect", "false");
 		me._internal.Data("wordwrap", "false");
+		me._internal.Data("picker", "false");
 
 		// Create internal root node to hold children
 
@@ -1120,6 +1121,16 @@ Fit.Controls.TreeView = function(ctlId)
 		me._internal.FireOnItemSelectionComplete();
 	});
 
+	this.OnFocus(function(sender)
+	{
+		me._internal.FireOnFocusIn();
+	});
+
+	this.OnBlur(function(sender)
+	{
+		me._internal.FireOnFocusOut();
+	});
+
 	this.SetSelections = function(items)
 	{
 		Fit.Validation.ExpectArray(items);
@@ -1235,6 +1246,7 @@ Fit.Controls.TreeView = function(ctlId)
 	this._internal.InitializePicker = function() // Override function from PickerBase
 	{
 		isPicker = true;
+		me._internal.Data("picker", "true");
 	}
 
 	this._internal.ReportFocused = function(focused) // Override function from PickerBase

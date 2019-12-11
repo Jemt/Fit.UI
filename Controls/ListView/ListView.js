@@ -56,7 +56,7 @@ Fit.Controls.ListView = function(controlId)
 
 		list.onfocus = function(e)
 		{
-			var ev = Fit.Events.GetEvent(e);
+			me._internal.FireOnFocusIn(); // Fire OnFocusIn on PickerBase
 
 			// Skip if this was a mouse click, leave handling to OnClick which fires after OnFocus.
 			// Notice that Fit.Events.GetPointerState() is used to determine whether mouse button
@@ -78,6 +78,12 @@ Fit.Controls.ListView = function(controlId)
 				if (list.children.length > 0)
 					setActive(list.children[0]);
 			}
+		}
+
+		list.onblur = function(e)
+		{
+			setActive(null);
+			me._internal.FireOnFocusOut(); // Fire OnFocusOut on PickerBase
 		}
 
 		list.onkeydown = function(e)
