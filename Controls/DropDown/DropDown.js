@@ -80,12 +80,14 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			itemContainer.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
 		}
-		itemContainer.onclick = function(e)
+		itemContainer.onclick = function(e) // Not triggered when user clicks arrow button - it has its own logic and suppresses event propagation
 		{
-			if (Fit.Events.GetTarget(e) === itemContainer) // Could be triggered by a click on the arrow button which propagates
-			{
-				focusInputOnMobile = true;
+			var target = Fit.Events.GetTarget(e);
 
+			focusInputOnMobile = true;
+			
+			if (target.tagName !== "INPUT") // Focus input unless already focused (if input was clicked)
+			{
 				focusAssigned = true; // Clicking the item container causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
 				focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
 			}
@@ -129,13 +131,18 @@ Fit.Controls.DropDown = function(ctlId)
 			if (me.IsDropDownOpen() === true)
 			{
 				me.CloseDropDown();
-				Fit.Events.StopPropagation(e); // Prevent drop down from opening again
 
 				if (isMobile === true)
 				{
 					me.Focused(false); // Force control to lose focus when closed on mobile, to have the OnBlur event fire
 				}
 			}
+			else // DropDown is closed - open it
+			{
+				me.OpenDropDown();
+			}
+
+			Fit.Events.StopPropagation(e); // Prevent event from reaching itemContainer.onclick which opens DropDown
 		}
 
 		// Create primary search textbox
@@ -1007,11 +1014,12 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			container.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
 		}
-		container.onclick = function(e)
+		/*container.onclick = function(e)
 		{
+			focusInputOnMobile = true;
 			focusAssigned = true;
 			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary)); //focusInput(txtPrimary);
-		}
+		}*/
 
 		// Input fields (left and right)
 		var searchLeft = createSearchField();
@@ -1574,6 +1582,9 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
+		// NOTICE: This feature is known to not work properly with iOS 9 and below:
+		// https://github.com/Jemt/Fit.UI/issues/87
+
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			detectBoundaries = val;
@@ -2012,12 +2023,6 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		}
 
-		txt.onclick = function(e)
-		{
-			focusInputOnMobile = true;
-			Fit.Events.StopPropagation(e);
-		}
-
 		return txt;
 	}
 
@@ -2233,6 +2238,16 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Validation.ExpectBoolean(force, true);
 
 		if (detectBoundaries === false || (me.IsDropDownOpen() === false && force !== true))
+			return;
+
+		// Check visibility in case DropDown control is hidden while items are being selected.
+		// This is a common approach to reduce expensive reflows when programmatically selecting
+		// many items (e.g. using SelectAll in TreeView picker). If control is in fact hidden,
+		// the picker container will keep its current position rather than being positioned
+		// below/above DropDown as expected - that's acceptable. Re-opening DropDown will position
+		// it properly. Without this fix, Fit.Dom.GetPosition(..) used below would return Null and
+		// result in an error.
+		if (Fit.Dom.IsVisible(me.GetDomElement()) === false)
 			return;
 
 		// Drop Down Menu is positioned above control if sufficient space (set in
