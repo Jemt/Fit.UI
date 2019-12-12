@@ -274,10 +274,13 @@ div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItem
 div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItems > input
 {
 	font-size: 1em;
-	text-overflow: ellipsis;
 	width: 100% !important; /* Using important to override inline style set by fitWidthToContent(..) */
 	margin-top: 0.2em;
 	margin-top: 0\9; /* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
+}
+div.FitUiControlDropDown[data-selectionmode="text"][data-focused="false"] div.FitUiControlDropDownItems > input
+{
+	text-overflow: ellipsis;
 }
 
 /* Selection Mode toggle button (switch between Text and Visual Selection Mode) */
