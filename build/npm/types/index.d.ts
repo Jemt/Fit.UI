@@ -4276,7 +4276,7 @@ declare namespace Fit
 			- Sender: Fit.Controls.WSDropDown instance
 			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
-			- Search: Search value if entered
+			- Search: Search value if entered by user
 			- Data: JSON data received from WebService (Null in this particular case)
 			- Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 			* @function OnAbort
@@ -4292,7 +4292,7 @@ declare namespace Fit
 			- Sender: Fit.Controls.WSDropDown instance
 			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
-			- Search: Search value if entered
+			- Search: Search value if entered by user
 			- Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 			* @function OnRequest
 			* @param {Function} cb - Event handler function
@@ -4307,7 +4307,7 @@ declare namespace Fit
 			- Sender: Fit.Controls.WSDropDown instance
 			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
-			- Search: Search value if entered
+			- Search: Search value if entered by user
 			- Data: JSON data received from WebService
 			- Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 			* @function OnResponse

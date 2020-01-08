@@ -58,12 +58,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 			if (fireEventHandlers(onRequestHandlers, list, eventArgs) === false)
 				return false;
 
+			requestCount++;
 			currentRequest = eventArgs.Request;
 			cmdOpen.className = "fa fa-refresh fa-spin";
 		});
 		list.OnResponse(function(sender, eventArgs)
 		{
+			requestCount--;
+
 			fireEventHandlers(onResponseHandlers, list, eventArgs);
+			
 			cmdOpen.className = classes;
 			currentRequest = null;
 
@@ -74,6 +78,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 				eventArgs.Items = []; // Remove data, we do not want it to be populated to control
 				searchData(me.GetInputValue());
 			}
+		});
+		list.OnAbort(function(sender, eventArgs)
+		{
+			requestCount--;
 		});
 		list.OnItemSelectionChanging(function(sender, item)
 		{
@@ -95,7 +103,6 @@ Fit.Controls.WSDropDown = function(ctlId)
 		});
 
 		// Create TreeView
-
 
 		tree = new Fit.Controls.WSTreeView(ctlId + "__WSTreeView");
 		tree.Selectable(true); // Make nodes selectable by default when added
@@ -416,6 +423,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
 		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
 
+		// Cancel pending search operation if scheduled
+		
+		cancelSearch();
+
 		// Invoke callback
 
 		if (Fit.Validation.IsSet(cb) === true)
@@ -491,7 +502,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Sender: Fit.Controls.WSDropDown instance
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
-	/// 		 - Search: Search value if entered
+	/// 		 - Search: Search value if entered by user
 	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
 	/// 	<param name="cb" type="function"> Event handler function </param>
@@ -512,7 +523,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Sender: Fit.Controls.WSDropDown instance
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
-	/// 		 - Search: Search value if entered
+	/// 		 - Search: Search value if entered by user
 	/// 		 - Data: JSON data received from WebService
 	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
@@ -533,7 +544,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Sender: Fit.Controls.WSDropDown instance
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
-	/// 		 - Search: Search value if entered
+	/// 		 - Search: Search value if entered by user
 	/// 		 - Data: JSON data received from WebService (Null in this particular case)
 	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
@@ -581,11 +592,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	{
 		// Abort time responsible for starting search request X milliseconds after user stops typing
 
-		if (timeOut !== null)
-		{
-			clearTimeout(timeOut);
-			timeOut = null;
-		}
+		cancelSearch();
 
 		// Schedule new search request if a WebService request is already in progress
 
@@ -621,6 +628,15 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 	}
 
+	function cancelSearch()
+	{
+		if (timeOut !== null)
+		{
+			clearTimeout(timeOut);
+			timeOut = null;
+		}
+	}
+
 	function onDataLoaded(cb)
 	{
 		Fit.Validation.ExpectFunction(cb);
@@ -650,13 +666,19 @@ Fit.Controls.WSDropDown = function(ctlId)
 		Fit.Array.ForEach(handlers, function(cb)
 		{
 			var data = null; // Remains Null for OnAbort event (no Children or Items provided)
+			var searchValue = "";
 
 			if (eventArgs.Children) // WSTreeView
+			{
 				data = eventArgs.Children;
+			}
 			else if (eventArgs.Items) // WSListView
+			{
 				data = eventArgs.Items;
+				searchValue = search;
+			}
 
-			var newArgs = { Sender: me, Picker: picker, Node: (eventArgs.Node ? eventArgs.Node : null), SelectAll: eventArgs.SelectAll, Search: search, Data: data, Request: eventArgs.Request };
+			var newArgs = { Sender: me, Picker: picker, Node: (eventArgs.Node ? eventArgs.Node : null), SelectAll: eventArgs.SelectAll, Search: searchValue, Data: data, Request: eventArgs.Request };
 
 			if (cb(me, newArgs) === false)
 				cancel = true; // Do not cancel loop though - all handlers must be fired!
