@@ -16,6 +16,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var me = this;								// Access to members from event handlers (where "this" may have a different meaning)
 	var itemContainer = null;					// Container for selected items and input fields
 	var itemCollection = {};					// Indexed collection for selected items (for fast lookup)
+	var itemDropZones = {};						// Indexed collection of dropzones used to enable item dragging/dropping
 	var arrow = null;							// Arrow button used to open/close drop down menu
 	var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
 	var spanFitWidth = null;					// Span element used to calculate text width - used to dynamically control width of input fields
@@ -55,7 +56,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var prevTextSelection = null;
 	var textSelectionCallback = null;
 	var cmdToggleTextMode = null;
-	
+
 	function init()
 	{
 		invalidMessage = Fit.Language.Translations.InvalidSelection;
@@ -85,7 +86,7 @@ Fit.Controls.DropDown = function(ctlId)
 			var target = Fit.Events.GetTarget(e);
 
 			focusInputOnMobile = true;
-			
+
 			if (target.tagName !== "INPUT") // Focus input unless already focused (if input was clicked)
 			{
 				focusAssigned = true; // Clicking the item container causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
@@ -262,7 +263,7 @@ Fit.Controls.DropDown = function(ctlId)
 				//me.OpenDropDown(); // DISABLED - will also open control when gaining focus from tab navigation
 			}
 		});
-		
+
 		me.OnChange(function()
 		{
 			if (me.TextSelectionMode() === true)
@@ -276,7 +277,7 @@ Fit.Controls.DropDown = function(ctlId)
 			if (me.TextSelectionMode() === true)
 			{
 				updateTextSelection(); // Update when blurred in case user have entered a value
-				
+
 				if (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge")
 				{
 					txtPrimary.readOnly = true; // ReadOnly set to true to make text-overflow:ellipsis work
@@ -582,7 +583,12 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Events.RemoveHandler(document, eventId);
 		});
 
-		me = itemContainer = itemCollection = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
+		Fit.Array.ForEach(itemDropZones, function(key)
+		{
+			itemDropZones[key].Dispose();
+		});
+
+		me = itemContainer = itemCollection = itemDropZones = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
@@ -634,7 +640,7 @@ Fit.Controls.DropDown = function(ctlId)
 					// since selection text is always updated when control lose focus.
 					me.ClearInput();
 				}
-				
+
 				clearTextSelectionOnInputChange = false;
 				prevTextSelection = null;
 				textSelectionCallback = null;
@@ -738,7 +744,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (pickerControl === picker)
 			return; // Already active picker
-		
+
 		// Remove existing picker
 
 		if (picker !== null)
@@ -788,7 +794,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			if (suppressOnItemSelectionChanged === true)
 				return; // Skip - already processing OnItemSelectionChanged - may be invoked multiple times if e.g. switching selection in Single Selection Mode (existing item removed + new item selected)
-			
+
 			var txt = null;
 
 			// Prevent this.AddSelection and this.RemoveSelection from calling
@@ -1109,6 +1115,7 @@ Fit.Controls.DropDown = function(ctlId)
 		drp.OnDrop(onDrop);
 		drp.OnEnter(onDropZoneEnter);
 		drp.OnLeave(onDropZoneLeave);
+		itemDropZones[value] = drp; // Keep reference so we can dispose it when item is removed
 
 		// Focus input control
 
@@ -1170,9 +1177,9 @@ Fit.Controls.DropDown = function(ctlId)
 	this.GetSelectionByValue = function(val)
 	{
 		Fit.Validation.ExpectString(val);
-		
+
 		var selection = itemCollection[val] || null;
-		
+
 		if (selection !== null)
 		{
 			return { Title: selection.Title, Value: selection.Value, Valid: selection.Valid };
@@ -1239,7 +1246,13 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 			});
 
+			Fit.Array.ForEach(itemDropZones, function(key)
+			{
+				itemDropZones[key].Dispose();
+			});
+
 			itemCollection = {};
+			itemDropZones = {};
 		});
 
 		focusAssigned = wasFocused;
@@ -1302,7 +1315,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (itemObject === null)
 			return;
-		
+
 		if (me.MultiSelectionMode() === true && itemObject.DomElement.parentElement.nextSibling !== null && itemObject.DomElement.parentElement.nextSibling !== txtPrimary)
 			txt = itemObject.DomElement.parentElement.nextSibling.children[0];
 
@@ -1327,6 +1340,9 @@ Fit.Controls.DropDown = function(ctlId)
 
 		Fit.Dom.Remove(found);
 		delete itemCollection[value];
+
+		itemDropZones[value].Dispose();
+		delete itemDropZones[value];
 
 		if (me.MultiSelectionMode() === false)
 		{
@@ -1377,7 +1393,7 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				var elm = getSelectionElementByValue(selected.Value);
 				elm.childNodes[0].nodeValue = Fit.String.StripHtml(pickerItem.Title);
-				
+
 				Fit.Array.Add(updated, { Title: pickerItem.Title, Value: selected.Value, Exists: true });
 			}
 			else
@@ -1684,7 +1700,7 @@ Fit.Controls.DropDown = function(ctlId)
 				{
 					return; // Skip event if user just copied text and pasted it again
 				}*/
-				
+
 				prevValue = txt.value;
 				var pastedValue = txt.value;
 
@@ -1753,7 +1769,7 @@ Fit.Controls.DropDown = function(ctlId)
 		var scheduleFitWidthToContent = function(txtControl)
 		{
 			cancelScheduledFitWidthToContent();
-				
+
 			timeOutId = setTimeout(function()
 			{
 				if (me === null)
@@ -2282,7 +2298,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// the drop down element will simply overlay the control. This is to prevent the primary text field from being
 		// hidden behind the drop down element.
 		var condNotEnoughSpaceBelow = spaceBelowControl - (spacingAboveAndBelow / 2) - spacingToBrowserEdge < spaceRequiredBelowControl
-		
+
 		if (condNotEnoughSpaceBelow === true) // Open upward
 		{
 			// Handle situation where the control is contained in a parent with scroll
@@ -2330,7 +2346,7 @@ Fit.Controls.DropDown = function(ctlId)
 				// Reducing the drop down menu to e.g. 10px makes it completely unusable.
 
 				spaceAvailableAboveControl = minimumDropDownHeight;
-				
+
 				// Prevent drop down element from exceeding viewport boundaries when forcing minimum height above
 				dropDownMenu.style.bottom = "";
 				dropDownMenu.style.top = spacingToBrowserEdge + "px";
@@ -2581,7 +2597,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			txtPrimary.value = text;
 		}
-		
+
 		prevTextSelection = (text !== "" ? text : null);
 
 		// Set cursor position

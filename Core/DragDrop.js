@@ -20,7 +20,9 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
     var onDragStart = null;
     var onDragging = null;
-    var onDragStop = null;
+	var onDragStop = null;
+
+	var mouseDownEventId = -1;
 
     // Construct
 
@@ -33,7 +35,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
         // Mouse down
 
-        Fit.Events.AddHandler(((trgElm !== null) ? trgElm : elm), "mousedown", function(e)
+        mouseDownEventId = Fit.Events.AddHandler(((trgElm !== null) ? trgElm : elm), "mousedown", function(e)
         {
             var ev = e || window.event;
 
@@ -178,7 +180,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
             Fit.Events.AddHandler(document, "mousemove", function(e)
             {
                 if (Fit.DragDrop.Draggable._internal.active === null)
-                    return;
+					return;
 
                 var ev = e || window.event;
 
@@ -313,6 +315,26 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
 	this.GetElement = this.GetDomElement; // Backward compatibility
 
+	/// <function container="Fit.DragDrop.Draggable" name="Dispose" access="public">
+	/// 	<description> Free resources and disable dragging support for DOM element </description>
+	/// </function>
+	this.Dispose = function()
+	{
+		// Dispose should not be called while dragging element!
+		// To support this we would need to fire events, invoke Reset(),
+		// remove FitDragDropDragging class, unset Fit.DragDrop.Draggable._internal.active etc.
+
+		// For elements removed from DOM and memory, calling Dispose is not necessary to
+		// ensure memory is freed. There are no global resources associated with the DOM element.
+
+		Fit.Dom.RemoveClass(elm, "FitDragDropDraggable");
+		Fit.Dom.RemoveClass((trgElm !== null ? trgElm : elm), "FitDragDropDraggableHandle");
+
+		Fit.Events.RemoveHandler(((trgElm !== null) ? trgElm : elm), mouseDownEventId);
+
+		me = elm = trgElm = onDragStart = onDragging = onDragStop = mouseDownEventId = null;
+	}
+
     // Event handling
 
     /// <function container="Fit.DragDrop.Draggable" name="OnDragStart" access="public">
@@ -333,11 +355,11 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
     {
 		Fit.Validation.ExpectFunction(cb);
         onDragging = cb;
-    }
+	}
 
     /// <function container="Fit.DragDrop.Draggable" name="OnDragStop" access="public">
 	/// 	<description> Add event handler which gets fired when dragging stops </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - draggable DOM element is passed to function </param>
+	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Draggable is passed to function </param>
 	/// </function>
 	this.OnDragStop = function(cb)
     {
@@ -376,14 +398,29 @@ Fit.DragDrop.DropZone = function(domElm)
         OnEnter: null,
         OnDrop: null,
         OnLeave: null
-    };
+	};
 
     function init()
     {
 		Fit._internal.Core.EnsureStyles();
         Fit.Dom.AddClass(elm, "FitDragDropDropZone");
         Fit.DragDrop.DropZone._internal.dropzones.push(cfg);
-    }
+	}
+
+	/// <function container="Fit.DragDrop.DropZone" name="Dispose" access="public">
+	/// 	<description> Free resources and disable DropZone support for DOM element </description>
+	/// </function>
+	this.Dispose = function()
+	{
+		// Dispose should not be called while DropZone is active!
+		// To support this we would need to fire OnLeave and unset
+		// Fit.DragDrop.DropZone._internal.active. Draggable
+		// does not support being disposed while being dragged either.
+
+		Fit.Dom.RemoveClass(elm, "FitDragDropDropZone");
+		Fit.Array.Remove(Fit.DragDrop.DropZone._internal.dropzones, cfg);
+		elm = cfg = null;
+	}
 
 	/// <function container="Fit.DragDrop.DropZone" name="GetDomElement" access="public" returns="DOMElement">
 	/// 	<description> Get dropzone DOM element </description>
