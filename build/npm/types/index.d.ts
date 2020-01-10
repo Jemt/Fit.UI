@@ -153,17 +153,17 @@ declare namespace Fit
 		/**
 		* Returns True if collection has items, otherwise False
 		* @function HasItems
-		* @param {any} obj - Object array to investigate
-		* @returns boolean
-		*/
-		public static HasItems(obj:any):boolean;
-		/**
-		* Returns True if collection has items, otherwise False
-		* @function HasItems
 		* @param {any[]} arr - Collection to investigate
 		* @returns boolean
 		*/
 		public static HasItems(arr:any[]):boolean;
+		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any} obj - Object array to investigate
+		* @returns boolean
+		*/
+		public static HasItems(obj:any):boolean;
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -7185,6 +7185,11 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.DragDrop.Draggable
 			/**
+			* Free resources and disable dragging support for DOM element
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
 			* Constructor - create instance of Draggable class
 			* @function Draggable
 			* @param {HTMLElement} domElm - Element to turn into draggable object
@@ -7212,7 +7217,7 @@ declare namespace Fit
 			/**
 			* Add event handler which gets fired when dragging stops
 			* @function OnDragStop
-			* @param {Function} cb - Callback (event handler) function - draggable DOM element is passed to function
+			* @param {Function} cb - Callback (event handler) function - instance of Draggable is passed to function
 			*/
 			public OnDragStop(cb:Function):void;
 			/**
@@ -7228,6 +7233,11 @@ declare namespace Fit
 		class DropZone
 		{
 			// Functions defined by Fit.DragDrop.DropZone
+			/**
+			* Free resources and disable DropZone support for DOM element
+			* @function Dispose
+			*/
+			public Dispose():void;
 			/**
 			* Constructor - create instance of DropZone class
 			* @function DropZone
