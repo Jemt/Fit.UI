@@ -45,7 +45,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	// which is done using the WSTreeView's OnPopulated event further down.
 	var expandCollapseAllMode = -1;			// 0 = Collapse, 1 = Expand
 	var expandCollapseAllMaxDepth = 99999;	// The maximum depth to expand/collapse
-	
+
 	function init()
 	{
 		rootNode = me.GetDomElement().firstChild.firstChild._internal.Node;
@@ -64,46 +64,6 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnToggle(function(sender, node)
 		{
-			/*
-			if (node.Expanded() === true) // Node is currently expanded and will now become collapsed
-				return;
-			
-			if (node.GetDomElement()._internal.WSDone === true)
-				return;
-
-			if (node.GetDomElement()._internal.WSLoading === true)
-				return false; // Return False to cancel toggle to prevent user from being able to expand node while loading (clicking expand twice)
-
-			if (node.GetDomElement()._internal.WSHasChildren === false)
-				return;
-
-			// Get data
-
-			node.GetDomElement()._internal.WSLoading = true;
-
-			var canceled = !getData(node, function(n, eventArgs) // Delegate fired when data is ready
-			{
-				// Remove place holder child which served the purpose of making the node expandable
-
-				var expanderNode = node.GetChild("__");
-
-				if (expanderNode !== null)
-					node.RemoveChild(expanderNode);
-
-				// Populate node
-
-				Fit.Array.ForEach(eventArgs.Children, function(c)
-				{
-					node.AddChild(createNodeFromJson(c));
-				});
-
-				node.GetDomElement()._internal.WSDone = true;
-				node.Expanded(true); // Unfortunately causes both OnToggle and OnToggled to be fired, although OnToggle has already been fired once (canceled below)
-			});
-
-			return false; // Cancel toggle, will be "resumed" when data is loaded
-			*/
-
 			// Load node data when expanded
 
 			if (node.IsBehavioralNode() === true)
@@ -114,7 +74,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			if (dataLoading === true && node.GetDomElement()._internal.WSHasChildren === true && node.GetDomElement()._internal.WSDone !== true)
 			{
-				// Node contains remote children that has not yet been loaded, and 
+				// Node contains remote children that has not yet been loaded, and
 				// data is currently being loaded, e.g. by EnsureData(..), Reload(..),
 				// or SelectAll(..). Adding request to process queue.
 				onDataLoaded(function() { node.Expanded(true); });
@@ -165,7 +125,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				node.GetDomElement()._internal.WSLoading = true;
 				return false; // Cancel toggle, will be "resumed" (triggered again in loadNodeData callback above) when data is loaded
 			}
-			
+
 			if (dataStartedLoading === false && node.GetDomElement()._internal.WSHasChildren === true && node.GetChildren().length === 1 && node.GetChildren()[0].Value() === "__" && node.GetChildren()[0].Title() === "__")
 			{
 				// Node has remote children and no pre-populated children, but data load
@@ -175,114 +135,6 @@ Fit.Controls.WSTreeView = function(ctlId)
 				return false;
 			}
 		});
-
-		//{ SelectAll - Mode: Progressively
-
-		// Progressive Mode - how it works:
-		// Nodes are loaded progressively (chain loaded).
-		// Nodes with children not loaded yet are automatically expanded to force their children to load.
-		// WebService may return multiple levels of nodes, or even the complete hierarchy, but Progressive Mode
-		// will never be able to quarantee that only one request is made, since the node triggering Select All
-		// may already have multiple children loaded with HasChildren set to True, which will spawn individual
-		// requests when expanded. OnChange will fire multiple times.
-		// Chain loading is made possible using the OnPopulated handler which automatically expands children received.
-
-		// DISABLED - SelectAll in Progressive Mode is now handled by SelectAll function override
-		// along with the new node loader mechanish (loadNodeData and recursivelyLoadAllNodes)
-		// also used by EnsureData.
-		/*me.OnSelectAll(function(sender, eventArgs)
-		{
-			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
-				return;
-
-			// Handle Select All for TreeView containing no data yet
-
-			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
-
-			// Flags set below ensures that Select All is resumed in OnPopulated event handler
-			node.GetDomElement()._internal.WSSelectAll = true;
-			node.GetDomElement()._internal.WSCheckedState = eventArgs.Selected;
-
-			if (loadDataOnInit === true) // No data - load root nodes
-			{
-				setTimeout(function() // Postpone call to Reload to allow SelectAll to fire all OnSelectAll listeners before requesting data which causes OnRequest to fire
-				{
-					// Use Reload function to load root nodes - using expand/collapse on TREEVIEW_ROOT_NODE
-					// will cause it to be passed to event handlers which is not the desired behaviour.
-					// We always want Null to be passed to event handlers when requesting root nodes.
-
-					var selected = me.Selected(); // Keep PreSelections (Reload(..) removes all selections))
-					me.Reload();
-					me.Selected(selected); // Restore selections
-				}, 0);
-
-				return false; // Cancel SelectAll, no nodes to select
-			}
-
-			// Handle Select All for TreeView with data already loaded.
-
-			Fit.Array.Recurse(node.GetChildren(), "GetChildren", function(n)
-			{
-				var internal = n.GetDomElement()._internal;
-
-				if (internal.WSHasChildren === true && internal.WSDone !== true) // Node has children server side which have not been loaded yet
-				{
-					internal.WSSelectAll = true;
-					internal.WSCheckedState = eventArgs.Selected;
-				}
-			});
-
-			// Event handler complete - caller (TreeView.SelectAll) takes over now, selecting and expanded node and its children, causing those with HasChildren:true to load
-		});*/
-
-		/*me.OnPopulated(function(sender, eventArgs)
-		{
-			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
-				return;
-
-			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
-			var selected = node.GetDomElement()._internal.WSCheckedState;
-
-			if (node.GetDomElement()._internal.WSSelectAll === true) // Select All triggered request
-			{
-				// Select and expand all children
-
-				var fireOnChange = false;
-
-				me._internal.ExecuteWithNoOnChange(function()
-				{
-					Fit.Array.Recurse(node.GetChildren(), "GetChildren", function(child)
-					{
-						// Make sure children (and their children) keeps loading in Progressive Mode (chain loading).
-
-						var internal = child.GetDomElement()._internal;
-
-						if (internal.WSHasChildren === true && internal.WSDone !== true) // Node has children server side which have not loaded yet
-						{
-							internal.WSSelectAll = true;
-							internal.WSCheckedState = selected;
-						}
-
-						// Select node if selectable
-
-						if (child.Selectable() === true && child.Selected() !== selected)
-						{
-							child.Selected(selected);
-							fireOnChange = true;
-						}
-
-						// Expand node to load children (HasChildren)
-
-						child.Expanded(true);
-					});
-				});
-
-				if (fireOnChange === true)
-					me._internal.FireOnChange();
-			}
-		});*/
-
-		//}
 
 		//{ SelectAll - Mode: Instantly
 
@@ -294,10 +146,14 @@ Fit.Controls.WSTreeView = function(ctlId)
 		// which WILL trigger additional requests and fire OnChange multiple times.
 		// Instant Mode provides better performance over Progressive Mode since the latter will constantly
 		// occupy the JS thread on and off, as nodes are received from multiple requests, making the browser less responsive.
+		// However, Instant Mode loads data by expanding nodes while Progressive Mode can do this without affecting the UI.
+		// Progressive Mode is handled in SelectAll function override.
+		// TBD: Can/should we change implementation so it uses the new node loader mechanism which Progressive Mode uses,
+		// so SelectAll in Instant Mode does not expand nodes, but merely loads children?
 
 		me.OnSelectAll(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Instantly)
+			if (selectAllMode === Fit.Controls.WSTreeViewSelectAllMode.Progressively)
 				return; // Progressive Mode is handled in WSTreeView.SelectAll function override
 
 			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
@@ -310,8 +166,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			// Some (or all) children missing - load now
 
-			// Flags set below ensures that Select All is resumed in OnPopulated event handler
-			internal.WSSelectAll = true;
+			// Flags set below ensures that Select All is resumed in OnRequest and OnPopulated event handlers
+			internal.WSSelectAll = true; // Used when firing OnRequest, OnResponse, and OnPopulated events which expose an eventArgs.SelectAll boolean
 			internal.WSCheckedState = eventArgs.Selected;
 
 			if (node === rootNode) // Load root nodes
@@ -339,16 +195,15 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnResponse(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Instantly)
+			if (selectAllMode === Fit.Controls.WSTreeViewSelectAllMode.Progressively)
 				return;
 
 			// Remove any existing children (subtree may have been partially loaded by user).
 			// WebService is expected to return entire record set capable of replacing partially loaded data.
 
 			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
-			var selected = node.GetDomElement()._internal.WSCheckedState;
 
-			if (node.GetDomElement()._internal.WSSelectAll === true) // Select All triggered request
+			if (eventArgs.SelectAll === true) // Select All triggered request
 			{
 				me._internal.ExecuteWithNoOnChange(function() // Prevent checked nodes from firing OnChange when removed, fires in OnPopulated event handler
 				{
@@ -369,13 +224,13 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		me.OnPopulated(function(sender, eventArgs)
 		{
-			if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Instantly)
+			if (selectAllMode === Fit.Controls.WSTreeViewSelectAllMode.Progressively)
 				return;
 
 			var node = ((eventArgs.Node !== null) ? eventArgs.Node : rootNode);
 			var selected = node.GetDomElement()._internal.WSCheckedState;
 
-			if (node.GetDomElement()._internal.WSSelectAll === true) // Select All triggered request
+			if (eventArgs.SelectAll === true) // Select All triggered request
 			{
 				// Select/deselect and expand all nodes
 
@@ -398,7 +253,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 						if (childInternal.WSHasChildren === true && childInternal.WSDone !== true) // Node has children server side which have not loaded yet
 						{
 							Fit.Browser.Log("NOTICE: WebService did not provide all data in one single HTTP request - an additional request is required to load data for node with value '" + child.Value() + "'");
-							childInternal.WSSelectAll = true;
+							childInternal.WSSelectAll = true; // Used when firing OnRequest, OnResponse, and OnPopulated events which expose an eventArgs.SelectAll boolean
 							childInternal.WSCheckedState = selected;
 						}
 
@@ -438,7 +293,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			if (node === null)
 				return; // Root node populated
-			
+
 			if (node.GetLevel() + 1 < expandCollapseAllMaxDepth)
 			{
 				expandCollapseNodesRecursively(node.GetChildren(), expandCollapseAllMode, expandCollapseAllMaxDepth);
@@ -535,7 +390,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		// We can implement this when/if needed at some point. See EnsureData
 		// for inspiration.
 
-		if (selectAllMode !== Fit.Controls.WSTreeViewSelectAllMode.Progressively)
+		if (selectAllMode === Fit.Controls.WSTreeViewSelectAllMode.Instantly)
 		{
 			// Fit.Controls.WSTreeViewSelectAllMode.Instantly Mode is handled with
 			// OnSelectAll, OnResponse, and OnPopulated handlers registered in init()
@@ -546,11 +401,13 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		// Progressive Mode - how it works:
 		// Nodes are loaded progressively (chain loaded) from WebService.
-		// Nodes with children not loaded yet will be loaded and populated.
+		// Nodes with children not loaded yet will be loaded and populated, while
+		// nodes already populated will remain (which is the opposite of Instant Mode which removes
+		// children already loaded to make sure all data is received in just one request).
 		// WebService may return multiple levels of nodes, or even the complete hierarchy, but Progressive Mode
 		// will never be able to quarantee that only one request is made, since the node triggering Select All
 		// may already have multiple children loaded with HasChildren set to True, which will spawn individual
-		// requests when expanded.
+		// requests.
 		// To select all nodes and ensure only one request is made, set SelectAllMode
 		// to Fit.Controls.WSTreeViewSelectAllMode.Instantly and make sure the server
 		// returns the entire children hierarchy for a given target node.
@@ -561,7 +418,10 @@ Fit.Controls.WSTreeView = function(ctlId)
 			onDataLoaded(function() { me.SelectAll(select, selectAllNode); });
 			return;
 		}
-		
+
+		var internal = (selectAllNode || rootNode).GetDomElement()._internal;
+		internal.WSSelectAll = true; // Used when firing OnRequest, OnResponse, and OnPopulated events which expose an eventArgs.SelectAll boolean
+
 		var baseSelectAll = base; // Reference to original SelectAll function on TreeView class
 		var exec = function()
 		{
@@ -740,7 +600,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		dataLoading = true;
 
 		getData(null, function(node, eventArgs) // Notice: node argument is null when requesting root nodes
-		{	
+		{
 			Fit.Array.ForEach(eventArgs.Children, function(jsonChild)
 			{
 				me.AddChild(createNodeFromJson(jsonChild));
@@ -1243,11 +1103,11 @@ Fit.Controls.WSTreeView = function(ctlId)
 		eventArgs.Sender = me;
 		eventArgs.Node = node;
 		eventArgs.Request = request;
-		eventArgs.SelectAll = (node !== null && node.GetDomElement()._internal.WSSelectAll === true);
+		eventArgs.SelectAll = (node || rootNode).GetDomElement()._internal.WSSelectAll === true;
 
 		if (fireEventHandlers(onRequestHandlers, eventArgs) === false)
 			return false;
-		
+
 		if (eventArgs.Request !== request)
 		{
 			// Support for changing request instans to
@@ -1522,7 +1382,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	function nodeDisposedOrDetached(node)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
-		
+
 		// Return True if node is either disposed or no longer attached to TreeView.
 		// GetTreeView() returns Null if node has been removed from TreeView, or a
 		// TreeView instance different from this one, if attached to another TreeView.
@@ -1585,7 +1445,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				cb(node);
 			}
 		});
-		
+
 		return canceled === false;
 	}
 
@@ -1603,8 +1463,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 			recursiveNodeLoadCount = 0;
 		}
 
+		var targetNodeInternal = (targetNode || rootNode).GetDomElement()._internal;
 		var nodes = null;
-		
+
 		if (targetNode === null)
 		{
 			nodes = me.GetChildren();
@@ -1620,6 +1481,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 		{
 			if (node.IsBehavioralNode() === true)
 				return; // Do not request data for behavioral node
+
+			if (targetNodeInternal.WSSelectAll === true)
+				node.GetDomElement()._internal.WSSelectAll = true; // Used when firing OnRequest, OnResponse, and OnPopulated events which expose an eventArgs.SelectAll boolean
 
 			var dataStartedLoading = loadNodeData(node, function(n) // True if node has remote children that will be loaded, False if no remote children is available to be loaded
 			{
@@ -1736,7 +1600,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 				node.Expanded(true);
 			else if (expandCollapseMode === 0)
 				node.Expanded(false);
-			
+
 			return (node.GetLevel() + 1 < maxDepth ? node.GetChildren() : null);
 		});
 	}
