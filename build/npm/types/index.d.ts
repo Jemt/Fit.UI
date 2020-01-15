@@ -83,19 +83,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in object array
-		* @function Count
-		* @param {any} obj - Object array to count elements within
-		* @returns number
-		*/
-		public static Count(obj:any):number;
-		/**
 		* Returns number of elements in collection
 		* @function Count
 		* @param {any[]} arr - Collection to count elements within
 		* @returns number
 		*/
 		public static Count(arr:any[]):number;
+		/**
+		* Returns number of elements in object array
+		* @function Count
+		* @param {any} obj - Object array to count elements within
+		* @returns number
+		*/
+		public static Count(obj:any):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -153,17 +153,17 @@ declare namespace Fit
 		/**
 		* Returns True if collection has items, otherwise False
 		* @function HasItems
-		* @param {any[]} arr - Collection to investigate
-		* @returns boolean
-		*/
-		public static HasItems(arr:any[]):boolean;
-		/**
-		* Returns True if collection has items, otherwise False
-		* @function HasItems
 		* @param {any} obj - Object array to investigate
 		* @returns boolean
 		*/
 		public static HasItems(obj:any):boolean;
+		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any[]} arr - Collection to investigate
+		* @returns boolean
+		*/
+		public static HasItems(arr:any[]):boolean;
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -180,6 +180,14 @@ declare namespace Fit
 		* @returns any[]
 		*/
 		public static Merge(arr1:any[], arr2:any[]):any[];
+		/**
+		* Move object within array from one position to another
+		* @function Move
+		* @param {any[]} arr - Array to manipulate
+		* @param {number} fromIdx - Position of object to move
+		* @param {number} ToIdx - New object position
+		*/
+		public static Move(arr:any[], fromIdx:number, ToIdx:number):void;
 		/**
 		* Recursively iterates through objects in array and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
@@ -6419,6 +6427,13 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {number} eventId - Event ID identifying handler to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6436,19 +6451,6 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
-		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -6456,6 +6458,12 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).

@@ -16,6 +16,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var me = this;								// Access to members from event handlers (where "this" may have a different meaning)
 	var itemContainer = null;					// Container for selected items and input fields
 	var itemCollection = {};					// Indexed collection for selected items (for fast lookup)
+	var itemCollectionOrdered = [];				// Ordered item collection (item order can be changed using drag and drop)
 	var itemDropZones = {};						// Indexed collection of dropzones used to enable item dragging/dropping
 	var arrow = null;							// Arrow button used to open/close drop down menu
 	var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
@@ -1067,6 +1068,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		var itemObject = createItemObject(titleWithoutHtml, value, valid !== false, item); //convertItemElementToItemObject(item);
 		itemCollection[itemObject.Value] = itemObject;
+		itemCollectionOrdered.push(itemObject);
 
 		// Clear input control value
 
@@ -1157,10 +1159,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 		var toReturn = [];
 
-		Fit.Array.ForEach(itemCollection, function(key)
+		Fit.Array.ForEach(itemCollectionOrdered, function(selection)
 		{
-			var selection = itemCollection[key];
-
 			if (includeInvalid === true || selection.Valid === true)
 			{
 				Fit.Array.Add(toReturn, { Title: selection.Title, Value: selection.Value, Valid: selection.Valid });
@@ -1198,10 +1198,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 		me._internal.ExecuteWithNoOnChange(function() // picker.UpdateItemSelection results in OnChange being fired
 		{
-			Fit.Array.ForEach(itemCollection, function(key)
+			Fit.Array.ForEach(itemCollectionOrdered, function(selection)
 			{
-				var selection = itemCollection[key];
-
 				if (picker !== null)
 				{
 					// Notice: Picker fires OnItemSelectionChanged when picker.UpdateItemSelection(..) is invoked
@@ -1252,6 +1250,7 @@ Fit.Controls.DropDown = function(ctlId)
 			});
 
 			itemCollection = {};
+			itemCollectionOrdered = [];
 			itemDropZones = {};
 		});
 
@@ -1339,6 +1338,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		Fit.Dom.Remove(found);
+		Fit.Array.Remove(itemCollectionOrdered, itemObject);
 		delete itemCollection[value];
 
 		itemDropZones[value].Dispose();
@@ -2067,13 +2067,12 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function getFirstSelectionElement()
 	{
-		var first = null;
-		Fit.Array.ForEach(itemCollection, function(key)
+		if (itemCollectionOrdered.length > 0)
 		{
-			first = itemCollection[key].DomElement;
-			return false;
-		})
-		return first;
+			return itemCollectionOrdered[0].DomElement;
+		}
+
+		return null;
 	}
 
 	function fitWidthToContent(input, val) // Set width of input field equivalent to its content
@@ -2237,9 +2236,9 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			partiallyHidden = null;
 
-			Fit.Array.ForEach(itemCollection, function(key)
+			Fit.Array.ForEach(itemCollectionOrdered, function(itemObject)
 			{
-				var item = itemCollection[key].DomElement;
+				var item = itemObject.DomElement;
 
 				if (item.parentElement.offsetWidth + 1 > Fit.Dom.GetInnerWidth(itemContainer)) // Adding 1px to offsetWidth - otherwise right aligned cursor may become hidden behind drop down arrow box
 					item.nextSibling.tabIndex = -1; // Item is partially hidden - disable right search field
@@ -2467,7 +2466,14 @@ Fit.Controls.DropDown = function(ctlId)
 			focusAssigned = true;
 			focusInput(txtPrimary);
 
+			var draggableIndex = Fit.Dom.GetIndex(draggable.GetDomElement());
+			var dropzoneIndex =  Fit.Dom.GetIndex(dropzone.GetDomElement());
+			var itemObject = itemCollectionOrdered[draggableIndex];
+
+			Fit.Array.RemoveAt(itemCollectionOrdered, draggableIndex);
+			Fit.Array.Insert(itemCollectionOrdered, (draggableIndex < dropzoneIndex ? dropzoneIndex : dropzoneIndex + 1), itemObject);
 			Fit.Dom.InsertAfter(dropzone.GetDomElement(), draggable.GetDomElement());
+
 			fireChange = true;
 		}
 		else if (Fit.Dom.Data(dropzone.GetDomElement(), "dropping") === "left" && dropzone.GetDomElement().previousSibling !== draggable.GetDomElement())
@@ -2476,7 +2482,14 @@ Fit.Controls.DropDown = function(ctlId)
 			focusAssigned = true;
 			focusInput(txtPrimary);
 
+			var draggableIndex = Fit.Dom.GetIndex(draggable.GetDomElement());
+			var dropzoneIndex =  Fit.Dom.GetIndex(dropzone.GetDomElement());
+			var itemObject = itemCollectionOrdered[draggableIndex];
+
+			Fit.Array.RemoveAt(itemCollectionOrdered, draggableIndex);
+			Fit.Array.Insert(itemCollectionOrdered, (draggableIndex < dropzoneIndex ? dropzoneIndex - 1 : dropzoneIndex), itemObject);
 			Fit.Dom.InsertBefore(dropzone.GetDomElement(), draggable.GetDomElement());
+
 			fireChange = true;
 		}
 

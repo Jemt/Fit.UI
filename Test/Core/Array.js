@@ -368,11 +368,12 @@ Tests.ArrayManipulation = function()
 	var arr3 = [];
 	var arr4 = [];
 	var arr5 = [];
+	var arr6 = [];
 
 	var arr2IdxExisting = -1;
 	var arr2IdxNonExisting = -1;
 
-	this.Description = "Arrays can be manipulated (Add/Insert/Remove/RemoveAt/Clear/GetIndex/Contains)";
+	this.Description = "Arrays can be manipulated (Add/Insert/Remove/RemoveAt/Clear/GetIndex/Contains/Move)";
 
 	this.Execute = function()
 	{
@@ -405,6 +406,14 @@ Tests.ArrayManipulation = function()
 		Fit.Array.Add(arr5, "B");
 		Fit.Array.Add(arr5, "C");
 		Fit.Array.Clear(arr5); // Result: []
+
+		Fit.Array.Add(arr6, "A");
+		Fit.Array.Add(arr6, "B");
+		Fit.Array.Add(arr6, "C");		// Result: [A, B, C]
+		Fit.Array.Move(arr6, 0, 2);		// Result: [B, C, A]
+		Fit.Array.Move(arr6, 1, 999);	// Result: [B, A, C]
+		Fit.Array.Move(arr6, 2, -1);	// Result: [C, B, A]
+		Fit.Array.Move(arr6, 3, 1);		// Result: [C, B, A] (nothing changed, no item on position 3)
 	}
 
 	this.Assertions =
@@ -489,6 +498,14 @@ Tests.ArrayManipulation = function()
 			GetResult: function()
 			{
 				return (arr5.length === 0 && arr5[0] === undefined);
+			}
+		},
+		{
+			Message: "Move function was able to move elements around",
+			Expected: true,
+			GetResult: function()
+			{
+				return arr6[0] === "C" && arr6[1] === "B" && arr6[2] === "A";
 			}
 		}
 	]

@@ -210,6 +210,29 @@ Fit.Array.Insert = function(arr, idx, obj) // obj not validated - passing any ob
     arr.splice(idx, 0, obj);
 }
 
+/// <function container="Fit.Array" name="Move" access="public" static="true">
+/// 	<description> Move object within array from one position to another </description>
+/// 	<param name="arr" type="array"> Array to manipulate </param>
+/// 	<param name="fromIdx" type="integer"> Position of object to move </param>
+/// 	<param name="ToIdx" type="integer"> New object position </param>
+/// </function>
+Fit.Array.Move = function(arr, fromIdx, toIdx)
+{
+	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectInteger(fromIdx);
+	Fit.Validation.ExpectInteger(toIdx);
+
+	if (fromIdx < arr.length)
+	{
+		// If toIdx is below 0 (zero) the object will be added at the beginning of the array.
+		// If toIdx is greater than the length of the array, the object will be added at the end of the array.
+
+		var obj = arr[fromIdx];
+		Fit.Array.RemoveAt(arr, fromIdx);
+		Fit.Array.Insert(arr, toIdx > 0 ? toIdx : 0, obj);
+	}
+}
+
 /// <function container="Fit.Array" name="Merge" access="public" static="true" returns="array">
 /// 	<description> Merge/join two arrays </description>
 /// 	<param name="arr1" type="array"> Array 1 to merge with array 2 </param>
