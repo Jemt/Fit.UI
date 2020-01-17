@@ -666,7 +666,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		Fit.Array.ForEach(handlers, function(cb)
 		{
 			var data = null; // Remains Null for OnAbort event (no Children or Items provided)
-			var searchValue = "";
+			var searchValue = Fit.Core.InstanceOf(picker, Fit.Controls.WSListView) === true ? search : "";
 
 			if (eventArgs.Children) // WSTreeView
 			{
@@ -675,7 +675,6 @@ Fit.Controls.WSDropDown = function(ctlId)
 			else if (eventArgs.Items) // WSListView
 			{
 				data = eventArgs.Items;
-				searchValue = search;
 			}
 
 			var newArgs = { Sender: me, Picker: picker, Node: (eventArgs.Node ? eventArgs.Node : null), SelectAll: eventArgs.SelectAll, Search: searchValue, Data: data, Request: eventArgs.Request };
