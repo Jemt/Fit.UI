@@ -76,19 +76,15 @@ declare namespace Fit
 		*/
 		public static Contains(arr:any[], obj:any):boolean;
 		/**
-		* Returns a shallow copy of the array - for a deep copy see Fit.Core.Clone(..)
+		* Returns a shallow copy of the array. Notice that collection type is not preserved,
+		meaning e.g. a NodeList or FileList will be returned as a traditional array holding
+		references to the objects - just like Fit.Array.ToArray(..) does.
+		For a deep copy see Fit.Core.Clone(..)
 		* @function Copy
 		* @param {any[]} arr - Array to copy
 		* @returns any[]
 		*/
 		public static Copy(arr:any[]):any[];
-		/**
-		* Returns number of elements in collection
-		* @function Count
-		* @param {any[]} arr - Collection to count elements within
-		* @returns number
-		*/
-		public static Count(arr:any[]):number;
 		/**
 		* Returns number of elements in object array
 		* @function Count
@@ -96,6 +92,13 @@ declare namespace Fit
 		* @returns number
 		*/
 		public static Count(obj:any):number;
+		/**
+		* Returns number of elements in collection
+		* @function Count
+		* @param {any[]} arr - Collection to count elements within
+		* @returns number
+		*/
+		public static Count(arr:any[]):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -153,17 +156,17 @@ declare namespace Fit
 		/**
 		* Returns True if collection has items, otherwise False
 		* @function HasItems
-		* @param {any} obj - Object array to investigate
-		* @returns boolean
-		*/
-		public static HasItems(obj:any):boolean;
-		/**
-		* Returns True if collection has items, otherwise False
-		* @function HasItems
 		* @param {any[]} arr - Collection to investigate
 		* @returns boolean
 		*/
 		public static HasItems(arr:any[]):boolean;
+		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any} obj - Object array to investigate
+		* @returns boolean
+		*/
+		public static HasItems(obj:any):boolean;
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -172,6 +175,15 @@ declare namespace Fit
 		* @param {any} obj - Object to insert into array
 		*/
 		public static Insert(arr:any[], idx:number, obj:any):void;
+		/**
+		* Join objects from an array into a string
+		* @function Join
+		* @param {any[]} arr - Array containing objects
+		* @param {string} separator - String used to glue values together
+		* @param {Function} callback - Callback returning string representation of objects passed from array in turn
+		* @returns string
+		*/
+		public static Join(arr:any[], separator:string, callback:Function):string;
 		/**
 		* Merge/join two arrays
 		* @function Merge
@@ -6427,13 +6439,6 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {number} eventId - Event ID identifying handler to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
-		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6451,6 +6456,19 @@ declare namespace Fit
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
+		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {number} eventId - Event ID identifying handler to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
+		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
 		* @param {HTMLElement} elm - DOMElement being observed
@@ -6458,12 +6476,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
