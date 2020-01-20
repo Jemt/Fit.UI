@@ -369,9 +369,7 @@ Tests.ArrayManipulation = function()
 	var arr4 = [];
 	var arr5 = [];
 	var arr6 = [];
-
-	var arr2IdxExisting = -1;
-	var arr2IdxNonExisting = -1;
+	var div = document.createElement("div");
 
 	this.Description = "Arrays can be manipulated (Add/Insert/Remove/RemoveAt/Clear/GetIndex/Contains/Move)";
 
@@ -414,6 +412,12 @@ Tests.ArrayManipulation = function()
 		Fit.Array.Move(arr6, 1, 999);	// Result: [B, A, C]
 		Fit.Array.Move(arr6, 2, -1);	// Result: [C, B, A]
 		Fit.Array.Move(arr6, 3, 1);		// Result: [C, B, A] (nothing changed, no item on position 3)
+
+		div.appendChild(document.createElement("span"));
+		div.appendChild(document.createElement("a"));
+		div.appendChild(document.createElement("div"));
+		div.appendChild(document.createElement("img"));
+		div.appendChild(document.createElement("ul"));
 	}
 
 	this.Assertions =
@@ -434,23 +438,29 @@ Tests.ArrayManipulation = function()
 			}
 		},
 		{
-			Message: "Contains function can determine whether an element (integer, string, or object) is contained in an array",
+			Message: "Contains function can determine whether an element (integer, string, object, or DOM element) is contained in an array",
 			Expected: true,
 			GetResult: function()
 			{
+				var nodes = div.children;
+
 				return (Fit.Array.Contains(arr1, 4) === true && Fit.Array.Contains(arr1, 58489) === false
 						&& Fit.Array.Contains(arr2, "B") === true && Fit.Array.Contains(arr2, "Hello") === false
-						&& Fit.Array.Contains(arr4, obj) === true && Fit.Array.Contains(arr4, { Title: "Hello" }) === false);
+						&& Fit.Array.Contains(arr4, obj) === true && Fit.Array.Contains(arr4, { Title: "Hello" }) === false
+						&& Fit.Array.Contains(nodes, nodes[2]) === true && Fit.Array.Contains(nodes, document.createElement("b")) === false);
 			}
 		},
 		{
-			Message: "GetIndex function can determine an element's (integer, string, or object) index within an array",
+			Message: "GetIndex function can determine an element's (integer, string, object, or DOM element) index within an array",
 			Expected: true,
 			GetResult: function()
 			{
+				var nodes = div.children;
+
 				return (Fit.Array.GetIndex(arr1, 4) === 3 && Fit.Array.GetIndex(arr1, 58489) === -1
 						&& Fit.Array.GetIndex(arr2, "B") === 1 && Fit.Array.GetIndex(arr2, "Hello") === -1
-						&& Fit.Array.GetIndex(arr4, obj) === 1 && Fit.Array.GetIndex(arr4, { Title: "Hello" }) === -1);
+						&& Fit.Array.GetIndex(arr4, obj) === 1 && Fit.Array.GetIndex(arr4, { Title: "Hello" }) === -1
+						&& Fit.Array.GetIndex(nodes, nodes[2]) === 2 && Fit.Array.GetIndex(nodes, document.createElement("b")) === -1);
 			}
 		},
 		{
@@ -506,6 +516,43 @@ Tests.ArrayManipulation = function()
 			GetResult: function()
 			{
 				return arr6[0] === "C" && arr6[1] === "B" && arr6[2] === "A";
+			}
+		}
+	]
+}
+
+Tests.GetKeys = function()
+{
+	var arr = [true, "hi", new Date(), false, null, undefined, 123, 32.23];
+	var arrKeys = [0, 1, 2, 3, 4, 5, 6, 7];
+
+	var obj = { Name: "James", Surname: "Thompson", Age: 107, Gender: "Male" };
+	var objKeys = [ "Name", "Surname", "Age", "Gender" ];
+
+	this.Description = "GetKeys function can obtain keys from array and object array";
+
+	this.Execute = function()
+	{
+	}
+
+	this.Assertions =
+	[
+		{
+			Message: "Successfully determined keys for traditional array",
+			Expected: true,
+			GetResult: function()
+			{
+				var keys = Fit.Array.GetKeys(arr);
+				return Fit.Core.IsEqual(arrKeys, keys);
+			}
+		},
+		{
+			Message: "Successfully determined keys for object array",
+			Expected: true,
+			GetResult: function()
+			{
+				var keys = Fit.Array.GetKeys(obj);
+				return Fit.Core.IsEqual(objKeys, keys);
 			}
 		}
 	]
@@ -622,6 +669,41 @@ Tests.ToArray = function()
 				}
 
 				return true;
+			}
+		}
+	]
+}
+
+Tests.Join = function()
+{
+	var arr = [ "Hi", "there", "nice", "to", "meet", "you" ];
+	var arrExpected = "Hi there nice to meet you";
+
+	var arr2 = [ { Name: "James", Surname: "Thompson" }, { Name: "Jack", Surname: "Wild" }, { Name: "Mia", Surname: "Hanson" } ];
+	var arr2Expected = "James, Jack, Mia";
+
+	this.Description = "Join function produces expected string representation from arrays";
+
+	this.Execute = function()
+	{
+	}
+
+	this.Assertions =
+	[
+		{
+			Message: "Successfully joined string array",
+			Expected: arrExpected,
+			GetResult: function()
+			{
+				return Fit.Array.Join(arr, " ", function(o) { return o; })
+			}
+		},
+		{
+			Message: "Successfully joined array containing objects",
+			Expected: arr2Expected,
+			GetResult: function()
+			{
+				return Fit.Array.Join(arr2, ", ", function(o) { return o.Name; })
 			}
 		}
 	]

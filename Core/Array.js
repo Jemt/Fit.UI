@@ -288,7 +288,7 @@ Fit.Array.Clear = function(arr)
 /// </function>
 Fit.Array.GetIndex = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
 {
-	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectCollection(arr);
 
     for (var i = 0 ; i < arr.length ; i++)
         if (arr[i] === obj)
@@ -334,13 +334,16 @@ Fit.Array.GetKeys = function(obj)
 /// </function>
 Fit.Array.Contains = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
 {
-	Fit.Validation.ExpectArray(arr);
+	Fit.Validation.ExpectCollection(arr);
     return (Fit.Array.GetIndex(arr, obj) > -1);
 }
 
 /// <function container="Fit.Array" name="Copy" access="public" static="true" returns="array">
 /// 	<description>
-/// 		Returns a shallow copy of the array - for a deep copy see Fit.Core.Clone(..)
+/// 		Returns a shallow copy of the array. Notice that collection type is not preserved,
+/// 		meaning e.g. a NodeList or FileList will be returned as a traditional array holding
+/// 		references to the objects - just like Fit.Array.ToArray(..) does.
+/// 		For a deep copy see Fit.Core.Clone(..)
 /// 	</description>
 /// 	<param name="arr" type="array"> Array to copy </param>
 /// </function>
@@ -370,6 +373,26 @@ Fit.Array.ToArray = function(coll)
 		arr.push(coll[i]);
 
 	return arr;
+}
+
+/// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
+/// 	<description> Join objects from an array into a string </description>
+/// 	<param name="arr" type="array"> Array containing objects </param>
+/// 	<param name="separator" type="string"> String used to glue values together </param>
+/// 	<param name="callback" type="function"> Callback returning string representation of objects passed from array in turn </param>
+/// </function>
+Fit.Array.Join = function(arr, separator, callback)
+{
+	Fit.Validation.ExpectCollection(arr);
+
+	var result = "";
+
+	Fit.Array.ForEach(arr, function(obj)
+	{
+		result += (result !== "" ? separator : "") + callback(obj);
+	});
+
+	return result;
 }
 
 /*
