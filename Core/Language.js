@@ -1,3 +1,8 @@
+// ==============================================================
+// WARNING: THIS FILE IS OBSOLETE!
+// File will be removed in a future version of Fit.UI!
+// ==============================================================
+
 Fit.Language = {};
 Fit.Language.Translations = {};
 

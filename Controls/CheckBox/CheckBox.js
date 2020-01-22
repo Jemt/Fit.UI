@@ -63,6 +63,8 @@ Fit.Controls.CheckBox = function(ctlId)
 		me.Enabled(true);
 		me.Checked(false);
 		me.Width(-1);
+
+		Fit.Internationalization.OnLocaleChanged(localize);
 	}
 
 	// ============================================
@@ -180,6 +182,8 @@ Fit.Controls.CheckBox = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
 		me = checkbox = label = width = orgChecked = isIe8 = null;
 
 		base();
@@ -201,7 +205,8 @@ Fit.Controls.CheckBox = function(ctlId)
 	{
 		if (me.Required() === true && me.Checked() === false)
 		{
-			me._internal.Data("errormessage", Fit.Language.Translations.Required);
+			var locale = Fit.Internationalization.GetSystemLocale();
+			me._internal.Data("errormessage", locale.Translations.Required);
 		}
 
 		base();
@@ -248,6 +253,11 @@ Fit.Controls.CheckBox = function(ctlId)
 	// Private
 	// ============================================
 
+	function localize()
+	{
+		me._internal.Validate();
+	}
+	
 	function repaint()
 	{
 		if (isIe8 === true)

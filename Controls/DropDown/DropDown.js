@@ -29,6 +29,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var picker = null;							// Picker control within drop down menu
 	var orgSelections = [];						// Original selection set using Value(..) function - used to determine whether control is dirty
 	var invalidMessage = "Invalid selection";	// Mouse over text for invalid selections
+	var invalidMessageChanged = false;			// Flag indicating whether built-in Invalid Selection Message has been overridden or not
 	var initialFocus = true;					// Flag indicating first focus of control
 	var maxHeight = { Value: 150, Unit: "px"};	// Picker max height (px)
 	var prevValue = "";							// Previous input value - used to determine whether OnChange should be fired
@@ -60,7 +61,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function init()
 	{
-		invalidMessage = Fit.Language.Translations.InvalidSelection;
+		Fit.Internationalization.OnLocaleChanged(localize);
+		localize();
 
 		// Initial settings
 
@@ -333,14 +335,9 @@ Fit.Controls.DropDown = function(ctlId)
 		if (Fit.Validation.IsSet(msg) === true)
 		{
 			invalidMessage = msg;
+			invalidMessageChanged = true; // Make sure message is not changed if locale is changed on page
 
-			Fit.Array.ForEach(itemCollection, function(key)
-			{
-				var selection = itemCollection[key];
-
-				if (selection.Valid === false)
-					Fit.Dom.Attribute(selection.DomElement, "title", invalidMessage);
-			});
+			updateInvalidMessageForSelectedItems();
 		}
 
 		return invalidMessage;
@@ -569,6 +566,8 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit._internal.DropDown.Current = null;
 		}
 
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
 		if (widthObserverId !== -1)
 		{
 			Fit.Events.RemoveMutationObserver(widthObserverId);
@@ -589,7 +588,7 @@ Fit.Controls.DropDown = function(ctlId)
 			itemDropZones[key].Dispose();
 		});
 
-		me = itemContainer = itemCollection = itemDropZones = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
+		me = itemContainer = itemCollection = itemDropZones = arrow = hidden = spanFitWidth = txtPrimary = txtCssWidth = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = visibilityObserverId = widthObserverId = tabOrderObserverId = partiallyHidden = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
@@ -2634,6 +2633,30 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		clearTextSelectionOnInputChange = true;
+	}
+
+	function updateInvalidMessageForSelectedItems()
+	{
+		Fit.Array.ForEach(itemCollection, function(key)
+		{
+			var selection = itemCollection[key];
+
+			if (selection.Valid === false)
+			{
+				Fit.Dom.Attribute(selection.DomElement, "title", invalidMessage);
+			}
+		});
+	}
+
+	function localize()
+	{
+		if (invalidMessageChanged === false)
+		{
+			var locale = Fit.Internationalization.GetLocale(me);
+			invalidMessage = locale.Translations.InvalidSelection;
+
+			updateInvalidMessageForSelectedItems();
+		}
 	}
 
 	// Event dispatchers

@@ -1,6 +1,6 @@
 Fit.Internationalization.AddLocalization(Fit.Controls.FilePicker,
 {
-	// Primary locales must be registered before language specific overrides.
+	// Primary locales must be registered before country specific overrides.
 	// Example order: en, en_GB, de, de_AT, etc.
 	// All locales inherit from en. All country specific overrides inherit
 	// from their general locale (e.g. de_AT inherits from de).
