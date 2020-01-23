@@ -1,30 +1,34 @@
-Fit.Internationalization.AddLocalization(Fit.Controls.DropDown,
+(function()
 {
-	// Primary locales must be registered before country specific overrides.
-	// Example order: en, en_US, en_GB, de, de_AT, etc.
-	// All locales inherit from en. All country specific overrides inherit
-	// from their primary locale (e.g. de_AT inherits from de).
-	// English (en) MUST be defined!
-	
-	"en": // US
-	{
-		Translations:
+	var locale = {
+		// Primary locales must be registered before country specific overrides.
+		// Example order: en, en_US, en_GB, de, de_AT, etc.
+		// All locales inherit from en. All country specific overrides inherit
+		// from their primary locale (e.g. de_AT inherits from de).
+		// English (en) MUST be defined!
+		
+		"en": // US
 		{
-			InvalidSelection		: "Invalid selection"
-		}
-	},
-	"da":
-	{
-		Translations:
+			Translations:
+			{
+				InvalidSelection		: "Invalid selection"
+			}
+		},
+		"da":
 		{
-			InvalidSelection		: "Ugyldigt valg"
-		}
-	},
-	"de":
-	{
-		Translations:
+			Translations:
+			{
+				InvalidSelection		: "Ugyldigt valg"
+			}
+		},
+		"de":
 		{
-			InvalidSelection		: "Ungültige Auswahl"
+			Translations:
+			{
+				InvalidSelection		: "Ungültige Auswahl"
+			}
 		}
 	}
-});
+	Fit.Internationalization.AddLocalization(Fit.Controls.DropDown, locale);
+	Fit.Internationalization.AddLocalization(Fit.Controls.WSDropDown, locale);	
+})();
