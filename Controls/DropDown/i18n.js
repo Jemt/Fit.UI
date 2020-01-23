@@ -1,4 +1,4 @@
-(function()
+;(function()
 {
 	var locale = {
 		// Primary locales must be registered before country specific overrides.
