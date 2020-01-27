@@ -915,6 +915,24 @@ Fit.Controls.TreeView = function(ctlId)
 		return getNodeFocused();
 	}
 
+	/// <function container="Fit.Controls.TreeView" name="GetActiveNode" access="public" returns="Fit.Controls.TreeViewNode">
+	/// 	<description> Get active (highlighted or focused) node - returns Null if no node is currently active </description>
+	/// </function>
+	this.GetActiveNode = function()
+	{
+		return isPicker ? activeNode : getNodeFocused();
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="SetActiveNode" access="public">
+	/// 	<description> Set active (highlighted or focused) node </description>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to set active in TreeView </param>
+	/// </function>
+	this.SetActiveNode = function(node)
+	{
+		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
+		focusNode(node); // Will highlight node if TreeView is used as picker, otherwise focus node
+	}
+
 	/// <function container="Fit.Controls.TreeView" name="GetNodeAbove" access="public" returns="Fit.Controls.TreeViewNode">
 	/// 	<description> Get node above specified node - returns Null if no node is above the specified one </description>
 	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to get node above </param>
@@ -1466,6 +1484,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function getNodeFocused()
 	{
+		// Returns focused node or null - active node is not actually focused when TreeView is used as picker control but merely highlighted
 		return ((Fit.Dom.GetFocused() && Fit.Dom.GetFocused().tagName === "LI" && Fit.Dom.GetFocused()._internal && Fit.Dom.Contained(rootContainer, Fit.Dom.GetFocused()) === true) ? Fit.Dom.GetFocused()._internal.Node : null);
 	}
 
