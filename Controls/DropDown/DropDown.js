@@ -473,7 +473,7 @@ Fit.Controls.DropDown = function(ctlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			orgSelections = [];
-			var fireChange = (Fit.Array.HasItems(itemCollection) === true || val !== ""); // Fire OnChange if current selections are cleared, and/or if new selections are set
+			var fireChange = (itemCollectionOrdered.length > 0 || val !== ""); // Fire OnChange if current selections are cleared, and/or if new selections are set
 
 			me._internal.ExecuteWithNoOnChange(function()
 			{
@@ -948,7 +948,7 @@ Fit.Controls.DropDown = function(ctlId)
 			if (error !== null)
 				Fit.Validation.ThrowError(error);
 
-			if (Fit.Array.HasItems(itemCollection) === true) // A picker prevented selected item from being removed
+			if (itemCollectionOrdered.length > 0) // A picker prevented selected item from being removed
 				return;
 		}
 
@@ -1349,7 +1349,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 		else
 		{
-			if (Fit.Array.HasItems(itemCollection) === false)
+			if (itemCollectionOrdered.length === 0)
 				optimizeTabOrder(); // Make sure txtPrimary can receive focus using Tab or Shift+Tab
 		}
 
