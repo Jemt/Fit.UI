@@ -15,6 +15,15 @@ cat ../Resources/JqueryUI-1.11.4.custom/jquery-ui.css >> Resources.css
 
 # Copy resources
 
+if [ -d Controls ] ; then
+	rm -Rf Controls
+fi
+
 mkdir -p Controls/TreeView
 cp ../Controls/TreeView/*.png Controls/TreeView
-cp -Rf ../Resources .
+
+if [ -d Resources ] ; then
+	rm -Rf Resources
+fi
+
+cp -R ../Resources .

@@ -66,6 +66,7 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("maximized", "false");
 		me._internal.Data("designmode", "false");
 
+		Fit.Internationalization.OnLocaleChanged(localize);
 	}
 
 	// ============================================
@@ -227,7 +228,15 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			input.spellcheck = val;
+			if (val !== input.spellcheck)
+			{
+				input.spellcheck = val;
+
+				if (me.DesignMode() === true)
+				{
+					reloadEditor();
+				}
+			}
 		}
 
 		return input.spellcheck;
@@ -558,7 +567,7 @@ Fit.Controls.Input = function(ctlId)
 			}
 		}
 
-		return (me._internal.Data("designmode") === "true");
+		return designEditor !== null;
 	}
 
 	// ============================================
@@ -617,10 +626,15 @@ Fit.Controls.Input = function(ctlId)
 			return;
 		}
 
+		var langSupport = ["da", "de", "en"];
+		var locale = Fit.Internationalization.Locale().length === 2 ? Fit.Internationalization.Locale() : Fit.Internationalization.Locale().substring(0, 2);
+		var lang = Fit.Array.Contains(langSupport, locale) === true ? locale : "en";
+
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
-			language: ((Fit.Browser.GetInfo().Language === "da") ? "da" : "en"), // TODO: Ship with all language files and remove this entry to have CKEditor default to browser language
+			language: lang,
+			disableNativeSpellChecker: me.CheckSpelling() === false,
 			extraPlugins: "justify,pastefromword",
 			toolbar:
 			[
@@ -659,12 +673,12 @@ Fit.Controls.Input = function(ctlId)
 				{
 					designEditor._focused = true;
 					me._internal.FireOnFocus();
-				},
-				blur: function()
+				}/*,
+				blur: function() // Not needed when editable area is a <div> (divarea plugin) - ControlBase implements focus/blur handling for all controls, which also ensures that e.g. OnBlur fires for editor before OnClick on e.g. a button
 				{
 					delete designEditor._focused;
 					me._internal.FireOnBlur();
-				}
+				}*/
 			}
 		});
 	}
@@ -723,6 +737,29 @@ Fit.Controls.Input = function(ctlId)
 					}
 				});
 			}
+		}
+	}
+
+	function reloadEditor()
+	{
+		// Disabling DesignMode brings it back to input or textarea mode.
+		// If reverting to input mode, the Height is reset, so we need to preserve that.
+
+		var height = me.Height();
+		me.DesignMode(false);
+		me.Height(height.Value, height.Unit);
+		me.DesignMode(true);
+	}
+
+	function localize()
+	{
+		if (me.DesignMode() === true)
+		{
+			// Re-create editor with new language.
+			// NOTICE minor issue: Changing language while link dialog (and possibly any dialog)
+			// is open, breaks the editor with a "Cannot read property 'blur' of null" error.
+			
+			reloadEditor();
 		}
 	}
 
