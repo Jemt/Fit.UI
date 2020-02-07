@@ -143,6 +143,8 @@ Fit.Controls.Input = function(ctlId)
 		if (designEditor !== null)
 			designEditor.destroy();
 
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
 		if (mutationObserverId !== -1)
 		{
 			Fit.Events.RemoveMutationObserver(mutationObserverId);
