@@ -1716,8 +1716,11 @@ declare namespace Fit
 			/**
 			* Open dialog
 			* @function Open
+			* @param {HTMLElement} [renderTarget=undefined] - Optional render target which can be used to render dialog to specific
+			container rather than the root of the body element. This allows for
+			the dialog to inherit styles from the specified render target.
 			*/
-			public Open():void;
+			public Open(renderTarget?:HTMLElement):void;
 			/**
 			* Remove all buttons from dialog
 			* @function RemoveAllButtons
