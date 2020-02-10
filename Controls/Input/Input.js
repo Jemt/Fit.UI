@@ -561,15 +561,16 @@ Fit.Controls.Input = function(ctlId)
 				designEditor.destroy(); // Editor content automatically synchronized to input control when destroyed
 				designEditor = null;
 
+				me._internal.Data("designmode", "false");
+
 				if (wasMultiLineBefore === false)
 					me.MultiLine(false);
 
-				me._internal.Data("designmode", "false");
 				repaint();
 			}
 		}
 
-		return designEditor !== null;
+		return (me._internal.Data("designmode") === "true");
 	}
 
 	// ============================================
