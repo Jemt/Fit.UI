@@ -103,7 +103,8 @@ div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems 
 }
 
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span,
-div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > input
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > input,
+div.FitUiControlDropDownHidden /* Used to calculate width of content for input fields */
 {
 	font-size: 0.85em;
 }
@@ -137,7 +138,6 @@ div.FitUiControlDropDownHidden
 	/* Reduce risk of element affecting viewport dimensions,
 	   which could potentially cause scrolling (X and Y). A very
 	   large value will still produce horizontal scrolling though.*/
-	position: 0px;
 	top: 0px;
 	left: 0px;
 }

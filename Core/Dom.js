@@ -996,6 +996,45 @@ Fit.Dom.GetScrollParent = function(elm)
 	return Fit.Dom.GetScrollDocument();
 }
 
+/// <function container="Fit.Dom" name="GetOverflowingParent" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Get element's parent that has overflow set to auto, scroll, or hidden.
+/// 		Returns null if element passed has now parent with overflow.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get overflowing parent for </param>
+/// </function>
+Fit.Dom.GetOverflowingParent = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	// Code below is similar to the code for GetScrollParent(..), except it includes overflow:hidden
+
+	var pos = Fit.Dom.GetComputedStyle(elm, "position");
+
+	if (pos === "fixed")
+    {
+		return null; // No scroll parent when element has its own stacking context
+	}
+
+	var regEx = /scroll|auto|hidden/;
+	var current = elm;
+
+	while ((current = current.parentElement) !== null)
+	{
+		if (pos === "absolute" && Fit.Dom.GetComputedStyle(elm, "position") === "static") // static is default positioning
+        {
+			continue; // Skip parent if element is floating outside of it using absolute positioning
+		}
+
+		if (regEx.test(Fit.Dom.GetComputedStyle(current, "overflowY")) === true || regEx.test(Fit.Dom.GetComputedStyle(current, "overflowX")) === true)
+		{
+			return current;
+		}
+	}
+
+	return null;
+}
+
 /// <function container="Fit.Dom" name="GetScrollDocument" access="public" static="true" returns="DOMElement">
 /// 	<description>
 /// 		Get scrolling document element. This is the cross browser
@@ -1016,7 +1055,7 @@ Fit.Dom.GetScrollDocument = function()
 			iframe.style.cssText = "height: 1px; position: fixed; top: -100px; left: -100px;";
 
 			document.documentElement.appendChild(iframe);
-			
+
 			var doc = iframe.contentWindow.document;
 			doc.write("<!DOCTYPE html><div style='height: 100px'>&nbsp;</div>");
 			doc.close();
