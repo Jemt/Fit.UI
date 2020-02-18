@@ -466,21 +466,21 @@ Fit.Dom.CreateElement = function(html, containerTagName)
 
 /// <function container="Fit.Dom" name="Text" access="public" static="true" returns="string">
 /// 	<description> Get/set inner text of DOMElement </description>
-/// 	<param name="elm" type="DOMElement"> DOMElement to which text is added and/or returned from </param>
+/// 	<param name="elm" type="DOMNode"> Node to update and/or get text value from </param>
 /// 	<param name="value" type="string" default="undefined"> If defined, inner text is updated with specified value </param>
 /// </function>
 Fit.Dom.Text = function(elm, value)
 {
-	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectNode(elm);
 	Fit.Validation.ExpectString(value, true);
 
 	if (Fit.Validation.IsSet(value) === true)
 	{
-		if (elm.textContent)
+		if (elm.textContent) // Use textContent if supported
 		{
 			elm.textContent = value;
 		}
-		else
+		else if (elm.innerText) // Set content with innerText which does not interpret HTML
 		{
 			// IE8 does not support textContent.
 			// https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent
@@ -497,6 +497,10 @@ Fit.Dom.Text = function(elm, value)
 			}
 
 			elm.innerText = value;
+		}
+		else if (elm.nodeValue) // Text or Comment nodes do not expose innerText, nor does it expose textContent on legacy browsers
+		{
+			elm.nodeValue = value;
 		}
 	}
 

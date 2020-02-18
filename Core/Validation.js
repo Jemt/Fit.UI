@@ -22,7 +22,7 @@ Fit._internal.Validation.Clone = null;
 		window.StaticNodeList = function() {};
 	if (!window.FileList)
 		window.FileList = function() {};
-	
+
 	// File type not defined in Legacy IE.
 	// Make sure we can use Fit.Validation.ExpectInstance(selectedFileFromInput, File, true)
 	if (!window.File)
@@ -305,8 +305,26 @@ Fit.Validation.ExpectNode = function(val, allowNotSet) // DOMNode
 	// We assume we have a valid Node instance if it exposes common functions and properties of a Node instance,
 	// and has the appropriate nodeType: 1 = Element, 3 = Text, 8 = Comment. More on node types here:
 	// https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
-	if (!val.cloneNode || !val.nodeName || !val.nodeType || (val.nodeType !== 1 && val.nodeType !== 3 && val.nodeType !== 8)) 
+	if (!val.cloneNode || !val.nodeName || !val.nodeType || (val.nodeType !== 1 && val.nodeType !== 3 && val.nodeType !== 8))
 		Fit.Validation.ThrowError("Value '" + val + "' is not a Node (Element, Text, or Comment)");
+}
+
+// <function container="Fit.Validation" name="ExpectTextNode" access="public" static="true">
+// 	<description> Throws error if passed object is not an instance of Text </description>
+// 	<param name="val" type="object"> Object to validate </param>
+// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+// </function>
+Fit.Validation.ExpectTextNode = function(val, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	// The Text interface is not available in legacy IE so we use feature detection instead.
+	// We assume we have a valid Node instance if it exposes common functions and properties of a Node instance,
+	// and has the appropriate nodeType: 1 = Element, 3 = Text, 8 = Comment. More on node types here:
+	// https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+	if (!val.cloneNode || !val.nodeName || val.nodeType !== 3)
+		Fit.Validation.ThrowError("Value '" + val + "' is not a Text node");
 }
 
 // <function container="Fit.Validation" name="ExpectContentNode" access="public" static="true">

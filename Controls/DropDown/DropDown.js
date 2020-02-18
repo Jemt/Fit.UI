@@ -1044,7 +1044,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Add title and delete button to title box
 		var titleWithoutHtml = Fit.String.StripHtml(title);
-		Fit.Dom.Add(item, document.createTextNode(titleWithoutHtml));
+		var textNode = document.createTextNode(titleWithoutHtml);
+		Fit.Dom.Add(item, textNode);
 		Fit.Dom.Add(item, cmdDelete);
 
 		// Add elements to item container
@@ -1065,7 +1066,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		itemContainer.insertBefore(container, before);
 
-		var itemObject = createItemObject(titleWithoutHtml, value, valid !== false, item); //convertItemElementToItemObject(item);
+		var itemObject = createItemObject(titleWithoutHtml, value, valid !== false, item, textNode); //convertItemElementToItemObject(item);
 		itemCollection[itemObject.Value] = itemObject;
 		itemCollectionOrdered.push(itemObject);
 
@@ -1185,6 +1186,29 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		return null;
+	}
+
+	/// <function container="Fit.Controls.DropDown" name="RenameSelection" access="public">
+	/// 	<description> Rename title of selected item by its value </description>
+	/// 	<param name="val" type="string"> Value of selected item to rename </param>
+	/// 	<param name="newTitle" type="string"> New item title </param>
+	/// </function>
+	this.RenameSelection = function(val, newTitle)
+	{
+		Fit.Validation.ExpectString(val);
+		Fit.Validation.ExpectString(newTitle);
+
+		var selection = itemCollection[val] || null;
+
+		if (selection !== null && selection.Title !== newTitle)
+		{
+			var titleWithoutHtml = Fit.String.StripHtml(newTitle);
+
+			Fit.Dom.Text(selection.TextNode, titleWithoutHtml);
+			selection.Title = titleWithoutHtml;
+
+			fireOnChange();
+		}
 	}
 
 	/// <function container="Fit.Controls.DropDown" name="ClearSelections" access="public">
@@ -2041,14 +2065,15 @@ Fit.Controls.DropDown = function(ctlId)
 		return txt;
 	}
 
-	function createItemObject(title, value, valid, domElement)
+	function createItemObject(title, value, valid, domElement, textNode)
 	{
 		Fit.Validation.ExpectString(title);
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(valid);
 		Fit.Validation.ExpectDomElement(domElement);
+		Fit.Validation.ExpectTextNode(textNode);
 
-		return { Title: title, Value: value, Valid: valid, DomElement: domElement };
+		return { Title: title, Value: value, Valid: valid, DomElement: domElement, TextNode: textNode };
 	}
 	/*function convertItemElementToItemObject(itemElm)
 	{

@@ -86,19 +86,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in object array
-		* @function Count
-		* @param {any} obj - Object array to count elements within
-		* @returns number
-		*/
-		public static Count(obj:any):number;
-		/**
 		* Returns number of elements in collection
 		* @function Count
 		* @param {any[]} arr - Collection to count elements within
 		* @returns number
 		*/
 		public static Count(arr:any[]):number;
+		/**
+		* Returns number of elements in object array
+		* @function Count
+		* @param {any} obj - Object array to count elements within
+		* @returns number
+		*/
+		public static Count(obj:any):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -1943,6 +1943,13 @@ declare namespace Fit
 			* @param {string} value - Value of selected item to remove
 			*/
 			public RemoveSelection(value:string):void;
+			/**
+			* Rename title of selected item by its value
+			* @function RenameSelection
+			* @param {string} val - Value of selected item to rename
+			* @param {string} newTitle - New item title
+			*/
+			public RenameSelection(val:string, newTitle:string):void;
 			/**
 			* Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text)
 			* @function SelectionModeToggle
@@ -4520,6 +4527,13 @@ declare namespace Fit
 			*/
 			public RemoveSelection(value:string):void;
 			/**
+			* Rename title of selected item by its value
+			* @function RenameSelection
+			* @param {string} val - Value of selected item to rename
+			* @param {string} newTitle - New item title
+			*/
+			public RenameSelection(val:string, newTitle:string):void;
+			/**
 			* Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text)
 			* @function SelectionModeToggle
 			* @param {boolean} [val=undefined] - If defined, True enables toggle button, False disables it
@@ -6369,11 +6383,11 @@ declare namespace Fit
 		/**
 		* Get/set inner text of DOMElement
 		* @function Text
-		* @param {HTMLElement} elm - DOMElement to which text is added and/or returned from
+		* @param {Node} elm - Node to update and/or get text value from
 		* @param {string} [value=undefined] - If defined, inner text is updated with specified value
 		* @returns string
 		*/
-		public static Text(elm:HTMLElement, value?:string):string;
+		public static Text(elm:Node, value?:string):string;
 		/**
 		* Wraps element in container element while preserving position in DOM if rooted
 		* @function Wrap
@@ -6474,14 +6488,6 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
-		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6497,6 +6503,14 @@ declare namespace Fit
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
