@@ -257,7 +257,7 @@ Fit.Controls.CheckBox = function(ctlId)
 	{
 		me._internal.Validate();
 	}
-	
+
 	function repaint()
 	{
 		if (isIe8 === true)
@@ -271,7 +271,7 @@ Fit.Controls.CheckBox = function(ctlId)
 
 			var focused = Fit.Dom.GetFocused();
 
-			var elm = document.createElement("");
+			var elm = document.createElement("span");
 			Fit.Dom.Replace(checkbox, elm);
 			Fit.Dom.Replace(elm, checkbox);
 
