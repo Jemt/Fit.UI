@@ -476,11 +476,11 @@ Fit.Dom.Text = function(elm, value)
 
 	if (Fit.Validation.IsSet(value) === true)
 	{
-		if (elm.textContent) // Use textContent if supported
+		if (elm.textContent !== undefined) // Use textContent if supported
 		{
 			elm.textContent = value;
 		}
-		else if (elm.innerText) // Set content with innerText which does not interpret HTML
+		else if (elm.innerText !== undefined) // Set content with innerText which does not interpret HTML
 		{
 			// IE8 does not support textContent.
 			// https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent
@@ -498,7 +498,7 @@ Fit.Dom.Text = function(elm, value)
 
 			elm.innerText = value;
 		}
-		else if (elm.nodeValue) // Text or Comment nodes do not expose innerText, nor does it expose textContent on legacy browsers
+		else if (elm.nodeValue !== undefined) // Text or Comment nodes do not expose innerText, nor does it expose textContent on legacy browsers
 		{
 			elm.nodeValue = value;
 		}
