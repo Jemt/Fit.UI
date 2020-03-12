@@ -802,16 +802,44 @@ Fit.Dom.SetCaretPosition = function(input, pos)
 	}
 }
 
+/// <function container="Fit.Dom" name="GetBoundingPosition" access="public" static="true" returns="object">
+/// 	<description>
+/// 		Get position for visible element within viewport.
+/// 		Object returned contains an X and Y property
+/// 		with the desired integer values (pixels).
+/// 		Contrary to Fit.Dom.GetPosition(elm, true) which returns
+/// 		the position to the margin edge, this function returns the 
+/// 		position of the element's border edge, and is the recommended
+/// 		approach.
+/// 		Null will be returned if element is not visible.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get position for </param>
+/// </function>
+Fit.Dom.GetBoundingPosition = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	if (Fit.Dom.IsVisible(elm) === false)
+		return null;
+	
+	var bcr = elm.getBoundingClientRect();
+
+	return { X: Math.round(bcr.x || bcr.left), Y: Math.round(bcr.y || bcr.top) }; // Several legacy browsers use top/left instead of x/y
+}
+
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
 /// 	<description>
 /// 		Get position for visible element.
 /// 		Object returned contains an X and Y property
 /// 		with the desired integer values (pixels).
+/// 		The position returned is where the margin edge
+/// 		starts, if such is applied.
 /// 		Null will be returned if element is not visible.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get position for </param>
 /// 	<param name="relativeToViewport" type="boolean" default="false">
-/// 		Set True to get element position relative to viewport rather than to document which may exceed the viewport
+/// 		Set True to get element position relative to viewport rather than to document which may exceed the viewport.
+/// 		Contrary to Fit.Dom.GetBoundingPosition(elm), the position returned is where the margin edge starts, if such is applied.
 /// 	</param>
 /// </function>
 Fit.Dom.GetPosition = function(elm, relativeToViewport) { return Fit._internal.Dom.GetPosition(elm, relativeToViewport); }

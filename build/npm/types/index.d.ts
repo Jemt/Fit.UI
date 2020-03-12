@@ -1818,14 +1818,20 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
 			This may cause drop down to open upwards if sufficient space is not available below control.
-			Enabling this feature will also allow the control to escape (overflow) boundaries created by
-			containers with overflow:scroll|hidden|auto. The DropDown element will be positioned
-			using fixed positioning rather than absolute positioning.
+			If control is contained in a scrollable parent, this will be considered the active viewport,
+			and as such define the active boundaries - unless relativeToViewport is set to True, in which
+			case the actual browser viewport will be used.
 			* @function DetectBoundaries
-			* @param {boolean} [val=undefined] - If defined, True enables collision detection (default), False disables it
+			* @param {boolean} [val=undefined] - If defined, True enables collision detection, False disables it (default)
+			* @param {boolean} [relativeToViewport=false] - If defined, True results in viewport being considered the container to which available space is determined.
+			This also results in DropDown menu being positioned with position:fixed, allowing it to escape a container
+			with overflow (e.g. overflow:auto|hidden|scroll). Be aware though that this does not work reliably in combination
+			with CSS animation and CSS transform as it creates a new stacking context to which position:fixed becomes relative.
+			A value of False (default) results in available space being determined relative to the boundaries of the
+			control&#39;s scroll parent. The DropDown menu will stay within its container and not overflow it.
 			* @returns boolean
 			*/
-			public DetectBoundaries(val?:boolean):boolean;
+			public DetectBoundaries(val?:boolean, relativeToViewport?:boolean):boolean;
 			/**
 			* Create instance of DropDown control
 			* @function DropDown
@@ -4407,14 +4413,20 @@ declare namespace Fit
 			/**
 			* Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
 			This may cause drop down to open upwards if sufficient space is not available below control.
-			Enabling this feature will also allow the control to escape (overflow) boundaries created by
-			containers with overflow:scroll|hidden|auto. The DropDown element will be positioned
-			using fixed positioning rather than absolute positioning.
+			If control is contained in a scrollable parent, this will be considered the active viewport,
+			and as such define the active boundaries - unless relativeToViewport is set to True, in which
+			case the actual browser viewport will be used.
 			* @function DetectBoundaries
-			* @param {boolean} [val=undefined] - If defined, True enables collision detection (default), False disables it
+			* @param {boolean} [val=undefined] - If defined, True enables collision detection, False disables it (default)
+			* @param {boolean} [relativeToViewport=false] - If defined, True results in viewport being considered the container to which available space is determined.
+			This also results in DropDown menu being positioned with position:fixed, allowing it to escape a container
+			with overflow (e.g. overflow:auto|hidden|scroll). Be aware though that this does not work reliably in combination
+			with CSS animation and CSS transform as it creates a new stacking context to which position:fixed becomes relative.
+			A value of False (default) results in available space being determined relative to the boundaries of the
+			control&#39;s scroll parent. The DropDown menu will stay within its container and not overflow it.
 			* @returns boolean
 			*/
-			public DetectBoundaries(val?:boolean):boolean;
+			public DetectBoundaries(val?:boolean, relativeToViewport?:boolean):boolean;
 			/**
 			* Get/set max height of drop down - returns object with Value (number) and Unit (string) properties
 			* @function DropDownMaxHeight
@@ -6187,6 +6199,20 @@ declare namespace Fit
 		*/
 		public static Data(elm:HTMLElement, name:string, value?:string):string;
 		/**
+		* Get position for visible element within viewport.
+		Object returned contains an X and Y property
+		with the desired integer values (pixels).
+		Contrary to Fit.Dom.GetPosition(elm, true) which returns
+		the position to the margin edge, this function returns the
+		position of the element&#39;s border edge, and is the recommended
+		approach.
+		Null will be returned if element is not visible.
+		* @function GetBoundingPosition
+		* @param {HTMLElement} elm - Element to get position for
+		* @returns any
+		*/
+		public static GetBoundingPosition(elm:HTMLElement):any;
+		/**
 		* Get style value applied after stylesheets have been loaded.
 		An empty string or null may be returned if style has not been defined or does not exist.
 		Make sure not to use shorthand properties (e.g. border-color or padding) as some browsers are
@@ -6262,10 +6288,13 @@ declare namespace Fit
 		* Get position for visible element.
 		Object returned contains an X and Y property
 		with the desired integer values (pixels).
+		The position returned is where the margin edge
+		starts, if such is applied.
 		Null will be returned if element is not visible.
 		* @function GetPosition
 		* @param {HTMLElement} elm - Element to get position for
-		* @param {boolean} [relativeToViewport=false] - Set True to get element position relative to viewport rather than to document which may exceed the viewport
+		* @param {boolean} [relativeToViewport=false] - Set True to get element position relative to viewport rather than to document which may exceed the viewport.
+		Contrary to Fit.Dom.GetBoundingPosition(elm), the position returned is where the margin edge starts, if such is applied.
 		* @returns any
 		*/
 		public static GetPosition(elm:HTMLElement, relativeToViewport?:boolean):any;
@@ -6488,6 +6517,15 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6499,18 +6537,15 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		/**
+		* Remove mutation observer by ID
+		* @function RemoveMutationObserver
+		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
+		*/
+		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Remove mutation observer
 		* @function RemoveMutationObserver
@@ -6519,12 +6554,6 @@ declare namespace Fit
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed
 		*/
 		public static RemoveMutationObserver(elm:HTMLElement, obs:Function, deep?:boolean):void;
-		/**
-		* Remove mutation observer by ID
-		* @function RemoveMutationObserver
-		* @param {number} id - Observer ID returned from AddMutationObserver(..) function
-		*/
-		public static RemoveMutationObserver(id:number):void;
 		/**
 		* Completely suppress event which is equivalent of
 		calling both PreventDefault(e) and StopPropagation(e).
