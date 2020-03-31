@@ -116,18 +116,18 @@ Fit.Events.AddHandler = function()
 
 /// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
 /// 	<description> Remove event handler given by Event ID returned from Fit.Events.AddHandler(..) </description>
-/// 	<param name="element" type="DOMElement"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
 /// 	<param name="eventId" type="integer"> Event ID identifying handler to remove </param>
 /// </function>
 /// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
 /// 	<description> Remove event handler for specified event on given EventTarget </description>
-/// 	<param name="element" type="DOMElement"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
 /// 	<param name="eventFunction" type="function"> JavaScript function to remove </param>
 /// </function>
 /// <function container="Fit.Events" name="RemoveHandler" access="public" static="true">
 /// 	<description> Remove event handler for specified event on given EventTarget </description>
-/// 	<param name="element" type="DOMElement"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
 /// 	<param name="useCapture" type="boolean">
 /// 		Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
@@ -727,7 +727,7 @@ Fit._internal.Events.CheckMutations = function()
 	// collection being iterated, and we do not want to risk invoking mutation observers that
 	// have been removed.
 	Fit._internal.Events.MutationCheckExecuting = true;
-	
+
 	var toRemove = [];
 
 	Fit.Array.ForEach(Fit._internal.Events.MutationObservers, function(mo)

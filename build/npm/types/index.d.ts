@@ -6519,27 +6519,27 @@ declare namespace Fit
 		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, useCapture:boolean, eventFunction:Function):void;
+		public static RemoveHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {number} eventId - Event ID identifying handler to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, eventId:number):void;
+		public static RemoveHandler(element:EventTarget, eventId:number):void;
 		/**
 		* Remove event handler for specified event on given EventTarget
 		* @function RemoveHandler
-		* @param {HTMLElement} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:HTMLElement, event:string, eventFunction:Function):void;
+		public static RemoveHandler(element:EventTarget, event:string, eventFunction:Function):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
