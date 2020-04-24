@@ -638,7 +638,10 @@ Fit.Controls.Input = function(ctlId)
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
-			extraPlugins: "justify,pastefromword",
+			//extraPlugins: "justify,pastefromword,image,pasteimage,dragresize",
+			//extraPlugins: "justify,pastefromword,base64image",
+			//extraPlugins: "image",
+			extraPlugins: "justify,pastefromword,base64image,pastebase64,dragresize",
 			toolbar:
 			[
 				{
@@ -656,6 +659,11 @@ Fit.Controls.Input = function(ctlId)
 				{
 					name: "Links",
 					items: [ "Link", "Unlink" ]
+				},
+				{
+					name: "Insert",
+					//items: [ "Image" ]
+					items: [ "base64image" ]
 				}
 			],
 			removeButtons: "", // Set to empty string to prevent CKEditor from removing buttons such as Underline
