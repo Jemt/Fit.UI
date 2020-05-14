@@ -354,10 +354,24 @@ Fit.Dom.Remove = function(elm)
 {
 	Fit.Validation.ExpectNode(elm);
 
-	if (elm.parentElement === null)
-		return; // Element not rooted
+	// Remove element if mounted
 
-	elm.parentElement.removeChild(elm);
+	if (elm.parentElement === undefined)
+	{
+		// Remove TextNode in IE
+		// https://developer.mozilla.org/en-US/docs/Web/API/Node/parentElement
+		// "On some browsers, the parentElement property is only defined on nodes that
+		//  are themselves an Element. In particular, it is not defined on text nodes."
+
+		if (elm.parentNode !== null) // Notice: might be null even though TextNode is added to a parent node, if entire document was cleared using document.body.innerHTML="";
+		{
+			elm.parentNode.removeChild(elm);
+		}
+	}
+	else if (elm.parentElement !== null)
+	{
+		elm.parentElement.removeChild(elm);
+	}
 }
 
 /// <function container="Fit.Dom" name="Attribute" access="public" static="true" returns="string">
@@ -808,7 +822,7 @@ Fit.Dom.SetCaretPosition = function(input, pos)
 /// 		Object returned contains an X and Y property
 /// 		with the desired integer values (pixels).
 /// 		Contrary to Fit.Dom.GetPosition(elm, true) which returns
-/// 		the position to the margin edge, this function returns the 
+/// 		the position to the margin edge, this function returns the
 /// 		position of the element's border edge, and is the recommended
 /// 		approach.
 /// 		Null will be returned if element is not visible.
@@ -821,7 +835,7 @@ Fit.Dom.GetBoundingPosition = function(elm)
 
 	if (Fit.Dom.IsVisible(elm) === false)
 		return null;
-	
+
 	var bcr = elm.getBoundingClientRect();
 
 	return { X: Math.round(bcr.x || bcr.left), Y: Math.round(bcr.y || bcr.top) }; // Several legacy browsers use top/left instead of x/y
