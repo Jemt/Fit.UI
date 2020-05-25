@@ -240,6 +240,9 @@ Fit.Controls.WSListView = function(ctlId)
 
 		var onSuccess = function(data)
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			// Fire OnResponse
 
 			eventArgs.Items = ((data instanceof Array) ? data : []);
@@ -268,11 +271,17 @@ Fit.Controls.WSListView = function(ctlId)
 
 		var onFailure = function(httpStatusCode)
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			Fit.Validation.ThrowError("Unable to get data - request failed with HTTP Status code " + httpStatusCode)
 		};
 
 		var onAbort = function()
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			fireEventHandlers(onAbortHandlers, eventArgs);
 		}
 

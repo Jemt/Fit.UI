@@ -1123,6 +1123,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		var onSuccess = function(children)
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			// Fire OnResponse
 
 			eventArgs.Children = ((children instanceof Array) ? children : []);
@@ -1183,11 +1186,17 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		var onFailure = function(httpStatusCode)
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			Fit.Validation.ThrowError("Unable to get children for " + ((node !== null) ? "node '" + node.Title() + "'" : "root level") + " - request failed with HTTP Status code " + httpStatusCode)
 		}
 
 		var onAbort = function()
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			if (request._loadingIndicator !== undefined) // Loading indicator not set when requesting root nodes
 			{
 				Fit.Dom.Remove(request._loadingIndicator);
