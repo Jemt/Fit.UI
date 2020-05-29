@@ -46,7 +46,7 @@ Fit.Controls.Component = function(controlId)
 	{
 		return container;
 	}
-	
+
 	/// <function container="Fit.Controls.Component" name="Render" access="public">
 	/// 	<description> Render control, either inline or to element specified </description>
 	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
@@ -212,6 +212,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var onBlurTimeout = null;		// Used by OnFocusIn and OnFocusOut handlers
 	var ensureFocusFires = false;	// Used by OnFocusIn and OnFocusOut handlers
 	var waitingForFocus = false;	// Used by OnFocusIn and OnFocusOut handlers
+	var focusStateLocked = false;	// Used by OnFocusIn and OnFocusOut handlers
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
@@ -316,7 +317,7 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = null;
 		base();
 	});
 
@@ -666,6 +667,9 @@ Fit.Controls.ControlBase = function(controlId)
 
 	function onFocusIn(e)
 	{
+		if (focusStateLocked === true)
+			return;
+
 		// Note on how OnFocus and OnBlur is handled:
 		// OnFocus in JS fires for focusable elements only, meaning
 		// elements with tabIndex set.
@@ -722,6 +726,9 @@ Fit.Controls.ControlBase = function(controlId)
 			if (me === null)
 				return; // Control was disposed
 
+			if (focusStateLocked === true)
+				return;
+
 			ensureFocusFires = false;
 
 			me._internal.FireOnFocus();
@@ -730,6 +737,12 @@ Fit.Controls.ControlBase = function(controlId)
 
 	function onFocusOut(e)
 	{
+		if (me === null) // Disposed while focused (e.g. from an onscroll event handler)
+			return;
+
+		if (focusStateLocked === true)
+			return;
+
 		// See comments in onFocusIn(..)
 
 		var fireBlur = null;
@@ -737,6 +750,9 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			if (me === null)
 				return; // Control was disposed
+
+			if (focusStateLocked === true)
+				return;
 
 			if (ensureFocusFires === true) // Make absolutely sure initial OnFocus has fired before firing OnBlur
 			{
@@ -796,10 +812,12 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			cb(me);
 		});
-	},
+	}
 
 	this._internal.FireOnFocus = function()
 	{
+		ensureFocusFires = false; // Usually set to False in onfocusin event handler, but specialized controls may fire OnFocus as well, in which case we assume control has in fact gained focus
+
 		me._internal.Data("focused", "true");
 		me._internal.Repaint();
 
@@ -807,7 +825,7 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			cb(me);
 		});
-	},
+	}
 
 	this._internal.FireOnBlur = function()
 	{
@@ -818,7 +836,40 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			cb(me);
 		});
-	},
+	}
+
+	this._internal.FocusStateLocked = function(value)
+	{
+		Fit.Validation.ExpectBoolean(value, true);
+
+		// Prevent control from firing OnFocus (onfocusin) and OnBlur (onfocusout) automatically.
+		// Specialized controls can use this to either suppress OnFocus and OnBlur invocation temporarily,
+		// or take over the responsibility of handling invocation of OnBlur and OnFocus.
+		// This is useful if a control for instance opens a modal dialog and gives it focus, in which case the
+		// control would lose focus and fire OnBlur. But since the dialog is considered part of the control, we
+		// do not want OnBlur to fire. We can use FocusStateLocked(..) to make the control preserve its current
+		// focused state, and let the specialized control handle invocation of focus events when needed, and hand
+		// back control to ControlBase when the modal dialog closes.
+
+		// Notice regarding Focused(): One could argue that Focused() should return True if focus state is locked,
+		// if control was focused when lock was enabled, and if OnBlur has not been fired. But that means that two
+		// controls could return True from Focused() which is just wrong, and the Focused() state would contradict
+		// what is returned from Fit.Dom.GetFocused() or document.activeElement, which could potentially lead to
+		// incorrect behaviour. So Focused() must give us the truth, even when focus state is locked.
+
+		if (Fit.Validation.IsSet(value) === true)
+		{
+			if (value !== focusStateLocked)
+			{
+				focusStateLocked = value;
+
+				// Make sure ControlBase can handle focus in/out properly when focus state is unlocked again
+				hasFocus = Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused()) === true;
+			}
+		}
+
+		return focusStateLocked;
+	}
 
 	this._internal.ExecuteWithNoOnChange = function(cb)
 	{
@@ -853,19 +904,19 @@ Fit.Controls.ControlBase = function(controlId)
 			Fit.Dom.Data(container, key, val);
 
 		return Fit.Dom.Data(container, key);
-	},
+	}
 
 	this._internal.AddDomElement = function(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm);
 		Fit.Dom.InsertBefore(txtValue, elm); //Fit.Dom.Add(container, elm);
-	},
+	}
 
 	this._internal.RemoveDomElement = function(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm);
 		Fit.Dom.Remove(elm);
-	},
+	}
 
 	this._internal.Validate = function(force)
 	{
