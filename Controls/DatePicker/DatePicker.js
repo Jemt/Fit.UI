@@ -862,12 +862,18 @@ Fit.Controls.DatePicker = function(ctlId)
 
 			Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/external/jquery/jquery.js", function(src)
 			{
+				if (me === null)
+					return; // Control was disposed while waiting for jQuery to load
+
 				jquery = $;
 				Fit._internal.Controls.DatePicker.jQuery = $; // jQuery instance is shared between multiple instances of DatePicker
 				$.noConflict(true);
 
 				Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/jquery-ui.js", function(src)
 				{
+					if (me === null)
+						return; // Control was disposed while waiting for jQuery UI to load
+
 					createDatePicker();
 					cb();
 
@@ -930,6 +936,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/i18n/datepicker-" + locale + ".js", function(src)
 					{
+						if (me === null)
+						{
+							return; // Control was disposed while waiting for locale to load
+						}
+
 						if (datepicker.jq.datepicker.regional[locale])
 						{
 							me.Show(); // Causes beforeShow to be fired again
