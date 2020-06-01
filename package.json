@@ -4,10 +4,10 @@
   "description": "Fit.UI is an object oriented JavaScript based UI framework for building rich web applications",
   "main": "index.js",
   "devDependencies": {
-    "concurrently": "~3.6.0",
-    "http-server": "~0.11.1",
-    "opn": "~5.3.0",
-    "uglify-js": "^3.7.4",
+    "concurrently": "^5.2.0",
+    "http-server": "^0.12.3",
+    "opn": "^6.0.0",
+    "uglify-js": "^3.9.4",
     "uglifycss": "0.0.29"
   },
   "scripts": {
