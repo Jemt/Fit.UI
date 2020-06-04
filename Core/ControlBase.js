@@ -726,9 +726,6 @@ Fit.Controls.ControlBase = function(controlId)
 			if (me === null)
 				return; // Control was disposed
 
-			if (focusStateLocked === true)
-				return;
-
 			ensureFocusFires = false;
 
 			me._internal.FireOnFocus();
@@ -750,9 +747,6 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			if (me === null)
 				return; // Control was disposed
-
-			if (focusStateLocked === true)
-				return;
 
 			if (ensureFocusFires === true) // Make absolutely sure initial OnFocus has fired before firing OnBlur
 			{
