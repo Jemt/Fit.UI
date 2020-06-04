@@ -86,19 +86,19 @@ declare namespace Fit
 		*/
 		public static Copy(arr:any[]):any[];
 		/**
-		* Returns number of elements in collection
-		* @function Count
-		* @param {any[]} arr - Collection to count elements within
-		* @returns number
-		*/
-		public static Count(arr:any[]):number;
-		/**
 		* Returns number of elements in object array
 		* @function Count
 		* @param {any} obj - Object array to count elements within
 		* @returns number
 		*/
 		public static Count(obj:any):number;
+		/**
+		* Returns number of elements in collection
+		* @function Count
+		* @param {any[]} arr - Collection to count elements within
+		* @returns number
+		*/
+		public static Count(arr:any[]):number;
 		/**
 		* Iterate objects in collection and pass each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -156,17 +156,17 @@ declare namespace Fit
 		/**
 		* Returns True if collection has items, otherwise False
 		* @function HasItems
-		* @param {any[]} arr - Collection to investigate
-		* @returns boolean
-		*/
-		public static HasItems(arr:any[]):boolean;
-		/**
-		* Returns True if collection has items, otherwise False
-		* @function HasItems
 		* @param {any} obj - Object array to investigate
 		* @returns boolean
 		*/
 		public static HasItems(obj:any):boolean;
+		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any[]} arr - Collection to investigate
+		* @returns boolean
+		*/
+		public static HasItems(arr:any[]):boolean;
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -2593,6 +2593,21 @@ declare namespace Fit
 			*/
 			public CheckSpelling(val?:boolean):boolean;
 			/**
+			* Get/set value indicating whether control should have spell checking enabled (default) or disabled
+			* @function CheckSpelling
+			* @param {boolean} [val=undefined] - If defined, true enables spell checking while false disables it
+			* @returns boolean
+			*/
+			public CheckSpelling(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
+			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
+			* @function DesignMode
+			* @param {boolean} [val=undefined] - If defined, True enables Design Mode, False disables it
+			* @returns boolean
+			*/
+			public DesignMode(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
 			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
 			* @function DesignMode
@@ -2606,6 +2621,22 @@ declare namespace Fit
 			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
 			*/
 			constructor(ctlId?:string);
+			/**
+			* Create instance of Input control
+			* @function Input
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
+			*/
+			constructor(ctlId?:string);
+			/**
+			* Get/set value indicating whether control is maximizable
+			* @function Maximizable
+			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it
+			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
+			The value is considered the same unit set using Height(..) which defaults to px.
+			However, if DesignMode is enabled, the value unit is considered to be px.
+			* @returns boolean
+			*/
+			public Maximizable(val?:boolean, heightMax?:number):boolean;
 			/**
 			* Get/set value indicating whether control is maximizable
 			* @function Maximizable
@@ -2624,6 +2655,20 @@ declare namespace Fit
 			*/
 			public Maximized(val?:boolean):boolean;
 			/**
+			* Get/set value indicating whether control is maximized
+			* @function Maximized
+			* @param {boolean} [val=undefined] - If defined, True maximizes control, False minimizes it
+			* @returns boolean
+			*/
+			public Maximized(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Multi Line mode (textarea)
+			* @function MultiLine
+			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it
+			* @returns boolean
+			*/
+			public MultiLine(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether control is in Multi Line mode (textarea)
 			* @function MultiLine
 			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it
@@ -2637,6 +2682,340 @@ declare namespace Fit
 			* @returns string
 			*/
 			public Placeholder(val?:string):string;
+			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
+			/**
+			* Get/set input type (e.g. Text, Password, Email, etc.)
+			* @function Type
+			* @param {Fit.Controls.InputType} [val=undefined] - If defined, input type is changed to specified value
+			* @returns Fit.Controls.InputType
+			*/
+			public Type(val?:Fit.Controls.InputType):Fit.Controls.InputType;
+			/**
+			* Get/set input type (e.g. Text, Password, Email, etc.)
+			* @function Type
+			* @param {Fit.Controls.InputType} [val=undefined] - If defined, input type is changed to specified value
+			* @returns Fit.Controls.InputType
+			*/
+			public Type(val?:Fit.Controls.InputType):Fit.Controls.InputType;
+			// Functions defined by Fit.Controls.ControlBase
+			/**
+			* Add CSS class to DOMElement representing control
+			* @function AddCssClass
+			* @param {string} val - CSS class to add
+			*/
+			public AddCssClass(val:string):void;
+			/**
+			* Get/set value indicating whether control is always considered dirty. This
+			comes in handy when programmatically changing a value of a control on behalf
+			of the user. Some applications may choose to only save values from dirty controls.
+			* @function AlwaysDirty
+			* @param {boolean} [val=undefined] - If defined, Always Dirty is enabled/disabled
+			* @returns boolean
+			*/
+			public AlwaysDirty(val?:boolean):boolean;
+			/**
+			* Set flag indicating whether control should post back changes automatically when value is changed
+			* @function AutoPostBack
+			* @param {boolean} [val=undefined] - If defined, True enables auto post back, False disables it
+			* @returns boolean
+			*/
+			public AutoPostBack(val?:boolean):boolean;
+			/**
+			* Clear control value
+			* @function Clear
+			*/
+			public Clear():void;
+			/**
+			* Get/set value indicating whether control has focus
+			* @function Focused
+			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur)
+			* @returns boolean
+			*/
+			public Focused(value?:boolean):boolean;
+			/**
+			* Check whether CSS class is found on DOMElement representing control
+			* @function HasCssClass
+			* @param {string} val - CSS class to check for
+			* @returns boolean
+			*/
+			public HasCssClass(val:string):boolean;
+			/**
+			* Get/set control height - returns object with Value and Unit properties
+			* @function Height
+			* @param {number} [val=undefined] - If defined, control height is updated to specified value. A value of -1 resets control height.
+			* @param {string} [unit=px] - If defined, control height is updated to specified CSS unit
+			* @returns any
+			*/
+			public Height(val?:number, unit?:string):any;
+			/**
+			* Get value indicating whether user has changed control value
+			* @function IsDirty
+			* @returns boolean
+			*/
+			public IsDirty():boolean;
+			/**
+			* Get value indicating whether control value is valid.
+			Control value is considered invalid if control is required, but no value is set,
+			or if control value does not match regular expression set using SetValidationExpression(..).
+			* @function IsValid
+			* @returns boolean
+			*/
+			public IsValid():boolean;
+			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated using Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
+			* Register OnBlur event handler which is invoked when control loses focus
+			* @function OnBlur
+			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
+			*/
+			public OnBlur(cb:Function):void;
+			/**
+			* Register OnChange event handler which is invoked when control value is changed either programmatically or by user
+			* @function OnChange
+			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
+			*/
+			public OnChange(cb:Function):void;
+			/**
+			* Register OnFocus event handler which is invoked when control gains focus
+			* @function OnFocus
+			* @param {Function} cb - Event handler function which accepts Sender (ControlBase)
+			*/
+			public OnFocus(cb:Function):void;
+			/**
+			* Remove CSS class from DOMElement representing control
+			* @function RemoveCssClass
+			* @param {string} val - CSS class to remove
+			*/
+			public RemoveCssClass(val:string):void;
+			/**
+			* Get/set value indicating whether control is required to be set
+			* @function Required
+			* @param {boolean} [val=undefined] - If defined, control required feature is enabled/disabled
+			* @returns boolean
+			*/
+			public Required(val?:boolean):boolean;
+			/**
+			* Get/set scope to which control belongs - this is used to validate multiple
+			controls at once using Fit.Controls.ValidateAll(scope) or Fit.Controls.DirtyCheckAll(scope).
+			* @function Scope
+			* @param {string} [val=undefined] - If defined, control scope is updated
+			* @returns string
+			*/
+			public Scope(val?:string):string;
+			/**
+			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
+			* @function SetValidationCallback
+			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
+			*/
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
+			/**
+			* Set regular expression used to perform on-the-fly validation against control value
+			* @function SetValidationExpression
+			* @param {(RegExp|null)} regEx - Regular expression to validate against
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
+			*/
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control value
+			* @function SetValidationHandler
+			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set control value.
+			For controls supporting multiple selections: Set value by providing a string in one the following formats:
+			title1=val1[;title2=val2[;title3=val3]] or val1[;val2[;val3]].
+			If Title or Value contains reserved characters (semicolon or equality sign), these most be URIEncoded.
+			Selected items are returned in the first format described, also with reserved characters URIEncoded.
+			Providing a new value to this function results in OnChange being fired.
+			* @function Value
+			* @param {string} [val=undefined] - If defined, items are selected
+			* @returns string
+			*/
+			public Value(val?:string):string;
+			/**
+			* Get/set value indicating whether control is visible
+			* @function Visible
+			* @param {boolean} [val=undefined] - If defined, control visibility is updated
+			* @returns boolean
+			*/
+			public Visible(val?:boolean):boolean;
+			/**
+			* Get/set control width - returns object with Value and Unit properties
+			* @function Width
+			* @param {number} [val=undefined] - If defined, control width is updated to specified value. A value of -1 resets control width.
+			* @param {string} [unit=px] - If defined, control width is updated to specified CSS unit
+			* @returns any
+			*/
+			public Width(val?:number, unit?:string):any;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+				// Add control specific dispose logic here
+				base(); // Call Dispose on Component
+			});
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element
+			*/
+			public Render(toElement?:HTMLElement):void;
+		}
+		/**
+		* Input control which allows for one or multiple lines of
+		text, and features a Design Mode for rich HTML content.
+		Extending from Fit.Controls.ControlBase.
+		* @class [Fit.Controls.Input Input]
+		*/
+		class Input
+		{
+			// Functions defined by Fit.Controls.Input
+			/**
+			* Get/set value indicating whether control should have spell checking enabled (default) or disabled
+			* @function CheckSpelling
+			* @param {boolean} [val=undefined] - If defined, true enables spell checking while false disables it
+			* @returns boolean
+			*/
+			public CheckSpelling(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control should have spell checking enabled (default) or disabled
+			* @function CheckSpelling
+			* @param {boolean} [val=undefined] - If defined, true enables spell checking while false disables it
+			* @returns boolean
+			*/
+			public CheckSpelling(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
+			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
+			* @function DesignMode
+			* @param {boolean} [val=undefined] - If defined, True enables Design Mode, False disables it
+			* @returns boolean
+			*/
+			public DesignMode(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
+			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
+			* @function DesignMode
+			* @param {boolean} [val=undefined] - If defined, True enables Design Mode, False disables it
+			* @returns boolean
+			*/
+			public DesignMode(val?:boolean):boolean;
+			/**
+			* Create instance of Input control
+			* @function Input
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
+			*/
+			constructor(ctlId?:string);
+			/**
+			* Create instance of Input control
+			* @function Input
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..)
+			*/
+			constructor(ctlId?:string);
+			/**
+			* Get/set value indicating whether control is maximizable
+			* @function Maximizable
+			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it
+			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
+			The value is considered the same unit set using Height(..) which defaults to px.
+			However, if DesignMode is enabled, the value unit is considered to be px.
+			* @returns boolean
+			*/
+			public Maximizable(val?:boolean, heightMax?:number):boolean;
+			/**
+			* Get/set value indicating whether control is maximizable
+			* @function Maximizable
+			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it
+			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
+			The value is considered the same unit set using Height(..) which defaults to px.
+			However, if DesignMode is enabled, the value unit is considered to be px.
+			* @returns boolean
+			*/
+			public Maximizable(val?:boolean, heightMax?:number):boolean;
+			/**
+			* Get/set value indicating whether control is maximized
+			* @function Maximized
+			* @param {boolean} [val=undefined] - If defined, True maximizes control, False minimizes it
+			* @returns boolean
+			*/
+			public Maximized(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is maximized
+			* @function Maximized
+			* @param {boolean} [val=undefined] - If defined, True maximizes control, False minimizes it
+			* @returns boolean
+			*/
+			public Maximized(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Multi Line mode (textarea)
+			* @function MultiLine
+			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it
+			* @returns boolean
+			*/
+			public MultiLine(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Multi Line mode (textarea)
+			* @function MultiLine
+			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it
+			* @returns boolean
+			*/
+			public MultiLine(val?:boolean):boolean;
+			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
+			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
+			/**
+			* Get/set input type (e.g. Text, Password, Email, etc.)
+			* @function Type
+			* @param {Fit.Controls.InputType} [val=undefined] - If defined, input type is changed to specified value
+			* @returns Fit.Controls.InputType
+			*/
+			public Type(val?:Fit.Controls.InputType):Fit.Controls.InputType;
 			/**
 			* Get/set input type (e.g. Text, Password, Email, etc.)
 			* @function Type
@@ -5824,26 +6203,105 @@ declare namespace Fit
 		{
 			/** Input control useful for entering a color */
 			Color = "Color",
+			/** Input control useful for entering a color */
+			Color = "Color",
+			/** Input control useful for entering a date */
+			Date = "Date",
 			/** Input control useful for entering a date */
 			Date = "Date",
 			/** Input control useful for entering a date and time */
 			DateTime = "DateTime",
+			/** Input control useful for entering a date and time */
+			DateTime = "DateTime",
+			/** Input control useful for entering an e-mail address */
+			Email = "Email",
 			/** Input control useful for entering an e-mail address */
 			Email = "Email",
 			/** Input control useful for entering a month */
 			Month = "Month",
+			/** Input control useful for entering a month */
+			Month = "Month",
+			/** Input control useful for entering a number */
+			Number = "Number",
 			/** Input control useful for entering a number */
 			Number = "Number",
 			/** Input control useful for entering a password (characters are masked) */
 			Password = "Password",
+			/** Input control useful for entering a password (characters are masked) */
+			Password = "Password",
+			/** Input control useful for entering a phone number */
+			PhoneNumber = "PhoneNumber",
 			/** Input control useful for entering a phone number */
 			PhoneNumber = "PhoneNumber",
 			/** Input control useful for entering ordinary text */
 			Text = "Text",
+			/** Input control useful for entering ordinary text */
+			Text = "Text",
+			/** Multi line input field */
+			Textarea = "Textarea",
 			/** Multi line input field */
 			Textarea = "Textarea",
 			/** Input control useful for entering time */
 			Time = "Time",
+			/** Input control useful for entering time */
+			Time = "Time",
+			/** Input control useful for entering a week number */
+			Week = "Week",
+			/** Input control useful for entering a week number */
+			Week = "Week"
+		}
+		/**
+		* Enum values determining input type
+		* @enum {string}
+		*/
+		enum InputType
+		{
+			/** Input control useful for entering a color */
+			Color = "Color",
+			/** Input control useful for entering a color */
+			Color = "Color",
+			/** Input control useful for entering a date */
+			Date = "Date",
+			/** Input control useful for entering a date */
+			Date = "Date",
+			/** Input control useful for entering a date and time */
+			DateTime = "DateTime",
+			/** Input control useful for entering a date and time */
+			DateTime = "DateTime",
+			/** Input control useful for entering an e-mail address */
+			Email = "Email",
+			/** Input control useful for entering an e-mail address */
+			Email = "Email",
+			/** Input control useful for entering a month */
+			Month = "Month",
+			/** Input control useful for entering a month */
+			Month = "Month",
+			/** Input control useful for entering a number */
+			Number = "Number",
+			/** Input control useful for entering a number */
+			Number = "Number",
+			/** Input control useful for entering a password (characters are masked) */
+			Password = "Password",
+			/** Input control useful for entering a password (characters are masked) */
+			Password = "Password",
+			/** Input control useful for entering a phone number */
+			PhoneNumber = "PhoneNumber",
+			/** Input control useful for entering a phone number */
+			PhoneNumber = "PhoneNumber",
+			/** Input control useful for entering ordinary text */
+			Text = "Text",
+			/** Input control useful for entering ordinary text */
+			Text = "Text",
+			/** Multi line input field */
+			Textarea = "Textarea",
+			/** Multi line input field */
+			Textarea = "Textarea",
+			/** Input control useful for entering time */
+			Time = "Time",
+			/** Input control useful for entering time */
+			Time = "Time",
+			/** Input control useful for entering a week number */
+			Week = "Week",
 			/** Input control useful for entering a week number */
 			Week = "Week"
 		}
@@ -6521,10 +6979,9 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):void;
+		public static RemoveHandler(element:EventTarget, event:string, eventFunction:Function):void;
 		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
@@ -6537,9 +6994,10 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
 		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
-		public static RemoveHandler(element:EventTarget, event:string, eventFunction:Function):void;
+		public static RemoveHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
