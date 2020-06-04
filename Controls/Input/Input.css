@@ -55,7 +55,8 @@ div.FitUiControlInput[data-maximizable="true"]
 
 /* Remove outline when input has focus */
 div.FitUiControlInput input:first-child:focus,
-div.FitUiControlInput textarea:first-child:focus
+div.FitUiControlInput textarea:first-child:focus,
+div.FitUiControlInput[data-designmode="true"]:focus /* Prevent outline if toolbar is clicked */
 {
 	outline: none;
 }
