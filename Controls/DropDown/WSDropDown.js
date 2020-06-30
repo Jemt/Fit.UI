@@ -67,7 +67,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			requestCount--;
 
 			fireEventHandlers(onResponseHandlers, list, eventArgs);
-			
+
 			cmdOpen.className = classes;
 			currentRequest = null;
 
@@ -149,9 +149,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 		tree.OnAbort(function(sender, eventArgs)
 		{
 			requestCount--;
-			
+
 			fireEventHandlers(onAbortHandlers, tree, eventArgs);
-			
+
 			if (requestCount === 0)
 			{
 				cmdOpen.className = classes;
@@ -407,7 +407,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	this.ClearData = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb, true);
-		
+
 		// Postpone if WebService operation is currently running
 
 		if (requestCount > 0)
@@ -419,12 +419,12 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		// Clear data/cache/state
 
-		hideLinesForFlatData = true;	// Make TreeView hide helper lines if nodes received have no children	
+		hideLinesForFlatData = true;	// Make TreeView hide helper lines if nodes received have no children
 		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
 		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
 
 		// Cancel pending search operation if scheduled
-		
+
 		cancelSearch();
 
 		// Invoke callback
@@ -482,6 +482,8 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		list.Destroy();
 		tree.Destroy();
+
+		cancelSearch();
 
 		me = list = tree = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = onRequestHandlers = onResponseHandlers = null;
 
@@ -590,7 +592,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	function searchData(value)
 	{
-		// Abort time responsible for starting search request X milliseconds after user stops typing
+		// Abort timer responsible for starting search request X milliseconds after user stops typing
 
 		cancelSearch();
 
@@ -687,7 +689,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 				eventArgs.Children = newArgs.Data;
 			else if (eventArgs.Items) // WSListView
 				eventArgs.Items = newArgs.Data;
-			
+
 			if (newArgs.Request !== eventArgs.Request)
 			{
 				// Support for changing request instans to
