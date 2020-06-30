@@ -954,7 +954,8 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				// Update settings in case they were changed
 
-				var val = me.Value();
+				var val = me.Value();			// Always returns value in the YYYY-MM-DD[ hh:mm] format, but returns an empty string if value entered is invalid
+				var actualValue = input.value;	// Since me.Value() returns an empty string if value is invalid, which might be the case if date is only partially entered, we keep the actual value entered as well
 
 				if (updateCalConf === true) // Only update settings if actually changed, as this results in input value being updated, causing cursor position to change in IE
 				{
@@ -984,8 +985,21 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				open = true;
 
-				if (val !== me.Value()) // Value cleared because locale loaded has a format different from the one previously loaded
+				// The calendar widget clears the input value if it is invalid, which will be the case if user is in the process of entering a
+				// value while the calendar widget is loading, or if a new locale is loaded with a format different from the one previously loaded.
+
+				if (val === "" && actualValue !== "" && input.value === "")
 				{
+					// An invalid (possibly partial) date value was entered. The 'val' variable is empty because me.Value() returns an empty string for invalid
+					// values, while 'actualValue' is not, as it originates from the input field directly. Since input.value is now empty, the calendar widget
+					// has cleared the input field due to the invalid format. We therefore restore it to allow the user to proceed entering the value.
+					input.value = actualValue;
+				}
+				else if (val !== me.Value())
+				{
+					// The calendar widget cleared the input field because locale loaded has a format different from the one previously loaded.
+					// We restore it by re-assigning the 'val' value using me.Value(..) which uses the generic YYYY-MM-DD[ hh:mm] format.
+
 					me._internal.ExecuteWithNoOnChange(function()
 					{
 						me.Value(val);
