@@ -960,6 +960,7 @@ Fit.Controls.Input = function(ctlId)
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
+			startupFocus: focused === true ? "end" : false,
 			extraPlugins: "justify,pastefromword",
 			toolbar:
 			[
