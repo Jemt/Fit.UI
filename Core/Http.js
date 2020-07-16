@@ -218,7 +218,7 @@ Fit.Http.Request = function(uri)
 			formData = {};
 			ensureContentTypeHeaderForFormData();
 		}
-		
+
 		formData[key] = { Value: value, Encode: (uriEncode !== false) };
 	}
 
@@ -229,7 +229,7 @@ Fit.Http.Request = function(uri)
 		Fit.Validation.ExpectBoolean(uriEncode, true);
 
 		Fit.Browser.Log("Use of deprecated AddData(..) function to set form data on instance of Fit.Http.Request - please use AddFormData(..) instead!")
-		
+
 		me.AddFormData(key, value, uriEncode);
 	}
 
@@ -499,7 +499,26 @@ Fit.Http.Request = function(uri)
 	this.GetResponseHeader = function(key)
 	{
 		Fit.Validation.ExpectString(key);
-		return httpRequest.getResponseHeader(key);
+
+		var headerValue = httpRequest.getResponseHeader(key);
+
+		if (headerValue === "" && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 10) // Legacy IE returns an empty string for non-existing headers - make sure it exists or return Null if it does not
+		{
+			var found = false;
+
+			Fit.Array.ForEach(me.GetResponseHeaders(), function(header)
+			{
+				if (header.Key.toLowerCase() === key.toLowerCase())
+				{
+					found = true;
+					return false; // Break loop
+				}
+			});
+
+			headerValue = (found === true ? headerValue : null);
+		}
+
+		return headerValue;
 	}
 
 	// Events
@@ -607,7 +626,7 @@ Fit.Http.Request = function(uri)
 		{
 			Fit.Array.ForEach(onStateChange, function(handler) { handler(me); });
 		},
-		
+
 		FireOnSuccess: function()
 		{
 			Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
