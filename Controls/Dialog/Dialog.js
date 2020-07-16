@@ -995,6 +995,19 @@ Fit.Controls.Dialog = function(controlId)
 
 Fit.Controls.Dialog._internal = {};
 
+/// <container name="Fit.Controls.DialogInterface">
+/// 	Simple interface for controlling Prompt, Confirm, and Alert dialogs
+/// </container>
+/// <function container="Fit.Controls.DialogInterface" name="Dismiss" access="public">
+/// 	<description> Dismiss dialog without taking any action </description>
+/// </function>
+/// <function container="Fit.Controls.DialogInterface" name="Confirm" access="public">
+/// 	<description> Confirm dialog - equivalent to clicking the OK button </description>
+/// </function>
+/// <function container="Fit.Controls.DialogInterface" name="Cancel" access="public">
+/// 	<description> Cancel dialog - equivalent to clicking the Cancel button, or the OK button on an Alert dialog </description>
+/// </function>
+
 Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 {
 	Fit.Validation.ExpectString(content);
@@ -1027,15 +1040,21 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 
 	Fit.Internationalization.OnLocaleChanged(localize);
 
+	// Destructor
+
+	var dispose = function()
+	{
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+		d.Dispose();
+	}
+
 	// Configure and add buttons
 
 	cmdOk.Icon("check");
 	cmdOk.Type(Fit.Controls.ButtonType.Success);
 	cmdOk.OnClick(function(sender)
 	{
-		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-
-		d.Dispose();
+		dispose();
 
 		if (Fit.Validation.IsSet(cb) === true)
 			cb(true);
@@ -1049,9 +1068,7 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 		cmdCancel.Type(Fit.Controls.ButtonType.Danger);
 		cmdCancel.OnClick(function(sender)
 		{
-			Fit.Internationalization.RemoveOnLocaleChanged(localize);
-
-			d.Dispose();
+			dispose();
 
 			if (Fit.Validation.IsSet(cb) === true)
 				cb(false);
@@ -1063,10 +1080,10 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 
 	// Open dialog
 
-	return { Dialog: d, ConfirmButton: cmdOk, CancelButton: cmdCancel }; // NOTICE: CancelButton might be null !
+	return { Dialog: d, ConfirmButton: cmdOk, CancelButton: cmdCancel, Dismiss: function() { dispose(); } }; // NOTICE: CancelButton might be null !
 }
 
-/// <function container="Fit.Controls.Dialog" name="Alert" access="public" static="true">
+/// <function container="Fit.Controls.Dialog" name="Alert" access="public" static="true" returns="Fit.Controls.DialogInterface">
 /// 	<description> Display alert dialog </description>
 /// 	<param name="content" type="string"> Content to display in alert dialog </param>
 /// 	<param name="cb" type="function" default="undefined"> Optional callback function invoked when OK button is clicked </param>
@@ -1083,9 +1100,18 @@ Fit.Controls.Dialog.Alert = function(content, cb)
 	});
 	baseDialog.Dialog.Open();
 	baseDialog.ConfirmButton.Focused(true);
+
+	var interface =
+	{
+		Dismiss: function() { baseDialog.Dismiss(); },
+		Confirm: function() { baseDialog.ConfirmButton.Click(); },
+		Cancel: function() { baseDialog.ConfirmButton.Click(); } // An alert dialog has no cancel button so we trigger the OK button instead which in turn triggers the callback which is consistent with the behaviour of Prompt and Confirm
+	};
+
+	return interface;
 }
 
-/// <function container="Fit.Controls.Dialog" name="Confirm" access="public" static="true">
+/// <function container="Fit.Controls.Dialog" name="Confirm" access="public" static="true" returns="Fit.Controls.DialogInterface">
 /// 	<description> Display confirmation dialog with OK and Cancel buttons </description>
 /// 	<param name="content" type="string"> Content to display in confirmation dialog </param>
 /// 	<param name="cb" type="function">
@@ -1101,9 +1127,18 @@ Fit.Controls.Dialog.Confirm = function(content, cb)
 	var baseDialog = Fit.Controls.Dialog._internal.BaseDialog(content, true, cb);
 	baseDialog.Dialog.Open();
 	baseDialog.ConfirmButton.Focused(true);
+
+	var interface =
+	{
+		Dismiss: function() { baseDialog.Dismiss(); },
+		Confirm: function() { baseDialog.ConfirmButton.Click(); },
+		Cancel: function() { baseDialog.CancelButton.Click(); }
+	};
+
+	return interface;
 }
 
-/// <function container="Fit.Controls.Dialog" name="Prompt" access="public" static="true">
+/// <function container="Fit.Controls.Dialog" name="Prompt" access="public" static="true" returns="Fit.Controls.DialogInterface">
 /// 	<description> Display prompt dialog that allows for user input </description>
 /// 	<param name="content" type="string"> Content to display in prompt dialog </param>
 /// 	<param name="defaultValue" type="string"> Default value in input field </param>
@@ -1155,4 +1190,13 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 
 	baseDialog.Dialog.Open();
 	txt.Focused(true);
+
+	var interface =
+	{
+		Dismiss: function() { baseDialog.Dismiss(); },
+		Confirm: function() { baseDialog.ConfirmButton.Click(); },
+		Cancel: function() { baseDialog.CancelButton.Click(); }
+	};
+
+	return interface;
 }
