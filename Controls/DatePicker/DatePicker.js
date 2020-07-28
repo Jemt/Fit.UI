@@ -252,10 +252,21 @@ Fit.Controls.DatePicker = function(ctlId)
 		return focused;
 	}
 
-	// See documentation on ControlBase
-	this.Value = function(val) // ONLY accepts YYYY-MM-DD[ hh:mm]
+	/// <function container="Fit.Controls.DatePicker" name="Value" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set control value in the following format: YYYY-MM-DD[ hh:mm]
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// 	<param name="preserveDirtyState" type="boolean" default="false">
+	/// 		If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+	/// 		If dirty state is reset (default), the control value will be compared against the value passed,
+	/// 		to determine whether it has been changed by the user or not, when IsDirty() is called.
+	/// 	</param>
+	/// </function>
+	this.Value = function(val, preserveDirtyState) // ONLY accepts YYYY-MM-DD[ hh:mm]
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -280,7 +291,10 @@ Fit.Controls.DatePicker = function(ctlId)
 				input.value = Fit.Date.Format(date, me.Format());
 				preVal = input.value;
 
-				orgVal = date;
+				if (preserveDirtyState !== true)
+				{
+					orgVal = date;
+				}
 
 				if (inputTime !== null)
 				{
@@ -299,7 +313,10 @@ Fit.Controls.DatePicker = function(ctlId)
 				input.value = "";
 				preVal = "";
 
-				orgVal = null;
+				if (preserveDirtyState !== true)
+				{
+					orgVal = null;
+				}
 
 				if (inputTime !== null)
 				{
@@ -340,6 +357,68 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 
 		return "";
+	}
+
+	/// <function container="Fit.Controls.DatePicker" name="UserValue" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set value as if it was changed by the user.
+	/// 		Contrary to Value(..), this function allows for a partial (or invalid) date value.
+	/// 		If the time picker is enabled (see Time(..)) then both the date and time portion can
+	/// 		be set, separated by a space (e.g. 2020-10-25 14:30).
+	/// 		OnChange fires if value provided is valid. See ControlBase.UserValue(..) for more details.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// </function>
+	this.UserValue = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			// Current state
+
+			var curDate = input.value;
+			var curTime = (inputTime !== null ? inputTime.value : null);
+			var onChangeFired = false;
+
+			// Parse date and time value
+
+			var datePortion = val;
+			var timePortion = null;
+
+			if (inputTime !== null && val.indexOf(" ") !== -1)
+			{
+				datePortion = val.substring(0, val.indexOf(" "));
+				timePortion = val.substring(val.indexOf(" ") + 1);
+			}
+
+			if (val === "" && inputTime !== null)
+			{
+				timePortion = "";
+			}
+
+			// Update input fields and fire OnChange
+
+			input.value = datePortion;
+
+			if (inputTime !== null)
+			{
+				inputTime.value = (timePortion !== null ? timePortion : "");
+
+				if (curTime !== inputTime.value)
+				{
+					inputTime.onchange(); // Does not fire DatePicker's OnChange if datatime value is invalid, or if value is identical to previously valid value assigned
+					onChangeFired = true;
+				}
+			}
+
+			if (onChangeFired === false && curDate !== input.value)
+			{
+				input.onchange(); // Does not fire DatePicker's OnChange if date value is invalid, or if value is identical to previously valid value assigned
+			}
+		}
+
+		return input.value + (inputTime !== null && inputTime.value !== "" ? " " + inputTime.value : "");
 	}
 
 	// See documentation on ControlBase

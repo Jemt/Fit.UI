@@ -146,14 +146,35 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 		Selected items are returned in the first format described, also with reserved characters URIEncoded.
 	/// 		Providing a new value to this function results in OnChange being fired.
 	/// 	</description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, items are selected </param>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// 	<param name="preserveDirtyState" type="boolean" default="false">
+	/// 		If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+	/// 		If dirty state is reset (default), the control value will be compared against the value passed,
+	/// 		to determine whether it has been changed by the user or not, when IsDirty() is called.
+	/// 	</param>
 	/// </function>
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		// Function MUST remember to fire OnChange event when
 		// value is changed, both programmatically and by user.
 
 		Fit.Validation.ThrowError("Not implemented");
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="UserValue" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
+	/// 		Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
+	/// 		characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
+	/// 		value. The intention with UserValue(..) is to mimic the behaviour of what the user can do with the user interface control.
+	/// 		For picker controls the value format is equivalent to the one dictated by the Value(..) function.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// </function>
+	this.UserValue = function(val)
+	{
+		//Fit.Validation.ThrowError("Not implemented");
+		return me.Value(val, true); // Default implementation - change value but do not reset dirty state
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="IsDirty" access="public" returns="boolean">

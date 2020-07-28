@@ -171,15 +171,16 @@ Fit.Controls.Input = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			var fireOnChange = (me.Value() !== val);
+			var fireOnChange = (designEditor === null && me.Value() !== val); // DesignEditor invokes input.onchange() if value is changed
 
-			orgVal = val;
+			orgVal = (preserveDirtyState !== true ? val : orgVal);
 			preVal = val;
 
 			if (designEditor !== null)

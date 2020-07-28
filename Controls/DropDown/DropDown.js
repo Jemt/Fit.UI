@@ -465,15 +465,20 @@ Fit.Controls.DropDown = function(ctlId)
 	// ControlBase interface
 
 	// See documentation on ControlBase
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		// Set
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			orgSelections = [];
+			if (preserveDirtyState !== true)
+			{
+				orgSelections = [];
+			}
+
 			var fireChange = (itemCollectionOrdered.length > 0 || val !== ""); // Fire OnChange if current selections are cleared, and/or if new selections are set
 
 			me._internal.ExecuteWithNoOnChange(function()
@@ -494,7 +499,10 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 			});
 
-			orgSelections = me.GetSelections();
+			if (preserveDirtyState !== true)
+			{
+				orgSelections = me.GetSelections();
+			}
 
 			if (fireChange === true)
 				fireOnChange();
@@ -1637,7 +1645,7 @@ Fit.Controls.DropDown = function(ctlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			detectBoundaries = val;
-			detectBoundariesRelToViewPort = relativeToViewport === true; 
+			detectBoundariesRelToViewPort = relativeToViewport === true;
 		}
 
 		return detectBoundaries;

@@ -26,7 +26,7 @@ Fit.Controls.FilePicker = function(ctlId)
 	// Legacy control
 	var inputs = []; // Contains input controls when legacy mode is enabled (IE9 and older)
 	var inputsByFileId = {};
-	
+
 	var dropZoneLabel = null;
 	var dropZoneLabelEnforced = null;
 	var dropZoneContainer = null;
@@ -130,7 +130,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				// Make sure an empty upload control is always available in Multi Selection Mode, allowing for another file to be added
 				if (me.MultiSelectionMode() === true)
 					createUploadField();
-				
+
 				me._internal.FireOnChange();
 
 				if (me.AutoUpload() === true)
@@ -214,9 +214,10 @@ Fit.Controls.FilePicker = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -384,7 +385,7 @@ Fit.Controls.FilePicker = function(ctlId)
 
 		return (button !== null ? button.Title() : buttonTitleEnforced || ""); // Button is null in legacy mode
 	}
-	
+
 	// DEPRECATED
 	this.Title = function(val)
 	{
@@ -459,7 +460,7 @@ Fit.Controls.FilePicker = function(ctlId)
 			}
 
 			me._internal.Data("multiple", val.toString());
-			
+
 			localize();
 		}
 
@@ -512,7 +513,7 @@ Fit.Controls.FilePicker = function(ctlId)
 			{
 				dropZoneLabel = Fit.Dom.CreateElement("<div></div>");
 				dropZoneContainer = Fit.Dom.CreateElement("<div></div>");
-				
+
 				/*me.GetDomElement().ondragenter = function(e)
 				{
 					me._internal.Data("dropping", "true");
@@ -538,7 +539,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				{
 					var ev = Fit.Events.GetEvent(e);
 					Fit.Events.PreventDefault(ev); // Prevent files from opening in browser
-					
+
 					setValueFromFilesList(ev.dataTransfer.files); // Also triggers OnChange and performs postback if AutoUpload is true
 					me._internal.Data("dropping", "false");
 				}

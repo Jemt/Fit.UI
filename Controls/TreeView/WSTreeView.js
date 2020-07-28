@@ -699,15 +699,16 @@ Fit.Controls.WSTreeView = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	this.Value = Fit.Core.CreateOverride(this.Value, function(val)
+	this.Value = Fit.Core.CreateOverride(this.Value, function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		// Setter
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			orgSelected = [];
+			orgSelected = (preserveDirtyState !== true ? [] : orgSelected);
 			preSelected = {};
 			var fireOnChange = (me.Selected().length > 0); // Selected() return nodes already loaded and preselections
 
@@ -723,10 +724,13 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 				// Update orgSelected used to determine dirty state
 
-				Fit.Array.ForEach(selected, function(node)
+				if (preserveDirtyState !== true)
 				{
-					Fit.Array.Add(orgSelected, node.Value());
-				});
+					Fit.Array.ForEach(selected, function(node)
+					{
+						Fit.Array.Add(orgSelected, node.Value());
+					});
+				}
 
 				// Add nodes not loaded yet to preselections
 
@@ -751,7 +755,12 @@ Fit.Controls.WSTreeView = function(ctlId)
 					if (me.GetChild(preSel.Value, true) === null)
 					{
 						preSelected[preSel.Value] = preSel;
-						Fit.Array.Add(orgSelected, preSel.Value);
+
+						if (preserveDirtyState !== true)
+						{
+							Fit.Array.Add(orgSelected, preSel.Value);
+						}
+
 						fireOnChange = true;
 					}
 				});

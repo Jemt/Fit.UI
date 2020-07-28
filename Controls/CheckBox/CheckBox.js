@@ -89,9 +89,10 @@ Fit.Controls.CheckBox = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -99,11 +100,11 @@ Fit.Controls.CheckBox = function(ctlId)
 
 			if (valStr === "true")
 			{
-				me.Checked(true);
+				me.Checked(true, preserveDirtyState);
 			}
 			else if (valStr === "false")
 			{
-				me.Checked(false);
+				me.Checked(false, preserveDirtyState);
 			}
 		}
 
@@ -113,8 +114,13 @@ Fit.Controls.CheckBox = function(ctlId)
 	/// <function container="Fit.Controls.CheckBox" name="Checked" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether control is checked </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, control's checked state is updated to specified value </param>
+	/// 	<param name="preserveDirtyState" type="boolean" default="false">
+	/// 		If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+	/// 		If dirty state is reset (default), the control value will be compared against the value passed,
+	/// 		to determine whether it has been changed by the user or not, when IsDirty() is called.
+	/// 	</param>
 	/// </function>
-	this.Checked = function(val, preserveDirtyState) // preserveDirtyState is for internal use only - do not add to documentation!
+	this.Checked = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 		Fit.Validation.ExpectBoolean(preserveDirtyState, true);

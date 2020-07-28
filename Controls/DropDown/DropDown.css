@@ -104,7 +104,7 @@ div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems 
 
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span,
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > input,
-div.FitUiControlDropDownHidden /* Used to calculate width of content for input fields */
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownHidden /* Used to calculate width of content for input fields */
 {
 	font-size: 0.85em;
 }

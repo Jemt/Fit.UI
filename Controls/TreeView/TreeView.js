@@ -637,15 +637,16 @@ Fit.Controls.TreeView = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
-		Fit.Validation.ExpectString(val, true)
+		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		// Set
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			selectedOrg = [];
+			selectedOrg = (preserveDirtyState !== true ? [] : selectedOrg);
 			var fireOnChange = (selected.length > 0);
 
 			executeWithNoOnChange(function()
@@ -661,7 +662,11 @@ Fit.Controls.TreeView = function(ctlId)
 
 					if (child !== null)
 					{
-						Fit.Array.Add(selectedOrg, child);
+						if (preserveDirtyState !== true)
+						{
+							Fit.Array.Add(selectedOrg, child);
+						}
+
 						child.Selected(true);
 						fireOnChange = true;
 					}
@@ -990,7 +995,7 @@ Fit.Controls.TreeView = function(ctlId)
 		{
 			me.Destroy(true); // PickerBase.Destroy()
 		}
-		
+
 		me = rootContainer = rootNode = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
 	});
 
@@ -1865,7 +1870,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 
 			if (tv !== null)
 				tv.Repaint();
-			
+
 			// Synchronize selection to TreeView (unless this was a behavioral node (not a data node))
 
 			if (behavioralNodeCallback === null && tv !== null)
@@ -2027,9 +2032,9 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		// for dynamically added nodes to render helper lines properly.
 		if (elmLi._internal.TreeView !== null)
 			elmLi._internal.TreeView.Repaint();
-		
+
 		// Behavioral node support
-		
+
 		if (node.IsBehavioralNode() === true)
 		{
 			executeRecursively(node, function(n)
