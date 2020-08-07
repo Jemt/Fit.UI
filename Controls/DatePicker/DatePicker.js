@@ -131,6 +131,8 @@ Fit.Controls.DatePicker = function(ctlId)
 		// Prevent OnFocus from firing when user interacts with calendar widget which
 		// is not contained in div.FitUiControlDatePicker (changing month/year and selecting date).
 		// Focus is returned to input almost immediately after interacting with calendar widget.
+		// TODO/TBD: Use FocusStateLocked instead? See https://github.com/Jemt/Fit.UI/issues/103
+		//  - Also see FireOnBlur override further down.
 		me._internal.FireOnFocus = Fit.Core.CreateOverride(me._internal.FireOnFocus, function()
 		{
 			if (focused === false)
@@ -143,6 +145,8 @@ Fit.Controls.DatePicker = function(ctlId)
 		// Prevent OnBlur from firing when user interacts with calendar widget which
 		// is not contained in div.FitUiControlDatePicker (changing month/year).
 		// Focus is returned to input almost immediately after interacting with calendar widget.
+		// TODO/TBD: Use FocusStateLocked instead? See https://github.com/Jemt/Fit.UI/issues/103
+		//  - Also see FireOnFocus override above.
 		me._internal.FireOnBlur = Fit.Core.CreateOverride(me._internal.FireOnBlur, function()
 		{
 			if (open === false)
@@ -232,10 +236,10 @@ Fit.Controls.DatePicker = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
 
+		var inp = ((inputMobile === null) ? input : inputMobile);
+
 		if (Fit.Validation.IsSet(focus) === true)
 		{
-			var inp = ((inputMobile === null) ? input : inputMobile);
-
 			if (focus === true)
 			{
 				inp.focus();
@@ -249,7 +253,7 @@ Fit.Controls.DatePicker = function(ctlId)
 			}
 		}
 
-		return focused;
+		return Fit.Dom.GetFocused() === inp;
 	}
 
 	/// <function container="Fit.Controls.DatePicker" name="Value" access="public" returns="string">
