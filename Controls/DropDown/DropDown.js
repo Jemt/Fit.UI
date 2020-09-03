@@ -2071,7 +2071,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			var ev = Fit.Events.GetEvent(e);
 
-			if (ev.charCode > 0) // A real character/digit was entered if charCode is not 0 (zero)
+			if (ev.charCode > 0 && ev.charCode !== 13) // A real character/digit was entered if charCode is not 0 (zero) or 13 (ENTER key which produced a line break (carrige return actually: \r)
 			{
 				updatePlaceholder(true, true); // Make sure placeholder is removed immediately on keystroke
 				fitWidthToContent(txt, txt.value + String.fromCharCode(ev.charCode)); // TODO: Will not work properly if multiple characters are selected, and just one character is entered - the input field will obtain an incorrect width until next key stroke. The solution is NOT to always use setTimeout since the delayed update is noticeable.
@@ -2508,7 +2508,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (placeholder !== "" || force === true)
 		{
-			var setPlaceholder = itemCollectionOrdered.length === 0 && me.GetInputValue() === "" && willAssumeInputValue !== true;
+			var setPlaceholder = placeholder !== "" && itemCollectionOrdered.length === 0 && me.GetInputValue() === "" && willAssumeInputValue !== true;
 
 			Fit.Dom.Data(itemContainer, "placeholder", setPlaceholder === true ? placeholder : null);
 			Fit.Dom.Data(itemContainer, "placeholder-autoclear", setPlaceholder === true ? Fit.Browser.GetBrowser() === "MSIE" ? "true" : "false" : null);
