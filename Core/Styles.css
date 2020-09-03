@@ -37,9 +37,17 @@ Stacking context, Z-index:
 	box-sizing: border-box;
 }
 
-.FitUiControl input:-ms-input-placeholder
+/* Make sure both real and synthetic placeholder values appear the same */
+.FitUiControl input::placeholder,
+.FitUiControl *[data-placeholder] /* Attribute (data-placeholder) is only applied when place holder is active/visible */
 {
-	color: silver; /* Make it possible to distinguish placeholder values from actual text values in IE */
+	color: #757575; /* Default color in Chrome */
+}
+/* Make it possible to distinguish placeholder values from actual text values in IE */
+.FitUiControl input:-ms-input-placeholder,
+.FitUiControl *[data-placeholder] /* Attribute (data-placeholder) is only applied when place holder is active/visible */
+{
+	color: silver;
 }
 
 /* Validation error (value validation) */

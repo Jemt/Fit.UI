@@ -457,6 +457,7 @@ Fit.Controls.Input = function(ctlId)
 				input = document.createElement("textarea");
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
+				input.placeholder = oldInput.placeholder;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -492,6 +493,7 @@ Fit.Controls.Input = function(ctlId)
 				input.type = "text";
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
+				input.placeholder = oldInput.placeholder;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);

@@ -13,6 +13,7 @@ div.FitUiControlDropDownItems /* Item container */
 	border-width: 1px\9;
 	border-radius: 2px;
 	padding: 0.1em;
+	padding-left: 0.3em; /* Ensure consistent indentation for input text compared to e.g. Input and DatePicker */
 	padding-right: 2em; /* Compensate for drop down arrow button to avoid items being partially hidden behind it */
 	background-color: white;
 	cursor: text;
@@ -190,6 +191,30 @@ div.FitUiControlDropDownItems span > span + input /* Right input in selection co
 div.FitUiControlDropDownItems input::-ms-clear /* Remove clear button in IE10 - requires true IE10 document mode to work */
 {
     display: none;
+}
+
+/* Placeholder (not enabled on IE8/9) */
+/* Placeholder attributes are only set when placeholder is supposed to
+   be displayed. The text color for placeholders is defined i Styles.css. */
+div.FitUiControlDropDownItems[data-placeholder-autoclear="false"]:after,
+div.FitUiControlDropDown[data-focused="false"] div.FitUiControlDropDownItems[data-placeholder-autoclear="true"]:after
+{
+	content: attr(data-placeholder);
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems[data-placeholder]:after
+{
+	 /* Position above input field */
+	margin-left: -5px;
+}
+div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItems[data-placeholder]:after
+{
+	/* Position above input field */
+	position: absolute;
+	left: 0.3em;
+	top: 0.3em;
+	top: 0\9;
+	width: calc(100% - 0.3em - 2em); /* 0.3em is padding-left in control, 2em is the width of the dropdown arrow - calc requires IE9+ */
+	overflow: hidden;
 }
 
 div.FitUiControlDropDownPicker /* Picker container (drop down) */

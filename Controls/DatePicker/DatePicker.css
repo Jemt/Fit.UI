@@ -10,6 +10,8 @@ div.FitUiControlDatePicker input[type="text"]
 	width: 100%;
 	height: 100%;
 	padding: 0.2em;
+	padding-left: 0.3em;
+	padding-right: 0.3em;
 	margin: 0px;
 	font-size: inherit;
 	border: 0.065em solid #BBBBBB;

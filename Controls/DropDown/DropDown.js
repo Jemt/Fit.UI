@@ -18,6 +18,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var itemCollection = {};					// Indexed collection for selected items (for fast lookup)
 	var itemCollectionOrdered = [];				// Ordered item collection (item order can be changed using drag and drop)
 	var itemDropZones = {};						// Indexed collection of dropzones used to enable item dragging/dropping
+	var placeholder = "";						// Placeholder value displayed when no selection is made
 	var arrow = null;							// Arrow button used to open/close drop down menu
 	var hidden = null;							// Area used to hide DOM elements (e.g span used to calculate width of input fields)
 	var spanFitWidth = null;					// Span element used to calculate text width - used to dynamically control width of input fields
@@ -603,6 +604,23 @@ Fit.Controls.DropDown = function(ctlId)
 	});
 
 	// Misc. options
+
+	/// <function container="Fit.Controls.DropDown" name="Placeholder" access="public" returns="string">
+	/// 	<description> Get/set value used as a placeholder on supported browsers, to indicate expected value or action </description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is set as placeholder </param>
+	/// </function>
+	this.Placeholder = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			placeholder = val;
+			updatePlaceholder(true);
+		}
+
+		return placeholder;
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="TextSelectionMode" access="public" returns="boolean">
 	/// 	<description>
@@ -2055,6 +2073,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			if (ev.charCode > 0) // A real character/digit was entered if charCode is not 0 (zero)
 			{
+				updatePlaceholder(true, true); // Make sure placeholder is removed immediately on keystroke
 				fitWidthToContent(txt, txt.value + String.fromCharCode(ev.charCode)); // TODO: Will not work properly if multiple characters are selected, and just one character is entered - the input field will obtain an incorrect width until next key stroke. The solution is NOT to always use setTimeout since the delayed update is noticeable.
 			}
 		}
@@ -2473,6 +2492,29 @@ Fit.Controls.DropDown = function(ctlId)
 			picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
 	}
 
+	function updatePlaceholder(force, willAssumeInputValue)
+	{
+		Fit.Validation.ExpectBoolean(force, true);
+		Fit.Validation.ExpectBoolean(willAssumeInputValue, true);
+
+		if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 10)
+		{
+			// Placeholder is not supported on IE8 as it currently relies on calc(..) in CSS.
+			// Furthermore native support for placeholders (using the real placeholder attribute)
+			// were introduced in IE10, so this also ensure consistent behaviour for all controls,
+			// as e.g. Input and DatePicker uses the native placeholder implementation.
+			return;
+		}
+
+		if (placeholder !== "" || force === true)
+		{
+			var setPlaceholder = itemCollectionOrdered.length === 0 && me.GetInputValue() === "" && willAssumeInputValue !== true;
+
+			Fit.Dom.Data(itemContainer, "placeholder", setPlaceholder === true ? placeholder : null);
+			Fit.Dom.Data(itemContainer, "placeholder-autoclear", setPlaceholder === true ? Fit.Browser.GetBrowser() === "MSIE" ? "true" : "false" : null);
+		}
+	}
+
 	function onDragStop(draggable)
 	{
 		draggable.Reset();
@@ -2713,6 +2755,8 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		Fit.Validation.ExpectString(val);
 
+		updatePlaceholder();
+
 		Fit.Array.ForEach(onInputChangedHandlers, function(handler)
 		{
 			handler(me, val);
@@ -2721,6 +2765,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function fireOnChange()
 	{
+		updatePlaceholder();
 		optimizeDropDownPosition();
 		me._internal.FireOnChange();
 	}
