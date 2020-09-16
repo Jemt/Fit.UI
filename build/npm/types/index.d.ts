@@ -140,13 +140,6 @@ declare namespace Fit
 		*/
 		public static GetIndex(arr:any[], obj:any):number;
 		/**
-		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
-		* @function GetKeys
-		* @param {any[]} arr - Array to get keys from
-		* @returns any[]
-		*/
-		public static GetKeys(arr:any[]):any[];
-		/**
 		* Returns all keys (property names) in object
 		* @function GetKeys
 		* @param {any} obj - Object to get keys from
@@ -154,12 +147,12 @@ declare namespace Fit
 		*/
 		public static GetKeys(obj:any):any[];
 		/**
-		* Returns True if collection has items, otherwise False
-		* @function HasItems
-		* @param {any} obj - Object array to investigate
-		* @returns boolean
+		* Returns all keys in array (indices) - 0, 1, 2, 3, ...
+		* @function GetKeys
+		* @param {any[]} arr - Array to get keys from
+		* @returns any[]
 		*/
-		public static HasItems(obj:any):boolean;
+		public static GetKeys(arr:any[]):any[];
 		/**
 		* Returns True if collection has items, otherwise False
 		* @function HasItems
@@ -167,6 +160,13 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static HasItems(arr:any[]):boolean;
+		/**
+		* Returns True if collection has items, otherwise False
+		* @function HasItems
+		* @param {any} obj - Object array to investigate
+		* @returns boolean
+		*/
+		public static HasItems(obj:any):boolean;
 		/**
 		* Insert object into array at specified index
 		* @function Insert
@@ -616,6 +616,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -700,11 +714,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -721,7 +752,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -729,14 +760,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -1088,6 +1121,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -1172,11 +1219,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -1193,7 +1257,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -1201,14 +1265,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -1418,6 +1484,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -1502,11 +1582,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -1523,7 +1620,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -1531,14 +1628,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -2115,6 +2214,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -2199,11 +2312,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -2220,7 +2350,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -2228,14 +2358,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -2504,6 +2636,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -2588,11 +2734,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -2609,7 +2772,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -2617,14 +2780,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -2779,6 +2944,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -2863,11 +3042,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -2884,7 +3080,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -2892,14 +3088,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -3857,6 +4055,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -3941,11 +4153,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -3962,7 +4191,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -3970,14 +4199,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -4767,6 +4998,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -4851,11 +5096,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -4872,7 +5134,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -4880,14 +5142,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -5788,6 +6052,20 @@ declare namespace Fit
 			*/
 			public AddCssClass(val:string):void;
 			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against
+			* @param {string} errorMessage - Error message displayed if value validation fails
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control
+			* @function AddValidationRule
+			* @param {Function} validator - Function receiving an instance of the control.
+			An error message string must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Function):void;
+			/**
 			* Get/set value indicating whether control is always considered dirty. This
 			comes in handy when programmatically changing a value of a control on behalf
 			of the user. Some applications may choose to only save values from dirty controls.
@@ -5872,11 +6150,28 @@ declare namespace Fit
 			*/
 			public OnFocus(cb:Function):void;
 			/**
+			* Remove all validation rules
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
 			* Remove CSS class from DOMElement representing control
 			* @function RemoveCssClass
 			* @param {string} val - CSS class to remove
 			*/
 			public RemoveCssClass(val:string):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control
+			* @function RemoveValidationRule
+			* @param {Function} validator - Validation function registered using AddValidationRule(..)
+			*/
+			public RemoveValidationRule(validator:Function):void;
 			/**
 			* Get/set value indicating whether control is required to be set
 			* @function Required
@@ -5893,7 +6188,7 @@ declare namespace Fit
 			*/
 			public Scope(val?:string):string;
 			/**
-			* DEPRECATED! Please use SetValidationHandler(..) instead.
+			* DEPRECATED! Please use AddValidationRule(..) instead.
 			Set callback function used to perform on-the-fly validation against control value.
 			* @function SetValidationCallback
 			* @param {(Function|null)} cb - Function receiving control value - must return True if value is valid, otherwise False
@@ -5901,14 +6196,16 @@ declare namespace Fit
 			*/
 			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
 			/**
-			* Set regular expression used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
 			* @function SetValidationExpression
 			* @param {(RegExp|null)} regEx - Regular expression to validate against
 			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator
 			*/
 			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
 			/**
-			* Set callback function used to perform on-the-fly validation against control value
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value
 			* @function SetValidationHandler
 			* @param {(Function|null)} cb - Function receiving an instance of the control and its value.
 			An error message string must be returned if value is invalid,
@@ -6707,6 +7004,15 @@ declare namespace Fit
 		*/
 		public static PreventDefault(e?:Event):boolean;
 		/**
+		* Remove event handler for specified event on given EventTarget
+		* @function RemoveHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
+		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
+		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {Function} eventFunction - JavaScript function to remove
+		*/
+		public static RemoveHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):void;
+		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..)
 		* @function RemoveHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
@@ -6721,15 +7027,6 @@ declare namespace Fit
 		* @param {Function} eventFunction - JavaScript function to remove
 		*/
 		public static RemoveHandler(element:EventTarget, event:string, eventFunction:Function):void;
-		/**
-		* Remove event handler for specified event on given EventTarget
-		* @function RemoveHandler
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed
-		* @param {string} event - Event name without &#39;on&#39; prefix (e.g. &#39;load&#39;, &#39;mouseover&#39;, &#39;click&#39; etc.)
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
-		* @param {Function} eventFunction - JavaScript function to remove
-		*/
-		public static RemoveHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):void;
 		/**
 		* Remove mutation observer by ID
 		* @function RemoveMutationObserver
