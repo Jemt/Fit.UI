@@ -216,13 +216,15 @@ Fit.Controls.ControlBase = function(controlId)
 	var scope = null;
 	var required = false;
 	var orgDirtyFunction = null;
-	var validationExpr = null;
-	var validationError = null;
-	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation, 2 = Callback validation
+	var validationExpr = null;			// Obsolete - used by SetValidationExpression
+	var validationError = null;			// Obsolete - used by SetValidationExpression
+	var validationErrorType = -1;		// 0 = Required, 1 = RegEx validation via SetValidationExpression(..), 2 = Callback validation via SetValidationHandler(..), 3 = Callback validation via SetValidationCallback(..), 4 = RegEx or Callback validation via AddValidationRule(..)
 	var validationCallbackFunc = null;	// Obsolete - used by SetValidationCallback
 	var validationCallbackError = null;	// Obsolete - used by SetValidationCallback
-	var validationHandlerFunc = null;
-	var validationHandlerError = null;
+	var validationHandlerFunc = null;	// Obsolete - used by SetValidationHandler
+	var validationHandlerError = null;	// Obsolete - used by SetValidationHandler
+	var validationRules = [];
+	var validationRuleError = null;
 	var lazyValidation = false;
 	var hasValidated = false;
 	var blockAutoPostBack = false; // Used by AutoPostBack mechanism to prevent multiple postbacks, e.g on double click
@@ -338,7 +340,7 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = null;
 		base();
 	});
 
@@ -508,7 +510,10 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationExpression" access="public">
-	/// 	<description> Set regular expression used to perform on-the-fly validation against control value </description>
+	/// 	<description>
+	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
+	/// 		Set regular expression used to perform on-the-fly validation against control value.
+	/// 	</description>
 	/// 	<param name="regEx" type="RegExp" nullable="true"> Regular expression to validate against </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
@@ -519,6 +524,8 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Validation.ExpectRegExp(regEx, true); // Allow Null/undefined which disables validation
 		Fit.Validation.ExpectString(errorMsg, true);
 
+		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationExpression - please use AddValidationRule instead");
+
 		validationExpr = (regEx ? regEx : null);
 		validationError = (errorMsg ? errorMsg : null);
 
@@ -527,7 +534,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationCallback" access="public">
 	/// 	<description>
-	/// 		DEPRECATED! Please use SetValidationHandler(..) instead.
+	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
 	/// 		Set callback function used to perform on-the-fly validation against control value.
 	/// 	</description>
 	/// 	<param name="cb" type="function" nullable="true"> Function receiving control value - must return True if value is valid, otherwise False </param>
@@ -540,7 +547,7 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Validation.ExpectFunction(cb, true); // Allow Null/undefined which disables validation
 		Fit.Validation.ExpectString(errorMsg, true);
 
-		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationCallback - please use SetValidationHandler instead");
+		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationCallback - please use AddValidationRule instead");
 
 		validationHandlerFunc = null;
 		validationCallbackFunc = (cb ? cb : null);;
@@ -550,7 +557,10 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationHandler" access="public">
-	/// 	<description> Set callback function used to perform on-the-fly validation against control value </description>
+	/// 	<description>
+	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
+	/// 		Set callback function used to perform on-the-fly validation against control value
+	/// 	</description>
 	/// 	<param name="cb" type="function" nullable="true">
 	/// 		Function receiving an instance of the control and its value.
 	/// 		An error message string must be returned if value is invalid,
@@ -561,10 +571,81 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		Fit.Validation.ExpectFunction(cb, true); // Allow Null/undefined which disables validation
 
+		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationHandler - please use AddValidationRule instead");
+
 		validationCallbackFunc = null;
 		validationHandlerFunc = (cb ? cb : null);
 		validationHandlerError = null;
 
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
+	/// 	<description> Set callback function used to perform on-the-fly validation against control </description>
+	/// 	<param name="validator" type="function">
+	/// 		Function receiving an instance of the control.
+	/// 		An error message string must be returned if value is invalid.
+	/// 	</param>
+	/// </function>
+	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
+	/// 	<description> Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function </description>
+	/// 	<param name="validator" type="RegExp"> Regular expression to validate value against </param>
+	/// 	<param name="errorMessage" type="string"> Error message displayed if value validation fails </param>
+	/// </function>
+	this.AddValidationRule = function(validator, errorMessage)
+	{
+		Fit.Validation.ExpectIsSet(validator);
+
+		if (arguments.length === 1)
+		{
+			Fit.Validation.ExpectFunction(validator);
+			validationRules.push( { Type: "Callback", Validator: validator, ErrorMessage: null } );
+		}
+		else
+		{
+			Fit.Validation.ExpectRegExp(validator);
+			Fit.Validation.ExpectString(errorMessage);
+			validationRules.push( { Type: "RegExp", Validator: validator, ErrorMessage: errorMessage } );
+		}
+
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
+	/// 	<description> Remove validation function used to perform on-the-fly validation against control </description>
+	/// 	<param name="validator" type="function"> Validation function registered using AddValidationRule(..) </param>
+	/// </function>
+	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
+	/// 	<description> Remove regular expression used to perform on-the-fly validation against control value </description>
+	/// 	<param name="validator" type="RegExp"> Regular expression registered using AddValidationRule(..) </param>
+	/// </function>
+	this.RemoveValidationRule = function(validator) // Function or RegExp
+	{
+		var found = null;
+
+		Fit.Array.ForEach(validationRules, function(rule)
+		{
+			if (rule.Validator === validator)
+			{
+				found = rule;
+				return false; // Break loop
+			}
+		});
+
+		if (found !== null)
+		{
+			Fit.Array.Remove(validationRules, found);
+		}
+
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="RemoveAllValidationRules" access="public">
+	/// 	<description> Remove all validation rules </description>
+	/// </function>
+	this.RemoveAllValidationRules = function()
+	{
+		validationRules = [];
 		me._internal.Validate();
 	}
 
@@ -578,8 +659,10 @@ Fit.Controls.ControlBase = function(controlId)
 	this.IsValid = function()
 	{
 		validationErrorType = -1;
+		validationHandlerError = null;
+		validationRuleError = null;
 
-		if (validationExpr === null && validationCallbackFunc === null && validationHandlerFunc === null && required === false)
+		if (validationExpr === null && validationCallbackFunc === null && validationHandlerFunc === null && required === false && validationRules.length === 0)
 			return true;
 
 		var obj = me.Value();
@@ -599,7 +682,6 @@ Fit.Controls.ControlBase = function(controlId)
 
 		if (validationHandlerFunc !== null)
 		{
-			validationHandlerError = null;
 			var errorMessage = validationHandlerFunc(me, val);
 
 			if (errorMessage !== null && errorMessage !== "" && typeof(errorMessage) === "string")
@@ -613,6 +695,40 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			validationErrorType = 3;
 			return false;
+		}
+
+		if (validationRules.length > 0)
+		{
+			Fit.Array.ForEach(validationRules, function(rule)
+			{
+				if (rule.Type === "Callback")
+				{
+					var result = rule.Validator(me);
+
+					Fit.Validation.ExpectString(result, true);
+
+					if (result)
+					{
+						validationErrorType = 4;
+						validationRuleError = result
+						return false; // Break loop
+					}
+				}
+				else // RegExp
+				{
+					if (rule.Validator.test(me.Value()) === false)
+					{
+						validationErrorType = 4;
+						validationRuleError = rule.ErrorMessage;
+						return false; // Break loop
+					}
+				}
+			});
+
+			if (validationErrorType === 4)
+			{
+				return false;
+			}
 		}
 
 		return true;
@@ -955,6 +1071,8 @@ Fit.Controls.ControlBase = function(controlId)
 				me._internal.Data("errormessage", validationHandlerError.replace("\r", "").replace(/<br.*>/i, "\n"));
 			else if (validationErrorType === 3 && validationCallbackError !== null)
 				me._internal.Data("errormessage", validationCallbackError.replace("\r", "").replace(/<br.*>/i, "\n"));
+			else if (validationErrorType === 4) // When error type is 4, validationRuleError is always set too
+				me._internal.Data("errormessage", validationRuleError.replace("\r", "").replace(/<br.*>/i, "\n"));
 		}
 		else
 		{
