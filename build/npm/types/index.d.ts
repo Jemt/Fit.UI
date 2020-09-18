@@ -619,9 +619,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -1124,9 +1124,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -1487,9 +1487,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -2217,9 +2217,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -2639,9 +2639,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -2947,9 +2947,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -4058,9 +4058,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -5001,9 +5001,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
@@ -6055,9 +6055,9 @@ declare namespace Fit
 			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function
 			* @function AddValidationRule
 			* @param {RegExp} validator - Regular expression to validate value against
-			* @param {string} errorMessage - Error message displayed if value validation fails
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails
 			*/
-			public AddValidationRule(validator:RegExp, errorMessage:string):void;
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
 			/**
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
