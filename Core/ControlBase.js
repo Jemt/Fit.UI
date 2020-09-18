@@ -590,13 +590,14 @@ Fit.Controls.ControlBase = function(controlId)
 	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
 	/// 	<description> Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function </description>
 	/// 	<param name="validator" type="RegExp"> Regular expression to validate value against </param>
-	/// 	<param name="errorMessage" type="string"> Error message displayed if value validation fails </param>
+	/// 	<param name="errorMessage" type="string" default="undefined"> Optional error message displayed if value validation fails </param>
 	/// </function>
 	this.AddValidationRule = function(validator, errorMessage)
 	{
 		Fit.Validation.ExpectIsSet(validator);
+		Fit.Validation.ExpectString(errorMessage, true);
 
-		if (arguments.length === 1)
+		if (typeof(validator) === "function")
 		{
 			Fit.Validation.ExpectFunction(validator);
 			validationRules.push( { Type: "Callback", Validator: validator, ErrorMessage: null } );
@@ -604,8 +605,7 @@ Fit.Controls.ControlBase = function(controlId)
 		else
 		{
 			Fit.Validation.ExpectRegExp(validator);
-			Fit.Validation.ExpectString(errorMessage);
-			validationRules.push( { Type: "RegExp", Validator: validator, ErrorMessage: errorMessage } );
+			validationRules.push( { Type: "RegExp", Validator: validator, ErrorMessage: errorMessage || null } );
 		}
 
 		me._internal.Validate();
@@ -1063,6 +1063,8 @@ Fit.Controls.ControlBase = function(controlId)
 
 		if (valid === false)
 		{
+			me._internal.Data("errormessage", null);
+
 			if (validationErrorType === 0)
 				me._internal.Data("errormessage", Fit.Internationalization.GetSystemLocale().Translations.Required);
 			else if (validationErrorType === 1 && validationError !== null)
@@ -1071,7 +1073,7 @@ Fit.Controls.ControlBase = function(controlId)
 				me._internal.Data("errormessage", validationHandlerError.replace("\r", "").replace(/<br.*>/i, "\n"));
 			else if (validationErrorType === 3 && validationCallbackError !== null)
 				me._internal.Data("errormessage", validationCallbackError.replace("\r", "").replace(/<br.*>/i, "\n"));
-			else if (validationErrorType === 4) // When error type is 4, validationRuleError is always set too
+			else if (validationErrorType === 4 && validationRuleError !== null)
 				me._internal.Data("errormessage", validationRuleError.replace("\r", "").replace(/<br.*>/i, "\n"));
 		}
 		else
