@@ -626,7 +626,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -1131,7 +1132,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -1494,7 +1496,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -2224,7 +2227,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -2646,7 +2650,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -2954,7 +2959,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -4065,7 +4071,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -5008,7 +5015,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
@@ -6062,7 +6070,8 @@ declare namespace Fit
 			* Set callback function used to perform on-the-fly validation against control
 			* @function AddValidationRule
 			* @param {Function} validator - Function receiving an instance of the control.
-			An error message string must be returned if value is invalid.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
 			*/
 			public AddValidationRule(validator:Function):void;
 			/**
