@@ -584,7 +584,8 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 	<description> Set callback function used to perform on-the-fly validation against control </description>
 	/// 	<param name="validator" type="function">
 	/// 		Function receiving an instance of the control.
-	/// 		An error message string must be returned if value is invalid.
+	/// 		A value of False or a non-empty string with an
+	/// 		error message must be returned if value is invalid.
 	/// 	</param>
 	/// </function>
 	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
@@ -705,12 +706,10 @@ Fit.Controls.ControlBase = function(controlId)
 				{
 					var result = rule.Validator(me);
 
-					Fit.Validation.ExpectString(result, true);
-
-					if (result)
+					if (result === false || (typeof(result) === "string" && result !== ""))
 					{
 						validationErrorType = 4;
-						validationRuleError = result
+						validationRuleError = result || null;
 						return false; // Break loop
 					}
 				}
