@@ -66,4 +66,16 @@ else
 	read
 fi
 
+# Update NPM package
+
+if [[ -d ../node_modules ]] ; then
+	echo "Installing updated Fit.UI NPM package to allow testing of type definitions"
+
+	if [[ -d ../node_modules/fit-ui ]] ; then
+		rm -R ../node_modules/fit-ui
+	fi
+
+	cp -R npm ../node_modules/fit-ui
+fi
+
 echo "Build completed"

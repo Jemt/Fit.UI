@@ -19,11 +19,10 @@ div.FitUiControlCheckBox:focus
 {
 	outline: none; /* Chrome fix - even though tabIndex is -1, control is still outlined when clicked */
 }
-div.FitUiControlCheckBox[data-enabled="true"]:focus
+div.FitUiControlCheckBox[data-enabled="true"]:focus > div
 {
-	outline: 2px solid #3B99FC;
-	outline-offset: 2px;
-	border: 1px solid #3B99FC\9; /* Legacy IE (9 and earlier) which does not support outline */
+	border-color: #4484C7;
+	color: #4484C7;
 }
 
 div.FitUiControlCheckBox > div
