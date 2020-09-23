@@ -543,7 +543,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			if (val === true)
 			{
-				var c = txtPrimary; //txtActive;
+				var c = partiallyHidden !== null ? partiallyHidden.previousSibling : txtPrimary;
 				var v = c.value;
 
 				// Set focus
