@@ -8481,6 +8481,31 @@ declare namespace Fit
 			public Url(val?:string):string;
 		}
 	}
+	/**
+	* 
+	* @namespace [Fit.TypeDefs TypeDefs]
+	*/
+	namespace TypeDefs
+	{
+		/**
+		* Result from Fit.Dom.GetInnerDimensions  Position from left side  Position from top
+		* @class [Fit.TypeDefs.Position Position]
+		*/
+		class Position
+		{
+			// Properties defined by Fit.TypeDefs.Position
+			/**
+			* Position from left side
+			* @member {number} X
+			*/
+			X:number;
+			/**
+			* Position from top
+			* @member {number} Y
+			*/
+			Y:number;
+		}
+	}
 }
 
 type __fitUiAliasArray = Array<any>;
