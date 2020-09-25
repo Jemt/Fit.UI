@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
 	<title>SimpleDocs</title>
@@ -149,9 +149,9 @@
 <body>
 
 <script type="text/javascript">
-var containers = eval("({[JSONContainers]})");
-var members = eval("({[JSONMembers]})");
-var functions = eval("({[JSONFunctions]})");
+var containers =	[/*** Containers ***/];
+var members =		[/*** Members ***/];
+var functions =		[/*** Functions ***/];
 
 window.onload = initialize;
 
@@ -216,7 +216,7 @@ function buildFrontPage()
 	{
 		if (containers[i].Name === "@FrontPage")
 		{
-			content.appendChild(createElement("span", containers[i].Description));
+			content.appendChild(createElement("span", containers[i].Description.replace(/\n/g, "<br>")));
 			return;
 		}
 	}
@@ -242,7 +242,7 @@ function loadDocumentation(container)
 
 	content.appendChild(createElement("h1", containerInfo.Name + (containerInfo.Extends !== "" ? " (extends " + containerInfo.Extends + ")" : "")));
 
-	content.appendChild(createElement("div", containerInfo.Description, "description"));
+    content.appendChild(createElement("div", containerInfo.Description.replace(/\n/g, "<br>"), "description"));
 
 	// Load members
 
@@ -330,7 +330,7 @@ function createMemberDocumentation(member, prefixContainer)
 	format = format.replace("{[=]}", (member.Default !== "" ? "=" : ""));
 	format = format.replace("{[Default]}", (member.Default !== "" ? (member.Type.toLowerCase() === "string" && member.Default.toLowerCase() !== "null" ? "\"" : "") + "<span class='default'>" + (member.Default.toLowerCase() !== "string.empty" ? member.Default : "") + "</span>" + (member.Type.toLowerCase() === "string" && member.Default.toLowerCase() !== "null" ? "\"" : "") : ""));
 
-	format += (member.Description !== "" ? "<br><span class='description'>" + member.Description + "</span>" : "");
+    format += (member.Description !== "" ? "<br><span class='description'>" + member.Description.replace(/\n/g, "<br>") + "</span>" : "");
 
 	return createElement("div", format, "member");
 }
@@ -364,13 +364,13 @@ function createFunctionDocumentation(func, prefixContainer)
 	formatFunction = formatFunction.replace("{[Returns]}", (func.Returns !== "" ? "<span class='type'>" + func.Returns + "</span>" : ""));
 	formatFunction = formatFunction.replace("{[Name]}", "<span class='function'>" + func.Name + "</span>( " + parms + " )");
 
-	formatFunction += (func.Description !== "" ? "<br><span class='description'>" + func.Description + "</span>" : "");
+    formatFunction += (func.Description !== "" ? "<br><span class='description'>" + func.Description.replace(/\n/g, "<br>") + "</span>" : "");
 
 	for (var i = 0 ; i < func.Parameters.length ; i++)
 	{
 		formatFunction += "<br>" + formatParmDescription;
 		formatFunction = formatFunction.replace("{[Name]}", "<span class='parameter'>" + func.Parameters[i].Name + "</span>");
-		formatFunction = formatFunction.replace("{[Description]}", "<span class='description'>" + func.Parameters[i].Description + "</span>");
+        formatFunction = formatFunction.replace("{[Description]}", "<span class='description'>" + func.Parameters[i].Description.replace(/\n/g, "<br>") + "</span>");
 	}
 
 	return createElement("div", formatFunction, "function");
