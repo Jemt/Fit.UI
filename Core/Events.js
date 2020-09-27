@@ -320,6 +320,8 @@ Fit.Events.GetModifierKeys = function()
 		Fit._internal.Events.KeysDown.Ctrl = window.event.ctrlKey === true;
 		Fit._internal.Events.KeysDown.Alt = window.event.altKey === true;
 		Fit._internal.Events.KeysDown.Meta = window.event.metaKey === true;
+		Fit._internal.Events.KeysDown.KeyUp = window.event.type === "keyup" ? window.event.keyCode : -1;
+		Fit._internal.Events.KeysDown.KeyDown = window.event.type === "keypress" || window.event.type === "keydown" ? window.event.keyCode : -1;
 	}
 
 	// Cloning to prevent external code from manipulating the object
