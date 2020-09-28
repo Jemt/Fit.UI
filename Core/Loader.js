@@ -19,7 +19,7 @@ Fit.Loader = {};
 /// 		The code loaded is injected into the virtual machine meaning debugging
 /// 		will not reveal from which file the code originated, although this
 /// 		information can be retrived by inspecting the call stack.
-/// 		ExecuteScript has the advantages that is allows for	both an OnSuccess
+/// 		ExecuteScript has the advantages that is allows for both an OnSuccess
 /// 		and OnFailure handler, and it allows for objects to be passed to
 /// 		the executing script using the context parameter, which will
 /// 		cause the code to execute within its own contained scope (closure).
