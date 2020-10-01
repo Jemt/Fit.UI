@@ -2,9 +2,9 @@
 // Execute parser: node Parser.js > index.ts.d
 // Expects file SimpleDocs.html to be accessible.
 // Alternatively test in a browser which is great for debugging:
-// https://jsfiddle.net/f2mzr0gz/1/
-// The JSFiddle loads the TypingsGenerator and parses the documentation
+// TypingsGenerator.html loads TypingsGenerator and parses the documentation
 // directly in the browser, allowing us to use the JS debugger.
+// The generated type definitions are written to the browser console.
 
 var isNodeJs = (typeof(window) === "undefined");
 var globals = isNodeJs ? global : window;
@@ -146,7 +146,16 @@ function Parser()
 	{
 		var startParsing = function(data)
 		{
-			var resp = data;
+			containers = data.Containers;
+			ensureParentContainers();
+			aliasTypes = getAliases();
+
+			properties = data.Members;
+			functions = data.Functions;
+
+			enums = getEnums();
+
+			/*var resp = data;
 			var regex = /eval\("(.*?)"\)/g;
 
 			var res = regex.exec(resp);
@@ -162,7 +171,7 @@ function Parser()
 			res = regex.exec(resp);
 			functions = eval(res[1]);
 
-			enums = getEnums();
+			enums = getEnums();*/
 
 			if (cb)
 			{
@@ -172,10 +181,11 @@ function Parser()
 
 		if (isNodeJs === false)
 		{
-			var r = new Fit.Http.Request("SimpleDocs.html");
+			var r = new Fit.Http.Request("SimpleDocs.json");
 			r.OnSuccess(function(sender)
 			{
-				startParsing(r.GetResponseText());
+				//startParsing(r.GetResponseText());
+				startParsing(r.GetResponseJson());
 			});
 			r.Start();
 		}
@@ -183,10 +193,11 @@ function Parser()
 		{
 			var fs = require('fs');
 
-			fs.readFile("SimpleDocs.html", "utf8", function(err, data)
+			fs.readFile("SimpleDocs.json", "utf8", function(err, data)
 			{
 				if (err) throw err;
-				startParsing(data);
+				//startParsing(data);
+				startParsing(JSON.parse(data));
 			});
 		}
 	}
@@ -233,7 +244,7 @@ function Parser()
 				return; // Skip
 
 			var shortContainerName = container.Name.substring(container.Name.lastIndexOf(".") + 1); // E.g. Fit.Controls.Button => Button
-			
+
 			if (globals[shortContainerName] !== undefined)
 			{
 				// Type already exists (e.g. Array or Date) - register alias
@@ -297,7 +308,32 @@ function Parser()
 
 	function getFunctions(container) // Get functions related to a specific container
 	{
-		return get(functions, container);
+		var funcs = get(functions, container);
+
+		var matches = [];
+
+		Fit.Array.ForEach(funcs, function(f)
+		{
+			if (f.Access !== "") // If access modifier is missing, it is considered a callback - a type definition for a function signature
+				Fit.Array.Add(matches, f);
+		});
+
+		return matches;
+	}
+
+	function getCallbacks(container) // Get callbacks related to a specific container
+	{
+		var funcs = get(functions, container);
+
+		var matches = [];
+
+		Fit.Array.ForEach(funcs, function(f)
+		{
+			if (f.Access === "") // This is the type definition for a callback - the signature of a function
+				Fit.Array.Add(matches, f);
+		});
+
+		return matches;
 	}
 
 	function get(collection, container) // Helper function
@@ -449,7 +485,7 @@ function Parser()
 			Fit.Array.ForEach(aliasTypes, function(alias)
 			{
 				res += "\n";
-				
+
 				if (alias.Name === "Array")
 				{
 					res += "type " + alias.Alias + " = " + alias.Name + "<any>;";
@@ -506,7 +542,7 @@ function Parser()
 
 		// Add functions
 
-		var functions = getFunctions(longContainerName);
+		var functions = Fit.Array.Merge(getFunctions(longContainerName), getCallbacks(longContainerName));
 
 		if (functions.length > 0)
 			res += "\n" + tabs + "// Functions defined by " + longContainerName;
@@ -532,7 +568,14 @@ function Parser()
 			var access = null;
 			var funcName = null;
 
-			if (hasSubClassOrEnum === true && f.Static === true) // NOTICE: Will not work if we add support for creating instances of "Fit"! We can't mix static functions and object functions!
+			var isCallback = (f.Access === ""); // True if function is not a public/private function, but merely a callback signature (type definition)
+
+			if (isCallback === true)
+			{
+				access = "type ";
+				funcName = f.Name;
+			}
+			else if (hasSubClassOrEnum === true && f.Static === true) // NOTICE: Will not work if we add support for creating instances of "Fit"! We can't mix static functions and object functions!
 			{
 				access = "export function ";
 				funcName = f.Name;
@@ -553,7 +596,14 @@ function Parser()
 				res += "\n" + tabs + "* @returns " + returnType;
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+			if (isCallback === true)
+			{
+				res += "\n" + tabs + access + funcName + " = (" + parms.Typings + ") => " + (returnTypeAlias !== null ? returnTypeAlias : "void") + ";";
+			}
+			else
+			{
+				res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+			}
 		});
 
 		// Add members (properties and functions) from containers/classes from which the current container/class extends.
@@ -626,14 +676,17 @@ function Parser()
 			return "Function";
 		else if (type === "integer") // TODO: Integer is not supported in TypeScript, but passing in a decimal where an integer is expected will cause Fit.UI to throw a type validation exception runtime
 			return "number";
+		else if (type === "integer[]")
+			return "number[]";
 
 		return type;
 	}
 
 	function formatDescription(description, tabs)
 	{
-		description = description.replace(/<br>/g, "\n" + tabs);
-		description = description.replace(/&#160;&#160;&#160;&#160; ?/g, "\t");
+		description = description.replace(/\n/g, "\n" + tabs);
+		//description = description.replace(/<br>/g, "\n" + tabs);
+		//description = description.replace(/&#160;&#160;&#160;&#160; ?/g, "\t");
 		description = description.replace(/\/\*/g, "//");
 		description = description.replace(/\*\//g, "");
 

@@ -26,7 +26,8 @@ docsGenerated=0
 
 if [[ -x $(command -v mono) ]] ; then
 	echo "Invoking SimpleDocs"
-	mono SimpleDocs/SimpleDocs.exe
+	mono SimpleDocs/SimpleDocs.exe --OutputFormat=HTML --ResultFile=SimpleDocs.html
+	mono SimpleDocs/SimpleDocs.exe --OutputFormat=JSON --ResultFile=SimpleDocs.json
 	docsGenerated=1
 else
 	echo "WARNING: Mono Framework not installed - unable to generate documentation!"
