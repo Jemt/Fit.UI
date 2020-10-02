@@ -553,11 +553,13 @@ function Parser()
 
 			var returnType = null;
 			var returnTypeAlias = null;
+			var returnTypeGenericName = null;
 
 			if (f.Returns)
 			{
 				returnType = getType(f.Returns);
 				returnTypeAlias = getType(f.Returns, true);
+				returnTypeGenericName = (f.Returns.indexOf("$") === 0 ? returnType.replace("[]", "")  /* Remove [] in case a strongly typed array is declared, e.g. TypeArray[] */ : null);
 			}
 
 			// Construct function signature
@@ -591,6 +593,8 @@ function Parser()
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
 			res += "\n" + tabs + "* @function " + f.Name;
+			if (returnTypeGenericName !== null)
+				res += "\n" + tabs + "* @template " + returnTypeGenericName; // https://github.com/google/closure-compiler/wiki/Generic-Types
 			res += parms.Docs;
 			if (returnType !== null)
 				res += "\n" + tabs + "* @returns " + returnType;
@@ -602,7 +606,7 @@ function Parser()
 			}
 			else
 			{
-				res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+				res += "\n" + tabs + access + funcName + (returnTypeGenericName !== null ? "<" + returnTypeGenericName + ">" : "") + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
 			}
 		});
 
@@ -654,6 +658,11 @@ function Parser()
 
 	function getType(type, resolveAlias)
 	{
+		if (type.indexOf("$") === 0) // Generics start with a dollar sign which needs to be removed
+		{
+			return type.substring(1);
+		}
+
 		if (resolveAlias === true)
 		{
 			var alias = getAlias(type);
