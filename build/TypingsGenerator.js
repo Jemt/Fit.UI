@@ -74,6 +74,14 @@ if (isNodeJs === true)
 			{
 				return arr1.concat(arr2);
 			}
+		},
+
+		String:
+		{
+			Trim: function(str)
+			{
+				return str.replace(/^\s+|\s+$/g, "");
+			}
 		}/*,
 
 		Http:
@@ -553,13 +561,24 @@ function Parser()
 
 			var returnType = null;
 			var returnTypeAlias = null;
-			var returnTypeGenericName = null;
+			var returnTypeGenerics = null;
 
 			if (f.Returns)
 			{
 				returnType = getType(f.Returns);
 				returnTypeAlias = getType(f.Returns, true);
-				returnTypeGenericName = (f.Returns.indexOf("$") === 0 ? returnType.replace("[]", "")  /* Remove [] in case a strongly typed array is declared, e.g. TypeArray[] */ : null);
+
+				if (f.Returns.indexOf("$") > -1) // Generic type(s) defined
+				{
+					returnTypeGenerics = "";
+					var regex = /\$(\w+)/g;
+					var match = null;
+
+					while ((match = regex.exec(f.Returns)) !== null) // match[0] = full match, match[1] = name of type
+					{
+						returnTypeGenerics += (returnTypeGenerics !== "" ? ", " : "") + match[1];
+					}
+				}
 			}
 
 			// Construct function signature
@@ -593,8 +612,13 @@ function Parser()
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
 			res += "\n" + tabs + "* @function " + f.Name;
-			if (returnTypeGenericName !== null)
-				res += "\n" + tabs + "* @template " + returnTypeGenericName; // https://github.com/google/closure-compiler/wiki/Generic-Types
+			if (returnTypeGenerics !== null) // https://github.com/google/closure-compiler/wiki/Generic-Types
+			{
+				Fit.Array.ForEach(returnTypeGenerics.split(", "), function(genericName)
+				{
+					res += "\n" + tabs + "* @template " + genericName;
+				});
+			}
 			res += parms.Docs;
 			if (returnType !== null)
 				res += "\n" + tabs + "* @returns " + returnType;
@@ -606,7 +630,7 @@ function Parser()
 			}
 			else
 			{
-				res += "\n" + tabs + access + funcName + (returnTypeGenericName !== null ? "<" + returnTypeGenericName + ">" : "") + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+				res += "\n" + tabs + access + funcName + (returnTypeGenerics !== null ? "<" + returnTypeGenerics + ">" : "") + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
 			}
 		});
 
@@ -658,6 +682,23 @@ function Parser()
 
 	function getType(type, resolveAlias)
 	{
+		if (type.indexOf("|") > -1) // Multipe types - e.g.: (integer | (string | Date)[])[] - make sure we resolve the actual types for all of them
+		{
+			// Capture names of all types - all names come after a starting paranthesis,
+			// a whitespace or a pie, and can optionally start with a dollar sign if it is a generic type.
+
+			var regex = /(^|\(| |\|)(\$?\w+)/g;
+			var match = null;
+			var newType = type; // Perform replacement on copy of string to avoid affecting regex matching which keeps an internal index of where to continue with next search
+
+			while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type
+			{
+				newType = newType.replace(match[0], match[1] + getType(match[2], resolveAlias));
+			}
+
+			return newType;
+		}
+
 		if (type.indexOf("$") === 0) // Generics start with a dollar sign which needs to be removed
 		{
 			return type.substring(1);
