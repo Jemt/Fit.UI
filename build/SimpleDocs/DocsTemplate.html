@@ -319,12 +319,14 @@ function createMenuLink(container)
 
 function createMemberDocumentation(member, prefixContainer)
 {
-	var format = "{[Container]} {[>]} {[Access]} {[Static]} {[Type]} {[Name]} {[=]} {[Default]}";
+	//var format = "{[Container]} {[>]} {[Access]} {[Static]} {[Type]} {[Name]} {[=]} {[Default]}";
+	var format = "{[Container]} {[>]} {[Access]} {[Static]} {[Name]} {[:]} {[Type]} {[=]} {[Default]}";
 
 	format = format.replace("{[Container]}", (prefixContainer !== undefined && prefixContainer === true ? "<a href='#" + member.Container + "' onclick=\"loadDocumentation('" + member.Container + "')\">" + member.Container + "</a>" : ""));
 	format = format.replace("{[>]}", (prefixContainer !== undefined && prefixContainer === true ? ">" : ""));
 	format = format.replace("{[Access]}", (member.Access !== "" ? "<span class='access'>" + member.Access + "</span>" : ""));
 	format = format.replace("{[Static]}", (member.Static === true ? "<span class='static'>static</span>" : ""));
+	format = format.replace("{[:]}", (member.Type !== "" ? ":" : ""));
 	format = format.replace("{[Type]}", (member.Type !== "" ? "<span class='type'>" + member.Type + "</span>" : ""));
 	format = format.replace("{[Name]}", "<span class='member'>" + member.Name + "</span>");
 	format = format.replace("{[=]}", (member.Default !== "" ? "=" : ""));
@@ -337,8 +339,10 @@ function createMemberDocumentation(member, prefixContainer)
 
 function createFunctionDocumentation(func, prefixContainer)
 {
-	var formatFunction = "{[Container]} {[>]} {[Access]} {[Static]} {[Virtual]} {[Returns]} {[Name]}";
-	var formatParm = "{[Type]} {[Name]} {[=]} {[Default]}";
+	// var formatFunction = "{[Container]} {[>]} {[Access]} {[Static]} {[Virtual]} {[Returns]} {[Name]}";
+	// var formatParm = "{[Type]} {[Name]} {[=]} {[Default]}";
+	var formatFunction = "{[Container]} {[>]} {[Access]} {[Static]} {[Virtual]} {[Name]} {[:]} {[Returns]}";
+	var formatParm = "{[Name]} {[:]} {[Type]} {[=]} {[Default]}";
 	var formatParmDescription = "@{[Name]} = {[Description]}";
 
 	var parm = "";
@@ -348,6 +352,7 @@ function createFunctionDocumentation(func, prefixContainer)
 	{
 		parm = formatParm;
 
+		parm = parm.replace("{[:]}", (func.Parameters[i].Type !== "" ? ":" : ""));
 		parm = parm.replace("{[Type]}", (func.Parameters[i].Type !== "" ? "<span class='type'>" + func.Parameters[i].Type + "</span>" : ""));
 		parm = parm.replace("{[Name]}", "<span class='parameter'>" + func.Parameters[i].Name + "</span>");
 		parm = parm.replace("{[=]}", (func.Parameters[i].Default !== "" ? "=" : ""));
@@ -361,6 +366,7 @@ function createFunctionDocumentation(func, prefixContainer)
 	formatFunction = formatFunction.replace("{[Access]}", (func.Access !== "" ? "<span class='access'>" + func.Access + "</span>" : ""));
 	formatFunction = formatFunction.replace("{[Static]}", (func.Static === true ? "<span class='static'>static</span>" : ""));
 	formatFunction = formatFunction.replace("{[Virtual]}", (func.Virtual === true ? "<span class='virtual'>virtual</span>" : ""));
+	formatFunction = formatFunction.replace("{[:]}", (func.Returns !== "" ? ":" : ""));
 	formatFunction = formatFunction.replace("{[Returns]}", (func.Returns !== "" ? "<span class='type'>" + func.Returns + "</span>" : ""));
 	formatFunction = formatFunction.replace("{[Name]}", "<span class='function'>" + func.Name + "</span>( " + parms + " )");
 

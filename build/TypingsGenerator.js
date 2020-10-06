@@ -221,14 +221,16 @@ function Parser()
 
 		Fit.Array.ForEach(containers, function(c)
 		{
-			if (c.Name.indexOf(".") === -1)
-				return; // Skip root container
+			var parentContainer = c.Name;
 
-			var parentContainer = c.Name.substring(0, c.Name.lastIndexOf(".")); // Parses e.g. Fit.Http from Fit.Http.Request or Fit from Fit.Array.
-
-			if (ensured[parentContainer] === undefined && getContainerByName(parentContainer) === null)
+			while (parentContainer.indexOf(".") > -1)
 			{
-				ensured[parentContainer] = { Name: parentContainer, Description: "", Extends: "" };
+				parentContainer = parentContainer.substring(0, parentContainer.lastIndexOf(".")); // Parses e.g. Fit.Http from Fit.Http.Request or Fit from Fit.Array.
+
+				if (ensured[parentContainer] === undefined && getContainerByName(parentContainer) === null)
+				{
+					ensured[parentContainer] = { Name: parentContainer, Description: "", Extends: "" };
+				}
 			}
 		});
 
@@ -342,6 +344,24 @@ function Parser()
 		});
 
 		return matches;
+	}
+
+	function getCallbackByName(callback) // Get callback based on name/path, e.g. Fit.ArrayTypeDefs.ForEachCallback
+	{
+		var callbackName = callback.substring(callback.lastIndexOf(".") + 1); // E.g. Fit.ArrayTypeDefs.ForEachCallback => ForEachCallback
+		var containerName = callback.indexOf(".") > -1 ? callback.substring(0, callback.lastIndexOf(".")) : "Fit"; // E.g. Fit.ArrayTypeDefs.ForEachCallback => Fit.ArrayTypeDefs
+		var callback = null;
+
+		Fit.Array.ForEach(getCallbacks(containerName), function(cb)
+		{
+			if (cb.Name === callbackName)
+			{
+				callback = cb;
+				return false; // Break loop
+			}
+		});
+
+		return callback;
 	}
 
 	function get(collection, container) // Helper function
@@ -621,7 +641,7 @@ function Parser()
 
 			if (isCallback === true)
 			{
-				res += "\n" + tabs + access + funcName + " = " + (generics.length > 0 ? "<" + generics.join(", ") + ">" : "") + "(" + parms.Typings + ") => " + (returnTypeAlias !== null ? returnTypeAlias : "void") + ";";
+				res += "\n" + tabs + access + funcName + (generics.length > 0 ? "<" + generics.join(", ") + ">" : "") + " = " + "(" + parms.Typings + ") => " + (returnTypeAlias !== null ? returnTypeAlias : "void") + ";";
 			}
 			else
 			{
@@ -663,14 +683,53 @@ function Parser()
 
 		Fit.Array.ForEach(functionInstance.Parameters, function(p)
 		{
-			//var containerInstance = getContainerByName(p.Type.replace("[]", "")); // Null for e.g. string, boolean, integer, etc.
+			// Find generics required by named callbacks (as apposed to anonymous/inline callbacks).
+			// Notice that the generic types used by named callbacks must be defined with the
+			// same name as the generics used in the function declaration, in order for
+			// the typings generator to be able to associate generics from function input
+			// parameters to named callback input parameters. Example - notice how both declarations use $Type:
+			// <function container="Fit.ArrayTypeDefs" name="ForEachObjectCallback" returns="boolean | void">
+			//     <param name="obj" type="$Type"> Object from array </param>
+			// </function>
+			// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+			//     <param name="arr" type="$Type[]"> Array with objects </param>
+			//     <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback"> Callback receiving objects </param>
+			// </function>
+			// Being able to declare the required generics would be more desirable, but this would require
+			// changes to SimpleDocs since using less-than and greater-than is not allowed in XML:
+			// <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback<$Type, $TypeB, ..>"> </param>
+			// But since this is not possible, we would need to either extend SimpleDocs with support like this:
+			// <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback" generics="$Type, $typeB, .."> </param>
+			// or use an alternative syntax for passing generics to the type attribute like this (ugly!):
+			// <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback{$Type, $TypeB, ..}"> </param>
+			// We will go with the requirement to use identical naming in both function declaration and named callback declaration
+			// for now. However, if this is completely unacceptable, inline declaration of a callback signature is supported,
+			// which works fine and doesn't get too bloated, when there is only a couple of callback arguments.
+			// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+			//     <param name="arr" type="$Type[]"> Array with objects </param>
+			//     <param name="callback" type="(obj:$Type) => boolean | void"> Callback receiving objects </param>
+			// </function>
+
+			var callback = getCallbackByName(p.Type); // Null if this is not a named callback
+			var callbackGenerics = [];
+
+			Fit.Array.ForEach(callback !== null ? callback.Parameters : [], function(cbParm)
+			{
+				Fit.Array.ForEach(getGenerics(cbParm.Type), function(genName)
+				{
+					if (Fit.Array.Contains(callbackGenerics, genName) === false)
+					{
+						callbackGenerics.push(genName);
+					}
+				});
+			});
 
 			docs += "\n" + tabs + "* @param {" + (p.Nullable === true ? "(" + getType(p.Type) + "|null)" : getType(p.Type))+ "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
 
 			str += (str !== "" ? ", " : "") + p.Name;
 			str += (p.Default ? "?" : "");
 			str += ":";
-			str += getType(p.Type, true) + (p.Nullable === true ? " | null" : "");
+			str += getType(p.Type, true) + (callbackGenerics.length > 0 ? "<" + callbackGenerics.join(", ") + ">" : "") + (p.Nullable === true ? " | null" : "");
 
 			Fit.Array.ForEach(getGenerics(p.Type), function(genericName)
 			{
