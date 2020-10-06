@@ -561,24 +561,14 @@ function Parser()
 
 			var returnType = null;
 			var returnTypeAlias = null;
-			var returnTypeGenerics = null;
+			var generics = [];
 
 			if (f.Returns)
 			{
 				returnType = getType(f.Returns);
 				returnTypeAlias = getType(f.Returns, true);
 
-				if (f.Returns.indexOf("$") > -1) // Generic type(s) defined
-				{
-					returnTypeGenerics = "";
-					var regex = /\$(\w+)/g;
-					var match = null;
-
-					while ((match = regex.exec(f.Returns)) !== null) // match[0] = full match, match[1] = name of type
-					{
-						returnTypeGenerics += (returnTypeGenerics !== "" ? ", " : "") + match[1];
-					}
-				}
+				generics = getGenerics(f.Returns);
 			}
 
 			// Construct function signature
@@ -593,7 +583,7 @@ function Parser()
 
 			if (isCallback === true)
 			{
-				access = "type ";
+				access = "type "; // Specify "export type " to make it available externally
 				funcName = f.Name;
 			}
 			else if (hasSubClassOrEnum === true && f.Static === true) // NOTICE: Will not work if we add support for creating instances of "Fit"! We can't mix static functions and object functions!
@@ -609,16 +599,21 @@ function Parser()
 
 			var parms = getParameterString(f, tabs);
 
+			Fit.Array.ForEach(parms.Generics, function(genericName)
+			{
+				if (Fit.Array.Contains(generics, genericName) === false)
+				{
+					generics.push(genericName);
+				}
+			});
+
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
 			res += "\n" + tabs + "* @function " + f.Name;
-			if (returnTypeGenerics !== null) // https://github.com/google/closure-compiler/wiki/Generic-Types
+			Fit.Array.ForEach(generics, function(genericName) // https://github.com/google/closure-compiler/wiki/Generic-Types
 			{
-				Fit.Array.ForEach(returnTypeGenerics.split(", "), function(genericName)
-				{
-					res += "\n" + tabs + "* @template " + genericName;
-				});
-			}
+				res += "\n" + tabs + "* @template " + genericName;
+			});
 			res += parms.Docs;
 			if (returnType !== null)
 				res += "\n" + tabs + "* @returns " + returnType;
@@ -626,11 +621,11 @@ function Parser()
 
 			if (isCallback === true)
 			{
-				res += "\n" + tabs + access + funcName + " = (" + parms.Typings + ") => " + (returnTypeAlias !== null ? returnTypeAlias : "void") + ";";
+				res += "\n" + tabs + access + funcName + " = " + (generics.length > 0 ? "<" + generics.join(", ") + ">" : "") + "(" + parms.Typings + ") => " + (returnTypeAlias !== null ? returnTypeAlias : "void") + ";";
 			}
 			else
 			{
-				res += "\n" + tabs + access + funcName + (returnTypeGenerics !== null ? "<" + returnTypeGenerics + ">" : "") + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+				res += "\n" + tabs + access + funcName + (generics.length > 0 ? "<" + generics.join(", ") + ">" : "") + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
 			}
 		});
 
@@ -664,6 +659,7 @@ function Parser()
 		var tabs = ((tabsStr !== undefined) ? tabsStr : "");
 		var str = "";
 		var docs = "";
+		var generics = [];
 
 		Fit.Array.ForEach(functionInstance.Parameters, function(p)
 		{
@@ -675,19 +671,49 @@ function Parser()
 			str += (p.Default ? "?" : "");
 			str += ":";
 			str += getType(p.Type, true) + (p.Nullable === true ? " | null" : "");
+
+			Fit.Array.ForEach(getGenerics(p.Type), function(genericName)
+			{
+				if (Fit.Array.Contains(generics, genericName) === false)
+				{
+					generics.push(genericName);
+				}
+			});
 		});
 
-		return { Typings: str, Docs: docs };
+		return { Typings: str, Docs: docs, Generics: generics };
+	}
+
+	function getGenerics(type)
+	{
+		var generics = [];
+		var regex = /\$(\w+)/g;
+		var match = null;
+
+		while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = name of type
+		{
+			generics.push(match[1]);
+		}
+
+		return generics;
 	}
 
 	function getType(type, resolveAlias)
 	{
-		if (type.indexOf("|") > -1) // Multipe types - e.g.: (integer | (string | Date)[])[] - make sure we resolve the actual types for all of them
+		if (type.indexOf("|") > -1 || type.indexOf(":") > -1)
 		{
-			// Capture names of all types - all names come after a starting paranthesis,
-			// a whitespace or a pie, and can optionally start with a dollar sign if it is a generic type.
+			// Multipe types (e.g.: integer | (string | Date)[])[]) or type(s) in an anonymous
+			// callback (e.g.: (val:$MyType, compare:string) => void) present. Make sure actual types are
+			// resolved. However, be aware not to use types as parameter names in anonymous functions!
+			// For instance (integer:integer)=>boolean|integer will translate the name of the argument, not just
+			// the type, turning it into (number:number)=>boolean|number. Since this is just type declarations without
+			// implementation, it's of no big deal, but it does create inconsistency with the HTML documentation.
+			// In any event, using types as parameter names is bad practice.
 
-			var regex = /(^|\(| |\|)(\$?\w+)/g;
+			// Capture names of all types - all names come after a starting paranthesis, a space, a colon
+			// (function argument type) or a pipe, and can optionally start with a dollar sign if it is a generic type.
+
+			var regex = /(^|\(| |\||:)(\$?\w+)/g;
 			var match = null;
 			var newType = type; // Perform replacement on copy of string to avoid affecting regex matching which keeps an internal index of where to continue with next search
 
