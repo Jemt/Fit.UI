@@ -82,6 +82,17 @@ Fit.Array = {};
 /// </function>
 /// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
 /// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="object[]"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:object) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
 /// 		Iterates through object properties and passes each property name to the provided callback function.
 /// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 /// 	</description>
