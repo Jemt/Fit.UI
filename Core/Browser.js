@@ -213,7 +213,7 @@ Fit.Browser.GetQueryString = function(alternativeUrl)
 
 	qs.Url = url;
 	qs.Hash = hash;
-	eq.Anchor = hash; // Backwards compatibility
+	qs.Anchor = hash; // Backwards compatibility
 
 	Fit.Array.ForEach(((params !== "") ? params.split("&") : []), function(p)
 	{
