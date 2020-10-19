@@ -311,6 +311,22 @@ function Parser()
 		return matches;
 	}
 
+	function getEnumByName(enumName)
+	{
+		var found = null;
+
+		Fit.Array.ForEach(enums, function(enumObj)
+		{
+			if (enumObj.Name === enumName)
+			{
+				found = enumObj;
+				return false; // Break loop
+			}
+		});
+
+		return found;
+	}
+
 	function getProperties(container) // Get public properties (e.g. possible values for an enum)
 	{
 		return get(properties, container);
@@ -469,7 +485,7 @@ function Parser()
 				values += (values !== "" ? "," : "");
 
 				values += "\n" + tabs + "\t/** " + formatDescription(p.Description, tabs) + " */";
-				values += "\n" + tabs + "\t" + p.Name + " = \"" + p.Default + "\"";
+				values += "\n" + tabs + "\t" + (/^[a-z0-9]+$/i.test(p.Name) === true ? p.Name : "\"" + p.Name + "\"") + " = \"" + p.Default + "\"";
 			});
 
 			res += values;
@@ -903,6 +919,24 @@ function Parser()
 			return "number";
 		else if (type === "integer[]")
 			return "number[]";
+
+		// Expand enum.
+		// An enum such as Fit.Demo.MyEnum with OptionA and OptionB is expanded to
+		// Fit.Demo.MyEnum|"OptionA"|"OptionB" to allow the use of both the enum and its values.
+
+		var enumObj = getEnumByName(type);
+
+		if (enumObj !== null)
+		{
+			Fit.Array.ForEach(getProperties(type), function(enumValue)
+			{
+				type += " | " + "\"" + enumValue.Default + "\"";
+			});
+
+			return type;
+		}
+
+		// Return type as-is, but with generics attached if defined (e.g. SomeType<TypeA, TypeB>)
 
 		return type + getGenericsString(getGenericsUsageFromDtoOrCallback(type));
 	}
