@@ -18,60 +18,116 @@
 Fit.Browser = {};
 Fit._internal.Browser = {};
 
-/// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns="string">
-/// 	<description> Returns browser name. Possible values are: Chrome, Safari, Edge, MSIE, Firefox, Opera, Unknown </description>
+/// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns='"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"'>
+/// 	<description>
+/// 		Returns name of browser. Possible values are: Chrome (which also covers modern versions of Opera and Edge),
+/// 		Safari, Edge (version 12-18), MSIE (version 8-11), Firefox, Opera (version 1-12), Unknown.
+/// 	</description>
+/// 	<param name="returnAppId" type="false" default="false"> Set True to have app specific identifier returned </param>
 /// </function>
-Fit.Browser.GetBrowser = function()
+/// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns='"Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown"'>
+/// 	<description>
+/// 		Returns browser app identifer. Possible values are: Chrome, Safari, Edge (version 12-18), EdgeChromium (version 85+),
+/// 		MSIE (version 8-11), Firefox, Opera (version 1-12), OperaChromium (version 15+), Unknown
+/// 	</description>
+/// 	<param name="returnAppId" type="true"> Set True to have app specific identifier returned </param>
+/// </function>
+Fit.Browser.GetBrowser = function(returnAppId)
 {
+	Fit.Validation.ExpectBoolean(returnAppId, true);
+
 	var agent = navigator.userAgent;
 
-	if (agent.indexOf("Edge/") > -1) // Check Edge first, it contain portions from Chrome's and Safari's user agent strings
+	// IMPORTANT: The order in which browsers are detected matters! For instance, several browsers define both Chrome and Safari as part of their user agent string. Examples:
+	// Firefox 46	"Mozilla/5.0 (Windows NT 5.2; rv:46.0) Gecko/20100101 Firefox/46.0"
+	// Firefox 81	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:81.0) Gecko/20100101 Firefox/81.0"
+	// Chrome 85	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
+	// Safari 13	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15"
+	// Opera 12		"Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16.2"
+	// Opera 71		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36 OPR/71.0.3770.228"
+	// IE 8			"Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)"
+	// IE 11		"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; rv:11.0) like Gecko"
+	// Edge 18		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363"
+	// Edge 85		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36 Edg/85.0.564.41"
+
+	if (agent.indexOf("Edge/") > -1)
 		return "Edge";
-	if (agent.indexOf("Chrome") > -1)
-		return "Chrome";
-	if (agent.indexOf("Safari") > -1)
-		return "Safari";
+	if (returnAppId === true && agent.indexOf("Edg/") > -1)
+		return "EdgeChromium";
 	if (agent.indexOf("MSIE") > -1 || agent.indexOf("Trident") > -1)
 		return "MSIE";
 	if (agent.indexOf("Firefox") > -1)
 		return "Firefox";
 	if (agent.indexOf("Opera") > -1)
 		return "Opera";
+	if (returnAppId === true && agent.indexOf("OPR/") > -1)
+		return "OperaChromium";
+	if (agent.indexOf("Chrome") > -1)
+		return "Chrome";
+	if (agent.indexOf("Safari") > -1)
+		return "Safari";
 
 	return "Unknown";
 }
 
 /// <function container="Fit.Browser" name="GetVersion" access="public" static="true" returns="integer">
 /// 	<description> Returns major version number for known browsers, -1 for unknown browsers </description>
+/// 	<param name="returnAppVersion" type="boolean" default="false">
+/// 		Set True to have app specific version number returned, rather than version number of browser engine.
+/// 		If version number is used in combination with the result from Fit.Browser.GetBrowser(true), then
+/// 		this argument should be True as well, otherwise False (default).
+/// 	</param>
 /// </function>
-Fit.Browser.GetVersion = function()
+Fit.Browser.GetVersion = function(returnAppVersion)
 {
+	Fit.Validation.ExpectBoolean(returnAppVersion, true);
+
+	// Firefox 46	"Mozilla/5.0 (Windows NT 5.2; rv:46.0) Gecko/20100101 Firefox/46.0"
+	// Firefox 81	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:81.0) Gecko/20100101 Firefox/81.0"
+	// Chrome 85	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36"
+	// Safari 13	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15"
+	// Opera 12		"Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16.2"
+	// Opera 71		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36 OPR/71.0.3770.228"
+	// IE 8			"Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)"
+	// IE 11		"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; rv:11.0) like Gecko"
+	// Edge 18		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363"
+	// Edge 85		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36 Edg/85.0.564.41"
+
+	var browser = Fit.Browser.GetBrowser(returnAppVersion);
+
 	var start = 0;
 	var end = 0;
 	var agent = navigator.userAgent;
 
-	if (Fit.Browser.GetBrowser() === "Edge")
+	if (browser === "Edge")
 	{
 		start = agent.indexOf("Edge/");
 		start = (start !== -1 ? start + 5 : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
-	if (Fit.Browser.GetBrowser() === "Chrome")
+	if (browser === "EdgeChromium")
+	{
+		start = agent.indexOf("Edg/");
+		start = (start !== -1 ? start + 4 : 0);
+		end = agent.indexOf(".", start);
+		end = (end !== -1 ? end : 0);
+	}
+	if (browser === "Chrome")
 	{
 		start = agent.indexOf("Chrome/");
 		start = (start !== -1 ? start + 7 : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
-	if (Fit.Browser.GetBrowser() === "Safari")
+	if (browser === "Safari")
 	{
 		start = agent.indexOf("Version/");
 		start = (start !== -1 ? start + 8 : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
-	if (Fit.Browser.GetBrowser() === "MSIE")
+	if (browser === "MSIE")
 	{
 		if (agent.indexOf("MSIE") > -1)
 		{
@@ -88,14 +144,14 @@ Fit.Browser.GetVersion = function()
 			end = (end !== -1 ? end : 0);
 		}
 	}
-	if (Fit.Browser.GetBrowser() === "Firefox")
+	if (browser === "Firefox")
 	{
 		start = agent.indexOf("Firefox/");
 		start = (start !== -1 ? start + 8 : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
-	if (Fit.Browser.GetBrowser() === "Opera")
+	if (browser === "Opera")
 	{
 		start = agent.indexOf("Version/");
 		start = (start !== -1 ? start + 8 : -1);
@@ -115,6 +171,13 @@ Fit.Browser.GetVersion = function()
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
+	if (browser === "OperaChromium")
+	{
+		start = agent.indexOf("OPR/");
+		start = (start !== -1 ? start + 4 : 0);
+		end = agent.indexOf(".", start);
+		end = (end !== -1 ? end : 0);
+	}
 
 	if (start !== 0 && start !== 0)
 		return parseInt(agent.substring(start, end));
@@ -122,30 +185,35 @@ Fit.Browser.GetVersion = function()
 	return -1;
 }
 
-/// <function container="Fit.Browser" name="GetQueryString" access="public" static="true" returns="object">
-/// 	<description>
-/// 		Returns query string object containing the following properties:
-/// 		 - Url:string (Full URL)
-/// 		 - Parameters:object (associative object array with URL parameters as keys)
-/// 		 - Anchor:string (anchor if set, otherwise Null)
-/// 	</description>
+/// <container name="Fit.BrowserTypeDefs.QueryString">
+/// 	<description> Object representing query string </description>
+/// 	<member name="Url" type="string"> Full URL address </member>
+/// 	<member name="Parameters" type="{[key:string]: string | undefined}">
+/// 		Associative array with key value pairs representing URL parameters
+/// 	</member>
+/// 	<member name="Hash" type="string | null"> URL hash value if specified, otherwise Null </member>
+/// </container>
+
+/// <function container="Fit.Browser" name="GetQueryString" access="public" static="true" returns="Fit.BrowserTypeDefs.QueryString">
+/// 	<description> Returns query string information </description>
 /// 	<param name="alternativeUrl" type="string" default="undefined"> Alternative URL to parse </param>
 /// </function>
 Fit.Browser.GetQueryString = function(alternativeUrl)
 {
 	Fit.Validation.ExpectString(alternativeUrl, true);
 
-	var qs = { Url: null, Parameters: {}, Anchor: null };
+	var qs = { Url: null, Parameters: {}, Hash: null, Anchor: null }; // Anchor is there for backwards compatibility
 
 	var url = ((alternativeUrl !== undefined) ? alternativeUrl : location.href);
 	var params = ((url.indexOf("?") > -1) ? url.split("?")[1] : "");
-	var anchor = null;
+	var hash = null;
 
 	params = ((params.indexOf("#") > -1) ? params.split("#")[0] : params);
-	anchor = ((url.indexOf("#") > -1) ? url.split("#")[1] : null);
+	hash = ((url.indexOf("#") > -1) ? url.split("#")[1] : null);
 
 	qs.Url = url;
-	qs.Anchor = anchor;
+	qs.Hash = hash;
+	eq.Anchor = hash; // Backwards compatibility
 
 	Fit.Array.ForEach(((params !== "") ? params.split("&") : []), function(p)
 	{
@@ -166,19 +234,25 @@ Fit.Browser.GetQueryString = function(alternativeUrl)
 	return qs;
 }
 
-/// <function container="Fit.Browser" name="ParseUrl" access="public" static="true" returns="object">
+/// <container name="Fit.BrowserTypeDefs.ParsedUrl">
+/// 	<description> Object representing components of a URL </description>
+/// 	<member name="Url" type="string"> Full URL address </member>
+/// 	<member name="Protocol" type='"ftp" | "http" | "https"'> Full URL address </member>
+/// 	<member name="Port" type="integer"> Port number - returns -1 if not defined in URL </member>
+/// 	<member name="Auth" type="string"> Authentication token or user:pass if specified, otherwise Null </member>
+/// 	<member name="Host" type="string"> Hostname, e.g. localhost or domain name </member>
+/// 	<member name="Path" type="string"> Path to folder containing resources, e.g. / or /folder </member>
+/// 	<member name="Resource" type="string"> Name of resource, e.g. resource.php </member>
+/// 	<member name="FullPath" type="string"> Path and Resource combined, e.g. /folder/resource.php </member>
+/// 	<member name="Parameters" type="{[key:string]: string | undefined}">
+/// 		Associative array with key value pairs representing URL parameters
+/// 	</member>
+/// 	<member name="Hash" type="string | null"> URL hash value if specified, otherwise Null </member>
+/// </container>
+
+/// <function container="Fit.Browser" name="ParseUrl" access="public" static="true" returns="Fit.BrowserTypeDefs.ParsedUrl">
 /// 	<description>
-/// 		Parses well-formed URLs and returns an object containing the following properties:
-/// 		 - Url:string (URL passed to function)
-/// 		 - Protocol:string (e.g. ftp, http, https)
-/// 		 - Port:integer (returns -1 if not defined in URL)
-/// 		 - Auth:string (e.g. accessToken or user:pass)
-/// 		 - Host:string (e.g. localhost or fitui.org)
-/// 		 - Path:string (e.g. /path/to/)
-/// 		 - Resource:string (e.g. resource.php)
-/// 		 - FullPath:string (e.g. /path/to/resource.php)
-/// 		 - Parameters:object (associative object array with URL parameters as keys)
-/// 		 - Anchor:string
+/// 		Parses well-formed URLs and returns an object containing the various components.
 /// 	</description>
 /// 	<param name="url" type="string"> Well-formed URL to parse </param>
 /// </function>
@@ -238,7 +312,7 @@ Fit.Browser.ParseUrl = function(url)
 	15 = Path NOT followed by anything (end of string) */
 	var regEx = /(.+):\/\/((.+)@)?((.+):((\d+)\/?)?|(.+?)\/|(.+?)$)((.*)\?(.+)|(.*)#(.*)|(.*)$)/;
 	var match = regEx.exec(url);
-	var result = { Url: null, Protocol: null, Port: null, Auth: null, Host: null, FullPath: null, Path: null, Resource: null, Parameters: {}, Anchor: null };
+	var result = { Url: null, Protocol: null, Port: null, Auth: null, Host: null, FullPath: null, Path: null, Resource: null, Parameters: {}, Hash: null, Anchor: null }; // Anchor is there for backwards compatibility
 
 	if (match === null)
 	{
@@ -260,10 +334,11 @@ Fit.Browser.ParseUrl = function(url)
 	result.Port = (match[7] ? parseInt(match[7]) : -1);
 	result.FullPath = "/" + fullPath;
 	result.Parameters = qs.Parameters;
-	result.Anchor = qs.Anchor;
+	result.Hash = qs.Hash;
+	result.Anchor = qs.Hash; // Backwards compatibility
 
 	result.Path = "/";
-	
+
 	if (fullPath !== "")
 	{
 		var pathInfo = fullPath.split("/");
@@ -277,7 +352,7 @@ Fit.Browser.ParseUrl = function(url)
 			result.Resource = pathInfo[pathInfo.length - 1];
 		}
 	}
-	
+
 	return result;
 }
 
@@ -335,7 +410,7 @@ Fit.Browser.GetPageHeight = function()
 	return h;
 }
 
-/// <function container="Fit.Browser" name="GetViewPortDimensions" access="public" static="true" returns="object">
+/// <function container="Fit.Browser" name="GetViewPortDimensions" access="public" static="true" returns="Fit.TypeDefs.Dimension">
 /// 	<description> Returns object with Width and Height properties specifying dimensions of viewport </description>
 /// </function>
 Fit.Browser.GetViewPortDimensions = function()
@@ -343,7 +418,7 @@ Fit.Browser.GetViewPortDimensions = function()
 	return { Width: Fit.Browser.GetPageWidth(), Height: Fit.Browser.GetPageHeight() };
 }
 
-/// <function container="Fit.Browser" name="GetScrollPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Browser" name="GetScrollPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
 /// 	<description> Returns object with X and Y properties specifying scroll position </description>
 /// </function>
 Fit.Browser.GetScrollPosition = function()
@@ -386,7 +461,7 @@ Fit.Browser.GetScreenHeight = function(onlyAvailable)
 	return window.screen.height;
 }
 
-/// <function container="Fit.Browser" name="GetScreenDimensions" access="public" static="true" returns="object">
+/// <function container="Fit.Browser" name="GetScreenDimensions" access="public" static="true" returns="Fit.TypeDefs.Dimension">
 /// 	<description> Returns object with Width and Height properties specifying screen dimensions </description>
 /// 	<param name="onlyAvailable" type="boolean" default="false">
 /// 		Set True to return only available space (may be reduced by e.g. Start menu (Windows) or Dock (Linux/OSX)
@@ -441,21 +516,54 @@ Fit.Browser.Debug = function(msg) // msg not validated - any object or value (in
 Fit.Browser.LogDeprecated = function(msg)
 {
 	Fit.Validation.ExpectString(msg);
-	
+
 	if (window.console && console.warn)
 		console.warn(msg);
 	else
 		Fit.Browser.Log(msg);
-	
+
 	//if (window.console && console.trace)
 		//console.trace();
 }
 
-/// <function container="Fit.Browser" name="GetInfo" access="public" static="true" returns="object">
-/// 	<description> Returns cached object with browser information available through Name, Version, and Language properties </description>
+/// <container name="Fit.BrowserTypeDefs.BrowserInfo">
+/// 	<description> Object representing browser environment </description>
+/// 	<member name="Name" type='"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"'> Browser name </member>
+/// 	<member name="Version" type="integer"> Browser version </member>
+/// 	<member name="Language" type="string"> Browser language, e.g. en, da, de, etc. </member>
+/// 	<member name="IsMobile" type="boolean"> Boolean indicating whether this is a mobile device (tablet or phone) </member>
+/// 	<member name="IsPhone" type="boolean"> Boolean indicating whether this is a phone </member>
+/// 	<member name="IsTablet" type="boolean"> Boolean indicating whether this is a tablet device </member>
+/// </container>
+/// <container name="Fit.BrowserTypeDefs.BrowserAppInfo" extends="Fit.BrowserTypeDefs.BrowserInfo">
+/// 	<description> Object representing browser app environment </description>
+/// 	<member name="Name" type='"Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown"'> Browser app name </member>
+/// </container>
+
+/// <function container="Fit.Browser" name="GetInfo" access="public" static="true" returns="Fit.BrowserTypeDefs.BrowserInfo">
+/// 	<description> Returns cached object with browser information </description>
+/// 	<param name="returnAppInfo" type="false" default="false"> Set True to have app specific browser information returned - see GetBrowser(..) for details </param>
 /// </function>
-Fit.Browser.GetInfo = function()
+/// <function container="Fit.Browser" name="GetInfo" access="public" static="true" returns="Fit.BrowserTypeDefs.BrowserAppInfo">
+/// 	<description> Returns cached object with browser app information </description>
+/// 	<param name="returnAppInfo" type="true"> Set True to have app specific browser information returned - see GetBrowser(..) for details </param>
+/// </function>
+Fit.Browser.GetInfo = function(returnAppInfo)
 {
+	Fit.Validation.ExpectBoolean(returnAppInfo, true);
+
+	if (returnAppInfo === true)
+	{
+		if (!Fit._internal.Browser.AppInfo)
+		{
+			Fit._internal.Browser.AppInfo = Fit.Browser.GetInfo();
+			Fit._internal.Browser.AppInfo.Name = Fit.Browser.GetBrowser(true);		// Get app specific browser identifier (e.g. EdgeChromium for the chromed based Edge browser)
+			Fit._internal.Browser.AppInfo.Version = Fit.Browser.GetVersion(true);	// Get app specific version number rather than browser engine version number
+		}
+
+		return Fit.Core.Clone(Fit._internal.Browser.AppInfo); // Clone to ensure values are not shared and potentially changed
+	}
+
 	if (!Fit._internal.Browser.Info)
 	{
 		Fit._internal.Browser.Info = {};
