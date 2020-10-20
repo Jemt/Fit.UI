@@ -3,11 +3,186 @@
 /// </container>
 Fit.Events = {};
 
+// See TypeScript's GlobalEventHandlersEventMap (lib.dom.d.ts) which reveals how named events map to event types.
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackKeyboard" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="KeyboardEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackMouse" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="MouseEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackPopState" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="PopStateEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackHashChange" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="HashChangeEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackFocus" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="FocusEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackBeforeUnload" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="BeforeUnloadEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackClipboard" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="ClipboardEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackRooted" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="dom" type="DOMElement"> DOM element </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackGeneric" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="Event"> Event argument </param>
+/// </function>
+
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
-/// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
-/// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
+/// 	<param name="event" type='"keydown" | "keyup" | "keypress"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackKeyboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackMouse"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"popstate"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackPopState"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"hashchange"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackHashChange"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"focus" | "focusin" | "focusout" | "blur"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackFocus"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"beforeunload"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"cut" | "copy" | "paste"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given DOMElement and returns Event ID </description>
+/// 	<param name="element" type="DOMElement"> DOM element on to which event handler is registered </param>
+/// 	<param name="event" type='"#rooted"'> Event name </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackRooted"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type="string"> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackGeneric"> JavaScript function to register </param>
+/// </function>
+//  ------------------------------------------------------------------------------------------
+//  Overloads with useCapture argument
+//  ------------------------------------------------------------------------------------------
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"keydown" | "keyup" | "keypress"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackKeyboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackMouse"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"popstate"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackPopState"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"hashchange"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackHashChange"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"focus" | "focusin" | "focusout" | "blur"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackFocus"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"beforeunload"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"cut" | "copy" | "paste"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given DOMElement and returns Event ID </description>
+/// 	<param name="element" type="DOMElement"> DOM element on to which event handler is registered </param>
+/// 	<param name="event" type='"#rooted"'> Event name </param>
+/// 	<param name="useCapture" type="boolean"> This argument is ignored for the specialized #rooted event </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackRooted"> JavaScript function to register </param>
 /// </function>
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
@@ -17,7 +192,7 @@ Fit.Events = {};
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
-/// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackGeneric"> JavaScript function to register </param>
 /// </function>
 Fit.Events.AddHandler = function()
 {
@@ -305,11 +480,19 @@ Fit.Events.GetEvent = function(e)
 	return e || window.event;
 }
 
-/// <function container="Fit.Events" name="GetModifierKeys" access="public" static="true" returns="object">
+/// <container name="Fit.EventTypeDefs.ModifierKeys">
+/// 	<description> Modifier keys </description>
+/// 	<member name="Shift" type="boolean"> True if Shift key is being held down, otherwise False </member>
+/// 	<member name="Ctrl" type="boolean"> True if Ctrl key is being held down, otherwise False </member>
+/// 	<member name="Alt" type="boolean"> True if Alt key is being held down, otherwise False </member>
+/// 	<member name="Meta" type="boolean"> True if Meta key (Windows key on a PC, Cmd key on a Mac) is being held down, otherwise False </member>
+/// 	<member name="KeyUp" type="integer"> Key code if key is released, otherwise -1 </member>
+/// 	<member name="KeyDown" type="integer"> Key code if key is pressed, otherwise -1 </member>
+/// </container>
+
+/// <function container="Fit.Events" name="GetModifierKeys" access="public" static="true" returns="Fit.EventTypeDefs.ModifierKeys">
 /// 	<description>
 /// 		Get object containing information about modifier keys currently being active.
-/// 		Object contains the following properties which are True if the given key is being held down:
-/// 		Shift, Ctrl, Alt, Meta (Cmd key on Mac OSX, Win key on Windows).
 /// 	</description>
 /// </function>
 Fit.Events.GetModifierKeys = function()
@@ -328,13 +511,19 @@ Fit.Events.GetModifierKeys = function()
 	return Fit.Core.Clone(Fit._internal.Events.KeysDown);
 }
 
-/// <function container="Fit.Events" name="GetPointerState" access="public" static="true" returns="object">
+/// <container name="Fit.EventTypeDefs.PointerState">
+/// 	<description> Pointer state </description>
+/// 	<member name="Buttons" type="{ Primary: boolean, Secondary: boolean }"> Pointer buttons currently activated </member>
+/// 	<member name="Coordinates" type="{ ViewPort: Fit.TypeDefs.Position, Document: Fit.TypeDefs.Position }"> Pointer position within viewport and document, which might have been scrolled </member>
+/// </container>
+
+/// <function container="Fit.Events" name="GetPointerState" access="public" static="true" returns="Fit.EventTypeDefs.PointerState">
 /// 	<description>
 /// 		Get object containing information about pointer.
 /// 		Object contains the following properties:
 /// 		Buttons.Primary/Secondary: Is True if given button is being held down
 /// 		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport
-/// 		Coordinates.Document.X/Y: Mouse coordinates within document which may have been scrolled
+/// 		Coordinates.Document.X/Y: Mouse coordinates within document which might have been scrolled
 /// 	</description>
 /// </function>
 Fit.Events.GetPointerState = function()
@@ -584,6 +773,11 @@ Fit._internal.Events.MutationObserverIntervalId = -1;
 Fit._internal.Events.MutationCheckExecuting = false;
 Fit._internal.Events.MutationRegisterPostponed = [];
 
+/// <function container="Fit.EventsTypeDefs" name="MutationObserverCallback" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddMutationObserver(..) </description>
+/// 	<param name="dom" type="DOMElement"> DOM element </param>
+/// </function>
+
 /// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true" returns="integer">
 /// 	<description>
 /// 		Registers mutation observer which is invoked when a DOMElement is updated. By default
@@ -593,7 +787,7 @@ Fit._internal.Events.MutationRegisterPostponed = [];
 /// 		To remove an observer from within the observer function itself, simply call disconnect().
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to observe </param>
-/// 	<param name="obs" type="function"> JavaScript observer function to register - receives reference to DOMElement being observed when updated </param>
+/// 	<param name="obs" type="Fit.EventsTypeDefs.MutationObserverCallback"> JavaScript observer function to register - receives reference to DOMElement being observed when updated </param>
 /// 	<param name="deep" type="boolean" default="false"> Flag indicating whether to check for modifications within element (children and character data) - this could potentially be expensive </param>
 /// </function>
 Fit.Events.AddMutationObserver = function(elm, obs, deep)
@@ -649,7 +843,7 @@ Fit.Events.AddMutationObserver = function(elm, obs, deep)
 /// <function container="Fit.Events" name="RemoveMutationObserver" access="public" static="true">
 /// 	<description> Remove mutation observer </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement being observed </param>
-/// 	<param name="obs" type="function"> JavaScript observer function to remove </param>
+/// 	<param name="obs" type="Fit.EventsTypeDefs.MutationObserverCallback"> JavaScript observer function to remove </param>
 /// 	<param name="deep" type="boolean" default="undefined"> If defined, observer must have been registered with the same deep value to be removed </param>
 /// </function>
 /// <function container="Fit.Events" name="RemoveMutationObserver" access="public" static="true">
