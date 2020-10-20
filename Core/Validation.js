@@ -521,6 +521,8 @@ Fit._internal.Validation.IsCollectionType = function(val) // Used by Fit.Validat
 		return true;
 	else if (val instanceof HTMLCollection)
 		return true;
+	else if (val instanceof NamedNodeMap)
+		return true;
 	else if (val instanceof FileList)
 		return true;
 	else if (val instanceof StyleSheetList)
