@@ -92,7 +92,7 @@ Fit.Math.MidpointRounding =
 	/// 	<description>
 	/// 		When a number is midway between two others, the value is rounded up towards a positive value. Examples:
 	/// 		1.4 becomes 1, 1.5 (midway) becomes 2, and 1.6 becomes 2.
-	/// 		-1,4 becomes 1, -1,5 (midway) becomes -1, and -1.6 becomes -2.
+	/// 		-1,4 becomes -1, -1,5 (midway) becomes -1, and -1.6 becomes -2.
 	/// 		This is the default behaviour for JavaScript's Math.round(..) function.
 	/// 	</description>
 	/// </member>
@@ -112,8 +112,8 @@ Fit.Math.MidpointRounding =
 	/// 	<description>
 	/// 		When a number is midway between two others, the value is rounded towards the nearest number away from zero. Examples:
 	/// 		1.4 becomes 1, 1.5 (midway) becomes 2, and 1.6 becomes 2.
-	/// 		-1,4 becomes 1, -1,5 (midway) becomes -2, and -1.6 becomes -2.
-	/// 		This is the default behaviour of PHP's round(..) function.
+	/// 		-1,4 becomes -1, -1,5 (midway) becomes -2, and -1.6 becomes -2.
+	/// 		This is the default behaviour of PHP's round(..) function and .NET's Math.Round(..) function.
 	/// 	</description>
 	/// </member>
 	AwayFromZero: "AwayFromZero"
@@ -135,7 +135,7 @@ Fit.Math.Round = function(value, precision, midpointRounding)
 
 	if (Fit.Validation.IsSet(midpointRounding) === true && Fit.Validation.IsSet(Fit.Math.MidpointRounding[midpointRounding]) === false)
 		Fit.Validation.ThrowError("Unsupported MidpointRounding specified - use e.g. Fit.Math.MidpointRounding.Up");
-	
+
 	var decimals = ((Fit.Validation.IsSet(precision) === true) ? precision : 0);
 	var mpr = (midpointRounding ? midpointRounding : Fit.Math.MidpointRounding.AwayFromZero);
 
@@ -571,7 +571,18 @@ Fit.Color.HexToRgb = function(hex)
 	return "rgb(" + rgb.Red + ", " + rgb.Green + ", " + rgb.Blue + ")";
 }
 
-/// <function container="Fit.Color" name="ParseHex" access="public" static="true" returns="object">
+/// <container name="Fit.ColorTypeDefs.RgbColor">
+/// 	<description> RGB color object </description>
+/// 	<member name="Red" type="integer"> </member>
+/// 	<member name="Green" type="integer"> </member>
+/// 	<member name="Blue" type="integer"> </member>
+/// </container>
+/// <container name="Fit.ColorTypeDefs.RgbaColor" extends="Fit.ColorTypeDefs.RgbColor">
+/// 	<description> RGBA color object </description>
+/// 	<member name="Alpha" type="integer"> Alpha channel (opacity) </member>
+/// </container>
+
+/// <function container="Fit.Color" name="ParseHex" access="public" static="true" returns="Fit.ColorTypeDefs.RgbColor | null">
 /// 	<description> Convert HEX color string into RGB color object, e.g. { Red: 150, Green: 30, Blue: 185 } - returns Null in case of invalid HEX value </description>
 /// 	<param name="hex" type="string"> HEX color string, e.g. #C0C0C0 (hash symbol is optional) </param>
 /// </function>
@@ -587,7 +598,7 @@ Fit.Color.ParseHex = function(hex)
 	return { Red: parseInt(result[1], 16), Green: parseInt(result[2], 16), Blue: parseInt(result[3], 16) };
 }
 
-/// <function container="Fit.Color" name="ParseRgb" access="public" static="true" returns="object">
+/// <function container="Fit.Color" name="ParseRgb" access="public" static="true" returns="Fit.ColorTypeDefs.RgbaColor | null">
 /// 	<description>
 /// 		Parses RGB(A) string and turns result into a RGB(A) color object, e.g.
 /// 		{ Red: 100, Green: 100, Blue: 100, Alpha: 0.3 } - returns Null in case of invalid value.

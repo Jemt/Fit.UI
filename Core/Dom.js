@@ -132,7 +132,7 @@ Fit.Dom.GetComputedStyle = function(elm, style)
     return (res !== undefined ? res : null);
 }
 
-/// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="Fit.TypeDefs.Position">
 /// 	<description>
 /// 		Returns object with X and Y properties (integers) with inner dimensions of specified
 /// 		container. Inner dimensions are width and height with padding and borders substracted.
@@ -816,7 +816,7 @@ Fit.Dom.SetCaretPosition = function(input, pos)
 	}
 }
 
-/// <function container="Fit.Dom" name="GetBoundingPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetBoundingPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
 /// 	<description>
 /// 		Get position for visible element within viewport.
 /// 		Object returned contains an X and Y property
@@ -841,7 +841,7 @@ Fit.Dom.GetBoundingPosition = function(elm)
 	return { X: Math.round(bcr.x || bcr.left), Y: Math.round(bcr.y || bcr.top) }; // Several legacy browsers use top/left instead of x/y
 }
 
-/// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
 /// 	<description>
 /// 		Get position for visible element.
 /// 		Object returned contains an X and Y property
@@ -897,7 +897,7 @@ Fit._internal.Dom.GetPosition = function(elm, relativeToViewport, internalKeepMa
 	return pos;
 }
 
-/// <function container="Fit.Dom" name="GetRelativePosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetRelativePosition" access="public" static="true" returns="Fit.TypeDefs.Position | null">
 /// 	<description>
 /// 		Get element position relative to a positioned parent or ancestor (offsetParent).
 /// 		Coordinates returned are relative to document if no positioned parent or ancestor is found.
@@ -962,7 +962,7 @@ Fit.Dom.GetRelativePosition = function(elm)
 	return pos;
 }
 
-/// <function container="Fit.Dom" name="GetScrollPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetScrollPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
 /// 	<description>
 /// 		Get number of pixels specified element's container(s)
 /// 		have been scrolled. This gives us the total scroll value

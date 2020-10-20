@@ -580,14 +580,14 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Validate();
 	}
 
-	/// <function container="Fit.ControlBaseTypeDefs" name="ValidationCallback" returns="boolean | string | void">
+	/// <function container="Fit.Controls.ControlBaseTypeDefs" name="ValidationCallback" returns="boolean | string | void">
 	/// 	<description> Validation callback used with AddValidationRule(..) inherited from Fit.Controls.ControlBase </description>
 	/// 	<param name="sender" type="Fit.Controls.ControlBase"> Control to validate </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
 	/// 	<description> Set callback function used to perform on-the-fly validation against control </description>
-	/// 	<param name="validator" type="Fit.ControlBaseTypeDefs.ValidationCallback">
+	/// 	<param name="validator" type="Fit.Controls.ControlBaseTypeDefs.ValidationCallback">
 	/// 		Function receiving an instance of the control.
 	/// 		A value of False or a non-empty string with an
 	/// 		error message must be returned if value is invalid.
@@ -619,7 +619,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
 	/// 	<description> Remove validation function used to perform on-the-fly validation against control </description>
-	/// 	<param name="validator" type="Fit.ControlBaseTypeDefs.ValidationCallback"> Validation function registered using AddValidationRule(..) </param>
+	/// 	<param name="validator" type="Fit.Controls.ControlBaseTypeDefs.ValidationCallback"> Validation function registered using AddValidationRule(..) </param>
 	/// </function>
 	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
 	/// 	<description> Remove regular expression used to perform on-the-fly validation against control value </description>
@@ -772,14 +772,14 @@ Fit.Controls.ControlBase = function(controlId)
 	// Events
 	// ============================================
 
-	/// <function container="Fit.ControlBaseTypeDefs" name="BaseEvent">
+	/// <function container="Fit.Controls.ControlBaseTypeDefs" name="BaseEvent">
 	/// 	<description> Event handler receiving an instance of the control firing the event </description>
 	/// 	<param name="sender" type="Fit.Controls.ControlBase"> Control instance </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.ControlBase" name="OnChange" access="public">
 	/// 	<description> Register OnChange event handler which is invoked when control value is changed either programmatically or by user </description>
-	/// 	<param name="cb" type="Fit.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnChange = function(cb)
 	{
@@ -789,7 +789,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnFocus" access="public">
 	/// 	<description> Register OnFocus event handler which is invoked when control gains focus </description>
-	/// 	<param name="cb" type="Fit.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnFocus = function(cb)
 	{
@@ -799,7 +799,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnBlur" access="public">
 	/// 	<description> Register OnBlur event handler which is invoked when control loses focus </description>
-	/// 	<param name="cb" type="Fit.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnBlur = function(cb)
 	{

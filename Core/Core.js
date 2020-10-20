@@ -309,7 +309,7 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 	return false;
 }
 
-/// <function container="Fit.Core" name="Merge" access="public" static="true" returns="object">
+/// <function container="Fit.Core" name="Merge" access="public" static="true" returns="$ObjectTypeA + $ObjectTypeB">
 /// 	<description>
 /// 		Deep merges two objects and returns the resulting object.
 /// 		Take notice of the behaviour and restriction of Fit.Core.Clone(..) since
@@ -318,8 +318,8 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 /// 		Property values on the merge object takes precedence over property values on the
 /// 		target object. Arrays are not merged but merely replaced if defined on the merge object.
 /// 	</description>
-/// 	<param name="targetObject" type="object"> Target object </param>
-/// 	<param name="mergeObject" type="object"> Merge object </param>
+/// 	<param name="targetObject" type="$ObjectTypeA"> Target object </param>
+/// 	<param name="mergeObject" type="$ObjectTypeB"> Merge object </param>
 /// </function>
 Fit.Core.Merge = function(targetObject, mergeObject)
 {
@@ -393,7 +393,7 @@ Fit.Core.Merge = function(targetObject, mergeObject)
 	return newObject;
 }
 
-/// <function container="Fit.Core" name="Clone" access="public" static="true" returns="object">
+/// <function container="Fit.Core" name="Clone" access="public" static="true" returns="$ObjectType">
 /// 	<description>
 /// 		Clone JavaScript object. Supported object types and values:
 /// 		String, Number, Boolean, Date, Array, (JSON) Object, Function, Undefined, Null, NaN,
@@ -410,7 +410,7 @@ Fit.Core.Merge = function(targetObject, mergeObject)
 /// 		will cause an infinite loop, and eventually a stack overflow exception.
 /// 		DOM objects and window/frame instances are not supported.
 /// 	</description>
-/// 	<param name="obj" type="object"> JS object to clone </param>
+/// 	<param name="obj" type="$ObjectType"> JS object to clone </param>
 /// </function>
 Fit.Core.Clone = function(obj)
 {
@@ -480,7 +480,7 @@ Fit.Core.Clone = function(obj)
 				flags += "m";
 			if (org.sticky) // Notice that sticky is not supported in legacy IE
 				flags += "y";
-			
+
 			return new RegExp(org.source, flags);
 		}
 		else if (org && typeof(org) === "object") // Recursively fix children (object/array)
@@ -552,7 +552,15 @@ Fit._internal.Core.EnsureStyles = function()
 	Fit._internal.BasePath = ((path.indexOf("/") !== -1) ? path.substring(path.indexOf("/")) : "/");
 })();
 
-/// <function container="Fit" name="GetVersion" access="public" static="true" returns="object">
+/// <container name="Fit.CoreTypeDefs.VersionInfo">
+/// 	<description> Version information </description>
+/// 	<member name="Major" type="integer"> Major version number </member>
+/// 	<member name="Minor" type="integer"> Minor version number </member>
+/// 	<member name="Patch" type="integer"> Patch version number </member>
+/// 	<member name="Version" type="string"> String version number in the format Major.Minor.Patch </member>
+/// </container>
+
+/// <function container="Fit" name="GetVersion" access="public" static="true" returns="Fit.CoreTypeDefs.VersionInfo">
 /// 	<description>
 /// 		Get Fit.UI version object containing the following properties:
 ///			Major (integer), Minor (integer), Patch (integer), Version (string representing Major.Minor.Patch).
@@ -666,7 +674,7 @@ Fit.SetUrl = function(baseUrl) // E.g. http://foreign-host/path/to/Fit.UI/
 	var url = Fit.Browser.ParseUrl(baseUrl);
 
 	Fit.SetPath(url.FullPath); // Using FullPath rather than Path in case URL has been specified using http://host/path/to/Fit.UI (without trailing slash which makes Fit.UI a resource and not a folder, resulting in it being excluded from Path)
-	
+
 	var newUrl = (url.Url.lastIndexOf("/") === url.Url.length - 1 ? url.Url.substring(0, url.Url.length - 1) : url.Url); // Both GetPath() and GetUrl() return values without trailing slashes - e.g. libs/fitui and http://host/libs/fitui - so make sure no trailing slash is present
 	Fit._internal.BaseUrlOverride = newUrl;
 }

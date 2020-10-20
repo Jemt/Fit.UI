@@ -335,11 +335,22 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		me = elm = trgElm = onDragStart = onDragging = onDragStop = mouseDownEventId = null;
 	}
 
-    // Event handling
+	// Event handling
+
+	/// <function container="Fit.DragDrop.DraggableTypeDefs" name="DragEventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="dom" type="DOMElement"> DOM element to which event is associated </param>
+	/// </function>
+
+	/// <function container="Fit.DragDrop.DraggableTypeDefs" name="DragStopEventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="dom" type="DOMElement"> DOM element to which event is associated </param>
+	/// 	<param name="draggable" type="Fit.DragDrop.Draggable"> Instance of Draggable to which event is associated </param>
+	/// </function>
 
     /// <function container="Fit.DragDrop.Draggable" name="OnDragStart" access="public">
 	/// 	<description> Add event handler which gets fired when dragging starts </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - draggable DOM element is passed to function </param>
+	/// 	<param name="cb" type="Fit.DragDrop.DraggableTypeDefs.DragEventHandler"> Callback (event handler) function - draggable DOM element is passed to function </param>
 	/// </function>
 	this.OnDragStart = function(cb)
     {
@@ -349,7 +360,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
 	/// <function container="Fit.DragDrop.Draggable" name="OnDragging" access="public">
 	/// 	<description> Add event handler which constantly gets fired when dragging takes place </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - draggable DOM element is passed to function </param>
+	/// 	<param name="cb" type="Fit.DragDrop.DraggableTypeDefs.DragEventHandler"> Callback (event handler) function - draggable DOM element is passed to function </param>
 	/// </function>
     this.OnDragging = function(cb)
     {
@@ -359,7 +370,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
     /// <function container="Fit.DragDrop.Draggable" name="OnDragStop" access="public">
 	/// 	<description> Add event handler which gets fired when dragging stops </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of Draggable is passed to function </param>
+	/// 	<param name="cb" type="Fit.DragDrop.DraggableTypeDefs.DragStopEventHandler"> Callback (event handler) function - instance of Draggable is passed to function </param>
 	/// </function>
 	this.OnDragStop = function(cb)
     {
@@ -434,9 +445,25 @@ Fit.DragDrop.DropZone = function(domElm)
 
 	// Event handling
 
+	/// <function container="Fit.DragDrop.DropZoneTypeDefs" name="EnterEventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="dropZone" type="Fit.DragDrop.DropZone"> Instance of DropZone to which draggable can potentially be dropped now </param>
+	/// </function>
+
+	/// <function container="Fit.DragDrop.DropZoneTypeDefs" name="DropEventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="dropZone" type="Fit.DragDrop.DropZone"> Instance of DropZone to which draggable is dropped </param>
+	/// 	<param name="draggable" type="Fit.DragDrop.Draggable"> Instance of Draggable being dropped </param>
+	/// </function>
+
+	/// <function container="Fit.DragDrop.DropZoneTypeDefs" name="LeaveEventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="dropZone" type="Fit.DragDrop.DropZone"> Instance of DropZone from which draggable is moved away </param>
+	/// </function>
+
     /// <function container="Fit.DragDrop.DropZone" name="OnEnter" access="public">
 	/// 	<description> Add event handler which gets fired when draggable enters dropzone, ready to be dropped </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of DropZone is passed to function </param>
+	/// 	<param name="cb" type="Fit.DragDrop.DropZoneTypeDefs.EnterEventHandler"> Callback (event handler) function - instance of DropZone is passed to function </param>
 	/// </function>
 	this.OnEnter = function(cb)
     {
@@ -446,7 +473,7 @@ Fit.DragDrop.DropZone = function(domElm)
 
     /// <function container="Fit.DragDrop.DropZone" name="OnDrop" access="public">
 	/// 	<description> Add event handler which gets fired when draggable is dropped on dropzone </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of DropZone and Draggable is passed to function (in that order) </param>
+	/// 	<param name="cb" type="Fit.DragDrop.DropZoneTypeDefs.DropEventHandler"> Callback (event handler) function - instance of DropZone and Draggable is passed to function (in that order) </param>
 	/// </function>
 	this.OnDrop = function(cb)
     {
@@ -456,7 +483,7 @@ Fit.DragDrop.DropZone = function(domElm)
 
 	/// <function container="Fit.DragDrop.DropZone" name="OnLeave" access="public">
 	/// 	<description> Add event handler which gets fired when draggable leaves dropzone </description>
-	/// 	<param name="cb" type="function"> Callback (event handler) function - instance of DropZone is passed to function </param>
+	/// 	<param name="cb" type="Fit.DragDrop.DropZoneTypeDefs.LeaveEventHandler"> Callback (event handler) function - instance of DropZone is passed to function </param>
 	/// </function>
     this.OnLeave = function(cb)
     {
