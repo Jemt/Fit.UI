@@ -345,10 +345,10 @@ Fit.Controls.ControlBase = function(controlId)
 	});
 
 
-	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit)
 	{
@@ -372,10 +372,10 @@ Fit.Controls.ControlBase = function(controlId)
 		return width;
 	}
 
-	/// <function container="Fit.Controls.ControlBase" name="Height" access="public" returns="object">
+	/// <function container="Fit.Controls.ControlBase" name="Height" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control height - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control height is updated to specified value. A value of -1 resets control height. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control height is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control height is updated to specified CSS unit </param>
 	/// </function>
 	this.Height = function(val, unit)
 	{
@@ -580,9 +580,14 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Validate();
 	}
 
+	/// <function container="Fit.ControlBaseTypeDefs" name="ValidationCallback" returns="boolean | string | void">
+	/// 	<description> Validation callback used with AddValidationRule(..) inherited from Fit.Controls.ControlBase </description>
+	/// 	<param name="sender" type="Fit.Controls.ControlBase"> Control to validate </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
 	/// 	<description> Set callback function used to perform on-the-fly validation against control </description>
-	/// 	<param name="validator" type="function">
+	/// 	<param name="validator" type="Fit.ControlBaseTypeDefs.ValidationCallback">
 	/// 		Function receiving an instance of the control.
 	/// 		A value of False or a non-empty string with an
 	/// 		error message must be returned if value is invalid.
@@ -614,7 +619,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
 	/// 	<description> Remove validation function used to perform on-the-fly validation against control </description>
-	/// 	<param name="validator" type="function"> Validation function registered using AddValidationRule(..) </param>
+	/// 	<param name="validator" type="Fit.ControlBaseTypeDefs.ValidationCallback"> Validation function registered using AddValidationRule(..) </param>
 	/// </function>
 	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
 	/// 	<description> Remove regular expression used to perform on-the-fly validation against control value </description>
@@ -767,9 +772,14 @@ Fit.Controls.ControlBase = function(controlId)
 	// Events
 	// ============================================
 
+	/// <function container="Fit.ControlBaseTypeDefs" name="BaseEvent">
+	/// 	<description> Event handler receiving an instance of the control firing the event </description>
+	/// 	<param name="sender" type="Fit.Controls.ControlBase"> Control instance </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.ControlBase" name="OnChange" access="public">
 	/// 	<description> Register OnChange event handler which is invoked when control value is changed either programmatically or by user </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnChange = function(cb)
 	{
@@ -779,7 +789,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnFocus" access="public">
 	/// 	<description> Register OnFocus event handler which is invoked when control gains focus </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnFocus = function(cb)
 	{
@@ -789,7 +799,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnBlur" access="public">
 	/// 	<description> Register OnBlur event handler which is invoked when control loses focus </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnBlur = function(cb)
 	{
@@ -1090,11 +1100,19 @@ Fit.Controls.ControlBase = function(controlId)
 // Public static
 // ============================================
 
-/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="object">
+/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="Fit.Controls.Component | null">
 /// 	<description> Get control by unique Control ID - returns Null if not found </description>
 /// 	<param name="id" type="string"> Unique Control ID </param>
 /// </function>
-Fit.Controls.Find = function(id)
+/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="$ExpectedControlType | null">
+/// 	<description> Get control by unique Control ID - returns Null if not found </description>
+/// 	<param name="id" type="string"> Unique Control ID </param>
+/// 	<param name="expectedType" type="$ExpectedControlType">
+/// 		For development environments supporting JSDoc and generics (e.g. VSCode), make Find(..) return found component
+/// 		as specified type. For instance to return a type as Fit.Controls.DropDown, specify Fit.Controls.DropDown.prototype.
+/// 	</param>
+/// </function>
+Fit.Controls.Find = function(id, expectedType) // The expectedType argument is there only to add support for a generic return type via typings
 {
 	Fit.Validation.ExpectStringValue(id);
 	return ((Fit._internal.ControlBase.Controls[id] !== undefined) ? Fit._internal.ControlBase.Controls[id] : null);
