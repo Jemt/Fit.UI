@@ -769,7 +769,7 @@ function Parser()
 	{
 		var generics = [];
 
-		var regex = /(^|\(| |\||:|=>)(\$?[\w\.]+)/g; // Also found in getTypes(..) along with an explaination - make changes both places!
+		var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)/g; // Also found in getTypes(..) along with an explaination - make changes both places!
 		var match = null;
 
 		while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type
@@ -865,11 +865,11 @@ function Parser()
 
 	function getType(type, resolveAlias)
 	{
-		if (type.indexOf("|") > -1 || type.indexOf(":") > -1)
+		if (type.indexOf("|") > -1 || type.indexOf(":") > -1 || type.indexOf("+") > -1)
 		{
-			// Multipe types (e.g.: integer | (string | Date)[])[]) or type(s) in an anonymous
-			// callback (e.g.: (val:$MyType, compare:string) => void) present. Make sure actual types are
-			// resolved. However, be aware not to use types as parameter names in anonymous functions!
+			// Multipe types (e.g.: integer | (string | Date)[])[]), type(s) in an anonymous
+			// callback (e.g.: (val:$MyType, compare:string) => void), or intersection types (e.g.: TypeA + TypeB) present.
+			// Make sure actual types are resolved. However, be aware not to use types as parameter names in anonymous functions!
 			// For instance (integer:integer)=>boolean|integer will translate the name of the argument, not just
 			// the type, turning it into (number:number)=>boolean|number. Since this is just type declarations without
 			// implementation, it's of no big deal, but it does create inconsistency with the HTML documentation.
@@ -878,7 +878,7 @@ function Parser()
 			// Capture names of all types - all names come after a starting paranthesis, a space, a colon (function argument type),
 			// equal-or-greater-than arrow (function return type), or a pipe, and can optionally start with a dollar sign if it is a generic type.
 
-			var regex = /(^|\(| |\||:|=>)(\$?[\w\.]+)/g; // Also found in getGenericsUsageFromDtoOrCallback(..) - make changes both places!
+			var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)/g; // Also found in getGenericsUsageFromDtoOrCallback(..) - make changes both places!
 			var match = null;
 			var newType = type; // Perform replacement on copy of string to avoid affecting regex matching which keeps an internal index of where to continue with next search
 
@@ -887,7 +887,7 @@ function Parser()
 				newType = newType.replace(match[0], match[1] + getType(match[2], resolveAlias));
 			}
 
-			return newType;
+			return newType.replace(/\+/g, "&"); // In XML documentation we use + to specify intersection types (e.g.: TypeA + TypeB => TypeA & TypeB)
 		}
 
 		if (type.indexOf("$") > -1) // Generics start with a dollar sign which needs to be removed
