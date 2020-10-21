@@ -144,10 +144,10 @@ Fit.Controls.CheckBox = function(ctlId)
 		return (Fit.Dom.Data(me.GetDomElement(), "checked") === "true");
 	}
 
-	/// <function container="Fit.Controls.CheckBox" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.CheckBox" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit) // Differs from ControlBase.Width(..) when -1 is passed - this control resets to width:auto while ControlBase resets to width:200px
 	{

@@ -158,10 +158,10 @@ Fit.Controls.Button = function(controlId)
 		return (Fit.Dom.GetFocused() === element || (Fit.Dom.GetFocused() && Fit.Dom.Contained(element, Fit.Dom.GetFocused())));
 	}
 
-	/// <function container="Fit.Controls.Button" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.Button" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit) // Differs from ControlBase.Width(..) when -1 is passed - this control resets to width:auto while ControlBase resets to width:200px
 	{
@@ -185,10 +185,10 @@ Fit.Controls.Button = function(controlId)
 		return width;
 	}
 
-	/// <function container="Fit.Controls.Button" name="Height" access="public" returns="object">
+	/// <function container="Fit.Controls.Button" name="Height" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control height - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control height is updated to specified value. A value of -1 resets control height. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control height is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control height is updated to specified CSS unit </param>
 	/// </function>
 	this.Height = function(val, unit)
 	{
@@ -220,9 +220,16 @@ Fit.Controls.Button = function(controlId)
 		return height;
 	}
 
+	/// <function container="Fit.Controls.ButtonTypeDefs" name="ClickEventHandler">
+	/// 	<description> OnClick event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.Button"> Instance of Button </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.Button" name="OnClick" access="public">
 	/// 	<description> Set callback function invoked when button is clicked </description>
-	/// 	<param name="cb" type="function"> Callback function invoked when button is clicked - takes button instance as argument </param>
+	/// 	<param name="cb" type="Fit.Controls.ButtonTypeDefs.ClickEventHandler">
+	/// 		Callback function invoked when button is clicked - takes button instance as argument
+	/// 	</param>
 	/// </function>
 	this.OnClick = function(cb)
 	{

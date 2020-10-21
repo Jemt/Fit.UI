@@ -127,6 +127,31 @@ Fit.Controls.WSContextMenu = function(controlId)
 	// Events
 	// ============================================
 
+	/// <container name="Fit.Controls.WSContextMenuTypeDefs.RequestEventArgs">
+	/// 	<description> Request event handler arguments </description>
+	/// 	<member name="Sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </member>
+	/// 	<member name="Request" type="Fit.Http.JsonpRequest | Fit.Http.JsonRequest"> Instance of JsonpRequest or JsonRequest </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.WSContextMenuTypeDefs" name="RequestEventHandler" returns="boolean | void">
+	/// 	<description> OnRequest event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSContextMenuTypeDefs.RequestEventArgs"> Event arguments </param>
+	/// </function>
+
+	/// <container name="Fit.Controls.WSContextMenuTypeDefs.DataEventArgs">
+	/// 	<description> Data event handler arguments </description>
+	/// 	<member name="Sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </member>
+	/// 	<member name="Request" type="Fit.Http.JsonpRequest | Fit.Http.JsonRequest"> Instance of JsonpRequest or JsonRequest </member>
+	/// 	<member name="Children" type="object"> JSON items received from web service </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.WSContextMenuTypeDefs" name="DataEventHandler">
+	/// 	<description> Data event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSContextMenuTypeDefs.DataEventArgs"> Event arguments </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSContextMenu" name="OnRequest" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when data is being requested.
@@ -137,7 +162,9 @@ Fit.Controls.WSContextMenu = function(controlId)
 	/// 		 - Sender: Fit.Controls.WSContextMenu instance
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSContextMenuTypeDefs.RequestEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnRequest = function(cb)
 	{
@@ -156,7 +183,9 @@ Fit.Controls.WSContextMenu = function(controlId)
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Children: JSON items received from WebService
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSContextMenuTypeDefs.DataEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnResponse = function(cb)
 	{
@@ -174,7 +203,9 @@ Fit.Controls.WSContextMenu = function(controlId)
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Children: JSON items received from WebService
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSContextMenuTypeDefs.DataEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnPopulated = function(cb)
 	{
@@ -218,7 +249,7 @@ Fit.Controls.WSContextMenu = function(controlId)
 
 		if (fireEventHandlers(onRequestHandlers, eventArgs) === false)
 			return;
-		
+
 		if (eventArgs.Request !== request)
 		{
 			// Support for changing request instans to

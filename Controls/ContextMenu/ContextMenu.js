@@ -255,7 +255,7 @@ Fit.Controls.ContextMenu = function(controlId)
 
 		if (me._internal.ExecuteBeforeShowBehaviour() === false)
 			return;
-		
+
 		me._internal.ExecuteShowBehaviour(x, y);
 	}
 
@@ -445,13 +445,31 @@ Fit.Controls.ContextMenu = function(controlId)
 	// Events
 	// ============================================
 
+	/// <function container="Fit.Controls.ContextMenuTypeDefs" name="CancelableEventHandler" returns="boolean | void">
+	/// 	<description> Event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.ContextMenu"> Instance of ContextMenu </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.ContextMenuTypeDefs" name="EventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.ContextMenu"> Instance of ContextMenu </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.ContextMenuTypeDefs" name="SelectEventHandler">
+	/// 	<description> OnSelect event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.ContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="item" type="Fit.Controls.ContextMenuItem"> Instance of ContextMenuItem </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.ContextMenu" name="OnShowing" access="public">
 	/// 	<description>
 	/// 		Add event handler fired before context menu is shown.
 	/// 		This event can be canceled by returning False.
 	/// 		Function receives one argument: Sender (Fit.Controls.ContextMenu).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.ContextMenuTypeDefs.CancelableEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnShowing = function(cb)
 	{
@@ -464,7 +482,9 @@ Fit.Controls.ContextMenu = function(controlId)
 	/// 		Add event handler fired when context menu is shown.
 	/// 		Function receives one argument: Sender (Fit.Controls.ContextMenu).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.ContextMenuTypeDefs.EventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnShown = function(cb)
 	{
@@ -477,7 +497,9 @@ Fit.Controls.ContextMenu = function(controlId)
 	/// 		Add event handler fired when context menu is hidden.
 	/// 		Function receives one argument: Sender (Fit.Controls.ContextMenu).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.ContextMenuTypeDefs.EventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnHide = function(cb)
 	{
@@ -491,7 +513,9 @@ Fit.Controls.ContextMenu = function(controlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.ContextMenu) and Item (Fit.Controls.ContextMenuItem).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.ContextMenuTypeDefs.SelectEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnSelect = function(cb)
 	{
@@ -606,7 +630,7 @@ Fit.Controls.ContextMenu = function(controlId)
 	{
 		Fit.Validation.ExpectInteger(x, true);
 		Fit.Validation.ExpectInteger(y, true);
-		
+
 		// Set position
 
 		var pos = Fit.Events.GetPointerState().Coordinates.Document;
@@ -633,7 +657,7 @@ Fit.Controls.ContextMenu = function(controlId)
 		Fit.Array.Recurse(tree.GetChildren(), "GetChildren", function(child)
 		{
 			// Multiple children in the same level will cause their parent to get updated multiple times which is acceptable
-			
+
 			Fit.Dom.Data(child.GetDomElement(), "deep", "false");
 
 			if (child.GetChildren().length > 0)
