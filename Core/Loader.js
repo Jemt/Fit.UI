@@ -6,6 +6,11 @@
 /// </container>
 Fit.Loader = {};
 
+/// <function container="Fit.LoaderTypeDefs" name="LoadSingleEventHandler">
+/// 	<description> Callback invoked when resource is loaded </description>
+/// 	<param name="src" type="string"> Resource loaded </param>
+/// </function>
+
 /// <function container="Fit.Loader" name="ExecuteScript" access="public" static="true">
 /// 	<description>
 /// 		Load client script on demand in a non-blocking manner.
@@ -38,11 +43,11 @@ Fit.Loader = {};
 /// 		}, { $: window.jQuery, mode: &quot;advanced&quot;, showData: &quot;users&quot; });
 /// 	</description>
 /// 	<param name="src" type="string"> Script source (path or URL) </param>
-/// 	<param name="onSuccess" type="function" default="undefined">
+/// 	<param name="onSuccess" type="Fit.LoaderTypeDefs.LoadSingleEventHandler" default="undefined">
 /// 		Callback function fired when script has been successfully loaded and executed.
 /// 		The function takes the script source requested as an argument.
 /// 	</param>
-/// 	<param name="onFailure" type="function" default="undefined">
+/// 	<param name="onFailure" type="Fit.LoaderTypeDefs.LoadSingleEventHandler" default="undefined">
 /// 		Callback function fired if script could not be loaded or executed successfully.
 /// 		The function takes the script source requested as an argument.
 /// 	</param>
@@ -151,7 +156,7 @@ Fit.Loader.ExecuteScript = function(src, onSuccess, onFailure, context)
 /// 		});
 /// 	</description>
 /// 	<param name="src" type="string"> Script source (path or URL) </param>
-/// 	<param name="callback" type="function" default="undefined">
+/// 	<param name="callback" type="Fit.LoaderTypeDefs.LoadSingleEventHandler" default="undefined">
 /// 		Callback function fired when script loading is complete - takes the script source requested as an argument.
 /// 		Be aware that a load error will also trigger the callback to make sure control is always returned.
 /// 		Consider using feature detection within callback function for super reliable execution - example:
@@ -206,6 +211,24 @@ Fit.Loader.LoadScript = function(src, callback)
 	document.getElementsByTagName("head")[0].appendChild(script);
 }
 
+/// <container name="Fit.LoaderTypeDefs.ResourceConfiguration">
+/// 	<description> Resource configuration </description>
+/// 	<member name="source" type="string"> Path to resource </member>
+/// 	<member name="loaded" type="Fit.LoaderTypeDefs.LoadSingleConfigurationEventHandler" default="undefined">
+/// 		Callback invoked when resource is loaded
+/// 	</member>
+/// </container>
+
+/// <function container="Fit.LoaderTypeDefs" name="LoadSingleConfigurationEventHandler">
+/// 	<description> Callback invoked when resource is loaded </description>
+/// 	<param name="cfg" type="Fit.LoaderTypeDefs.ResourceConfiguration"> Resource loaded </param>
+/// </function>
+
+/// <function container="Fit.LoaderTypeDefs" name="LoadMultiConfigurationsEventHandler">
+/// 	<description> Callback invoked when all resources are loaded </description>
+/// 	<param name="cfgs" type="Fit.LoaderTypeDefs.ResourceConfiguration[]"> Resources loaded </param>
+/// </function>
+
 /// <function container="Fit.Loader" name="LoadScripts" access="public" static="true">
 /// 	<description>
 /// 		Chain load multiple client scripts on demand in a non-blocking manner.
@@ -239,8 +262,10 @@ Fit.Loader.LoadScript = function(src, callback)
 /// 		Consider using feature detection within callback functions for super reliable execution - example:
 /// 		if (expectedObjectOrFunction) { /* Successfully loaded, continue.. */ }
 /// 	</description>
-/// 	<param name="cfg" type="array"> Configuration array (see function description for details) </param>
-/// 	<param name="callback" type="function" default="undefined"> Callback function fired when all scripts have finished loading (see function description for details) </param>
+/// 	<param name="cfg" type="Fit.LoaderTypeDefs.ResourceConfiguration[]"> Configuration array (see function description for details) </param>
+/// 	<param name="callback" type="Fit.LoaderTypeDefs.LoadMultiConfigurationsEventHandler" default="undefined">
+/// 		Callback function fired when all scripts have finished loading (see function description for details)
+/// 	</param>
 /// </function>
 Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 {
@@ -325,7 +350,7 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 /// 		});
 /// 	</description>
 /// 	<param name="src" type="string"> CSS file source (path or URL) </param>
-/// 	<param name="callback" type="function" default="undefined">
+/// 	<param name="callback" type="Fit.LoaderTypeDefs.LoadSingleEventHandler" default="undefined">
 /// 		Callback function fired when CSS file loading is complete - takes the file source requested as an argument.
 /// 		Be aware that a load error will also trigger the callback to make sure control is always returned.
 /// 	</param>
@@ -394,8 +419,8 @@ Fit.Loader.LoadStyleSheet = function(src, callback)
 /// 		Second argument is the callback function fired when all stylesheets have finished loading - takes configuration array as argument.
 /// 		This too may be invoked even if a load error occured, to make sure control is returned to your code.
 /// 	</description>
-/// 	<param name="cfg" type="array"> Configuration array (see function description for details) </param>
-/// 	<param name="callback" type="function" default="undefined"> Callback function fired when all stylesheets have finished loading (see function description for details) </param>
+/// 	<param name="cfg" type="Fit.LoaderTypeDefs.ResourceConfiguration[]"> Configuration array (see function description for details) </param>
+/// 	<param name="callback" type="Fit.LoaderTypeDefs.LoadMultiConfigurationsEventHandler" default="undefined"> Callback function fired when all stylesheets have finished loading (see function description for details) </param>
 /// </function>
 Fit.Loader.LoadStyleSheets = function(cfg, callback)
 {

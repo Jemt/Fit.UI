@@ -42,7 +42,7 @@ Fit.Internationalization._internal.AddSystemLocalization = function(locales) // 
 
 			if (primaryLocale === null)
 				Fit.Validation.ThrowError("Unexpected error - '" + primaryLangKey + "' not defined in System Locales");
-			
+
 			locale = Fit.Core.Merge(primaryLocale, locales[localeKey]);
 		}
 
@@ -104,7 +104,7 @@ Fit.Internationalization.GetSystemLocale = function(localeKey)
 	{
 		Fit.Validation.ThrowError("Unexpected error - English not defined in System Locales");
 	}
-	
+
 	return Fit.Core.Clone(found); // Clone to avoid changes
 }
 
@@ -165,7 +165,7 @@ Fit.Internationalization.AddLocalization = function(type, translations) // May b
 {
 	Fit.Validation.IsSet(type);
 	Fit.Validation.ExpectObject(translations);
-	
+
 	// Assign ID to type which can be used to resolve translations later
 
 	type._internal = type._internal || {};
@@ -193,7 +193,7 @@ Fit.Internationalization.AddLocalization = function(type, translations) // May b
 
 			translationSet = Fit.Core.Merge(english, translationSet);
 		}
-		
+
 		if (localeKey.indexOf("_") !== -1) // E.g. de_AT
 		{
 			// Merge e.g. de_AT with de
@@ -237,7 +237,7 @@ Fit.Internationalization.GetLocale = function(instance, locale)
 			var primaryLangKey = langKey.split("_")[0]; // E.g. de_AT => de
 			found = Fit.Internationalization._internal.Additions[instance.constructor._internal.LocalizationKey][primaryLangKey] || null;
 		}
-		
+
 		if (found === null)
 		{
 			found = Fit.Internationalization._internal.Additions[instance.constructor._internal.LocalizationKey]["en"] || null;

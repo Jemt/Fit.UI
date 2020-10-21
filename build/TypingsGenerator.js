@@ -584,10 +584,10 @@ function Parser()
 		{
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(p.Description, tabs);
-			res += "\n" + tabs + "* @member {" + convertToJsDocType(getType(p.Type)) + (p.Nullable === true ? "|null" : "")+ "} " + p.Name;
+			res += "\n" + tabs + "* @member {" + convertToJsDocType(getType(p.Type)) + (p.Nullable === true ? "|null" : "")+ "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name);
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + p.Name + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
+			res += "\n" + tabs + p.Name + (p.Default ? "?" : "") + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
 		});
 
 		// Add functions

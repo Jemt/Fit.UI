@@ -443,7 +443,7 @@ Fit.Validation.IsSet = function(obj)
 
 /// <function container="Fit.Validation" name="ThrowError" access="public" static="true">
 /// 	<description> Throw error and provide stack trace to browser console </description>
-/// 	<param name="msg" type="object"> Object to validate </param>
+/// 	<param name="msg" type="string"> Error message </param>
 /// </function>
 Fit.Validation.ThrowError = function(msg)
 {

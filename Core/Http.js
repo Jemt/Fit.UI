@@ -266,9 +266,9 @@ Fit.Http.Request = function(uri)
 			me.RemoveHeader("content-type");
 	}
 
-	/// <function container="Fit.Http.Request" name="Method" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="Method" access="public" returns='"GET" | "POST" | "HEAD" | "PUT" | "DELETE" | "OPTIONS"'>
 	/// 	<description> Get/set request method (e.g. GET, POST, HEAD, PUT, DELETE, OPTIONS) </description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, changes HTTP request method to specified value </param>
+	/// 	<param name="val" type='"GET" | "POST" | "HEAD" | "PUT" | "DELETE" | "OPTIONS"' default="undefined"> If defined, changes HTTP request method to specified value </param>
 	/// </function>
 	this.Method = function(val)
 	{
@@ -473,7 +473,7 @@ Fit.Http.Request = function(uri)
 		return httpRequest.status;
 	}
 
-	/// <function container="Fit.Http.Request" name="GetResponseHeaders" access="public" returns="object[]">
+	/// <function container="Fit.Http.Request" name="GetResponseHeaders" access="public" returns="{ Key: string, Value: string }[]">
 	/// 	<description> Get response headers - returned array contain objects with Key (string) and Value (string) properties </description>
 	/// </function>
 	this.GetResponseHeaders = function()
@@ -523,12 +523,17 @@ Fit.Http.Request = function(uri)
 
 	// Events
 
+	/// <function container="Fit.Http.RequestTypeDefs" name="EventHandler">
+	/// 	<description> Request event handler </description>
+	/// 	<param name="sender" type="Fit.Http.Request"> Instance of Request which triggered event </param>
+	/// </function>
+
 	/// <function container="Fit.Http.Request" name="OnStateChange" access="public">
 	/// 	<description>
 	/// 		Add function to invoke when request state is changed.
 	/// 		Use GetCurrentState() to read the state at the given time.
 	/// 	</description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when state changes.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -546,7 +551,7 @@ Fit.Http.Request = function(uri)
 	/// 		Add function to invoke when request is initiated.
 	/// 		Request can be canceled by returning False.
 	/// 	</description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request is initiated.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -559,7 +564,7 @@ Fit.Http.Request = function(uri)
 
 	/// <function container="Fit.Http.Request" name="OnSuccess" access="public">
 	/// 	<description> Add function to invoke when request is successful </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request finished successfully.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -572,7 +577,7 @@ Fit.Http.Request = function(uri)
 
 	/// <function container="Fit.Http.Request" name="OnFailure" access="public">
 	/// 	<description> Add function to invoke when request is unsuccessful </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request finished, but not successfully.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -585,7 +590,7 @@ Fit.Http.Request = function(uri)
 
 	/// <function container="Fit.Http.Request" name="OnAbort" access="public">
 	/// 	<description> Add function to invoke when request is canceled </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request is canceled.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -1000,12 +1005,17 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 
 	// Events
 
+	/// <function container="Fit.Http.JsonpRequestTypeDefs" name="EventHandler">
+	/// 	<description> JsonpRequest event handler </description>
+	/// 	<param name="sender" type="Fit.Http.JsonpRequest"> Instance of JsonpRequest which triggered event </param>
+	/// </function>
+
 	/// <function container="Fit.Http.JsonpRequest" name="OnRequest" access="public">
 	/// 	<description>
 	/// 		Add function to invoke when request is initiated.
 	/// 		Request can be canceled by returning False.
 	/// 	</description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.JsonpRequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request is initiated.
 	/// 		Fit.Http.JsonpRequest instance is passed to function.
 	/// 	</param>
@@ -1018,7 +1028,7 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 
 	/// <function container="Fit.Http.JsonpRequest" name="OnSuccess" access="public">
 	/// 	<description> Add function to invoke when request is successful </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.JsonpRequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request finished successfully.
 	/// 		Fit.Http.JsonpRequest instance is passed to function.
 	/// 	</param>
@@ -1031,7 +1041,7 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 
 	/// <function container="Fit.Http.JsonpRequest" name="OnTimeout" access="public">
 	/// 	<description> Add function to invoke when request is unsuccessful due to timeout </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.JsonpRequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request timed out.
 	/// 		Fit.Http.JsonpRequest instance is passed to function.
 	/// 	</param>
