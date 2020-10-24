@@ -135,7 +135,7 @@ Fit.Controls.WSContextMenu = function(controlId)
 
 	/// <function container="Fit.Controls.WSContextMenuTypeDefs" name="RequestEventHandler" returns="boolean | void">
 	/// 	<description> OnRequest event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSContextMenuTypeDefs.RequestEventArgs"> Event arguments </param>
 	/// </function>
 
@@ -148,7 +148,7 @@ Fit.Controls.WSContextMenu = function(controlId)
 
 	/// <function container="Fit.Controls.WSContextMenuTypeDefs" name="DataEventHandler">
 	/// 	<description> Data event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSContextMenuTypeDefs.DataEventArgs"> Event arguments </param>
 	/// </function>
 

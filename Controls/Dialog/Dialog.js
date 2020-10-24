@@ -163,10 +163,10 @@ Fit.Controls.Dialog = function(controlId)
 		return (title !== null ? Fit.Dom.Text(title) : null);
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.Dialog" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set dialog width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, dialog width is updated to specified value. A value of -1 resets width (auto sizing). </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, dialog width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, dialog width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit)
 	{
@@ -214,10 +214,10 @@ Fit.Controls.Dialog = function(controlId)
 		return (width !== null ? width : defaultValue);
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="MinimumWidth" access="public" returns="object">
+	/// <function container="Fit.Controls.Dialog" name="MinimumWidth" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set dialog minimum width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, dialog minimum width is updated to specified value. A value of -1 resets minimum width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, dialog minimum width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, dialog minimum width is updated to specified CSS unit </param>
 	/// </function>
 	this.MinimumWidth = function(val, unit)
 	{
@@ -246,10 +246,10 @@ Fit.Controls.Dialog = function(controlId)
 		return (minWidth !== null ? minWidth : (width !== null ? width : defaultValue));
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="MaximumWidth" access="public" returns="object">
+	/// <function container="Fit.Controls.Dialog" name="MaximumWidth" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set dialog maximum width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, dialog maximum width is updated to specified value. A value of -1 resets maximum width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, dialog maximum width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, dialog maximum width is updated to specified CSS unit </param>
 	/// </function>
 	this.MaximumWidth = function(val, unit)
 	{
@@ -278,10 +278,10 @@ Fit.Controls.Dialog = function(controlId)
 		return (maxWidth !== null ? maxWidth : (width !== null ? width : defaultValue));
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="Height" access="public" returns="object">
+	/// <function container="Fit.Controls.Dialog" name="Height" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set dialog height - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, dialog height is updated to specified value. A value of -1 resets height to default. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, dialog width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, dialog width is updated to specified CSS unit </param>
 	/// </function>
 	this.Height = function(val, unit)
 	{
@@ -311,10 +311,10 @@ Fit.Controls.Dialog = function(controlId)
 		return (height !== null ? height : defaultValue);
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="MinimumHeight" access="public" returns="object">
+	/// <function container="Fit.Controls.Dialog" name="MinimumHeight" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set dialog minimum height - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, dialog minimum height is updated to specified value. A value of -1 resets minimum height. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, dialog minimum height is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, dialog minimum height is updated to specified CSS unit </param>
 	/// </function>
 	this.MinimumHeight = function(val, unit)
 	{
@@ -344,10 +344,10 @@ Fit.Controls.Dialog = function(controlId)
 		return (minHeight !== null ? minHeight : defaultValue);
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="MaximumHeight" access="public" returns="object">
+	/// <function container="Fit.Controls.Dialog" name="MaximumHeight" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set dialog maximum height - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, dialog maximum height is updated to specified value. A value of -1 resets maximum height. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, dialog maximum height is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, dialog maximum height is updated to specified CSS unit </param>
 	/// </function>
 	this.MaximumHeight = function(val, unit)
 	{
@@ -437,7 +437,10 @@ Fit.Controls.Dialog = function(controlId)
 	/// <function container="Fit.Controls.Dialog" name="ContentUrl" access="public" returns="string">
 	/// 	<description> Get/set content URL - returns null if not set </description>
 	/// 	<param name="url" type="string" default="undefined"> If specified, dialog is updated with content from specified URL </param>
-	/// 	<param name="onLoadHandler" type="function" default="undefined"> If specified, callback is invoked when content has been loaded </param>
+	/// 	<param name="onLoadHandler" type="Fit.Controls.DialogTypeDefs.DialogEventHandler" default="undefined">
+	/// 		If specified, callback is invoked when content has been loaded.
+	/// 		Instance of Dialog is passed as an argument.
+	/// 	</param>
 	/// </function>
 	this.ContentUrl = function(url, onLoadHandler)
 	{
@@ -853,13 +856,20 @@ Fit.Controls.Dialog = function(controlId)
 	// Events
 	// ============================================
 
+	/// <function container="Fit.Controls.DialogTypeDefs" name="DialogEventHandler">
+	/// 	<description> Dialog event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.Dialog"> Instance of Dialog </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.Dialog" name="OnDismiss" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when dialog is being dismissed by the user.
 	/// 		Action can be suppressed by returning False.
 	/// 		Function receives one argument: Sender (Fit.Controls.Dialog)
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.DialogTypeDefs.DialogEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnDismiss = function(cb)
 	{
@@ -875,7 +885,9 @@ Fit.Controls.Dialog = function(controlId)
 	/// 		Action can be suppressed by returning False.
 	/// 		Function receives one argument: Sender (Fit.Controls.Dialog)
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.DialogTypeDefs.DialogEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnClose = function(cb)
 	{
@@ -1111,10 +1123,15 @@ Fit.Controls.Dialog.Alert = function(content, cb)
 	return interface;
 }
 
+/// <function container="Fit.Controls.DialogTypeDefs" name="ConfirmCallback">
+/// 	<description> Confirmation dialog callback </description>
+/// 	<param name="confirmed" type="boolean"> True if OK button is clicked, otherwise False </param>
+/// </function>
+
 /// <function container="Fit.Controls.Dialog" name="Confirm" access="public" static="true" returns="Fit.Controls.DialogInterface">
 /// 	<description> Display confirmation dialog with OK and Cancel buttons </description>
 /// 	<param name="content" type="string"> Content to display in confirmation dialog </param>
-/// 	<param name="cb" type="function">
+/// 	<param name="cb" type="Fit.Controls.DialogTypeDefs.ConfirmCallback">
 /// 		Callback function invoked when a button is clicked.
 /// 		True is passed to callback function when OK is clicked, otherwise False.
 /// 	</param>
@@ -1138,11 +1155,16 @@ Fit.Controls.Dialog.Confirm = function(content, cb)
 	return interface;
 }
 
+/// <function container="Fit.Controls.DialogTypeDefs" name="PromptCallback">
+/// 	<description> Prompt dialog callback </description>
+/// 	<param name="value" type="string | null"> String value entered if OK button is clicked, Null if prompt is canceled </param>
+/// </function>
+
 /// <function container="Fit.Controls.Dialog" name="Prompt" access="public" static="true" returns="Fit.Controls.DialogInterface">
 /// 	<description> Display prompt dialog that allows for user input </description>
 /// 	<param name="content" type="string"> Content to display in prompt dialog </param>
 /// 	<param name="defaultValue" type="string"> Default value in input field </param>
-/// 	<param name="cb" type="function" default="undefined">
+/// 	<param name="cb" type="Fit.Controls.DialogTypeDefs.PromptCallback" default="undefined">
 /// 		Callback function invoked when OK or Cancel button is clicked.
 /// 		Value entered in input field is passed, null if prompt is canceled.
 /// 	</param>

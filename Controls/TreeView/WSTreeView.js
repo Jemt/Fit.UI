@@ -517,12 +517,17 @@ Fit.Controls.WSTreeView = function(ctlId)
 			me._internal.FireOnChange();
 	});
 
+	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="ReloadCallback">
+	/// 	<description> Reload callback </description>
+	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSTreeView" name="Reload" access="public">
 	/// 	<description> Reload data from WebService </description>
 	/// 	<param name="keepSelections" type="boolean" default="undefined">
 	/// 		If defined, True will preserve selections, False will remove them (default)
 	/// 	</param>
-	/// 	<param name="cb" type="function" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.WSTreeViewTypeDefs.ReloadCallback" default="undefined">
 	/// 		If defined, callback function is invoked when root nodes have been loaded
 	/// 		and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
 	/// 	</param>
@@ -633,7 +638,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		values, or remove nodes already loaded - it merely loads data
 	/// 		not already loaded.
 	/// 	</description>
-	/// 	<param name="callback" type="function" default="undefined">
+	/// 	<param name="callback" type="Fit.Controls.WSTreeViewTypeDefs.ReloadCallback" default="undefined">
 	/// 		If defined, callback function is invoked when all nodes have been loaded
 	/// 		and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
 	/// 	</param>
@@ -1000,6 +1005,53 @@ Fit.Controls.WSTreeView = function(ctlId)
 	// Events
 	// ============================================
 
+	/// <container name="Fit.Controls.WSTreeViewTypeDefs.EventHandlerArgs">
+	/// 	<description> Request handler event arguments </description>
+	/// 	<member name="Sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </member>
+	/// 	<member name="Request" type="Fit.Http.JsonRequest | Fit.Http.JsonpRequest"> Instance of JsonRequest or JsonpRequest </member>
+	/// 	<member name="Node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSTreeViewTypeDefs.JsonItem">
+	/// 	<description> JSON object representing node </description>
+	/// 	<member name="Value" type="string"> Unique value </member>
+	/// 	<member name="Title" type="string" default="undefined"> Title - using Value if not defined </member>
+	/// 	<member name="Selected" type="boolean" default="undefined"> Value indicating whether item is initially selected - not selected by default </member>
+	/// 	<member name="Selectable" type="boolean" default="undefined"> Value indicating whether item can be selected or not - not selectable by default </member>
+	/// 	<member name="HasChildren" type="boolean" default="undefined"> Set True to trigger an additional request to web service to retrieve children for this item when it is expanded </member>
+	/// 	<member name="Children" type="Fit.Controls.WSTreeViewTypeDefs.JsonItem[]" default="undefined"> Children </member>
+	/// 	<member name="Expanded" type="boolean" default="undefined"> Value indicating whether item is initially expanded to reveal children - not expanded by default </member>
+	/// 	<member name="Supplementary" type="{[key:string]: string}" default="undefined"> Associative string array to carry additional information </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSTreeViewTypeDefs.DataHandlerEventArgs" extends="Fit.Controls.WSTreeViewTypeDefs.EventHandlerArgs">
+	/// 	<description> Data event handler arguments </description>
+	/// 	<member name="Children" type="Fit.Controls.WSTreeViewTypeDefs.JsonItem[]"> JSON objects representing nodes </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSTreeViewTypeDefs.AbortHandlerEventArgs" extends="Fit.Controls.WSTreeViewTypeDefs.EventHandlerArgs">
+	/// 	<description> Abort event handler arguments </description>
+	/// 	<member name="Children" type="null"> JSON objects representing nodes </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="CancelableRequestEventHandler" returns="boolean | void">
+	/// 	<description> Cancelable request event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSTreeViewTypeDefs.EventHandlerArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="DataEventHandler">
+	/// 	<description> Data event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSTreeViewTypeDefs.DataHandlerEventArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="AbortEventHandler">
+	/// 	<description> Abort event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSTreeViewTypeDefs.AbortHandlerEventArgs"> Event arguments </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSTreeView" name="OnRequest" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when data is being requested.
@@ -1011,7 +1063,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Node: Fit.Controls.TreeViewNode instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSTreeViewTypeDefs.CancelableRequestEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnRequest = function(cb)
 	{
@@ -1031,7 +1085,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance to be populated
 	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSTreeViewTypeDefs.DataEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnResponse = function(cb)
 	{
@@ -1050,7 +1106,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance to be populated
 	/// 		 - Children: JSON nodes received from WebService (Null in this particular case)
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSTreeViewTypeDefs.AbortEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnAbort = function(cb)
 	{
@@ -1071,7 +1129,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance now populated with children
 	/// 		 - Children: JSON nodes received from WebService
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSTreeViewTypeDefs.DataEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnPopulated = function(cb)
 	{

@@ -1,4 +1,5 @@
 /// <container name="Fit.Template">
+/// 	<![CDATA[
 /// 	Templating engine allowing for separation between layout and logic.
 ///
 /// 	// Example code
@@ -47,6 +48,7 @@
 /// 	&#160;&#160;&#160;&#160; &lt;/tr&gt;
 /// 	&#160;&#160;&#160;&#160; &lt;!-- /LIST Users --&gt;
 /// 	&lt;/table&gt;
+/// 	]]>
 /// </container>
 
 /// <function container="Fit.Template" name="Template" access="public">

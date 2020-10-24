@@ -421,7 +421,7 @@ Fit.Dom.Data = function(elm, name, value)
 /// <function container="Fit.Dom" name="CreateElement" access="public" static="true" returns="DOMNode">
 /// 	<description>
 /// 		Create element with the specified HTML content.
-/// 		HTML content is (by default) wrapped in a &lt;div&gt; if it produced multiple elements.
+/// 		HTML content is (by default) wrapped in a <![CDATA[ &lt;div&gt; ]]> if it produced multiple elements.
 /// 		If content on the other hand produces only one outer element, that particular element is returned.
 /// 		It is possible to construct DOM objects of type Element, Text, and Comment.
 /// 		The container type used to wrap multiple elements can be changed using the containerTagName argument.
@@ -429,7 +429,7 @@ Fit.Dom.Data = function(elm, name, value)
 /// 	<param name="html" type="string"> HTML element to create DOMElement from </param>
 /// 	<param name="containerTagName" type="string" default="div">
 /// 		If defined, and html argument produces multiple element, the result is wrapped in a container of
-/// 		the specified type. If not set, multiple elements will be wrapped in a &lt;div&gt; container.
+/// 		the specified type. If not set, multiple elements will be wrapped in a <![CDATA[ &lt;div&gt; ]]> container.
 /// 	</param>
 /// </function>
 Fit.Dom.CreateElement = function(html, containerTagName)

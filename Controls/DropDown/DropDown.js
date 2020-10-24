@@ -407,10 +407,10 @@ Fit.Controls.DropDown = function(ctlId)
 		return rtn;
 	});
 
-	/// <function container="Fit.Controls.DropDown" name="DropDownMaxHeight" access="public" returns="object">
+	/// <function container="Fit.Controls.DropDown" name="DropDownMaxHeight" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set max height of drop down - returns object with Value (number) and Unit (string) properties </description>
 	/// 	<param name="value" type="number" default="undefined"> If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content. </param>
-	/// 	<param name="unit" type="string" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
 	this.DropDownMaxHeight = function(value, unit)
 	{
@@ -428,10 +428,10 @@ Fit.Controls.DropDown = function(ctlId)
 		return maxHeight;
 	}
 
-	/// <function container="Fit.Controls.DropDown" name="DropDownMaxWidth" access="public" returns="object">
+	/// <function container="Fit.Controls.DropDown" name="DropDownMaxWidth" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set max width of drop down - returns object with Value (number) and Unit (string) properties </description>
 	/// 	<param name="value" type="number" default="undefined"> If defined, max width is updated to specified value. A value of -1 forces drop down to use control width. </param>
-	/// 	<param name="unit" type="string" default="undefined"> If defined, max width is updated to specified CSS unit, otherwise px is assumed </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="undefined"> If defined, max width is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
 	this.DropDownMaxWidth = function(value, unit)
 	{
@@ -622,6 +622,11 @@ Fit.Controls.DropDown = function(ctlId)
 		return placeholder;
 	}
 
+	/// <function container="Fit.Controls.DropDownTypeDefs" name="SelectionToStringCallback" returns="string">
+	/// 	<description> Callback responsible for constructing string value representing selected items </description>
+	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.DropDown" name="TextSelectionMode" access="public" returns="boolean">
 	/// 	<description>
 	/// 		Get/set flag indicating whether to use Text Selection Mode (true) or Visual Selection Mode (false).
@@ -630,7 +635,7 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 		user a traditional DropDown control instead.
 	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables Text Selection Mode, False disables it (Visual Selection Mode) </param>
-	/// 	<param name="cb" type="function" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.DropDownTypeDefs.SelectionToStringCallback" default="undefined">
 	/// 		If defined, function will be called with DropDown being passed as an argument when selection text
 	/// 		needs to be updated. Function is expected to return a string representation of the selected items.
 	/// 	</param>
@@ -1176,7 +1181,14 @@ Fit.Controls.DropDown = function(ctlId)
 		fireOnChange();
 	}
 
-	/// <function container="Fit.Controls.DropDown" name="GetSelections" access="public" returns="array">
+	/// <container name="Fit.Controls.DropDownTypeDefs.DropDownItem">
+	/// 	<description> DropDown item </description>
+	/// 	<member name="Title" type="string"> Item title </member>
+	/// 	<member name="Value" type="string"> Unique item value </member>
+	/// 	<member name="Valid" type="boolean"> Value indicating whether item is a valid selection </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.DropDown" name="GetSelections" access="public" returns="Fit.Controls.DropDownTypeDefs.DropDownItem[]">
 	/// 	<description> Get selected items - returned array contain objects with Title (string), Value (string), and Valid (boolean) properties </description>
 	/// 	<param name="includeInvalid" type="boolean" default="false"> Flag indicating whether invalid selection should be included or not </param>
 	/// </function>
@@ -1197,7 +1209,7 @@ Fit.Controls.DropDown = function(ctlId)
 		return toReturn;
 	}
 
-	/// <function container="Fit.Controls.DropDown" name="GetSelectionByValue" access="public" returns="object">
+	/// <function container="Fit.Controls.DropDown" name="GetSelectionByValue" access="public" returns="Fit.Controls.DropDownTypeDefs.DropDownItem | null">
 	/// 	<description> Get selected item by value - returns object with Title (string), Value (string), and Valid (boolean) properties if found, otherwise Null is returned </description>
 	/// 	<param name="val" type="string"> Value of selected item to retrive </param>
 	/// </function>
@@ -1407,7 +1419,14 @@ Fit.Controls.DropDown = function(ctlId)
 		fireOnChange();
 	}
 
-	/// <function container="Fit.Controls.DropDown" name="UpdateSelected" access="public" returns="object[]">
+	/// <container name="Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem">
+	/// 	<description> DropDown item </description>
+	/// 	<member name="Title" type="string"> Updated item title </member>
+	/// 	<member name="Value" type="string"> unique item value </member>
+	/// 	<member name="Exists" type="boolean"> Value indicating whether item still exists or not </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.DropDown" name="UpdateSelected" access="public" returns="Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]">
 	/// 	<description>
 	/// 		Update title of selected items based on data in associated picker control.
 	/// 		An array of updated items are returned. Each object has the following properties:
@@ -1673,13 +1692,32 @@ Fit.Controls.DropDown = function(ctlId)
 	// Events (OnChange defined on BaseControl)
 	// ============================================
 
+	/// <function container="Fit.Controls.DropDownTypeDefs" name="InputChangedEventHandler">
+	/// 	<description> Input changed event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// 	<param name="value" type="string"> Input value </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.DropDownTypeDefs" name="PasteEventHandler" returns="boolean | void">
+	/// 	<description> Paste event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// 	<param name="value" type="string"> Value pasted into input field </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.DropDownTypeDefs" name="InteractionEventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.DropDown" name="OnInputChanged" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when input value is changed.
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.DropDown) and Value (string).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.DropDownTypeDefs.InputChangedEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnInputChanged = function(cb)
 	{
@@ -1694,7 +1732,9 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 		Sender (Fit.Controls.DropDown) and Value (string).
 	/// 		Return False to cancel event and change, and prevent OnInputChanged from firing.
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.DropDownTypeDefs.PasteEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnPaste = function(cb)
 	{
@@ -1707,7 +1747,9 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 		Add event handler fired when drop down menu is opened.
 	/// 		Function receives one argument: Sender (Fit.Controls.DropDown)
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.DropDownTypeDefs.InteractionEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnOpen = function(cb)
 	{
@@ -1720,7 +1762,9 @@ Fit.Controls.DropDown = function(ctlId)
 	/// 		Add event handler fired when drop down menu is closed.
 	/// 		Function receives one argument: Sender (Fit.Controls.DropDown)
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.DropDownTypeDefs.InteractionEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnClose = function(cb)
 	{

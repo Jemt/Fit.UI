@@ -534,7 +534,7 @@ Fit.Date.GetWeek = function(date) // ISO 8601 - use MomentJS for wider support!
 Fit.Color = {};
 
 /// <function container="Fit.Color" name="RgbToHex" access="public" static="true" returns="string">
-/// 	<description> Convert RGB colors into HEX color string - returns Null in case of invalid RGB values </description>
+/// 	<description> Convert RGB colors into HEX color string </description>
 /// 	<param name="r" type="integer"> Color index for red </param>
 /// 	<param name="g" type="integer"> Color index for green </param>
 /// 	<param name="b" type="integer"> Color index for blue </param>
@@ -546,7 +546,7 @@ Fit.Color.RgbToHex = function(r, g, b)
 	Fit.Validation.ExpectNumber(b);
 
 	if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-		return null;
+		throw "RGB parameters must have a value between 0 and 255"; //return null;
 
     var rHex = r.toString(16);
     var gHex = g.toString(16);
@@ -556,7 +556,7 @@ Fit.Color.RgbToHex = function(r, g, b)
 }
 
 /// <function container="Fit.Color" name="HexToRgb" access="public" static="true" returns="string">
-/// 	<description> Convert HEX color string into RGB color string - returns Null in case of invalid HEX value </description>
+/// 	<description> Convert HEX color string into RGB color string </description>
 /// 	<param name="hex" type="string"> HEX color string, e.g. #C0C0C0 (hash symbol is optional) </param>
 /// </function>
 Fit.Color.HexToRgb = function(hex)
@@ -565,8 +565,8 @@ Fit.Color.HexToRgb = function(hex)
 
 	var rgb = Fit.Color.ParseHex(hex);
 
-	if (rgb === null)
-		return null;
+	// if (rgb === null)
+	// 	return null;
 
 	return "rgb(" + rgb.Red + ", " + rgb.Green + ", " + rgb.Blue + ")";
 }
@@ -577,13 +577,14 @@ Fit.Color.HexToRgb = function(hex)
 /// 	<member name="Green" type="integer"> </member>
 /// 	<member name="Blue" type="integer"> </member>
 /// </container>
+
 /// <container name="Fit.ColorTypeDefs.RgbaColor" extends="Fit.ColorTypeDefs.RgbColor">
 /// 	<description> RGBA color object </description>
 /// 	<member name="Alpha" type="integer"> Alpha channel (opacity) </member>
 /// </container>
 
-/// <function container="Fit.Color" name="ParseHex" access="public" static="true" returns="Fit.ColorTypeDefs.RgbColor | null">
-/// 	<description> Convert HEX color string into RGB color object, e.g. { Red: 150, Green: 30, Blue: 185 } - returns Null in case of invalid HEX value </description>
+/// <function container="Fit.Color" name="ParseHex" access="public" static="true" returns="Fit.ColorTypeDefs.RgbColor">
+/// 	<description> Convert HEX color string into RGB color object, e.g. { Red: 150, Green: 30, Blue: 185 } </description>
 /// 	<param name="hex" type="string"> HEX color string, e.g. #C0C0C0 (hash symbol is optional) </param>
 /// </function>
 Fit.Color.ParseHex = function(hex)
@@ -593,15 +594,14 @@ Fit.Color.ParseHex = function(hex)
 	var result = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
 
 	if (result === null)
-		return null;
+		throw "HEX color is in an invalid format"; //return null;
 
 	return { Red: parseInt(result[1], 16), Green: parseInt(result[2], 16), Blue: parseInt(result[3], 16) };
 }
 
-/// <function container="Fit.Color" name="ParseRgb" access="public" static="true" returns="Fit.ColorTypeDefs.RgbaColor | null">
+/// <function container="Fit.Color" name="ParseRgb" access="public" static="true" returns="Fit.ColorTypeDefs.RgbaColor">
 /// 	<description>
-/// 		Parses RGB(A) string and turns result into a RGB(A) color object, e.g.
-/// 		{ Red: 100, Green: 100, Blue: 100, Alpha: 0.3 } - returns Null in case of invalid value.
+/// 		Parses RGB(A) string and turns result into a RGB(A) color object, e.g. { Red: 100, Green: 100, Blue: 100, Alpha: 0.3 }.
 /// 	</description>
 /// 	<param name="val" type="string"> RGB(A) color string, e.g. rgba(100, 100, 100, 0.3) or simply 100,100,200,0.3 </param>
 /// </function>
@@ -613,7 +613,7 @@ Fit.Color.ParseRgb = function(val)
 	var result = val.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(\s*,\s*(\d*.*\d+))*/); // http://regex101.com/r/rZ7rO2/9
 
 	if (result === null)
-		return null;
+		throw "RGB(A) color is in an invalid format"; //return null;
 
 	var c = {};
 	c.Red = parseInt(result[1], 10);
@@ -622,4 +622,44 @@ Fit.Color.ParseRgb = function(val)
 	c.Alpha = ((result[5] !== undefined) ? parseFloat(result[5]) : 1.00);
 
 	return c;
+}
+
+/// <function container="Fit.Color" name="IsHex" access="public" static="true" returns="boolean">
+/// 	<description> Returns True if value is a valid HEX color value, otherwise False </description>
+/// 	<param name="val" type="string"> Value to validate </param>
+/// </function>
+Fit.Color.IsHex = function(val)
+{
+	Fit.Validation.ExpectString(val);
+
+	try
+	{
+		Fit.Color.ParseHex(val); // Throws exception if value is in an invalid format
+	}
+	catch (err)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+/// <function container="Fit.Color" name="IsRgb" access="public" static="true" returns="boolean">
+/// 	<description> Returns True if value is a valid RGB(A) color value, otherwise False </description>
+/// 	<param name="val" type="string"> Value to validate </param>
+/// </function>
+Fit.Color.IsRgb = function(val)
+{
+	Fit.Validation.ExpectString(val);
+
+	try
+	{
+		Fit.Color.ParseRgb(val); // Throws exception if value is in an invalid format
+	}
+	catch (err)
+	{
+		return false;
+	}
+
+	return true;
 }

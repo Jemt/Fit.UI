@@ -251,6 +251,12 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="AutoUpdateSelectedCallback">
+	/// 	<description> AutoUpdateSelected callback </description>
+	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="updatedItems" type="Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]"> Updated items </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSDropDown" name="AutoUpdateSelected" access="public">
 	/// 	<description>
 	/// 		Automatically update title of selected items based on data from WebService.
@@ -266,7 +272,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		dropdown.AutoUpdateSelected(function(sender, updated) { console.log(&quot;All selected&quot;, dropdown.GetSelections()); });
 	/// 		For additiona details see UpdateSelected().
 	/// 	</description>
-	/// 	<param name="cb" type="function" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback" default="undefined">
 	/// 		Optional callback function invoked when selected items have been updated
 	/// 	</param>
 	/// </function>
@@ -392,6 +398,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return list.JsonpCallback();
 	}
 
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="ClearDataCallback">
+	/// 	<description> Event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSDropDown" name="ClearData" access="public">
 	/// 	<description>
 	/// 		Call this function to make control reload data when needed,
@@ -400,7 +411,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		Use callback to pick up execution once data has been cleared.
 	/// 		Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
 	/// 	</description>
-	/// 	<param name="cb" type="function" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.ClearDataCallback" default="undefined">
 	/// 		If defined, callback is invoked when data is cleared
 	/// 	</param>
 	/// </function>
@@ -494,6 +505,43 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// Events
 	// ============================================
 
+	/// <container name="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs">
+	/// 	<description> Request event arguments </description>
+	/// 	<member name="Sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </member>
+	/// 	<member name="Picker" type="Fit.Controls.WSTreeView | Fit.Controls.WSListView"> Instance of picker control causing web service request </member>
+	/// 	<member name="Node" type="Fit.Controls.TreeViewNode | null"> Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request </member>
+	/// 	<member name="Search" type="string"> Search value if entered by user </member>
+	/// 	<member name="Request" type="Fit.Http.JsonpRequest | Fit.Http.JsonRequest"> Instance of JsonpRequest or JsonRequest </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs" extends="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs">
+	/// 	<description> Response event arguments </description>
+	/// 	<member name="Data" type="Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[]"> JSON data received from web service </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs" extends="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs">
+	/// 	<description> Aborted request event arguments </description>
+	/// 	<member name="Data" type="null"> JSON data received from web service </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="CancelableRequestEventHandler">
+	/// 	<description> Cancelable request event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="ResponseEventHandler">
+	/// 	<description> Response event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="RequestAbortedEventHandler">
+	/// 	<description> Aborted request handler </description>
+	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs"> Event arguments </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSDropDown" name="OnRequest" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when data is being requested.
@@ -505,9 +553,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered by user
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler"> Event handler function </param>
 	/// </function>
 	this.OnRequest = function(cb)
 	{
@@ -526,10 +574,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered by user
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Data: JSON data received from WebService
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler"> Event handler function </param>
 	/// </function>
 	this.OnResponse = function(cb)
 	{
@@ -547,10 +595,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered by user
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Data: JSON data received from WebService (Null in this particular case)
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler"> Event handler function </param>
 	/// </function>
 	this.OnAbort = function(cb)
 	{

@@ -281,7 +281,7 @@ Fit.Controls.FilePicker = function(ctlId)
 		base();
 	});
 
-	/// <function container="Fit.Controls.FilePicker" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.FilePicker" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description>
 	/// 		Fit.Controls.ControlBase.Width override:
 	/// 		Get/set control width - returns object with Value and Unit properties.
@@ -289,7 +289,7 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		the control width to fit its content, rather than assuming a fixed default width.
 	/// 	</description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = Fit.Core.CreateOverride(this.Width, function(val, unit)
 	{
@@ -412,7 +412,7 @@ Fit.Controls.FilePicker = function(ctlId)
 		return (dropZoneLabel !== null ? dropZoneLabel.innerHTML : dropZoneLabelEnforced || "");
 	}
 
-	/// <function container="Fit.Controls.FilePicker" name="GetFiles" access="public" returns="object[]">
+	/// <function container="Fit.Controls.FilePicker" name="GetFiles" access="public" returns="Fit.Controls.FilePickerTypeDefs.File[]">
 	/// 	<description>
 	/// 		Get collection of selected files. Each file is represented as an object with the following members:
 	/// 		 - Filename:string (Name of selected file)
@@ -420,8 +420,10 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Size:integer (File size in bytes)
 	/// 		 - Id:string (Unique file ID)
 	/// 		 - Processed:boolean (Flag indicating whether file has been uploaded, or is currently being uploaded)
+	/// 		 - Progress:integer (Value from 0-100 indicating upload progress, a value of -1 when not uploading/uploaded)
 	/// 		 - FileObject:File (Native JS File object representing selected file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
+	/// 		 - ServerResponse:string (Response from server after successful file upload, otherwise Null)
 	/// 		NOTICE: The following properties/functions are not available in Legacy Mode: Type, Size, FileObject, GetImagePreview().
 	/// 	</description>
 	/// </function>
@@ -885,7 +887,7 @@ Fit.Controls.FilePicker = function(ctlId)
 		Fit.Validation.ExpectInstance(fileObject, File, true);
 
 		// IMPORTANT: Make sure changes to this object is also made to object returned by cloneFileInfo(..)
-		return { Filename: filename, Type: type, Size: size, Id: Fit.Data.CreateGuid(), Processed: false, FileObject: fileObject || null, GetImagePreview: function() { return getImagePreview(fileObject); }, ServerResponse: null };
+		return { Filename: filename, Type: type, Size: size, Id: Fit.Data.CreateGuid(), Processed: false, Progress: -1, FileObject: fileObject || null, GetImagePreview: function() { return getImagePreview(fileObject); }, ServerResponse: null };
 	}
 
 	function cloneFileInfo(file) // Object as created by createFileInfo(..)
@@ -893,12 +895,45 @@ Fit.Controls.FilePicker = function(ctlId)
 		// We cannot use Fit.Core.Clone(..) since this is not a simple JSON object (DOM input field contained).
 		// Also notice that the clone's Input and GetImagePreview properties are references (shared with original object).
 
-		return { Filename: file.Filename, Type: file.Type, Size: file.Size, Id: file.Id, Processed: file.Processed, FileObject: file.FileObject, GetImagePreview: file.GetImagePreview, ServerResponse: file.ServerResponse };
+		return { Filename: file.Filename, Type: file.Type, Size: file.Size, Id: file.Id, Processed: file.Processed, Progress: file.Progress, FileObject: file.FileObject, GetImagePreview: file.GetImagePreview, ServerResponse: file.ServerResponse };
 	}
 
 	// ============================================
 	// Events
 	// ============================================
+
+	/// <function container="Fit.Controls.FilePickerTypeDefs" name="GetImagePreview" returns="HTMLImageElement | null">
+	/// 	<description> Returns image preview for supported file types, Null for unsupported file types, and Null on browsers not supporting the File API </description>
+	/// </function>
+
+	/// <container name="Fit.Controls.FilePickerTypeDefs.File">
+	/// 	<description> File information </description>
+	/// 	<member name="Filename" type="string"> File name </member>
+	/// 	<member name="Type" type="string"> Mime type - returns Unknown on browsers not supporting the File API </member>
+	/// 	<member name="Size" type="integer"> File size in bytes - returns -1 on browsers not supporting the File API </member>
+	/// 	<member name="Id" type="string"> Unique file ID </member>
+	/// 	<member name="Processed" type="boolean"> Flag indicating whether file has been uploaded, or is currently being uploaded, with a value of True </member>
+	/// 	<member name="Progress" type="integer"> Value from 0-100 indicating upload progress, a value of -1 when not uploading/uploaded </member>
+	/// 	<member name="FileObject" type="File | null"> Native JS File object representing file data - returns Null on browsers not supporting the File API </member>
+	/// 	<member name="GetImagePreview" type="Fit.Controls.FilePickerTypeDefs.GetImagePreview"> Get image preview for supported file types - returns Null on browsers not supporting the File API </member>
+	/// 	<member name="ServerResponse" type="string | null"> Response from server after successful file upload, otherwise Null </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.FilePickerTypeDefs" name="CancelableUploadEventHandler" returns="boolean | void">
+	/// 	<description> Cancelable upload event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.FilePicker"> Instance of FilePicker </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.FilePickerTypeDefs" name="CompletedEventHandler">
+	/// 	<description> Completed event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.FilePicker"> Instance of FilePicker </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.FilePickerTypeDefs" name="ProgressEventHandler">
+	/// 	<description> Progress event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.FilePicker"> Instance of FilePicker </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.FilePickerTypeDefs.File"> Event arguments </param>
+	/// </function>
 
 	/// <function container="Fit.Controls.FilePicker" name="OnUpload" access="public">
 	/// 	<description>
@@ -906,7 +941,9 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		Operation can be canceled by returning False.
 	/// 		Function receives one argument: Sender (Fit.Controls.FilePicker).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.FilePickerTypeDefs.CancelableUploadEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnUpload = function(cb)
 	{
@@ -928,10 +965,13 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
 	/// 		 - FileObject:File (Native JS File object representing given file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
+	/// 		 - ServerResponse:string (Response from server after successful file upload, otherwise Null)
 	/// 		Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
 	/// 		case will be Null. GetImagePreview() will also return Null in Legacy Mode.
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.FilePickerTypeDefs.ProgressEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnProgress = function(cb)
 	{
@@ -953,11 +993,13 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
 	/// 		 - FileObject:File (Native JS File object representing given file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
-	/// 		 - ServerResponse:string (Contains the response received from the server after a successful upload)
+	/// 		 - ServerResponse:string (Response from server after successful file upload, otherwise Null)
 	/// 		Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
 	/// 		case will be Null. GetImagePreview() will also return Null in Legacy Mode.
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.FilePickerTypeDefs.ProgressEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnSuccess = function(cb)
 	{
@@ -979,10 +1021,13 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		 - Progress:integer (A value from 0-100 indicating how many percent of the file has been uploaded)
 	/// 		 - FileObject:File (Native JS File object representing given file)
 	/// 		 - GetImagePreview:function (Returns an HTMLImageElement with a preview for supported file types)
+	/// 		 - ServerResponse:string (Response from server after successful file upload, otherwise Null)
 	/// 		Be aware that Type and Size cannot be determined in Legacy Mode, and that FileObject in this
 	/// 		case will be Null. GetImagePreview() will also return Null in Legacy Mode.
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.FilePickerTypeDefs.ProgressEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnFailure = function(cb)
 	{
@@ -998,7 +1043,9 @@ Fit.Controls.FilePicker = function(ctlId)
 	/// 		containing the response from the server. This property remains Null in case of errors.
 	/// 		Function receives one argument: Sender (Fit.Controls.FlePicker).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.FilePickerTypeDefs.CompletedEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnCompleted = function(cb) // Fires when all files have been processed, even if files have failed!
 	{

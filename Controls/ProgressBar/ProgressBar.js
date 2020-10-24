@@ -51,10 +51,10 @@ Fit.Controls.ProgressBar = function(controlId)
 		return title.innerHTML;
 	}
 
-	/// <function container="Fit.Controls.ProgressBar" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.ProgressBar" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit)
 	{
@@ -101,9 +101,16 @@ Fit.Controls.ProgressBar = function(controlId)
 		return parseInt(status.style.width);
 	}
 
+	/// <function container="Fit.Controls.ProgressBarTypeDefs" name="ProgressEventHandler">
+	/// 	<description> Progress event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.ProgressBar"> Instance of ProgressBar </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.ProgressBar" name="OnProgress" access="public">
 	/// 	<description> Set callback function invoked when progress is changed </description>
-	/// 	<param name="cb" type="function"> Callback function invoked when progress is changed - takes progress bar instance as argument </param>
+	/// 	<param name="cb" type="Fit.Controls.ProgressBarTypeDefs.ProgressEventHandler">
+	/// 		Event handler invoked when progress is changed - takes progress bar instance as argument
+	/// 	</param>
 	/// </function>
 	this.OnProgress = function(cb)
 	{

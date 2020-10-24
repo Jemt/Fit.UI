@@ -347,6 +347,24 @@ function Parser()
 		return matches;
 	}
 
+	function getFunctionByName(func) // Get function based on name/path, e.g. Fit.Validation.ExpectBoolean
+	{
+		var functionName = func.substring(func.lastIndexOf(".") + 1); // E.g. Fit.Validation.ExpectBoolean => ExpectBoolean
+		var containerName = func.indexOf(".") > -1 ? func.substring(0, func.lastIndexOf(".")) : "Fit"; // E.g. Fit.Validation.ExpectBoolean => Fit.Validation
+		var found = null;
+
+		Fit.Array.ForEach(getFunctions(containerName), function(f)
+		{
+			if (f.Name === functionName)
+			{
+				found = f;
+				return false; // Break loop
+			}
+		});
+
+		return found;
+	}
+
 	function getCallbacks(container) // Get callbacks related to a specific container
 	{
 		var funcs = get(functions, container);
@@ -691,7 +709,10 @@ function Parser()
 		// PickerBase in particular. TypeScript supports interfaces out of the box.
 
 		for (var i = 0 ; i < exts.length ; i++)
+		{
+			getType(exts[i]); // Throws error if type is missing (not defined, often due to typo)
 			res += getMembersForContainer(exts[i], tabs, true);
+		}
 
 		return res;
 	}
@@ -936,6 +957,15 @@ function Parser()
 			return type;
 		}
 
+		// Make sure custom types exist (catch typos)
+
+		var checkType = type.replace("[]", ""); // Remove array brackets
+
+		if (checkType.indexOf("Fit.") > -1 && getContainerByName(checkType) === null && getFunctionByName(checkType) === null && getCallbackByName(checkType) === null && getEnumByName(checkType) === null)
+		{
+			throw new Error("Type not found: " + type);
+		}
+
 		// Return type as-is, but with generics attached if defined (e.g. SomeType<TypeA, TypeB>)
 
 		return type + getGenericsString(getGenericsUsageFromDtoOrCallback(type));
@@ -972,7 +1002,7 @@ function Parser()
 			{
 				if (match[2].toLowerCase() !== "string")
 				{
-					throw "Unsupported key type in associative array - must be of type string but found " + match[2] + ": " + match[0];
+					throw new Error("Unsupported key type in associative array - must be of type string but found " + match[2] + ": " + match[0]);
 				}
 
 				replacements.push("Object.<string, " + match[3] + ">"); // Key type (string) MUST be in lower case for JSDoc intellisense to work
@@ -996,6 +1026,17 @@ function Parser()
 		//description = description.replace(/&#160;&#160;&#160;&#160; ?/g, "\t");
 		description = description.replace(/\/\*/g, "//");
 		description = description.replace(/\*\//g, "");
+
+		if (/\.$/.test(description) === false)
+		{
+			// Make sure all descriptions ends with a period. VSCode will display multiple
+			// descriptions on one line if multiple types are possible, and we hover/select
+			// a member which they have in common. For instance Selectable here:
+			// wsDropDown.OnResponse(function(sender, args) { console.log(args.Data[0].Selectable); })
+			// The Data property is an array of two types which both define Selectable with different
+			// descriptions.
+			description += ".";
+		}
 
 		return description;
 	}

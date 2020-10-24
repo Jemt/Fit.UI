@@ -145,7 +145,13 @@ Fit.Controls.ListView = function(controlId)
 		list.appendChild(entry);
 	}
 
-	/// <function container="Fit.Controls.ListView" name="GetItem" access="public" returns="object">
+	/// <container name="Fit.Controls.ListViewTypeDefs.ListViewItem">
+	/// 	<description> ListView item </description>
+	/// 	<member name="Title" type="string"> Item title </member>
+	/// 	<member name="Value" type="string"> Unique item value </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.ListView" name="GetItem" access="public" returns="Fit.Controls.ListViewTypeDefs.ListViewItem | null">
 	/// 	<description> Get item by value - returns object with Title (string) and Value (string) properties if found, otherwise Null </description>
 	/// 	<param name="value" type="string"> Value of item to retrieve </param>
 	/// </function>
@@ -264,7 +270,7 @@ Fit.Controls.ListView = function(controlId)
             }
         }
 	}
-	
+
 	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
 	{
 		Fit.Validation.ExpectBoolean(calledInternally, true);
@@ -282,9 +288,9 @@ Fit.Controls.ListView = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function(calledInternally)
 	{
 		Fit.Validation.ExpectBoolean(calledInternally, true);
-		
+
 		base(); // Component.Dispose()
-		
+
 		if (calledInternally !== true)
 		{
 			me.Destroy(true); // PickerBase.Destroy()

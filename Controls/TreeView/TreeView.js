@@ -1003,6 +1003,40 @@ Fit.Controls.TreeView = function(ctlId)
 	// Events (OnChange defined on BaseControl)
 	// ============================================
 
+	/// <container name="Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs">
+	/// 	<description> Selection event handler arguments </description>
+	/// 	<member name="Node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </member>
+	/// 	<member name="Selected" type="boolean"> Value indicating new selection state </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.TreeViewTypeDefs" name="CancelableNodeEventHandler" returns="boolean | void">
+	/// 	<description> Cancelable node event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.TreeViewTypeDefs" name="NodeEventHandler">
+	/// 	<description> Node event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.TreeViewTypeDefs" name="CancelableSelectionEventHandler" returns="boolean | void">
+	/// 	<description> Cancelable select all event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs">
+	/// 		Event handler arguments
+	/// 	</param>
+	/// </function>
+
+	/// <function container="Fit.Controls.TreeViewTypeDefs" name="SelectionCompleteEventHandler">
+	/// 	<description> Select all complete event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs">
+	/// 		Event handler arguments
+	/// 	</param>
+	/// </function>
+
 	/// <function container="Fit.Controls.TreeView" name="OnSelect" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when node is being selected or deselected.
@@ -1010,7 +1044,9 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.CancelableNodeEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnSelect = function(cb)
 	{
@@ -1024,7 +1060,9 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Selection can not be canceled. Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.NodeEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnSelected = function(cb)
 	{
@@ -1039,7 +1077,9 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.CancelableNodeEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnToggle = function(cb)
 	{
@@ -1053,7 +1093,9 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Toggle can not be canceled. Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.NodeEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnToggled = function(cb)
 	{
@@ -1071,7 +1113,9 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance
 	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.CancelableSelectionEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnSelectAll = function(cb)
 	{
@@ -1088,7 +1132,9 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance
 	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.SelectionCompleteEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnSelectAllComplete = function(cb)
 	{
@@ -1104,7 +1150,9 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Sender (Fit.Controls.TreeView) and Node (Fit.Controls.TreeViewNode).
 	/// 		Use Sender.ContextMenu() to obtain a reference to the context menu.
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.CancelableNodeEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnContextMenu = function(cb)
 	{
@@ -1721,6 +1769,12 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		return (Fit.Dom.Data(elmLi, "state") === "expanded");
 	}
 
+	/// <function container="Fit.Controls.TreeViewTypeDefs" name="CancelableBehavioralNodeCallback" returns="boolean | void">
+	/// 	<description> Behavioral node callback </description>
+	/// 	<param name="sender" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </param>
+	/// 	<param name="selected" type="boolean"> Value indicating new selection state </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.TreeViewNode" name="SetBehavioralNodeCallback" access="public">
 	/// 	<description>
 	/// 		Set callback invoked when node is selected.
@@ -1728,13 +1782,12 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	/// 		the control value. Since the node is not considered data, it will not trigger
 	/// 		the OnSelect and OnSelected TreeView events either.
 	/// 		Callback receives two arguments:
-	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
-	/// 		EventArgs object contains the following properties:
-	/// 		 - Node: Fit.Controls.TreeViewNode instance
-	/// 		 - Selected: Boolean value indicating new selection state
+	/// 		Sender (Fit.Controls.TreeViewNode) and Selected (boolean value indicating new selection state).
 	/// 		Callback may cancel changed selection state by returning False.
 	/// 	</description>
-	/// 	<param name="func" type="function"> Callback function invoked when node is selected - Null disables behavioral state </param>
+	/// 	<param name="func" type="Fit.Controls.TreeViewTypeDefs.CancelableBehavioralNodeCallback | null">
+	/// 		Callback function invoked when node is selected - Null disables behavioral state
+	/// 	</param>
 	/// </function>
 	this.SetBehavioralNodeCallback = function(func)
 	{
@@ -1841,7 +1894,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 
 			if (behavioralNodeCallback !== null)
 			{
-				if (behavioralNodeCallback(me.GetTreeView(), { Node: me, Selected: !me.Selected() }) === false)
+				if (behavioralNodeCallback(me, !me.Selected()) === false)
 				{
 					return (Fit.Dom.Data(elmLi, "selected") === "true");
 				}
