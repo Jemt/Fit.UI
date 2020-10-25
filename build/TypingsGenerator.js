@@ -855,6 +855,21 @@ function Parser()
 						}
 					});
 				});
+
+				// Include generics from types from which we extend
+
+				var exts = ((container.Extends !== "") ? container.Extends.split(";") : []);
+
+				Fit.Array.ForEach(exts, function(ext)
+				{
+					Fit.Array.ForEach(getGenericsUsageFromDtoOrCallback(ext), function(genericName)
+					{
+						if (Fit.Array.Contains(generics, genericName) === false)
+						{
+							generics.push(genericName);
+						}
+					});
+				});
 			}
 			else
 			{
