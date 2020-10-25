@@ -582,7 +582,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBaseTypeDefs" name="ValidationCallback" returns="boolean | string | void">
 	/// 	<description> Validation callback used with AddValidationRule(..) inherited from Fit.Controls.ControlBase </description>
-	/// 	<param name="sender" type="Fit.Controls.ControlBase"> Control to validate </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Control to validate </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
@@ -774,7 +774,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBaseTypeDefs" name="BaseEvent">
 	/// 	<description> Event handler receiving an instance of the control firing the event </description>
-	/// 	<param name="sender" type="Fit.Controls.ControlBase"> Control instance </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Control instance </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.ControlBase" name="OnChange" access="public">

@@ -519,7 +519,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="ReloadCallback">
 	/// 	<description> Reload callback </description>
-	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSTreeView" name="Reload" access="public">
@@ -1007,7 +1007,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 	/// <container name="Fit.Controls.WSTreeViewTypeDefs.EventHandlerArgs">
 	/// 	<description> Request handler event arguments </description>
-	/// 	<member name="Sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </member>
+	/// 	<member name="Sender" type="$TypeOfThis"> Instance of control </member>
 	/// 	<member name="Request" type="Fit.Http.JsonRequest | Fit.Http.JsonpRequest"> Instance of JsonRequest or JsonpRequest </member>
 	/// 	<member name="Node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </member>
 	/// </container>
@@ -1036,19 +1036,19 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="CancelableRequestEventHandler" returns="boolean | void">
 	/// 	<description> Cancelable request event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSTreeViewTypeDefs.EventHandlerArgs"> Event arguments </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="DataEventHandler">
 	/// 	<description> Data event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSTreeViewTypeDefs.DataHandlerEventArgs"> Event arguments </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSTreeViewTypeDefs" name="AbortEventHandler">
 	/// 	<description> Abort event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSTreeView"> Instance of WSTreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSTreeViewTypeDefs.AbortHandlerEventArgs"> Event arguments </param>
 	/// </function>
 

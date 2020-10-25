@@ -129,26 +129,26 @@ Fit.Controls.WSContextMenu = function(controlId)
 
 	/// <container name="Fit.Controls.WSContextMenuTypeDefs.RequestEventArgs">
 	/// 	<description> Request event handler arguments </description>
-	/// 	<member name="Sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </member>
+	/// 	<member name="Sender" type="$TypeOfThis"> Instance of control </member>
 	/// 	<member name="Request" type="Fit.Http.JsonpRequest | Fit.Http.JsonRequest"> Instance of JsonpRequest or JsonRequest </member>
 	/// </container>
 
 	/// <function container="Fit.Controls.WSContextMenuTypeDefs" name="RequestEventHandler" returns="boolean | void">
 	/// 	<description> OnRequest event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSContextMenuTypeDefs.RequestEventArgs"> Event arguments </param>
 	/// </function>
 
 	/// <container name="Fit.Controls.WSContextMenuTypeDefs.DataEventArgs">
 	/// 	<description> Data event handler arguments </description>
-	/// 	<member name="Sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </member>
+	/// 	<member name="Sender" type="$TypeOfThis"> Instance of control </member>
 	/// 	<member name="Request" type="Fit.Http.JsonpRequest | Fit.Http.JsonRequest"> Instance of JsonpRequest or JsonRequest </member>
 	/// 	<member name="Children" type="object"> JSON items received from web service </member>
 	/// </container>
 
 	/// <function container="Fit.Controls.WSContextMenuTypeDefs" name="DataEventHandler">
 	/// 	<description> Data event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSContextMenu"> Instance of WSContextMenu </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSContextMenuTypeDefs.DataEventArgs"> Event arguments </param>
 	/// </function>
 

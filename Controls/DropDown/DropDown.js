@@ -624,7 +624,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	/// <function container="Fit.Controls.DropDownTypeDefs" name="SelectionToStringCallback" returns="string">
 	/// 	<description> Callback responsible for constructing string value representing selected items </description>
-	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.DropDown" name="TextSelectionMode" access="public" returns="boolean">
@@ -1694,19 +1694,19 @@ Fit.Controls.DropDown = function(ctlId)
 
 	/// <function container="Fit.Controls.DropDownTypeDefs" name="InputChangedEventHandler">
 	/// 	<description> Input changed event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="value" type="string"> Input value </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.DropDownTypeDefs" name="PasteEventHandler" returns="boolean | void">
 	/// 	<description> Paste event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="value" type="string"> Value pasted into input field </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.DropDownTypeDefs" name="InteractionEventHandler">
 	/// 	<description> Event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.DropDown"> Instance of DropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.DropDown" name="OnInputChanged" access="public">

@@ -1011,19 +1011,19 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeViewTypeDefs" name="CancelableNodeEventHandler" returns="boolean | void">
 	/// 	<description> Cancelable node event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.TreeViewTypeDefs" name="NodeEventHandler">
 	/// 	<description> Node event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.TreeViewTypeDefs" name="CancelableSelectionEventHandler" returns="boolean | void">
 	/// 	<description> Cancelable select all event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs">
 	/// 		Event handler arguments
 	/// 	</param>
@@ -1031,7 +1031,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeViewTypeDefs" name="SelectionCompleteEventHandler">
 	/// 	<description> Select all complete event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.TreeView"> Instance of TreeView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs">
 	/// 		Event handler arguments
 	/// 	</param>

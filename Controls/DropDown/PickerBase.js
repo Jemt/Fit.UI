@@ -78,7 +78,7 @@ Fit.Controls.PickerBase = function()
 
 	/// <function container="Fit.Controls.PickerBaseTypeDefs" name="BaseEventHandler">
 	/// 	<description> Event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.PickerBase"> Instance of PickerBase </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.PickerBase" name="OnShow" access="public">
@@ -124,13 +124,13 @@ Fit.Controls.PickerBase = function()
 
 	/// <function container="Fit.Controls.PickerBaseTypeDefs" name="SelectionChangingEventHandler" returns="boolean | void">
 	/// 	<description> Selection changing event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.PickerBase"> Instance of PickerBase </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.PickerBaseTypeDefs.SelectionEventHandlerArguments"> Event arguments </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.PickerBaseTypeDefs" name="SelectionChangedEventHandler">
 	/// 	<description> Selection changed event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.PickerBase"> Instance of PickerBase </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.PickerBaseTypeDefs.SelectionEventHandlerArguments"> Event arguments </param>
 	/// </function>
 

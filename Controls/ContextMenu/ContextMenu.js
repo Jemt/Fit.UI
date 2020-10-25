@@ -447,17 +447,17 @@ Fit.Controls.ContextMenu = function(controlId)
 
 	/// <function container="Fit.Controls.ContextMenuTypeDefs" name="CancelableEventHandler" returns="boolean | void">
 	/// 	<description> Event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.ContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.ContextMenuTypeDefs" name="EventHandler">
 	/// 	<description> Event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.ContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.ContextMenuTypeDefs" name="SelectEventHandler">
 	/// 	<description> OnSelect event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.ContextMenu"> Instance of ContextMenu </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="item" type="Fit.Controls.ContextMenuItem"> Instance of ContextMenuItem </param>
 	/// </function>
 

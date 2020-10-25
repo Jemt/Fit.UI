@@ -253,7 +253,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="AutoUpdateSelectedCallback">
 	/// 	<description> AutoUpdateSelected callback </description>
-	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="updatedItems" type="Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]"> Updated items </param>
 	/// </function>
 
@@ -400,7 +400,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="ClearDataCallback">
 	/// 	<description> Event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSDropDown" name="ClearData" access="public">
@@ -507,7 +507,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	/// <container name="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs">
 	/// 	<description> Request event arguments </description>
-	/// 	<member name="Sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </member>
+	/// 	<member name="Sender" type="$TypeOfThis"> Instance of control </member>
 	/// 	<member name="Picker" type="Fit.Controls.WSTreeView | Fit.Controls.WSListView"> Instance of picker control causing web service request </member>
 	/// 	<member name="Node" type="Fit.Controls.TreeViewNode | null"> Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request </member>
 	/// 	<member name="Search" type="string"> Search value if entered by user </member>
@@ -526,19 +526,19 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="CancelableRequestEventHandler">
 	/// 	<description> Cancelable request event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs"> Event arguments </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="ResponseEventHandler">
 	/// 	<description> Response event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs"> Event arguments </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="RequestAbortedEventHandler">
 	/// 	<description> Aborted request handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSDropDown"> Instance of WSDropDown </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs"> Event arguments </param>
 	/// </function>
 

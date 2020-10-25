@@ -77,7 +77,7 @@ Fit.Controls.WSListView = function(ctlId)
 
 	/// <function container="Fit.Controls.WSListViewTypeDefs" name="ReloadCallback">
 	/// 	<description> Reload callback </description>
-	/// 	<param name="sender" type="Fit.Controls.WSListView"> Instance of WSListView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSListView" name="Reload" access="public">
@@ -128,7 +128,7 @@ Fit.Controls.WSListView = function(ctlId)
 
 	/// <container name="Fit.Controls.WSListViewTypeDefs.EventHandlerArgs">
 	/// 	<description> Event handler arguments </description>
-	/// 	<member name="Sender" type="Fit.Controls.WSListView"> Instance of WSListView </member>
+	/// 	<member name="Sender" type="$TypeOfThis"> Instance of control </member>
 	/// 	<member name="Request" type="Fit.Http.JsonRequest | Fit.Http.JsonpRequest"> Instance of JsonRequest or JsonpRequest </member>
 	/// </container>
 
@@ -151,19 +151,19 @@ Fit.Controls.WSListView = function(ctlId)
 
 	/// <function container="Fit.Controls.WSListViewTypeDefs" name="CancelableRequestEventHandler" returns="boolean | void">
 	/// 	<description> Request event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSListView"> Instance of WSListView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSListViewTypeDefs.EventHandlerArgs"> Event arguments </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSListViewTypeDefs" name="DataEventHandler">
 	/// 	<description> Response event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSListView"> Instance of WSListView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSListViewTypeDefs.DataHandlerEventArgs"> Event arguments </param>
 	/// </function>
 
 	/// <function container="Fit.Controls.WSListViewTypeDefs" name="AbortEventHandler">
 	/// 	<description> Abort event handler </description>
-	/// 	<param name="sender" type="Fit.Controls.WSListView"> Instance of WSListView </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// 	<param name="eventArgs" type="Fit.Controls.WSListViewTypeDefs.AbortHandlerEventArgs"> Event arguments </param>
 	/// </function>
 
