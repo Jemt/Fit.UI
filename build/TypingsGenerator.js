@@ -6,6 +6,8 @@
 // directly in the browser, allowing us to use the JS debugger.
 // The generated type definitions are written to the browser console.
 
+// @ts-nocheck
+
 var isNodeJs = (typeof(window) === "undefined");
 var globals = isNodeJs ? global : window;
 
@@ -629,6 +631,14 @@ function Parser()
 				returnTypeAlias = getType(f.Returns, true);
 
 				generics = getGenerics(f.Returns);
+
+				Fit.Array.ForEach(getGenericsUsageFromDtoOrCallback(f.Returns), function(genName)
+				{
+					if (Fit.Array.Contains(generics, genName) === false)
+					{
+						generics.push(genName);
+					}
+				});
 			}
 
 			// Construct function signature
@@ -639,7 +649,7 @@ function Parser()
 			var access = null;
 			var funcName = null;
 
-			var isCallback = (f.Access === ""); // True if function is not a public/private function, but merely a callback signature (type definition)
+			var isCallback = checkIsCallback(f);
 
 			if (isCallback === true)
 			{
@@ -669,11 +679,14 @@ function Parser()
 
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
-			res += "\n" + tabs + "* @function " + f.Name;
 			Fit.Array.ForEach(generics, function(genericName) // https://github.com/google/closure-compiler/wiki/Generic-Types and https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html
 			{
-				res += "\n" + tabs + "* @template " + genericName;
+				if (isCallback === false && genericName === "TypeOfThis")
+					return; // Skip - TypeOfThis is a special generic type used to pass 'this' type to a callback to have e.g. OnChange pass Sender as the specialized control type rather than ControlBase
+
+				res += "\n" + tabs + "* @template " + genericName; // @template must be defined before @callback
 			});
+			res += "\n" + tabs + (isCallback === false ? "* @function " : "* @callback ") + f.Name;
 			res += parms.Docs;
 			if (returnType !== null)
 				res += "\n" + tabs + "* @returns " + convertToJsDocType(returnType);
@@ -685,7 +698,7 @@ function Parser()
 			}
 			else
 			{
-				res += "\n" + tabs + access + funcName + getGenericsString(generics) + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+				res += "\n" + tabs + access + funcName + getGenericsString(generics, "SkipTypeOfThis") + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
 			}
 		});
 
@@ -724,6 +737,8 @@ function Parser()
 		var docs = "";
 		var generics = [];
 
+		var isCallback = checkIsCallback(functionInstance);
+
 		Fit.Array.ForEach(functionInstance.Parameters, function(p)
 		{
 			// Find generics required by named callbacks (as apposed to anonymous/inline callbacks).
@@ -753,12 +768,12 @@ function Parser()
 			//     <param name="callback" type="(obj:$Type) => boolean | void"> Callback receiving objects </param>
 			// </function>
 
-			docs += "\n" + tabs + "* @param {" + convertToJsDocType(getType(p.Type)) + (p.Nullable === true ? "|null" : "") + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
+			docs += "\n" + tabs + "* @param {" + convertToJsDocType(getType(p.Type, false, isCallback)) + (p.Nullable === true ? "|null" : "") + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
 
 			str += (str !== "" ? ", " : "") + p.Name;
 			str += (p.Default ? "?" : "");
 			str += ":";
-			str += getType(p.Type, true) + (p.Nullable === true ? " | null" : "");
+			str += getType(p.Type, true, isCallback) + (p.Nullable === true ? " | null" : "");
 
 			Fit.Array.ForEach(Fit.Array.Merge(getGenerics(p.Type) /* E.g. $MyType[]|string[] */, getGenericsUsageFromDtoOrCallback(p.Type) /* E.g. String|Fit.Demo.CustomTypeUsingGenerics|Fit.Demo.CallbackUsingGenerics */), function(genericName)
 			{
@@ -849,7 +864,7 @@ function Parser()
 				{
 					Fit.Array.ForEach(callback.Parameters, function(cbParm)
 					{
-						Fit.Array.ForEach(getGenerics(cbParm.Type), function(genericName)
+						Fit.Array.ForEach(Fit.Array.Merge(getGenerics(cbParm.Type), getGenericsUsageFromDtoOrCallback(cbParm.Type)), function(genericName)
 						{
 							if (Fit.Array.Contains(generics, genericName) === false)
 							{
@@ -858,7 +873,7 @@ function Parser()
 						});
 					});
 
-					Fit.Array.ForEach(getGenerics(callback.Returns), function(genericName)
+					Fit.Array.ForEach(Fit.Array.Merge(getGenerics(callback.Returns), getGenericsUsageFromDtoOrCallback(callback.Returns)), function(genericName)
 					{
 						if (Fit.Array.Contains(generics, genericName) === false)
 						{
@@ -872,19 +887,32 @@ function Parser()
 		return generics;
 	}
 
-	function getGenericsString(genericsArray)
+	function getGenericsString(genericsArray, actionForTypeOfThis)
 	{
 		var str = "";
 
-		if (genericsArray.length > 0)
+		var toInclude = [];
+
+		Fit.Array.ForEach(genericsArray, function(genName)
 		{
-			str = "<" + genericsArray.join(", ") + ">";
+			if (actionForTypeOfThis === "SkipTypeOfThis" && genName === "TypeOfThis")
+				return;
+
+			if (actionForTypeOfThis === "RenameTypeOfThis" && genName === "TypeOfThis")
+				genName = "this";
+
+			toInclude.push(genName);
+		});
+
+		if (toInclude.length > 0)
+		{
+			str = "<" + toInclude.join(", ") + ">";
 		}
 
 		return str;
 	}
 
-	function getType(type, resolveAlias)
+	function getType(type, resolveAlias, doNotRenameTypeOfThis)
 	{
 		if (type.indexOf("|") > -1 || type.indexOf(":") > -1 || type.indexOf("+") > -1)
 		{
@@ -968,7 +996,9 @@ function Parser()
 
 		// Return type as-is, but with generics attached if defined (e.g. SomeType<TypeA, TypeB>)
 
-		return type + getGenericsString(getGenericsUsageFromDtoOrCallback(type));
+		var renameTypeOfThis = doNotRenameTypeOfThis !== true && checkIsCallback(type) === true; // doNotRenameTypeOfThis is true if a callback argument needs to pass TypeOfThis to another callback
+
+		return type + getGenericsString(getGenericsUsageFromDtoOrCallback(type), renameTypeOfThis === true ? "RenameTypeOfThis" : undefined);
 	}
 
 	function convertToJsDocType(type) // Returns type as-is if conversion is not required
@@ -1019,6 +1049,20 @@ function Parser()
 		return type;
 	}
 
+	function checkIsCallback(value)
+	{
+		if (typeof(value) === "string") // Callback name, e.g. Fit.Controls.ControlBaseTypeDefs.BaseEvent
+		{
+			return getCallbackByName(value) !== null;
+		}
+		else if (value.Returns !== undefined && value.Access !== undefined) // Function object since it has Returns and Access properties
+		{
+			return value.Access === ""; // True if function is not a public/private function, but merely a callback signature (type definition)
+		}
+
+		throw new Error("Invalid value passed to checkIsCallback(..)");
+	}
+
 	function formatDescription(description, tabs)
 	{
 		description = description.replace(/\n/g, "\n" + tabs);
@@ -1027,7 +1071,7 @@ function Parser()
 		description = description.replace(/\/\*/g, "//");
 		description = description.replace(/\*\//g, "");
 
-		if (/\.$/.test(description) === false)
+		if (description !== "" && /\.$/.test(description) === false)
 		{
 			// Make sure all descriptions ends with a period. VSCode will display multiple
 			// descriptions on one line if multiple types are possible, and we hover/select
