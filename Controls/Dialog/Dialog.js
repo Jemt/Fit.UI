@@ -113,9 +113,9 @@ Fit.Controls.Dialog = function(controlId)
 	// Public
 	// ============================================
 
-	/// <function container="Fit.Controls.Dialog" name="Title" access="public" returns="string">
+	/// <function container="Fit.Controls.Dialog" name="Title" access="public" returns="string | null">
 	/// 	<description> Get/set title - returns null if not set, and null can be passed to remove title </description>
-	/// 	<param name="val" type="string" default="undefined"> If specified, dialog title is updated with specified value </param>
+	/// 	<param name="val" type="string | null" default="undefined"> If specified, dialog title is updated with specified value </param>
 	/// </function>
 	this.Title = function(val)
 	{
@@ -434,7 +434,7 @@ Fit.Controls.Dialog = function(controlId)
 		return content;
 	}
 
-	/// <function container="Fit.Controls.Dialog" name="ContentUrl" access="public" returns="string">
+	/// <function container="Fit.Controls.Dialog" name="ContentUrl" access="public" returns="string | null">
 	/// 	<description> Get/set content URL - returns null if not set </description>
 	/// 	<param name="url" type="string" default="undefined"> If specified, dialog is updated with content from specified URL </param>
 	/// 	<param name="onLoadHandler" type="Fit.Controls.DialogTypeDefs.DialogEventHandler" default="undefined">

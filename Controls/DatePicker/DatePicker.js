@@ -591,9 +591,9 @@ Fit.Controls.DatePicker = function(ctlId)
 		return format;
 	}
 
-	/// <function container="Fit.Controls.DatePicker" name="DatePlaceholder" access="public" returns="string">
+	/// <function container="Fit.Controls.DatePicker" name="DatePlaceholder" access="public" returns="string | null">
 	/// 	<description> Get/set date placeholder value. Returns Null if not set. </description>
-	/// 	<param name="val" type="string" default="undefined">
+	/// 	<param name="val" type="string | null" default="undefined">
 	/// 		If defined, placeholder is updated. Pass Null to use default
 	/// 		placeholder, or an empty string to remove placeholder.
 	/// 	</param>
@@ -611,9 +611,9 @@ Fit.Controls.DatePicker = function(ctlId)
 		return placeholderDate;
 	}
 
-	/// <function container="Fit.Controls.DatePicker" name="TimePlaceholder" access="public" returns="string">
+	/// <function container="Fit.Controls.DatePicker" name="TimePlaceholder" access="public" returns="string | null">
 	/// 	<description> Get/set time placeholder value. Returns Null if not set. </description>
-	/// 	<param name="val" type="string" default="undefined">
+	/// 	<param name="val" type="string | null" default="undefined">
 	/// 		If defined, placeholder is updated. Pass Null to use default
 	/// 		placeholder, or an empty string to remove placeholder.
 	/// 	</param>

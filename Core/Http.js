@@ -104,7 +104,7 @@ Fit.Http.Request = function(uri)
 		customHeaders[key.toLowerCase()] = { Key: key, Value: value };
 	}
 
-	/// <function container="Fit.Http.Request" name="GetHeader" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="GetHeader" access="public" returns="string | null">
 	/// 	<description> Get request header - returns Null if not found </description>
 	/// 	<param name="key" type="string"> Header name </param>
 	/// </function>
@@ -233,7 +233,7 @@ Fit.Http.Request = function(uri)
 		me.AddFormData(key, value, uriEncode);
 	}
 
-	/// <function container="Fit.Http.Request" name="GetFormData" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="GetFormData" access="public" returns="string | null">
 	/// 	<description> Get form value added to form data collection - returns Null if not found </description>
 	/// 	<param name="key" type="string"> Data key </param>
 	/// </function>
@@ -419,7 +419,7 @@ Fit.Http.Request = function(uri)
 		return httpRequest.responseText;
 	}
 
-	/// <function container="Fit.Http.Request" name="GetResponseJson" access="public" returns="object">
+	/// <function container="Fit.Http.Request" name="GetResponseJson" access="public" returns="object | null">
 	/// 	<description>
 	/// 		Returns result from request as JSON object, Null if no response was returned.
 	/// 		Return value will only be as expected if GetCurrentState() returns a value of 4
@@ -492,7 +492,7 @@ Fit.Http.Request = function(uri)
 		return headers;
 	}
 
-	/// <function container="Fit.Http.Request" name="GetResponseHeader" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="GetResponseHeader" access="public" returns="string | null">
 	/// 	<description> Get response header (e.g. text/html) - returns Null if not found </description>
 	/// 	<param name="key" type="string"> Header key (e.g. Content-Type) </param>
 	/// </function>
@@ -764,7 +764,7 @@ Fit.Http.JsonRequest = function(url)
 		Fit.Validation.ThrowError("Use SetData(..) to set JSON request data for JSON WebService");
 	}
 
-	/// <function container="Fit.Http.JsonRequest" name="GetResponseJson" access="public" returns="object">
+	/// <function container="Fit.Http.JsonRequest" name="GetResponseJson" access="public" returns="object | null">
 	/// 	<description>
 	/// 		Returns result from request as JSON object, Null if no response was returned.
 	/// 		Return value will only be as expected if GetCurrentState() returns a value of 4
@@ -894,7 +894,7 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 		data[key] = ((uriEncode === false) ? value : encodeURIComponent(value).replace(/%20/g, "+"));
 	}
 
-	/// <function container="Fit.Http.JsonpRequest" name="GetParameter" access="public" returns="string">
+	/// <function container="Fit.Http.JsonpRequest" name="GetParameter" access="public" returns="string | null">
 	/// 	<description> Get URL parameter value - returns Null if parameter is not defined </description>
 	/// 	<param name="key" type="string"> URL parameter key </param>
 	/// </function>

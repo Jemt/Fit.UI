@@ -366,7 +366,7 @@ Fit.Controls.ContextMenu = function(controlId)
 		tree.RemoveAllChildren(dispose);
 	}
 
-	/// <function container="Fit.Controls.ContextMenu" name="GetChild" access="public" returns="Fit.Controls.ContextMenuItem">
+	/// <function container="Fit.Controls.ContextMenu" name="GetChild" access="public" returns="Fit.Controls.ContextMenuItem | null">
 	/// 	<description> Get item by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Item value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
@@ -788,7 +788,7 @@ Fit.Controls.ContextMenuItem = function(displayTitle, itemValue)
 			node.RemoveChild(tvNode);
 	}
 
-	/// <function container="Fit.Controls.ContextMenuItem" name="GetChild" access="public" returns="Fit.Controls.ContextMenuItem">
+	/// <function container="Fit.Controls.ContextMenuItem" name="GetChild" access="public" returns="Fit.Controls.ContextMenuItem | null">
 	/// 	<description> Get item by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Item value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
@@ -821,7 +821,7 @@ Fit.Controls.ContextMenuItem = function(displayTitle, itemValue)
 		return items;
 	}
 
-	/// <function container="Fit.Controls.ContextMenuItem" name="GetParent" access="public" returns="Fit.Controls.ContextMenuItem">
+	/// <function container="Fit.Controls.ContextMenuItem" name="GetParent" access="public" returns="Fit.Controls.ContextMenuItem | null">
 	/// 	<description> Get parent item - returns Null for a root item </description>
 	/// </function>
 	this.GetParent = function()

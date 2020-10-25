@@ -76,7 +76,7 @@ Fit.Cookies = function()
 		Fit.Cookies.Set(prefix + name, value, seconds, (path !== "" ? path : null));
 	}
 
-	/// <function container="Fit.Cookies" name="Get" access="public" returns="string">
+	/// <function container="Fit.Cookies" name="Get" access="public" returns="string | null">
 	/// 	<description> Returns cookie value if found, otherwise Null </description>
 	/// 	<param name="name" type="string"> Unique cookie name </param>
 	/// </function>
@@ -135,7 +135,7 @@ Fit.Cookies.Set = function(name, value, seconds, path)
 	document.cookie = name + "=" + value + ((date !== null) ? "; expires=" + date.toGMTString() : "") + "; path=" + ((Fit.Validation.IsSet(path) === true) ? path + ((path[path.length-1] !== "/") ? "/" : "") : "/");
 }
 
-/// <function container="Fit.Cookies" name="Get" access="public" static="true" returns="string">
+/// <function container="Fit.Cookies" name="Get" access="public" static="true" returns="string | null">
 /// 	<description> Returns cookie value if found, otherwise Null </description>
 /// 	<param name="name" type="string"> Unique cookie name </param>
 /// </function>

@@ -56,12 +56,12 @@ Fit.Controls.WSListView = function(ctlId)
 		return url;
 	}
 
-	/// <function container="Fit.Controls.WSListView" name="JsonpCallback" access="public" returns="string">
+	/// <function container="Fit.Controls.WSListView" name="JsonpCallback" access="public" returns="string | null">
 	/// 	<description>
 	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
 	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
 	/// 	</description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// 	<param name="val" type="string | null" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
 	/// </function>
 	this.JsonpCallback = function(val)
 	{

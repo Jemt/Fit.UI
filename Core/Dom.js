@@ -69,7 +69,7 @@ Fit.Dom.HasClass = function(elm, cls)
     return found;
 }
 
-/// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string">
+/// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string | null">
 /// 	<description>
 /// 		Get style value applied after stylesheets have been loaded.
 /// 		An empty string or null may be returned if style has not been defined or does not exist.
@@ -374,11 +374,11 @@ Fit.Dom.Remove = function(elm)
 	}
 }
 
-/// <function container="Fit.Dom" name="Attribute" access="public" static="true" returns="string">
-/// 	<description> Get/set attribute on DOMElement </description>
+/// <function container="Fit.Dom" name="Attribute" access="public" static="true" returns="string | null">
+/// 	<description> Get/set attribute on DOMElement - returns Null if attribute does not exist </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to which attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of attribute to set or retrieve </param>
-/// 	<param name="value" type="string" default="undefined">
+/// 	<param name="value" type="string | null" default="undefined">
 /// 		If defined, attribute is updated with specified value.
 /// 		Passing Null results in attribute being removed.
 /// 	</param>
@@ -394,14 +394,14 @@ Fit.Dom.Attribute = function(elm, name, value)
 	else if (value === null)
 		elm.removeAttribute(name);
 
-	return elm.getAttribute(name);
+	return elm.hasAttribute(name) === true ? elm.getAttribute(name) : null;
 }
 
-/// <function container="Fit.Dom" name="Data" access="public" static="true" returns="string">
-/// 	<description> Get/set data attribute on DOMElement </description>
+/// <function container="Fit.Dom" name="Data" access="public" static="true" returns="string | null">
+/// 	<description> Get/set data attribute on DOMElement - returns Null if data attribute does not exist </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to which data attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of data attribute to set or retrieve </param>
-/// 	<param name="value" type="string" default="undefined">
+/// 	<param name="value" type="string | null" default="undefined">
 /// 		If defined, data attribute is updated with specified value.
 /// 		Passing Null results in data attribute being removed.
 /// 	</param>
@@ -665,7 +665,7 @@ Fit.Dom.IsVisible = function(elm)
 	return (previous === document.documentElement); // If last parent reached is not <html>, then element is not rooted in DOM yet
 }
 
-/// <function container="Fit.Dom" name="GetConcealer" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetConcealer" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
 /// 		Get container responsible for hiding given element.
 /// 		Element passed will be returned if hidden itself.
@@ -701,7 +701,7 @@ Fit.Dom.GetConcealer = function(elm)
 	return null; // Not rooted in DOM yet
 }
 
-/// <function container="Fit.Dom" name="GetFocused" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetFocused" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
 /// 		Returns element currently focused. If no element is focused, the document body is returned.
 /// 		Null will be returned if the document has not been loaded yet.
@@ -726,7 +726,7 @@ Fit.Dom.GetFocused = function()
 	return focused;
 }
 
-/// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement | null">
 /// 	<description> Returns first parent of specified type for a given element if found, otherwise Null </description>
 /// 	<param name="element" type="DOMNode"> Element to find parent for </param>
 /// 	<param name="parentType" type="string"> Tagname of parent element to look for </param>
@@ -816,7 +816,7 @@ Fit.Dom.SetCaretPosition = function(input, pos)
 	}
 }
 
-/// <function container="Fit.Dom" name="GetBoundingPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
+/// <function container="Fit.Dom" name="GetBoundingPosition" access="public" static="true" returns="Fit.TypeDefs.Position | null">
 /// 	<description>
 /// 		Get position for visible element within viewport.
 /// 		Object returned contains an X and Y property
@@ -841,7 +841,7 @@ Fit.Dom.GetBoundingPosition = function(elm)
 	return { X: Math.round(bcr.x || bcr.left), Y: Math.round(bcr.y || bcr.top) }; // Several legacy browsers use top/left instead of x/y
 }
 
-/// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
+/// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="Fit.TypeDefs.Position | null">
 /// 	<description>
 /// 		Get position for visible element.
 /// 		Object returned contains an X and Y property
@@ -1001,7 +1001,7 @@ Fit.Dom.GetScrollPosition = function(elm)
 	return pos;
 }
 
-/// <function container="Fit.Dom" name="GetScrollParent" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetScrollParent" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
 /// 		Get element's scroll parent. Returns null if element passed
 /// 		is placed on its own stacking context (has position:fixed).
@@ -1042,10 +1042,10 @@ Fit.Dom.GetScrollParent = function(elm)
 	return Fit.Dom.GetScrollDocument();
 }
 
-/// <function container="Fit.Dom" name="GetOverflowingParent" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetOverflowingParent" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
 /// 		Get element's parent that has overflow set to auto, scroll, or hidden.
-/// 		Returns null if element passed has now parent with overflow.
+/// 		Returns null if element passed has no parent with overflow.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get overflowing parent for </param>
 /// </function>

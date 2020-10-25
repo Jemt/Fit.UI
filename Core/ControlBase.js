@@ -514,7 +514,7 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
 	/// 		Set regular expression used to perform on-the-fly validation against control value.
 	/// 	</description>
-	/// 	<param name="regEx" type="RegExp" nullable="true"> Regular expression to validate against </param>
+	/// 	<param name="regEx" type="RegExp | null"> Regular expression to validate against </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
 	/// 	</param>
@@ -537,7 +537,7 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
 	/// 		Set callback function used to perform on-the-fly validation against control value.
 	/// 	</description>
-	/// 	<param name="cb" type="function" nullable="true"> Function receiving control value - must return True if value is valid, otherwise False </param>
+	/// 	<param name="cb" type="function | null"> Function receiving control value - must return True if value is valid, otherwise False </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
 	/// 	</param>
@@ -561,7 +561,7 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
 	/// 		Set callback function used to perform on-the-fly validation against control value
 	/// 	</description>
-	/// 	<param name="cb" type="function" nullable="true">
+	/// 	<param name="cb" type="function | null">
 	/// 		Function receiving an instance of the control and its value.
 	/// 		An error message string must be returned if value is invalid,
 	/// 		otherwise Null or an empty string if the value is valid.

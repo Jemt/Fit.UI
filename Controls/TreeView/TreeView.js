@@ -766,7 +766,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <function container="Fit.Controls.TreeView" name="ContextMenu" access="public" returns="Fit.Controls.ContextMenu">
 	/// 	<description> Get/set instance of ContextMenu control triggered when right clicking nodes in TreeView </description>
-	/// 	<param name="contextMenu" type="Fit.Controls.ContextMenu" nullable="true"> If defined, assignes ContextMenu control to TreeView </param>
+	/// 	<param name="contextMenu" type="Fit.Controls.ContextMenu | null"> If defined, assignes ContextMenu control to TreeView </param>
 	/// </function>
 	this.ContextMenu = function(contextMenu)
 	{
@@ -875,7 +875,7 @@ Fit.Controls.TreeView = function(ctlId)
 			me._internal.FireOnChange();
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetChild" access="public" returns="Fit.Controls.TreeViewNode">
+	/// <function container="Fit.Controls.TreeView" name="GetChild" access="public" returns="Fit.Controls.TreeViewNode | null">
 	/// 	<description> Get node by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Node value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>
@@ -912,7 +912,7 @@ Fit.Controls.TreeView = function(ctlId)
 		return nodes;
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetNodeFocused" access="public" returns="Fit.Controls.TreeViewNode">
+	/// <function container="Fit.Controls.TreeView" name="GetNodeFocused" access="public" returns="Fit.Controls.TreeViewNode | null">
 	/// 	<description> Get node currently having focus - returns Null if no node has focus </description>
 	/// </function>
 	this.GetNodeFocused = function()
@@ -920,7 +920,7 @@ Fit.Controls.TreeView = function(ctlId)
 		return getNodeFocused();
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetActiveNode" access="public" returns="Fit.Controls.TreeViewNode">
+	/// <function container="Fit.Controls.TreeView" name="GetActiveNode" access="public" returns="Fit.Controls.TreeViewNode | null">
 	/// 	<description> Get active (highlighted or focused) node - returns Null if no node is currently active </description>
 	/// </function>
 	this.GetActiveNode = function()
@@ -938,7 +938,7 @@ Fit.Controls.TreeView = function(ctlId)
 		focusNode(node); // Will highlight node if TreeView is used as picker, otherwise focus node
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetNodeAbove" access="public" returns="Fit.Controls.TreeViewNode">
+	/// <function container="Fit.Controls.TreeView" name="GetNodeAbove" access="public" returns="Fit.Controls.TreeViewNode | null">
 	/// 	<description> Get node above specified node - returns Null if no node is above the specified one </description>
 	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to get node above </param>
 	/// </function>
@@ -947,7 +947,7 @@ Fit.Controls.TreeView = function(ctlId)
 		return getNodeAbove(node, true);
 	}
 
-	/// <function container="Fit.Controls.TreeView" name="GetNodeBelow" access="public" returns="Fit.Controls.TreeViewNode">
+	/// <function container="Fit.Controls.TreeView" name="GetNodeBelow" access="public" returns="Fit.Controls.TreeViewNode | null">
 	/// 	<description> Get node below specified node - returns Null if no node is below the specified one </description>
 	/// 	<param name="node" type="Fit.Controls.TreeViewNode"> Node to get node below </param>
 	/// </function>
@@ -1969,7 +1969,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		return (Fit.Dom.GetFocused() === elmLi);
 	}
 
-	/// <function container="Fit.Controls.TreeViewNode" name="GetParent" access="public" returns="Fit.Controls.TreeViewNode">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetParent" access="public" returns="Fit.Controls.TreeViewNode | null">
 	/// 	<description> Get parent node - returns Null if node has no parent </description>
 	/// </function>
 	this.GetParent = function()
@@ -1984,7 +1984,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		return elmLi.parentElement.parentElement._internal.Node;
 	}
 
-	/// <function container="Fit.Controls.TreeViewNode" name="GetTreeView" access="public" returns="Fit.Controls.TreeView">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetTreeView" access="public" returns="Fit.Controls.TreeView | null">
 	/// 	<description> Returns TreeView if associated, otherwise Null </description>
 	/// </function>
 	this.GetTreeView = function()
@@ -2236,7 +2236,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		}
 	}
 
-	/// <function container="Fit.Controls.TreeViewNode" name="GetChild" access="public" returns="Fit.Controls.TreeViewNode">
+	/// <function container="Fit.Controls.TreeViewNode" name="GetChild" access="public" returns="Fit.Controls.TreeViewNode | null">
 	/// 	<description> Get node by value - returns Null if not found </description>
 	/// 	<param name="val" type="string"> Node value </param>
 	/// 	<param name="recursive" type="boolean" default="false"> If defined, True enables recursive search </param>

@@ -239,7 +239,7 @@ Fit.Browser.GetQueryString = function(alternativeUrl)
 /// 	<member name="Url" type="string"> Full URL address </member>
 /// 	<member name="Protocol" type='"ftp" | "http" | "https"'> Full URL address </member>
 /// 	<member name="Port" type="integer"> Port number - returns -1 if not defined in URL </member>
-/// 	<member name="Auth" type="string"> Authentication token or user:pass if specified, otherwise Null </member>
+/// 	<member name="Auth" type="string | null"> Authentication token or user:pass if specified, otherwise Null </member>
 /// 	<member name="Host" type="string"> Hostname, e.g. localhost or domain name </member>
 /// 	<member name="Path" type="string"> Path to folder containing resources, e.g. / or /folder </member>
 /// 	<member name="Resource" type="string"> Name of resource, e.g. resource.php </member>
@@ -526,16 +526,21 @@ Fit.Browser.LogDeprecated = function(msg)
 		//console.trace();
 }
 
-/// <container name="Fit.BrowserTypeDefs.BrowserInfo">
-/// 	<description> Object representing browser environment </description>
-/// 	<member name="Name" type='"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"'> Browser name </member>
+/// <container name="Fit.BrowserTypeDefs.BrowserDetails">
+/// 	<description> Object representing browser details </description>
 /// 	<member name="Version" type="integer"> Browser version </member>
 /// 	<member name="Language" type="string"> Browser language, e.g. en, da, de, etc. </member>
 /// 	<member name="IsMobile" type="boolean"> Boolean indicating whether this is a mobile device (tablet or phone) </member>
 /// 	<member name="IsPhone" type="boolean"> Boolean indicating whether this is a phone </member>
 /// 	<member name="IsTablet" type="boolean"> Boolean indicating whether this is a tablet device </member>
 /// </container>
-/// <container name="Fit.BrowserTypeDefs.BrowserAppInfo" extends="Fit.BrowserTypeDefs.BrowserInfo">
+
+/// <container name="Fit.BrowserTypeDefs.BrowserInfo" extends="Fit.BrowserTypeDefs.BrowserDetails">
+/// 	<description> Object representing browser environment </description>
+/// 	<member name="Name" type='"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"'> Browser name </member>
+/// </container>
+
+/// <container name="Fit.BrowserTypeDefs.BrowserAppInfo" extends="Fit.BrowserTypeDefs.BrowserDetails">
 /// 	<description> Object representing browser app environment </description>
 /// 	<member name="Name" type='"Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown"'> Browser app name </member>
 /// </container>
