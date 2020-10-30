@@ -33,6 +33,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var invalidMessageChanged = false;			// Flag indicating whether built-in Invalid Selection Message has been overridden or not
 	var initialFocus = true;					// Flag indicating first focus of control
 	var maxHeight = { Value: 150, Unit: "px"};	// Picker max height (px)
+	var maxWidth = { Value: -1, Unit: "px" };	// Picker max width (px)
 	var prevValue = "";							// Previous input value - used to determine whether OnChange should be fired
 	var focusAssigned = false;					// Boolean ensuring that control is only given focus when AddSelection is called, if user assigned focus to control
 	var visibilityObserverId = -1;				// Observer (ID) responsible for updating input control width when drop down becomes visible (if initially hidden)
@@ -440,10 +441,12 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (Fit.Validation.IsSet(value) === true)
 		{
+			maxWidth = { Value: value, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px")};
+
 			if (value !== -1)
 			{
 				dropDownMenu.style.width = "auto"; // Adjust width to content - notice that optimizeDropDownPosition(..) and resetDropDownPosition() also manipulate the width property!
-				dropDownMenu.style.maxWidth = value + ((Fit.Validation.IsSet(unit) === true) ? unit : "px");
+				dropDownMenu.style.maxWidth = maxWidth.Value + maxWidth.Unit;
 			}
 			else
 			{
@@ -452,15 +455,7 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		}
 
-		var res = { Value: -1, Unit: "px" };
-
-		if (dropDownMenu.style.maxWidth !== "")
-		{
-			res.Value = parseFloat(dropDownMenu.style.maxWidth);
-			res.Unit = dropDownMenu.style.maxWidth.replace(res.Value, "");
-		}
-
-		return res;
+		return maxWidth;
 	}
 
 	// ControlBase interface
@@ -2373,44 +2368,68 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// DropDown menu is positioned above control if sufficient space is not available below it. It will always prefer
 		// to open downwards if possible. The MaxHeight of the DropDown menu will be adjusted automatically to better fit.
+		// In addition, if sufficient space is not available to the right of the control, the DropDown menu will open to
+		// the left side instead. If sufficient space is not available on the left side either, it will choose the side with
+		// the most space, and adjust the DropDown menu's MaxWidth to make it fit.
 
 		// DropDown menu is positioned relative to itemContainer which is what makes up the DropDown UI - me.GetDomElement() is merely a container with no styling by default
 
-		var spaceRequiredBelowControl = 100;		// Opens upwards if this amount of pixels is not available below control, and more space is available above control
-		var spacingToEdge = 10;						// Makes sure that DropDown menu has this amount of spacing (in pixels) to the edge of the viewport or scroll parent
+		// Allow DropDown to reposition when items are added/remove which might affect height of control
+		resetDropDownPosition();
+
+		var spaceRequiredBelowControl = 100;							// Opens upwards if this amount of pixels is not available below control, and more space is available above control
+		var spaceRequiredRightSide = getDropDownMaxWidthPixelValue();	// DropDownMaxWidth as px value - DropDown menu opens to the side that best accommodates the needed space - opening to the right is preferred
+		var spacingToEdge = 10;											// Makes sure that DropDown menu has this amount of spacing (in pixels) to the edge of the viewport or scroll parent
 
 		if (detectBoundariesRelToViewPort === false) // Detecting collisions against scroll parent
 		{
 			var posFromTopWithinContainer = -1;		// DropDown control's position from top within scrollable parent
-			var availableSpaceBelowControl = -1;	// Number of pixels available below control
+			var posFromLeftWithinContainer = -1;	// DropDown control's position from left within scrollable parent
+			var availableSpaceBelowControl = -1;	// Number of pixels available below control (from bottom side of control)
+			var availableSpaceRightOfControl = -1;	// Number of pixels available to the right of control (from right side of control)
 			var mostSpaceAboveControl = false;		// Flag indicating whether more space is available above control or not
+			var mostSpaceLeftOfControl = false;		// Flag indicating whether more space is available to the left of control or not
 			var condNotEnoughSpaceBelow = false;	// Flag indicating whether DropDown menu has insufficient space below control - opens upwards if this is true and mostSpaceAboveControl is true
+			var condNotEnoughSpaceRightSide = false;// Flag indicating whether DropDown menu has insufficient space to the right of control - opens to the left if this is true and mostSpaceLeftOfControl is true
 
 			var overflowParent = Fit.Dom.GetOverflowingParent(me.GetDomElement());
 
 			if (overflowParent !== null) // Contained in custom scroll parent (not document)
 			{
-				var parentPosY = Fit.Dom.GetBoundingPosition(overflowParent).Y + parseInt(Fit.Dom.GetComputedStyle(overflowParent, "border-top-width")); // Position inside scroll parent and inside its borders which are placed inside the box (box-sizing:border-box)
+				var overflowParentPosition = Fit.Dom.GetBoundingPosition(overflowParent);
+				var parentPosY = overflowParentPosition.Y + parseInt(Fit.Dom.GetComputedStyle(overflowParent, "border-top-width")); // Position inside scroll parent and inside its borders which are placed inside the box (box-sizing:border-box)
+				var parentPosX = overflowParentPosition.X + parseInt(Fit.Dom.GetComputedStyle(overflowParent, "border-right-width")); // Position inside scroll parent and inside its borders which are placed inside the box (box-sizing:border-box)
 				var parentInnerHeight = overflowParent.offsetHeight - parseInt(Fit.Dom.GetComputedStyle(overflowParent, "border-top-width")) - parseInt(Fit.Dom.GetComputedStyle(overflowParent, "border-bottom-width")); // Substract borders so we have the actual space available to the positioned element - borders are placed inside the box (box-sizing:border-box)
-				var controlPosY = Fit.Dom.GetBoundingPosition(itemContainer).Y;
+				var parentInnerWidth = overflowParent.offsetWidth - parseInt(Fit.Dom.GetComputedStyle(overflowParent, "border-left-width")) - parseInt(Fit.Dom.GetComputedStyle(overflowParent, "border-right-width")); // Substract borders so we have the actual space available to the positioned element - borders are placed inside the box (box-sizing:border-box)
+				var controlPos = Fit.Dom.GetBoundingPosition(itemContainer);
+				var parentScrollbars = Fit.Dom.GetScrollBars(overflowParent);
 
-				posFromTopWithinContainer = controlPosY - parentPosY;
-				availableSpaceBelowControl = parentInnerHeight - (posFromTopWithinContainer + itemContainer.offsetHeight);
+				posFromTopWithinContainer = controlPos.Y - parentPosY;
+				posFromLeftWithinContainer = controlPos.X - parentPosX;
+				availableSpaceBelowControl = parentInnerHeight - (posFromTopWithinContainer + itemContainer.offsetHeight) - parentScrollbars.Horizontal.Size;
+				availableSpaceRightOfControl = parentInnerWidth - (posFromLeftWithinContainer + itemContainer.offsetWidth) - parentScrollbars.Vertical.Size;
 			}
 			else // Document itself is scroll parent
 			{
-				var controlPositionY = Fit.Dom.GetBoundingPosition(itemContainer).Y;
-				var viewPortDimensions = Fit.Browser.GetViewPortDimensions(); // { Width, Height }
+				var controlPos = Fit.Dom.GetBoundingPosition(itemContainer);
+				var controlPositionY = controlPos.Y;
+				var controlPositionX = controlPos.X;
+				var viewPortDimensions = Fit.Browser.GetViewPortDimensions(); // Returns { Width, Height } - actual space available (scrollbars are not included in these dimensions)
 				var spaceBelowControl = viewPortDimensions.Height - (controlPositionY + itemContainer.offsetHeight); // Space available below control
+				var spaceRightOfControl = viewPortDimensions.Width - (controlPositionX + itemContainer.offsetWidth); // Space available right of control
 
 				posFromTopWithinContainer = controlPositionY;
-				availableSpaceBelowControl = spaceBelowControl
+				posFromLeftWithinContainer = controlPositionX;
+				availableSpaceBelowControl = spaceBelowControl;
+				availableSpaceRightOfControl = spaceRightOfControl;
 			}
 
 			mostSpaceAboveControl = posFromTopWithinContainer > availableSpaceBelowControl;
+			mostSpaceLeftOfControl = posFromLeftWithinContainer > availableSpaceRightOfControl;
 			condNotEnoughSpaceBelow = availableSpaceBelowControl - spacingToEdge < spaceRequiredBelowControl;
+			condNotEnoughSpaceRightSide = spaceRequiredRightSide === -1 ? false /* DropDownMaxWidth not set - will not extend beyond width of control */ : availableSpaceRightOfControl - spacingToEdge < spaceRequiredRightSide;
 
-			dropDownMenu.style.bottom = "";
+			// Open upward or downward (default)
 
 			var spaceAvailable = -1;
 
@@ -2442,6 +2461,28 @@ Fit.Controls.DropDown = function(ctlId)
 
 				picker.MaxHeight((maxHeight.Value < spaceAvailable ? maxHeight.Value : spaceAvailable), "px");
 			}
+
+			// Open left or right (default)
+
+			if (condNotEnoughSpaceRightSide === true && mostSpaceLeftOfControl === true) // Open to the left
+			{
+				dropDownMenu.style.right = "0px";
+				var spaceAvailableLeftSide = posFromLeftWithinContainer + itemContainer.offsetWidth - spacingToEdge;
+
+				if (spaceAvailableLeftSide < spaceRequiredRightSide) // Adjust max-width if sufficient space is not available to the left side
+				{
+					dropDownMenu.style.maxWidth = spaceAvailableLeftSide + "px";
+				}
+			}
+			else // Open like normal, to the right
+			{
+				var spaceAvailableRightSide = availableSpaceRightOfControl + itemContainer.offsetWidth - spacingToEdge;
+
+				if (spaceAvailableRightSide < spaceRequiredRightSide) // Adjust max-width if sufficient space is not available to the right side
+				{
+					dropDownMenu.style.maxWidth = spaceAvailableRightSide + "px";
+				}
+			}
 		}
 		else // Position DropDown menu relative to viewport using position:fixed
 		{
@@ -2454,17 +2495,22 @@ Fit.Controls.DropDown = function(ctlId)
 			// as this creates a new stacking context to which position:fixed
 			// becomes relative.
 
-			var viewPortDimensions = Fit.Browser.GetViewPortDimensions();				// { Width, Height }
-			var controlPositionY = Fit.Dom.GetBoundingPosition(itemContainer).Y;		// Position from top
-			var spaceAboveControl = controlPositionY;									// Space available above control
-			var spaceBelowControl = viewPortDimensions.Height - (controlPositionY + itemContainer.offsetHeight); // Space available below control
-			var mostSpaceAboveControl = spaceAboveControl > spaceBelowControl;			// True if there is more space available above control than below control
+			var viewPortDimensions = Fit.Browser.GetViewPortDimensions();											// Returns { Width, Height } - actual space available (scrollbars are not included in these dimensions)
+			var controlPositionY = Fit.Dom.GetBoundingPosition(itemContainer).Y;									// Position from top
+			var controlPositionX = Fit.Dom.GetBoundingPosition(itemContainer).X;									// Position from left
+			var spaceAboveControl = controlPositionY;																// Space available above control
+			var spaceBelowControl = viewPortDimensions.Height - (controlPositionY + itemContainer.offsetHeight);	// Space available below control
+			var spaceLeftOfControl = controlPositionX;																// Soace available left of control (from left side of control)
+			var spaceRightOfControl = viewPortDimensions.Width - (controlPositionX + itemContainer.offsetWidth);	// Space available right of control (from right side of control)
+			var mostSpaceAboveControl = spaceAboveControl > spaceBelowControl;										// True if there is more space available above control than below control
+			var mostSpaceLeftOfControl = spaceRightOfControl < spaceLeftOfControl;									// True if there is more space available right of control than left of control
 			var condNotEnoughSpaceBelow = spaceBelowControl - spacingToEdge < spaceRequiredBelowControl;
+			var condNotEnoughSpaceRightSide = spaceRightOfControl + itemContainer.offsetWidth - spacingToEdge < spaceRequiredRightSide;
 
 			dropDownMenu.style.position = "fixed";	// Using fixed positioning to escape containers with overflow:scroll|hidden|auto
 			dropDownMenu.style.width = "auto";		// Picker by default has width:100% to assume the same width as the control, except if DropDownMaxWidth is set, in which case it is already "auto"
-			dropDownMenu.style.top = "";
-			dropDownMenu.style.bottom = "";
+
+			// Open upward or downward (default)
 
 			var spaceAvailable = -1;
 
@@ -2501,7 +2547,34 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 			else // Open like normal, downwards
 			{
-				dropDownMenu.style.top = (controlPositionY + itemContainer.offsetHeight) + "px";
+				// Handle situation where the control is contained in a parent with scroll
+				// and the control has been partially scrolled out of view. In this case
+				// we do not want to position the DropDown menu where the (now hidden)
+				// bottom of the control is located in the viewport, but where the scrollable
+				// container ends.
+				// https://github.com/Jemt/Fit.UI/issues/51 (see re-open comment oct. 30, 2020)
+
+				var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement());
+				var alternativeTopPos = -1;
+
+				if (scrollParent !== Fit.Dom.GetScrollDocument())
+				{
+					// Control is positioned within a container with scroll.
+					// Calculate position relative to viewport to determine
+					// whether control has been scrolled out of view.
+
+					var scrollParentBottomPosY = Fit.Dom.GetBoundingPosition(scrollParent).Y + scrollParent.offsetHeight - parseInt(Fit.Dom.GetComputedStyle(scrollParent, "border-bottom-width"));
+					var controlBottomPosY = controlPositionY + itemContainer.offsetHeight;
+
+					if (controlBottomPosY > scrollParentBottomPosY)
+					{
+						// Relative to the viewport the bottom of the control is positioned below the
+						// bottom of the scroll container which means it has been scrolled out of view.
+						alternativeTopPos = scrollParentBottomPosY;
+					}
+				}
+
+				dropDownMenu.style.top = (alternativeTopPos !== -1 ? alternativeTopPos : controlPositionY + itemContainer.offsetHeight) + "px";
 				spaceAvailable = spaceBelowControl - spacingToEdge;
 			}
 
@@ -2521,6 +2594,29 @@ Fit.Controls.DropDown = function(ctlId)
 
 				picker.MaxHeight((maxHeight.Value < spaceAvailable ? maxHeight.Value : spaceAvailable), "px");
 			}
+
+			// Open left or right (defafult)
+
+			if (condNotEnoughSpaceRightSide === true && mostSpaceLeftOfControl === true) // Open to the left
+			{
+				dropDownMenu.style.right = spaceRightOfControl + "px";
+				var spaceAvailableLeftSide = controlPositionX + itemContainer.offsetWidth - spacingToEdge; // Space available to the left, from right side of control
+
+				if (spaceAvailableLeftSide < spaceRequiredRightSide) // Adjust max-width if sufficient space is not available to the left side
+				{
+					dropDownMenu.style.maxWidth = spaceAvailableLeftSide + "px";
+				}
+			}
+			else // Open like normal, to the right
+			{
+				dropDownMenu.style.left = controlPositionX + "px"; // Set in case document or containers have been scrolled
+				var spaceAvailableRightSide = spaceRightOfControl + itemContainer.offsetWidth - spacingToEdge; // Space available to the right, from left side of control
+
+				if (spaceAvailableRightSide < spaceRequiredRightSide) // Adjust max-width if sufficient space is not available to the right side
+				{
+					dropDownMenu.style.maxWidth = spaceAvailableRightSide + "px";
+				}
+			}
 		}
 	}
 
@@ -2528,12 +2624,34 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		// Reset changes made by optimizeDropDownPosition()
 		dropDownMenu.style.position = "";
-		dropDownMenu.style.width = (me.DropDownMaxWidth().Value > -1 ? dropDownMenu.style.width : ""); // Preserve width if DropDownMaxWidth is enabled since it also modifies this property
+		dropDownMenu.style.width = (maxWidth.Value > -1 ? dropDownMenu.style.width : ""); // Preserve width if DropDownMaxWidth is enabled since it also modifies this property
+		dropDownMenu.style.maxWidth = (maxWidth.Value > -1 ? maxWidth.Value + maxWidth.Unit : "");
 		dropDownMenu.style.bottom = "";
 		dropDownMenu.style.top = "";
+		dropDownMenu.style.left = "";
+		dropDownMenu.style.right = "";
 
 		if (picker !== null) // Checking in case picker was removed while opened (unlikely though)
 			picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
+	}
+
+	function getDropDownMaxWidthPixelValue()
+	{
+		var maxWidthPixels = -1;
+
+		if (maxWidth.Value !== -1)
+		{
+			if (maxWidth.Unit === "px")
+			{
+				maxWidthPixels = maxWidth.Value;
+			}
+			else
+			{
+				maxWidthPixels = parseInt(Fit.Dom.GetComputedStyle(dropDownMenu, "maxWidth")); // Get computed pixel value rather than e.g. 15% or 20em
+			}
+		}
+
+		return maxWidthPixels;
 	}
 
 	function updatePlaceholder(force, willAssumeInputValue)
