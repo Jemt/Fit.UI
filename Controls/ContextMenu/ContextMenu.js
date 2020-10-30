@@ -570,9 +570,9 @@ Fit.Controls.ContextMenu = function(controlId)
 
 			repaint(function()
 			{
-				var pos = Fit.Dom.GetPosition(ul, true);
+				var pos = Fit.Dom.GetPosition(ul, true); // Null if not visible, which might happen if parent is hovered while user brings up e.g. a screenshot tool using keyboard shortcuts
 
-				if (Fit.Browser.GetViewPortDimensions().Height < pos.Y + ul.offsetHeight)
+				if (pos !== null && Fit.Browser.GetViewPortDimensions().Height < pos.Y + ul.offsetHeight)
 					Fit.Dom.Data(ul, "viewportcollision", "true");
 			});
 		}
