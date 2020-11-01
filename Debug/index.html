@@ -2,138 +2,138 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-    <title>Fit.UI Debug</title>
+	<title>Fit.UI Debug</title>
 
-    <!-- NOTICE: Use debug.js to experiment/debug -->
+	<!-- NOTICE: Use debug.js to experiment/debug -->
 
-    <style type="text/css">
-    body
-    {
-        font-family: verdana;
-        font-size: 14px;
-        color: #333333;
-    }
-    </style>
+	<style type="text/css">
+	body
+	{
+		font-family: verdana;
+		font-size: 14px;
+		color: #333333;
+	}
+	</style>
 
-    <!-- Load CSS resources -->
-    <link rel="stylesheet" type="text/css" href="../Core/Styles.css">
-    <link rel="stylesheet" type="text/css" href="Resources.css">
+	<!-- Load CSS resources -->
+	<link rel="stylesheet" type="text/css" href="../Core/Styles.css">
+	<link rel="stylesheet" type="text/css" href="Resources.css">
 
-    <!-- Load CSS resources on Legacy IE -->
-    <!-- Disable resources above to use this! Make sure to rebuild Fit.UI before testing! -->
-    <!--link rel="stylesheet" type="text/css" href="../build/dist/Fit.UI.css"-->
+	<!-- Load CSS resources on Legacy IE -->
+	<!-- Disable resources above to use this! Make sure to rebuild Fit.UI before testing! -->
+	<!--link rel="stylesheet" type="text/css" href="../build/dist/Fit.UI.css"-->
 
-    <!-- Load core (alphabetically, except for Core.js which MUST come first and Events.js which depends on Core, Array, Browser, Dom, Data, and Validation) -->
-    <script src="../Core/Core.js"></script> <!-- Must come first -->
-    <script src="../Core/Array.js"></script>
-    <script src="../Core/Browser.js"></script>
-    <script src="../Core/ControlBase.js"></script>
-    <script src="../Core/Cookies.js"></script>
-    <script src="../Core/Data.js"></script>
-    <script src="../Core/Dom.js"></script>
-    <script src="../Core/DragDrop.js"></script>
+	<!-- Load core (alphabetically, except for Core.js which MUST come first and Events.js which depends on Core, Array, Browser, Dom, Data, and Validation) -->
+	<script src="../Core/Core.js"></script> <!-- Must come first -->
+	<script src="../Core/Array.js"></script>
+	<script src="../Core/Browser.js"></script>
+	<script src="../Core/ControlBase.js"></script>
+	<script src="../Core/Cookies.js"></script>
+	<script src="../Core/Data.js"></script>
+	<script src="../Core/Dom.js"></script>
+	<script src="../Core/DragDrop.js"></script>
 	<script src="../Core/Http.js"></script>
 	<script src="../Core/Internationalization.js"></script>
-    <script src="../Core/Language.js"></script>
-    <script src="../Core/Loader.js"></script>
+	<script src="../Core/Language.js"></script>
+	<script src="../Core/Loader.js"></script>
 	<script src="../Core/Template.js"></script>
 	<script src="../Core/TypeDefs.js"></script>
 	<script src="../Core/Validation.js"></script>
 	<!-- Must come last - uses core functionality such as Fit.Validation, Fit.Array, etc. -->
 	<script src="../Core/i18n.js"></script>
-    <script src="../Core/Events.js"></script>
+	<script src="../Core/Events.js"></script>
 
-    <script type="text/javascript">
-    // Tell Fit.UI that it is actually runs from the Debug folder, and not from where the Core files are loaded from.
-    // We need this to make sure Resources (e.g. translation files for the DatePicker) is loaded from the proper location.
-    Fit.SetPath("/Debug");
-    </script>
+	<script type="text/javascript">
+	// Tell Fit.UI that it is actually runs from the Debug folder, and not from where the Core files are loaded from.
+	// We need this to make sure Resources (e.g. translation files for the DatePicker) is loaded from the proper location.
+	Fit.SetPath("/Debug");
+	</script>
 
-    <!-- Load controls -->
-    <script type="text/javascript">
-    var controls = [
-        { Folder: "Button", Components: ["Button"] },
-        { Folder: "CheckBox", Components: ["CheckBox"] },
-        { Folder: "ContextMenu", Components: ["ContextMenu", "WSContextMenu"] },
-        { Folder: "DatePicker", Components: ["DatePicker"] },
-        { Folder: "Dialog", Components: ["Dialog"], Localized: true },
-        { Folder: "DropDown", Components: ["PickerBase", "DropDown", "WSDropDown"], Localized: true },
-        { Folder: "FilePicker", Components: ["FilePicker"], Localized: true },
-        { Folder: "Input", Components: ["Input"] },
-        { Folder: "ListView", Components: ["ListView", "WSListView"] },
-        { Folder: "ProgressBar", Components: ["ProgressBar"] },
-        { Folder: "TreeView", Components: ["TreeView", "WSTreeView"] }
-    ]
+	<!-- Load controls -->
+	<script type="text/javascript">
+	var controls = [
+		{ Folder: "Button", Components: ["Button"] },
+		{ Folder: "CheckBox", Components: ["CheckBox"] },
+		{ Folder: "ContextMenu", Components: ["ContextMenu", "WSContextMenu"] },
+		{ Folder: "DatePicker", Components: ["DatePicker"] },
+		{ Folder: "Dialog", Components: ["Dialog"], Localized: true },
+		{ Folder: "DropDown", Components: ["PickerBase", "DropDown", "WSDropDown"], Localized: true },
+		{ Folder: "FilePicker", Components: ["FilePicker"], Localized: true },
+		{ Folder: "Input", Components: ["Input"] },
+		{ Folder: "ListView", Components: ["ListView", "WSListView"] },
+		{ Folder: "ProgressBar", Components: ["ProgressBar"] },
+		{ Folder: "TreeView", Components: ["TreeView", "WSTreeView"] }
+	]
 
-    var controlsCssDone = false;
-    var controlsJsDone = false;
-    var domDone = false;
+	var controlsCssDone = false;
+	var controlsJsDone = false;
+	var domDone = false;
 
-    var runDebug = function()
-    {
-        if (controlsCssDone && controlsJsDone && domDone)
-        {
-            Fit.Loader.LoadScript("debug.js");
-        }
-    }
+	var runDebug = function()
+	{
+		if (controlsCssDone && controlsJsDone && domDone)
+		{
+			Fit.Loader.LoadScript("debug.js");
+		}
+	}
 
-    // CSS must be loaded at the document root level since CSS reference e.g. images relative to the stylesheet.
-    // So to make sure images work (e.g. helper lines for TreeView: Controls/TreeView/gfxDotLine.png)
-    // we need to make sure the CSS is loaded at the document root level, just like the merged version
-    // gets loaded at the document root level (Fit.UI[.min].css).
-    // WARNING: Does NOT work with Legacy IE!
-    // To test in IE build Fit.UI and include a reference to Fit.UI.css in head,
-    // remove/disable references to ../Core/Styles.css and Resources.css above,
-    // disable code below that loads individual CSS files, and make sure to set
-    // controlsCssDone = true!
-    var css = "";
-    var cssCount = 0;
-    Fit.Array.ForEach(controls, function(controlInfo)
-    {
-        var r = new Fit.Http.Request("../Controls/" + controlInfo.Folder + "/" + controlInfo.Folder + ".css");
-        r.OnSuccess(function(sender)
-        {
-            css += "\n" + r.GetResponseText() + "\n";
-            cssCount++;
+	// CSS must be loaded at the document root level since CSS reference e.g. images relative to the stylesheet.
+	// So to make sure images work (e.g. helper lines for TreeView: Controls/TreeView/gfxDotLine.png)
+	// we need to make sure the CSS is loaded at the document root level, just like the merged version
+	// gets loaded at the document root level (Fit.UI[.min].css).
+	// WARNING: Does NOT work with Legacy IE!
+	// To test in IE build Fit.UI and include a reference to Fit.UI.css in head,
+	// remove/disable references to ../Core/Styles.css and Resources.css above,
+	// disable code below that loads individual CSS files, and make sure to set
+	// controlsCssDone = true!
+	var css = "";
+	var cssCount = 0;
+	Fit.Array.ForEach(controls, function(controlInfo)
+	{
+		var r = new Fit.Http.Request("../Controls/" + controlInfo.Folder + "/" + controlInfo.Folder + ".css");
+		r.OnSuccess(function(sender)
+		{
+			css += "\n" + r.GetResponseText() + "\n";
+			cssCount++;
 
-            if (controls.length === cssCount)
-            {
-                controlsCssDone = true;
-                Fit.Dom.Add(document.getElementsByTagName("head")[0], Fit.Dom.CreateElement("<style>" + css + "</style>"));
+			if (controls.length === cssCount)
+			{
+				controlsCssDone = true;
+				Fit.Dom.Add(document.getElementsByTagName("head")[0], Fit.Dom.CreateElement("<style>" + css + "</style>"));
 
-                runDebug();
-            }
-        });
-        r.Start();
-    });
-    //controlsCssDone = true; // Enable this line when testing in Legacy IE
+				runDebug();
+			}
+		});
+		r.Start();
+	});
+	//controlsCssDone = true; // Enable this line when testing in Legacy IE
 
-    var controlsJs = [];
-    Fit.Array.ForEach(controls, function(controlInfo)
-    {
-        Fit.Array.ForEach(controlInfo.Components, function(component)
-        {
-            Fit.Array.Add(controlsJs, { source: "../Controls/" + controlInfo.Folder + "/" + component + ".js" });
+	var controlsJs = [];
+	Fit.Array.ForEach(controls, function(controlInfo)
+	{
+		Fit.Array.ForEach(controlInfo.Components, function(component)
+		{
+			Fit.Array.Add(controlsJs, { source: "../Controls/" + controlInfo.Folder + "/" + component + ".js" });
 		});
 
 		if (controlInfo.Localized === true)
 		{
 			Fit.Array.Add(controlsJs, { source: "../Controls/" + controlInfo.Folder + "/i18n.js" });
 		}
-    });
+	});
 
-    Fit.Loader.LoadScripts(controlsJs, function()
-    {
-        controlsJsDone = true;
-        runDebug();
-    });
+	Fit.Loader.LoadScripts(controlsJs, function()
+	{
+		controlsJsDone = true;
+		runDebug();
+	});
 
-    Fit.Events.OnDomReady(function()
-    {
-        domDone = true;
-        runDebug();
-    });
-    </script>
+	Fit.Events.OnDomReady(function()
+	{
+		domDone = true;
+		runDebug();
+	});
+	</script>
 </head>
 <body>
 

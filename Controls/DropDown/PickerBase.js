@@ -43,7 +43,7 @@ Fit.Controls.PickerBase = function()
 	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
 	this.MaxHeight = function(value, unit)
-    {
+	{
 		Fit.Validation.ExpectNumber(value, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
@@ -70,7 +70,7 @@ Fit.Controls.PickerBase = function()
 		}
 
 		return res;
-    }
+	}
 
 	// ============================================
 	// Events fired by host control
@@ -143,11 +143,11 @@ Fit.Controls.PickerBase = function()
 	/// 	</description>
 	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.SelectionChangingEventHandler"> Event handler function </param>
 	/// </function>
-    this.OnItemSelectionChanging = function(cb)
-    {
+	this.OnItemSelectionChanging = function(cb)
+	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onChangingHandlers, cb);
-    }
+	}
 
 	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionChanged" access="public">
 	/// 	<description>
@@ -159,11 +159,11 @@ Fit.Controls.PickerBase = function()
 	/// 	</description>
 	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.SelectionChangedEventHandler"> Event handler function </param>
 	/// </function>
-    this.OnItemSelectionChanged = function(cb)
-    {
+	this.OnItemSelectionChanged = function(cb)
+	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onChangeHandlers, cb);
-    }
+	}
 
 	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionComplete" access="public">
 	/// 	<description> Register event handler invoked when a series of related item changes are completed </description>

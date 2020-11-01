@@ -190,7 +190,7 @@ div.FitUiControlDropDownItems span > span + input /* Right input in selection co
 
 div.FitUiControlDropDownItems input::-ms-clear /* Remove clear button in IE10 - requires true IE10 document mode to work */
 {
-    display: none;
+	display: none;
 }
 
 /* Placeholder (not enabled on IE8/9) */
@@ -262,9 +262,9 @@ div.FitUiControlDropDownItems > span[data-dropping="left"] > span:before,
 div.FitUiControlDropDownItems > span[data-dropping="right"] > span:after
 {
 	content: "";
-    display: inline-block;
-    background: red;
-    position: absolute;
+	display: inline-block;
+	background: red;
+	position: absolute;
 	top: 0px;
 	bottom: 0px;
 	width: 2px;
@@ -318,5 +318,5 @@ div.FitUiControlDropDown > span.fa
 }
 div.FitUiControlDropDown[data-selectionmodetoggle="true"]
 {
-    margin-right: 2em;
+	margin-right: 2em;
 }

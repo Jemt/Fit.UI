@@ -226,31 +226,31 @@ Fit.Controls.ListView = function(controlId)
 		}
 	}
 
-    this.HandleEvent = function(e)
-    {
+	this.HandleEvent = function(e)
+	{
 		Fit.Validation.ExpectEvent(e, true);
 
-        var ev = Fit.Events.GetEvent(e);
+		var ev = Fit.Events.GetEvent(e);
 
-        if (ev.type === "keydown")
-        {
-            if (ev.keyCode === 38) // arrow up
-            {
-                moveUp();
+		if (ev.type === "keydown")
+		{
+			if (ev.keyCode === 38) // arrow up
+			{
+				moveUp();
 
 				// Prevent scrollable div from scrolling up
 				Fit.Events.PreventDefault(ev);
-            }
-            else if (ev.keyCode === 40) // arrow down
-            {
-                moveDown();
+			}
+			else if (ev.keyCode === 40) // arrow down
+			{
+				moveDown();
 
 				// Prevent scrollable div from scrolling down
 				Fit.Events.PreventDefault(ev);
-            }
-            else if (ev.keyCode === 13) // enter
-            {
-                if (active === null && list.children.length === 1)
+			}
+			else if (ev.keyCode === 13) // enter
+			{
+				if (active === null && list.children.length === 1)
 					moveDown(); // Select first item if no item is selected
 
 				if (active !== null)
@@ -267,8 +267,8 @@ Fit.Controls.ListView = function(controlId)
 
 				// Prevent form submit
 				Fit.Events.PreventDefault(ev);
-            }
-        }
+			}
+		}
 	}
 
 	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
@@ -299,7 +299,7 @@ Fit.Controls.ListView = function(controlId)
 		me = list = active = isIe8 = null;
 	});
 
-    // ============================================
+	// ============================================
 	// Private
 	// ============================================
 
@@ -349,39 +349,39 @@ Fit.Controls.ListView = function(controlId)
 		}
 	}
 
-    function moveUp()
-    {
-        if (list.children.length === 0)
-            return;
+	function moveUp()
+	{
+		if (list.children.length === 0)
+			return;
 
-        // Select item
+		// Select item
 
-        if (active === null) // Select first entry if no selection is made
-        {
+		if (active === null) // Select first entry if no selection is made
+		{
 			setActive(list.firstChild);
-        }
-        else if (active.previousSibling !== null) // Select previous entry if available
-        {
+		}
+		else if (active.previousSibling !== null) // Select previous entry if available
+		{
 			setActive(active.previousSibling);
-        }
-    }
+		}
+	}
 
-    function moveDown()
-    {
-        if (list.children.length === 0)
-            return;
+	function moveDown()
+	{
+		if (list.children.length === 0)
+			return;
 
-        // Select item
+		// Select item
 
-        if (active === null) // Select first entry if no selection is made
-        {
+		if (active === null) // Select first entry if no selection is made
+		{
 			setActive(list.firstChild);
-        }
-        else if (active.nextSibling !== null) // Select next entry if available
-        {
+		}
+		else if (active.nextSibling !== null) // Select next entry if available
+		{
 			setActive(active.nextSibling);
-        }
-    }
+		}
+	}
 
 	function repaint()
 	{
