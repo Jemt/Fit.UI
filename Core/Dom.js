@@ -132,20 +132,17 @@ Fit.Dom.GetComputedStyle = function(elm, style)
     return (res !== undefined ? res : null);
 }
 
-/// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="Fit.TypeDefs.Position">
+/// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="Fit.TypeDefs.Dimension">
 /// 	<description>
-/// 		Returns object with X and Y properties (integers) with inner dimensions of specified
+/// 		Returns object with Width and Height properties (integers) with inner dimensions of specified
 /// 		container. Inner dimensions are width and height with padding and borders substracted.
 /// 		Result returned will be as expected no matter the box-sizing model being used.
-/// 		The space consumed by scrollbars (if present) can optionally be substracted.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get inner dimensions for </param>
-/// 	<param name="substractScrollbars" type="boolean" default="false"> Set True to substract space consumed by scrollbars </param>
 /// </function>
-Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
+Fit.Dom.GetInnerDimensions = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
-	Fit.Validation.ExpectBoolean(substractScrollbars, true);
 
 	if (elm === document.documentElement) // If document element (<html>) is passed
 	{
@@ -156,13 +153,6 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		Fit.Validation.ThrowError("Unable to determine inner dimensions for document element (<html>). Maybe you wanted Fit.Dom.GetInnerDimensions(document.body) or Fit.Browser.GetViewPortDimensions().");
 	}
 
-	// NOTICE:
-	// To get the inner dimensions of the document, pass document.body
-	// and not document.documentElement! But be aware that document.body
-	// does not have the document scrollbars - document.documentElement does.
-	// But the scrollbars may affect the amount of space available for document.body,
-	// which this function takes into account, just like any other scrollable container.
-
 	var width = elm.offsetWidth;
 	var height = elm.offsetHeight;
 
@@ -171,14 +161,8 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-left"));
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-right"));
 
-		// Substract borders unless dimensions without scrollbars are being requested,
-		// in which case borders are not included with calculation based on offsetWidth
-		// and clientWidth further down.
-		if (elm === document.body || substractScrollbars !== true)
-		{
-			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
-			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
-		}
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
 	}
 
 	if (height !== 0) // Height is 0 if element is either not visible, or truly 0px
@@ -186,37 +170,17 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-top"));
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-bottom"));
 
-		if (elm === document.body || substractScrollbars !== true)
-		{
-			// Substract borders unless dimensions without scrollbars are being requested,
-			// in which case borders are not included with calculation based on offsetHeight
-			// and clientHeight further down.
-			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
-			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
-		}
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
 	}
 
-	if (substractScrollbars === true)
-	{
-		if (elm === document.body)
-		{
-			// For document.body the scrollbars are added outside of document.body rather than inside of it,
-			// causing the container to be squeezed a bit.
-			// Therefore the width of the scrollbars must be added to the width of the container to get the
-			// width without scrollbars.
-			// A horizontal scrollbar does not affect the height since content just grows vertically.
-			// This is different from width where content just overflows the boundaries of document.body.
-			width += Fit.Browser.GetViewPortDimensions().Width - document.documentElement.offsetWidth;
-		}
-		else
-		{
-			// Substract scrollbars and borders
-			width -= elm.offsetWidth - elm.clientWidth;
-			height -= elm.offsetHeight - elm.clientHeight;
-		}
-	}
+	var res = { Width: Math.floor(width), Height: Math.floor(height) };
 
-	return { X: Math.floor(width), Y: Math.floor(height) };
+	// Backwards compatibility
+	res.X = res.Width;
+	res.Y = res.Height;
+
+	return res;
 }
 
 Fit.Dom.GetInnerWidth = function(elm) // Backward compatibility
@@ -962,6 +926,54 @@ Fit.Dom.GetRelativePosition = function(elm)
 	return pos;
 }
 
+/// <function container="Fit.Dom" name="GetScrollBars" access="public" static="true" returns="Fit.TypeDefs.ScrollBarsPresent">
+/// 	<description>
+/// 		Get information about scrollbars within a given DOM element.
+/// 		Returns an object with Vertical and Horizontal properties, each containing
+/// 		Enabled and Size properties, which can be used to determine whether scrolling is enabled,
+/// 		and the size of the scrollbar. The size remains 0 when scrolling is not enabled.
+/// 		To determine whether the browser's viewport has scrolling enabled, use Fit.Browser.GetScrollBars().
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get scrollbar information for </param>
+/// </function>
+Fit.Dom.GetScrollBars = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	if (elm === document.documentElement || elm === document.body)
+	{
+		// For <html> and <body> clientWidth behaves differently:
+		// https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth
+		// Therefore, make sure Fit.Browser.GetScrollBars() is used to determine scroll for the viewport.
+		Fit.Validation.ThrowError("Unintended use of Fit.Dom.GetScrollBars(..) - please use Fit.Browser.GetScrollBars() to detect scrollbars for the viewport");
+	}
+
+	var res = { Vertical: { Enabled: false, Size: 0 }, Horizontal: { Enabled: false, Size: 0 } };
+
+	// NOTICE:
+	// It has been observed that on Chrome 86 on macOS High Sierra with scrollbars set to be always shown,
+	// scrollWidth and scrollHeight sometimes are reported to have a value of +1 higher than
+	// clientWidth and clientHeight, but no scrollbars are shown until the difference between
+	// the scrollWidth/Height and clientWidth/Height is increased a bit more. Decreasing the value again
+	// to just +1 does not remove the scrollbars again, so this works as expected. But even though
+	// the scrollbars do not show with a difference of just 1px initially, the area is in fact scrollable
+	// by the 1px difference. The missing scrollbars must be a bug in macOS or Chrome.
+
+	if (elm.scrollWidth > elm.clientWidth) // Has horizontal scrollbar
+	{
+		res.Horizontal.Enabled = true;
+		res.Horizontal.Size = Fit.Browser.GetScrollBarSize();
+	}
+
+	if (elm.scrollHeight > elm.clientHeight) // Has vertical scrollbar
+	{
+		res.Vertical.Enabled = true;
+		res.Vertical.Size = Fit.Browser.GetScrollBarSize();
+	}
+
+	return res;
+}
+
 /// <function container="Fit.Dom" name="GetScrollPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
 /// 	<description>
 /// 		Get number of pixels specified element's container(s)
@@ -1083,43 +1095,12 @@ Fit.Dom.GetOverflowingParent = function(elm)
 
 /// <function container="Fit.Dom" name="GetScrollDocument" access="public" static="true" returns="DOMElement">
 /// 	<description>
-/// 		Get scrolling document element. This is the cross browser
-/// 		equivalent of document.scrollingElement.
+/// 		Alias for Fit.Browser.GetScrollDocument()
 /// 	</description>
 /// </function>
 Fit.Dom.GetScrollDocument = function()
 {
-	if (Fit._internal.Dom.ScrollDocument === undefined)
-	{
-		if (document.scrollingElement)
-		{
-			Fit._internal.Dom.ScrollDocument = document.scrollingElement;
-		}
-		else
-		{
-			var iframe = document.createElement("iframe");
-			iframe.style.cssText = "height: 1px; position: fixed; top: -100px; left: -100px;";
-
-			document.documentElement.appendChild(iframe);
-
-			var doc = iframe.contentWindow.document;
-			doc.write("<!DOCTYPE html><div style='height: 100px'>&nbsp;</div>");
-			doc.close();
-
-			if (doc.documentElement.scrollHeight > doc.body.scrollHeight)
-			{
-				Fit._internal.Dom.ScrollDocument = document.documentElement;
-			}
-			else
-			{
-				Fit._internal.Dom.ScrollDocument = document.body;
-			}
-
-			iframe.parentNode.removeChild(iframe);
-		}
-	}
-
-	return Fit._internal.Dom.ScrollDocument;
+	return Fit.Browser.GetScrollDocument(); // Functionality has been moved to Fit.Browser - Fit.Dom.GetScrollDocument is now just an alias
 }
 
 // Internal members

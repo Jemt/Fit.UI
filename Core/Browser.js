@@ -383,14 +383,23 @@ Fit.Browser.GetLanguage = function()
 /// <function container="Fit.Browser" name="GetPageWidth" access="public" static="true" returns="integer">
 /// 	<description> Returns page width in pixels </description>
 /// </function>
-Fit.Browser.GetPageWidth = function()
+Fit.Browser.GetPageWidth = function() // GetViewPortWidth would be a more accurate name - TODO: deprecate this, we now have GetViewPortDimensions(..)
 {
 	var w = 0;
 
 	if (window.innerWidth) // W3C
+	{
 		w = window.innerWidth;
+	}
 	else if (document.documentElement && document.documentElement.clientWidth) // IE 6-8 (not quirks mode)
+	{
 		w = document.documentElement.clientWidth;
+
+		if (document.documentElement.scrollHeight > document.documentElement.clientHeight)
+		{
+			w += Fit.Browser.GetScrollBarSize(); // Width affected by vertical scrollbar - return potential viewport size, just like window.innerWidth
+		}
+	}
 
 	return w;
 }
@@ -398,24 +407,57 @@ Fit.Browser.GetPageWidth = function()
 /// <function container="Fit.Browser" name="GetPageHeight" access="public" static="true" returns="integer">
 /// 	<description> Returns page height in pixels </description>
 /// </function>
-Fit.Browser.GetPageHeight = function()
+Fit.Browser.GetPageHeight = function() // GetViewPortHeight would be a more accurate name - TODO: deprecate this, we now have GetViewPortDimensions(..)
 {
 	var h = 0;
 
 	if (window.innerHeight) // W3C
+	{
 		h = window.innerHeight;
+	}
 	else if (document.documentElement && document.documentElement.clientHeight) // IE 6-8 (not quirks mode)
+	{
 		h = document.documentElement.clientHeight;
+
+		if (document.documentElement.scrollWidth > document.documentElement.clientWidth)
+		{
+			h += Fit.Browser.GetScrollBarSize(); // Height affected by horizontal scrollbar - return potential viewport size, just like window.innerHeight
+		}
+	}
 
 	return h;
 }
 
 /// <function container="Fit.Browser" name="GetViewPortDimensions" access="public" static="true" returns="Fit.TypeDefs.Dimension">
 /// 	<description> Returns object with Width and Height properties specifying dimensions of viewport </description>
+/// 	<param name="includeScrollbars" type="boolean" default="false">
+/// 		Include scrollbars if present to get all potential space available if scrollbars are removed.
+/// 	</param>
 /// </function>
-Fit.Browser.GetViewPortDimensions = function()
+Fit.Browser.GetViewPortDimensions = function(includeScrollbars)
 {
-	return { Width: Fit.Browser.GetPageWidth(), Height: Fit.Browser.GetPageHeight() };
+	Fit.Validation.ExpectBoolean(includeScrollbars, true);
+
+	// GetPageWidth() and GetPageHeight() returns width/height of viewport including scrollbars.
+	// The space consumed by the scrollbars are not available for content, so by default we substract
+	// scrollbars from the dimensions, unless includeScrollbars is True.
+
+	var dim = { Width: Fit.Browser.GetPageWidth(), Height: Fit.Browser.GetPageHeight() };
+
+	if (includeScrollbars !== true)
+	{
+		if (Fit.Browser.GetScrollDocument().scrollWidth > dim.Width)
+		{
+			dim.Height = dim.Height - Fit.Browser.GetScrollBarSize(); // Height affected by horizontal scrollbar
+		}
+
+		if (Fit.Browser.GetScrollDocument().scrollHeight > dim.Height)
+		{
+			dim.Width = dim.Width - Fit.Browser.GetScrollBarSize(); // Width affected by vertical scrollbar
+		}
+	}
+
+	return dim;
 }
 
 /// <function container="Fit.Browser" name="GetScrollPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
@@ -427,6 +469,109 @@ Fit.Browser.GetScrollPosition = function()
 	var y = document.body.scrollTop || document.documentElement.scrollTop || window.pageYOffset || 0;
 
 	return { X: x, Y: y };
+}
+
+/// <function container="Fit.Browser" name="GetScrollDocument" access="public" static="true" returns="DOMElement">
+/// 	<description>
+/// 		Get scrolling document element. This is the cross browser
+/// 		equivalent of document.scrollingElement.
+/// 	</description>
+/// </function>
+Fit.Browser.GetScrollDocument = function()
+{
+	if (Fit._internal.Browser.ScrollDocument === undefined)
+	{
+		if (document.scrollingElement)
+		{
+			Fit._internal.Browser.ScrollDocument = document.scrollingElement;
+		}
+		else
+		{
+			var iframe = document.createElement("iframe");
+			iframe.style.cssText = "height: 1px; position: fixed; top: -100px; left: -100px;";
+
+			document.documentElement.appendChild(iframe);
+
+			var doc = iframe.contentWindow.document;
+			doc.write("<!DOCTYPE html><div style='height: 100px'>&nbsp;</div>");
+			doc.close();
+
+			if (doc.documentElement.scrollHeight > doc.body.scrollHeight)
+			{
+				Fit._internal.Browser.ScrollDocument = document.documentElement;
+			}
+			else
+			{
+				Fit._internal.Browser.ScrollDocument = document.body;
+			}
+
+			iframe.parentNode.removeChild(iframe);
+		}
+	}
+
+	return Fit._internal.Browser.ScrollDocument;
+}
+
+/// <function container="Fit.Browser" name="GetScrollBars" access="public" static="true" returns="Fit.TypeDefs.ScrollBarsPresent">
+/// 	<description>
+/// 		Get information about scrollbars in viewport.
+/// 		Returns an object with Vertical and Horizontal properties, each containing
+/// 		Enabled and Size properties, which can be used to determine whether scrolling is enabled,
+/// 		and the size of the scrollbar. The size remains 0 when scrolling is not enabled.
+/// 		To determine whether a DOM element has scrolling enabled, use Fit.Dom.GetScrollBars(..).
+/// 	</description>
+/// </function>
+Fit.Browser.GetScrollBars = function()
+{
+	var res = { Vertical: { Enabled: false, Size: 0 }, Horizontal: { Enabled: false, Size: 0 } };
+
+	// NOTICE: clientWidth on <html> (scroll document) does not behave
+	// identical to clientWidth on other elements. For the document element
+	// the size of the viewport is returned. For other DOM elements the
+	// inner width is returned:
+	// https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth
+
+	var doc = Fit.Browser.GetScrollDocument();
+
+	if (doc.clientWidth < doc.scrollWidth)
+	{
+		res.Horizontal.Enabled = true;
+		res.Horizontal.Size = Fit.Browser.GetScrollBarSize();
+	}
+
+	if (doc.clientHeight < doc.scrollHeight)
+	{
+		res.Vertical.Enabled = true;
+		res.Vertical.Size = Fit.Browser.GetScrollBarSize();
+	}
+
+	return res;
+}
+
+/// <function container="Fit.Browser" name="GetScrollBarSize" access="public" static="true" returns="integer">
+/// 	<description>
+/// 		Get thickness of browser scrollbars. The function works even when
+/// 		no scrollbars are currently present. For browsers and operating systems
+/// 		hiding scrollbars for scrollable objects, the value returned will be 0 (zero).
+/// 	</description>
+/// </function>
+Fit.Browser.GetScrollBarSize = function()
+{
+	if (Fit._internal.Browser.ScrollBarWidth === undefined)
+	{
+		var outer = document.createElement("div");
+		outer.style.cssText = "visibility: hidden; overflow: scroll; position: fixed; top: -100px; left: -100px;";
+		document.documentElement.appendChild(outer); //document.body.appendChild(outer);
+
+		var inner = document.createElement("div");
+		outer.appendChild(inner);
+
+		Fit._internal.Browser.ScrollBarWidth = outer.offsetWidth - inner.offsetWidth;
+
+		outer.parentNode.removeChild(outer);
+	}
+
+	return Fit._internal.Browser.ScrollBarWidth;
 }
 
 /// <function container="Fit.Browser" name="GetScreenWidth" access="public" static="true" returns="integer">

@@ -6,14 +6,14 @@ Fit.TypeDefs = {};
 
 /// <container name="Fit.TypeDefs.Position">
 /// 	<description> Position of a visual object from top and left </description>
-/// 	<member name="X" type="integer"> Position from left </member>
-/// 	<member name="Y" type="integer"> Position from top </member>
+/// 	<member name="X" type="integer"> Position from left in pixels </member>
+/// 	<member name="Y" type="integer"> Position from top in pixels </member>
 /// </container>
 
 /// <container name="Fit.TypeDefs.Dimension">
 /// 	<description> Represents the size of a visual object </description>
-/// 	<member name="Width" type="integer"> Object width </member>
-/// 	<member name="Height" type="integer"> Object height </member>
+/// 	<member name="Width" type="integer"> Object width in pixels </member>
+/// 	<member name="Height" type="integer"> Object height in pixels </member>
 /// </container>
 
 /// <container name="Fit.TypeDefs.CssUnit">
@@ -44,4 +44,14 @@ Fit.TypeDefs.CssUnit = // Enums must exist runtime
 /// 	<description> Represents a CSS value </description>
 /// 	<member name="Value" type="number"> Value </member>
 /// 	<member name="Unit" type="Fit.TypeDefs.CssUnit"> Unit </member>
+/// </container>
+
+/// <container name="Fit.TypeDefs.ScrollBarInfo">
+/// 	<member name="Enabled" type="boolean"> True if scrollbar is enabled, otherwise False </member>
+/// 	<member name="Size" type="integer"> Size of scrollbar - always returns 0 if Enabled is False </member>
+/// </container>
+
+/// <container name="Fit.TypeDefs.ScrollBarsPresent">
+/// 	<member name="Vertical" type="Fit.TypeDefs.ScrollBarInfo"> Vertical scrollbar information </member>
+/// 	<member name="Horizontal" type="Fit.TypeDefs.ScrollBarInfo"> Horizontal scrollbar information </member>
 /// </container>
