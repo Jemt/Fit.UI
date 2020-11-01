@@ -525,7 +525,7 @@ Fit.Http.Request = function(uri)
 
 	/// <function container="Fit.Http.RequestTypeDefs" name="EventHandler">
 	/// 	<description> Request event handler </description>
-	/// 	<param name="sender" type="Fit.Http.Request"> Instance of Request which triggered event </param>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of request which triggered event </param>
 	/// </function>
 
 	/// <function container="Fit.Http.Request" name="OnStateChange" access="public">

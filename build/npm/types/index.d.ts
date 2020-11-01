@@ -10339,40 +10339,40 @@ declare namespace Fit
 			/**
 			* Add function to invoke when request is canceled.
 			* @function OnAbort
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request is canceled.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request is canceled.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnAbort(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnAbort(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request is unsuccessful.
 			* @function OnFailure
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request finished, but not successfully.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request finished, but not successfully.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnFailure(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnFailure(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request is initiated.
 			Request can be canceled by returning False.
 			* @function OnRequest
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request is initiated.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request is initiated.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnRequest(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnRequest(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request state is changed.
 			Use GetCurrentState() to read the state at the given time.
 			* @function OnStateChange
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when state changes.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when state changes.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnStateChange(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnStateChange(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request is successful.
 			* @function OnSuccess
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request finished successfully.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request finished successfully.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnSuccess(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnSuccess(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Remove form value from form data collection.
 			* @function RemoveFormData
@@ -10580,40 +10580,40 @@ declare namespace Fit
 			/**
 			* Add function to invoke when request is canceled.
 			* @function OnAbort
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request is canceled.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request is canceled.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnAbort(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnAbort(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request is unsuccessful.
 			* @function OnFailure
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request finished, but not successfully.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request finished, but not successfully.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnFailure(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnFailure(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request is initiated.
 			Request can be canceled by returning False.
 			* @function OnRequest
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request is initiated.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request is initiated.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnRequest(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnRequest(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request state is changed.
 			Use GetCurrentState() to read the state at the given time.
 			* @function OnStateChange
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when state changes.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when state changes.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnStateChange(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnStateChange(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Add function to invoke when request is successful.
 			* @function OnSuccess
-			* @param {Fit.Http.RequestTypeDefs.EventHandler} func - JavaScript function invoked when request finished successfully.
+			* @param {Fit.Http.RequestTypeDefs.EventHandler<this>} func - JavaScript function invoked when request finished successfully.
 			Fit.Http.Request instance is passed to function.
 			*/
-			public OnSuccess(func:Fit.Http.RequestTypeDefs.EventHandler):void;
+			public OnSuccess(func:Fit.Http.RequestTypeDefs.EventHandler<this>):void;
 			/**
 			* Remove form value from form data collection.
 			* @function RemoveFormData
@@ -10674,10 +10674,11 @@ declare namespace Fit
 			// Functions defined by Fit.Http.RequestTypeDefs
 			/**
 			* Request event handler.
+			* @template TypeOfThis
 			* @callback EventHandler
-			* @param {Fit.Http.Request} sender - Instance of Request which triggered event.
+			* @param {TypeOfThis} sender - Instance of request which triggered event.
 			*/
-			type EventHandler = (sender:Fit.Http.Request) => void;
+			type EventHandler<TypeOfThis> = (sender:TypeOfThis) => void;
 		}
 	}
 	/**
