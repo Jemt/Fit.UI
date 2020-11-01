@@ -12,7 +12,8 @@ Tests.ParseUrl = function()
             Path: "/",
             Resource: null,
             Parameters: {},
-            Anchor: null,
+			Hash: null,
+			Anchor: null, // Backwards compatibility
             _TestUrl: "http://localhost"
         },
         {
@@ -25,7 +26,8 @@ Tests.ParseUrl = function()
             Path: "/",
             Resource: null,
             Parameters: {},
-            Anchor: null,
+			Hash: null,
+			Anchor: null, // Backwards compatibility
             _TestUrl: "https://localhost/"
         },
         {
@@ -38,7 +40,8 @@ Tests.ParseUrl = function()
             Path: "/wwwroot/demo/",
             Resource: null,
             Parameters: {},
-            Anchor: null,
+			Hash: null,
+			Anchor: null, // Backwards compatibility
             _TestUrl: "FTP://user:pass@sub.localhost:21/wwwroot/demo/"
         },
         {
@@ -51,7 +54,8 @@ Tests.ParseUrl = function()
             Path: "/sub/folder/hierarchy/",
             Resource: "index.php",
             Parameters: { parm: "val", arg: "data" },
-            Anchor: "calc",
+			Hash: "calc",
+			Anchor: "calc", // Backwards compatibility
             _TestUrl: "https://192.168.1.101:8030/sub/folder/hierarchy/index.php?parm=val&arg=data#calc"
         },
         {
@@ -64,7 +68,8 @@ Tests.ParseUrl = function()
             Path: "/",
             Resource: null,
             Parameters: { parm: "val" },
-            Anchor: null,
+			Hash: null,
+			Anchor: null, // Backwards compatibility
             _TestUrl: "http://myToken@1.0.0.1/?parm=val"
         },
         {
@@ -77,7 +82,8 @@ Tests.ParseUrl = function()
             Path: "/",
             Resource: null,
             Parameters: {},
-            Anchor: "",
+			Hash: "",
+			Anchor: "", // Backwards compatibility
             _TestUrl: "tel://12345678/#"
         },
         {
@@ -90,7 +96,8 @@ Tests.ParseUrl = function()
             Path: "/sites/cms-guide/",
             Resource: "index.php",
             Parameters: { "expand-menu": "" },
-            Anchor: "dummy",
+			Hash: "dummy",
+			Anchor: "dummy", // Backwards compatibility
             _TestUrl: "https://not:needed@sitemagic.org:443/sites/cms-guide/index.php?expand-menu#dummy"
         },
         {
@@ -103,7 +110,8 @@ Tests.ParseUrl = function()
             Path: "/too/many/forward/slashes/",
             Resource: "res.php",
             Parameters: {},
-            Anchor: "Success",
+			Hash: "Success",
+			Anchor: "Success", // Backwards compatibility
             _TestUrl: "https://subsub.www.sitemagic.org//too//many////forward/slashes//res.php#Success"
         }
         // Add IPv6 tests when supported!
