@@ -4578,7 +4578,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAll
 			* @param {Fit.Controls.TreeViewTypeDefs.CancelableSelectionEventHandler<this>} cb - Event handler function.
@@ -4589,7 +4589,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAllComplete
 			* @param {Fit.Controls.TreeViewTypeDefs.SelectionCompleteEventHandler<this>} cb - Event handler function.
@@ -5263,10 +5263,10 @@ declare namespace Fit
 			{
 				// Properties defined by Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs
 				/**
-				* Instance of TreeViewNode.
-				* @member {Fit.Controls.TreeViewNode} Node
+				* Instance of TreeViewNode - Null if Select All was triggered for root nodes (all nodes).
+				* @member {Fit.Controls.TreeViewNode | null} Node
 				*/
-				Node:Fit.Controls.TreeViewNode;
+				Node:Fit.Controls.TreeViewNode | null;
 				/**
 				* Value indicating new selection state.
 				* @member {boolean} Selected
@@ -7009,7 +7009,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAll
 			* @param {Fit.Controls.TreeViewTypeDefs.CancelableSelectionEventHandler<this>} cb - Event handler function.
@@ -7020,7 +7020,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAllComplete
 			* @param {Fit.Controls.TreeViewTypeDefs.SelectionCompleteEventHandler<this>} cb - Event handler function.
