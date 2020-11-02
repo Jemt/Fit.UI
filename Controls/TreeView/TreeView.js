@@ -1005,7 +1005,9 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <container name="Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs">
 	/// 	<description> Selection event handler arguments </description>
-	/// 	<member name="Node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </member>
+	/// 	<member name="Node" type="Fit.Controls.TreeViewNode | null">
+	/// 		Instance of TreeViewNode - Null if Select All was triggered for root nodes (all nodes)
+	/// 	</member>
 	/// 	<member name="Selected" type="boolean"> Value indicating new selection state </member>
 	/// </container>
 
@@ -1110,7 +1112,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
-	/// 		 - Node: Fit.Controls.TreeViewNode instance
+	/// 		 - Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
 	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.CancelableSelectionEventHandler">
@@ -1129,7 +1131,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
-	/// 		 - Node: Fit.Controls.TreeViewNode instance
+	/// 		 - Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
 	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.SelectionCompleteEventHandler">
