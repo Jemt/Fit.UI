@@ -42,6 +42,7 @@ Fit.Controls.TreeView = function(ctlId)
 	var me = this;
 	var rootContainer = null;		// UL element
 	var rootNode = null;			// Fit.Controls.TreeViewNode instance
+	var focusInEventId = -1;		// ID for OnFocus event handler registered at the document level
 
 	var keyNavigationEnabled = true;
 
@@ -353,6 +354,42 @@ Fit.Controls.TreeView = function(ctlId)
 			{
 				toggleNodeSelection(node);
 			}
+		}
+
+		// Clicking the TreeView's scrollbar causes it to lose focus to a parent container if it is focusable (has tabindex).
+		// IE not affected though. We detect when user clicks on the TreeView's scrollable container and then reclaims focus
+		// when OnFocus fires at the document root level. Since OnFocus is handled in the capture phase at the document
+		// root level, it happens early enough to prevent the control from firing its OnBlur event.
+		if (Fit.Browser.GetBrowser() !== "MSIE")
+		{
+			var reclaimFocus = false;
+
+			Fit.Events.AddHandler(me.GetDomElement(), "mousedown", true, function(e)
+			{
+				if (Fit.Events.GetTarget(e) === me.GetDomElement()) // True if TreeView container was clicked, including its scrollbar
+				{
+					// Only reclaim focus if a container further up the hierarchy is focusable (has tabindex)
+
+					var parent = me.GetDomElement();
+					while ((parent = parent.parentElement) !== null)
+					{
+						if (parent.tabIndex >= 0)
+						{
+							reclaimFocus = true;
+							break;
+						}
+					}
+				}
+			});
+
+			focusInEventId = Fit.Events.AddHandler(document, "focus", true, function(e)
+			{
+				if (reclaimFocus === true)
+				{
+					reclaimFocus = false; // MUST be set before calling FireOnFocusIn() as this changes focus and fires OnFocus for the document yet again
+					me._internal.FireOnFocusIn();
+				}
+			});
 		}
 
 		Fit.Events.AddHandler(me.GetDomElement(), "contextmenu", function(e) { return Fit.Events.PreventDefault(e); }); // Disable context menu
@@ -979,6 +1016,11 @@ Fit.Controls.TreeView = function(ctlId)
 
 		// This will destroy control - it will no longer work!
 
+		if (focusInEventId !== -1)
+		{
+			Fit.Events.RemoveHandler(document, focusInEventId);
+		}
+
 		me._internal.ExecuteWithNoOnChange(function() // Prevent Dispose() on nodes from firing OnChange when they are removed from hierarchy
 		{
 			rootNode.Dispose();
@@ -996,7 +1038,7 @@ Fit.Controls.TreeView = function(ctlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 
-		me = rootContainer = rootNode = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
+		me = rootContainer = rootNode = focusInEventId = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
 	});
 
 	// ============================================

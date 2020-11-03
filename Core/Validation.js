@@ -27,6 +27,12 @@ Fit._internal.Validation.Clone = null;
 	// Make sure we can use Fit.Validation.ExpectInstance(selectedFileFromInput, File, true)
 	if (!window.File)
 		window.File = function() {};
+
+	// Some versions of Firefox temporarily removed NamedNodeMap.
+	// They renamed it to MozNamedAttrMap, but it was later restored.
+	// https://bugzilla.mozilla.org/show_bug.cgi?id=858344
+	if (!window.NamedNodeMap)
+		window.NamedNodeMap = function() {};
 })();
 
 // ==========================================================
