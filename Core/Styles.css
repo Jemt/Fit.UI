@@ -55,31 +55,6 @@ Stacking context, Z-index:
 {
 	outline: 2px solid red;
 }
-DISABLED.FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage]:hover:after
-{
-	/* Legacy IE */
-
-	content: attr(data-errormessage);
-	border: 1px solid #333333;
-	border-radius: 3px;
-	background-color: #FEFFDD;
-	padding: 0.65em;
-	font-size: 0.9em;
-	white-space: pre-line;
-	position: absolute;
-	margin-top: 1px;
-	z-index: 500; /* Legacy IE: seems to be affected by a bug, preventing it from being displayed on top of positioned elements */
-
-	/* Fix if control is aligned to the right */
-	text-align: left;
-}
-DISABLED.FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage]:not(#LegacyIE):hover:after
-{
-	/* Undo above on modern browsers */
-
-	content: "";
-	display: none;
-}
 .FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage][data-focused="false"]:not(#LegacyIE):hover:before,
 .FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage][data-focused="true"]:not(#LegacyIE):before
 {
