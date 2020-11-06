@@ -74,6 +74,31 @@ Fit.Controls.Input = function(ctlId)
 	// ============================================
 
 	// See documentation on ControlBase
+	this.Enabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
+		{
+			me._internal.Data("enabled", val === true ? "true" : "false");
+
+			input.disabled = val === false;
+
+			if (designEditor !== null && designEditor._isReadyForInteraction === true) // ReadOnly mode will be set when instance is ready, if not ready at this time
+			{
+				designEditor.setReadOnly(input.disabled);
+
+				// Unfortunately there is no API for changing the tabIndex
+				designEditor.container.$.querySelector("[contenteditable]").tabIndex = input.disabled === true ? -1 : 0;
+			}
+
+			me._internal.Repaint();
+		}
+
+		return me._internal.Data("enabled") === "true";
+	}
+
+	// See documentation on ControlBase
 	this.Focused = function(focus)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
@@ -458,6 +483,7 @@ Fit.Controls.Input = function(ctlId)
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
+				input.disabled = oldInput.disabled;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -494,6 +520,7 @@ Fit.Controls.Input = function(ctlId)
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
+				input.disabled = oldInput.disabled;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -852,6 +879,9 @@ Fit.Controls.Input = function(ctlId)
 				if (wasMultiLineBefore === false)
 					me.MultiLine(false);
 
+				// Remove tabindex used to prevent control from losing focus when clicking toolbar buttons
+				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
+
 				if (focused === true)
 				{
 					if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 9 && me.MultiLine() === false)
@@ -950,7 +980,7 @@ Fit.Controls.Input = function(ctlId)
 		// This also prevents control from losing focus if toolbar is clicked without
 		// hitting a button. A value of -1 makes it focusable, but keeps it out of
 		// tab flow (keyboard navigation).
-		me.GetDomElement().tabIndex = -1;
+		me.GetDomElement().tabIndex = -1; // TabIndex is removed if DesignMode is disabled
 
 		var focused = me.Focused();
 		if (focused === true)
@@ -963,6 +993,9 @@ Fit.Controls.Input = function(ctlId)
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
+			readOnly: me.Enabled() === false,
+			tabIndex: me.Enabled() === false ? -1 : 0,
+			title: "",
 			startupFocus: focused === true ? "end" : false,
 			extraPlugins: "justify,pastefromword",
 			toolbar:
@@ -989,6 +1022,11 @@ Fit.Controls.Input = function(ctlId)
 			{
 				instanceReady: function()
 				{
+					// Enabled state might have been changed while loading.
+					// Unfortunately there is no API for changing the tabIndex.
+					designEditor.setReadOnly(me.Enabled() === false);
+					designEditor.container.$.querySelector("[contenteditable]").tabIndex = me.Enabled() === false ? -1 : 0;
+
 					if (focused === true)
 					{
 						me.Focused(true); // Focus actual input area rather than outer container temporarily focused further up
@@ -999,7 +1037,7 @@ Fit.Controls.Input = function(ctlId)
 
 					designEditor._isReadyForInteraction = true;
 				},
-				change: function()
+				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
 					input.onkeyup();
 				},

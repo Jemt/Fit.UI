@@ -122,6 +122,11 @@ Fit.Controls.Component = function(controlId)
 		}
 	}
 
+	this._internal.IsIe8 = function()
+	{
+		return isIe8;
+	}
+
 	init();
 }
 
@@ -239,6 +244,8 @@ Fit.Controls.ControlBase = function(controlId)
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
+	var baseControlDisabled = false;	// True if BaseControl's implementation of Enabled(..) disabled the control
+	var ie8DisabledLayer = null;		// Layer used to block clicks in IE8 when control is disabled
 
 	function init()
 	{
@@ -248,6 +255,7 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Data("focused", "false");
 		me._internal.Data("valid", "true");
 		me._internal.Data("dirty", "false");
+		me._internal.Data("enabled", "true");
 
 		me._internal.Data("device", ((Fit.Browser.GetInfo().IsMobile === false) ? "Desktop" : (Fit.Browser.GetInfo().IsPhone === true) ? "Phone" : "Tablet"));
 
@@ -283,7 +291,7 @@ Fit.Controls.ControlBase = function(controlId)
 			}
 		});
 
-		if (Fit.Browser.GetBrowser() !== "MSIE" || Fit.Browser.GetVersion() >= 9)
+		if (me._internal.IsIe8() === false)
 		{
 			// Notice: Using Capture (true argument) for these handlers,
 			// meaning they are fired before the event reach its target.
@@ -340,7 +348,7 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = baseControlDisabled = ie8DisabledLayer = null;
 		base();
 	});
 
@@ -423,6 +431,143 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		Fit.Validation.ExpectStringValue(val);
 		return Fit.Dom.HasClass(container, val);
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="Enabled" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control is enabled or disabled </description>
+	/// 	<param name="val" type="boolean" default="undefined">
+	/// 		If defined, True enables control (default), False disables control.
+	/// 	</param>
+	/// </function>
+	this.Enabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
+		{
+			baseControlDisabled = val === false;
+
+			var disableSelector = "input, textarea, select, button";
+			var disableEvents = {
+				"contextmenu": preventEventDefault,
+				"click": stopEventPropagation,
+				"dblclick": stopEventPropagation,
+				"mousedown": stopEventPropagation,
+				"mouseup": stopEventPropagation,
+				"mousemove": stopEventPropagation,
+				"keydown": stopEventPropagation,
+				"keypress": stopEventPropagation,
+				"keyup": stopEventPropagation,
+				"touchstart": stopEventPropagation,
+				"touchmove": stopEventPropagation,
+				"touchend": stopEventPropagation,
+				"touchcancel": stopEventPropagation
+			};
+
+			var dom = me.GetDomElement();
+
+			me._internal.Data("enabled", val === true ? "true" : "false");
+
+			if (val === false) // Disable control
+			{
+				me.Focused(false);
+
+				// Prevent interaction with controls
+
+				if (me._internal.IsIe8() === false)
+				{
+					// Register events handlers suppressing user interactions such as clicks and keystrokes
+					Fit.Array.ForEach(disableEvents, function(eventName)
+					{
+						Fit.Events.AddHandler(dom, eventName, true, disableEvents[eventName]);
+					});
+				}
+				else // IE8
+				{
+					ie8DisabledLayer = document.createElement("div");
+					ie8DisabledLayer.className = "FitUiControlDisabledLayer";
+					Fit.Dom.Add(me.GetDomElement(), ie8DisabledLayer);
+				}
+
+				// Disable HTML controls
+
+				Fit.Array.ForEach(dom.querySelectorAll(disableSelector), function(elm)
+				{
+					elm._fitDisabled = elm.disabled;
+					elm.disabled = true;
+
+					elm._fitReadOnly = elm.readOnly;
+					elm.readOnly = true;
+				});
+
+				// Prevent focusable elements from gaining focus via click and tab navigation
+
+				Fit.Array.CustomRecurse([dom], function(elm)
+				{
+					if (Fit.Dom.Attribute(elm, "tabindex") !== null) // Since .tabIndex always has a value, we have to use Attribute(..) to determine whether it has been explicitely set or not
+					{
+						elm._fitTabIndex = elm.tabIndex;
+						Fit.Dom.Attribute(elm, "tabindex", null); // Remove tabindex - a value of -1 only takes it our of tab flow, but the object remains focusable on click
+
+						if (elm.tagName === "A")
+						{
+							// Links by default have tabindex set to 0 when tabindex attribute
+							// is not explicitely declared. For onFocusIn() to be able to determine
+							// whether links can be ignored, we assign -1. See onFocusIn() for details.
+							elm.tabIndex = -1;
+						}
+					}
+
+					return elm.children;
+				});
+			}
+			else if (val === true)
+			{
+				// Allow user interactions again
+
+				if (me._internal.IsIe8() === false)
+				{
+					// Remove events handlers suppressing user interactions such as clicks and keystrokes
+					Fit.Array.ForEach(disableEvents, function(eventName)
+					{
+						Fit.Events.RemoveHandler(dom, eventName, true, disableEvents[eventName]);
+					});
+				}
+				else
+				{
+					Fit.Dom.Remove(ie8DisabledLayer);
+					ie8DisabledLayer = null;
+				}
+
+				// Re-enable HTML controls
+
+				Fit.Array.ForEach(dom.querySelectorAll(disableSelector), function(elm)
+				{
+					elm.disabled = elm._fitDisabled;
+					delete elm._fitDisabled;
+
+					elm.readOnly = elm._fitReadOnly;
+					delete elm._fitReadOnly;
+				});
+
+				// Allow focusable elements to gain focus again
+
+				Fit.Array.CustomRecurse([dom], function(elm)
+				{
+					if (elm._fitTabIndex !== undefined)
+					{
+						elm.tabIndex = elm._fitTabIndex;
+						delete elm._fitTabIndex;
+					}
+
+					return elm.children;
+				});
+			}
+
+			me._internal.Repaint();
+		}
+
+		return me._internal.Data("enabled") === "true";
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Visible" access="public" returns="boolean">
@@ -758,6 +903,7 @@ Fit.Controls.ControlBase = function(controlId)
 			{
 				me._internal.Data("valid", "true");
 				me._internal.Data("errormessage", null);
+				Fit.Dom.Attribute(me.GetDomElement(), "title", null); // Title attribute holds error message in IE8
 			}
 			else
 			{
@@ -811,8 +957,79 @@ Fit.Controls.ControlBase = function(controlId)
 	// Private
 	// ============================================
 
+	function stopEventPropagation(e) // Used to suppress user interaction when control is disabled
+	{
+		Fit.Events.StopPropagation(e);
+
+		if (e.type === "click" && Fit.Events.GetTarget(e).tagName === "A")
+		{
+			preventEventDefault(e); // Prevent navigation
+		}
+	}
+
+	function preventEventDefault(e) // Used to suppress user interaction when control is disabled
+	{
+		Fit.Events.PreventDefault(e);
+	}
+
 	function onFocusIn(e)
 	{
+		if (baseControlDisabled === true && Fit.Dom.GetFocused() !== me.GetDomElement())
+		{
+			// An element in control gained focus, even though control is disabled. This might happen
+			// if data is loaded async and control's DOM is populated after control has been disabled.
+
+			var focused = Fit.Dom.GetFocused(); // Element that gained focus
+
+			if (me._internal.IsIe8() === true && focused === ie8DisabledLayer)
+			{
+				return; // User clicked on IE8's Disabled Layer - IE fires OnFocusIn, even for elements that are not focusable
+			}
+
+			// Enable and re-disable control if an element within the control received focus,
+			// which will ensure focusable elements within control lose their ability to receive focus.
+			// Notice: the focus event always fires for hyperlinks, no matter what, since they are always
+			// focusable. So unless the hyperlink is explicitely set to be focusable on tab navigation
+			// (tabIndex >= 0), there is no need to enable and re-disable the control. Enabled(false) will
+			// make sure to set tabIndex to -1 for links so we do not trigger the code below again and again.
+			if (focused.tagName !== "A" || focused.tabIndex >= 0)
+			{
+				// Display warning so we don't get confused as to why tab navigation suddently acts weird.
+				// If this gets annoying, the control triggering this warning should override Enabled(..) to make its
+				// own specific implementation, rather than relying on ControlBase's very generic (but free) approach.
+				var msg = "";
+				msg += "Disabled control '" + me.GetId() + "' received focus because an object was introduced in the control ";
+				msg += "that is focusable, which did not exist when the control was disabled. Control's disabled state will ";
+				msg += "now be updated to prevent this from happening again with the control's current state. Since the control ";
+				msg += "has already received focus, and we do not know the exact tab navigation order of the page, focus will ";
+				msg += "now be returned to the component previously focused. The user will experience this as TAB navigation "
+				msg += "being ignored for this keystroke, but it will work the next time. To avoid this, make sure to disable ";
+				msg += "the control once it is ready - e.g. fully populated.";
+				console.warn(msg);
+
+				me.Enabled(true);
+				me.Enabled(false);
+			}
+
+			// Since control is not focusable when disabled, and we don't know
+			// which element is the next/previous focusable one, we return focus
+			// to the element from which focus was handed over (previously focused).
+			var related = Fit.Events.GetRelatedTarget(e);
+			if (related !== null && related.tabIndex >= 0)
+			{
+				//console.warn("Returning focus to previously focused element");
+				related.focus();
+			}
+			else
+			{
+				//console.warn("Removing focus from disabled control");
+				Fit.Dom.GetFocused().blur(); // There is either no related element (first focus on page), or it has tabIndex -1 (e.g. a hyperlink which had its tabIndex set to -1 when Enabled(false) was called)
+			}
+		}
+
+		if (me.Enabled() === false)
+			return;
+
 		if (focusStateLocked === true)
 			return;
 
@@ -937,6 +1154,11 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			var locale = Fit.Internationalization.GetSystemLocale();
 			me._internal.Data("errormessage", locale.Translations.Required);
+
+			if (me._internal.IsIe8() === true)
+			{
+				Fit.Dom.Attribute(me.GetDomElement(), "title", locale.Translations.Required);
+			}
 		}
 	}
 
@@ -1088,6 +1310,11 @@ Fit.Controls.ControlBase = function(controlId)
 		else
 		{
 			me._internal.Data("errormessage", null);
+		}
+
+		if (me._internal.IsIe8() === true)
+		{
+			Fit.Dom.Attribute(me.GetDomElement(), "title", me._internal.Data("errormessage"));
 		}
 
 		me._internal.Repaint();

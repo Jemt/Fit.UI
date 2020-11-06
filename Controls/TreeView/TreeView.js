@@ -263,7 +263,18 @@ Fit.Controls.TreeView = function(ctlId)
 					var links = node.GetDomElement().getElementsByTagName("a");
 
 					if (links.length === 1)
-						links[0].click();
+					{
+						if (links[0].click) // Some browsers, e.g. Safari 5, does not support click()
+						{
+							links[0].click();
+						}
+						else
+						{
+							var clickEvent = document.createEvent("MouseEvent");
+							clickEvent.initEvent("click", true, true);
+							links[0].dispatchEvent(clickEvent);
+						}
+					}
 				}
 
 				Fit.Events.PreventDefault(ev);
@@ -2201,6 +2212,12 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 					fireOnChange = true;
 				}
 			});
+
+			// if (tv.GetTreeView().Enabled() === false)
+			// {
+			// 	tv.GetTreeView().Enabled(true);
+			// 	tv.GetTreeView().Enabled(false);
+			// }
 
 			// Fire OnChange if selections were made
 

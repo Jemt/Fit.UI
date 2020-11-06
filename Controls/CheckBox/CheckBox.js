@@ -246,10 +246,20 @@ Fit.Controls.CheckBox = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(val) === true)
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
 		{
 			Fit.Dom.Data(me.GetDomElement(), "enabled", val.toString());
-			me.GetDomElement().tabIndex = ((val === true) ? 0 : -1);
+
+			if (val === true)
+			{
+				me.GetDomElement().tabIndex = 0;
+			}
+			else
+			{
+				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
+			}
+
+			me._internal.Repaint();
 		}
 
 		return (Fit.Dom.Data(me.GetDomElement(), "enabled") === "true");
