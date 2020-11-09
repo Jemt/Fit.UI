@@ -584,9 +584,11 @@ Fit.Controls.Input = function(ctlId)
 				// Create maximize/minimize button
 
 				cmdResize = document.createElement("span");
+				cmdResize.tabIndex = -1; // Allow button to temporarily gain focus so control does not fire OnBlur
 				cmdResize.onclick = function()
 				{
 					me.Maximized(!me.Maximized());
+					me.Focused(true);
 				}
 				Fit.Dom.AddClass(cmdResize, "fa");
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
