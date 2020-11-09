@@ -234,15 +234,15 @@ div.FitUiControlDropDownPicker /* Picker container (drop down) */
 }
 
 /* Error indication */
-div.FitUiControlDropDown[data-valid="false"]
+div.FitUiControlDropDown[data-enabled="true"][data-valid="false"]
 {
 	outline: none;
 }
-div.FitUiControlDropDown[data-valid="false"] div.FitUiControlDropDownItems
+div.FitUiControlDropDown[data-enabled="true"][data-valid="false"] div.FitUiControlDropDownItems
 {
 	border-color: red;
 }
-div.FitUiControlDropDown[data-valid="false"] div.FitUiControlDropDownPicker
+div.FitUiControlDropDown[data-enabled="true"][data-valid="false"] div.FitUiControlDropDownPicker
 {
 	border-top-color: red;
 }

@@ -55,11 +55,11 @@ div.FitUiControlDatePicker[data-time="true"] input[type="text"] + input[type="te
 }
 
 /* Error indication */
-div.FitUiControlDatePicker[data-valid="false"]
+div.FitUiControlDatePicker[data-enabled="true"][data-valid="false"]
 {
 	outline: none;
 }
-div.FitUiControlDatePicker[data-valid="false"] input[type="text"]
+div.FitUiControlDatePicker[data-enabled="true"][data-valid="false"] input[type="text"]
 {
 	border-color: red;
 }

@@ -53,7 +53,7 @@ Stacking context, Z-index:
 /* Validation error (value validation) */
 .FitUiControl[data-enabled="true"][data-valid="false"]
 {
-	outline: 2px solid red;
+	outline: 0.065em solid red;
 }
 .FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage][data-focused="false"]:not(#LegacyIE):hover:before,
 .FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage][data-focused="true"]:not(#LegacyIE):before
