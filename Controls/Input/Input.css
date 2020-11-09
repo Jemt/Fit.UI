@@ -49,6 +49,11 @@ div.FitUiControlInput > span.fa
 	position: absolute;
 	top: 0px;
 	right: -1.5em;
+	cursor: pointer;
+}
+div.FitUiControlInput > span.fa:focus
+{
+	outline: none;
 }
 div.FitUiControlInput[data-maximizable="true"]
 {
