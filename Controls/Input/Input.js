@@ -1068,8 +1068,20 @@ Fit.Controls.Input = function(ctlId)
 						me.Focused(true); // Focus actual input area rather than outer container temporarily focused further up
 					}
 
+					var maximized = me.Maximized(); // Call to Height(..) below will minimize control
+
+					if (maximized === true)
+					{
+						me.Maximized(false); // Minimize to allow editor to initially assume normal height - maximized again afterwards
+					}
+
 					var h = me.Height();
 					me.Height(((h.Value >= 150 && h.Unit === "px") ? h.Value : 150));
+
+					if (maximized === true)
+					{
+						me.Maximized(true);
+					}
 
 					designEditor._isReadyForInteraction = true;
 				},
