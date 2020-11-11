@@ -25,6 +25,7 @@ Fit.Controls.Input = function(ctlId)
 	var minMaxUnit = null;
 	var mutationObserverId = -1;
 	var rootedEventId = -1;
+	var createWhenReadyIntervalId = -1;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	// ============================================
@@ -296,7 +297,12 @@ Fit.Controls.Input = function(ctlId)
 			Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = isIe8 = null;
+		if (createWhenReadyIntervalId !== -1)
+		{
+			clearInterval(createWhenReadyIntervalId);
+		}
+
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = null;
 
 		base();
 	});
@@ -805,27 +811,52 @@ Fit.Controls.Input = function(ctlId)
 						if (me === null)
 							return; // Control was disposed while waiting for jQuery UI to load
 
+						if (me.DesignMode() === false)
+							return; // DesignMode was disabled while waiting for resources to load
+
 						createEditor();
 					});
 				}
 				else if (window.CKEDITOR === null)
 				{
-					var iId = -1;
-					iId = setInterval(function()
+					if (createWhenReadyIntervalId === -1) // Make sure DesignMode has not been enabled multiple times - e.g. DesignMode(true); DesignMode(false); DesignMode(true); - in which case an interval timer may already be "waiting" for CKEditor resources to finish loading
 					{
-						if (me === null)
+						createWhenReadyIntervalId = setInterval(function()
 						{
-							// Control was disposed while waiting for CKEditor to finish loading
-							clearInterval(iId);
-							return;
-						}
+							/*if (me === null)
+							{
+								// Control was disposed while waiting for CKEditor to finish loading
+								clearInterval(iId);
+								return;
+							}*/
 
-						if (window.CKEDITOR !== null)
-						{
-							clearInterval(iId);
-							createEditor();
-						}
-					}, 500);
+							if (window.CKEDITOR !== null)
+							{
+								clearInterval(createWhenReadyIntervalId);
+								createWhenReadyIntervalId = -1;
+
+								// Create editor if still in DesignMode (might have been disabled while waiting for
+								// CKEditor resources to finish loading), and if editor has not already been created.
+								// Editor may already exist if control had DesignMode enabled, then disabled, and then
+								// enabled once again.
+								// If the control is the first one to enabled DesignMode, it will start loading CKEditor
+								// resources and postpone editor creation until resources have finished loading.
+								// When disabled and re-enabled, the control will realize that resources are being loaded,
+								// and postpone editor creation once again, this time using the interval timer here.
+								// When resources are loaded, it will create the editor instances, and when the interval
+								// timer here executes, it will also create the editor instance, unless we prevent it by
+								// making sure only to do it if designEditor is null. Without this check we might experience
+								// the following warning in the browser console, when editor is being created on the same
+								// textarea control multiple times:
+								// [CKEDITOR] Error code: editor-element-conflict. {editorName: "64992ea4-bd01-4081-b606-aa9ff23f417b_DesignMode"}
+								// [CKEDITOR] For more information about this error go to https://ckeditor.com/docs/ckeditor4/latest/guide/dev_errors.html#editor-element-conflict
+								if (me.DesignMode() === true && designEditor === null)
+								{
+									createEditor();
+								}
+							}
+						}, 500);
+					}
 				}
 				else
 				{
@@ -873,8 +904,11 @@ Fit.Controls.Input = function(ctlId)
 				// Destroy editor - content is automatically synchronized to input control.
 				// Calling destroy() fires OnHide for any dialog currently open, which in turn
 				// disables locked focus state and returns focus to the control.
-				designEditor.destroy();
-				designEditor = null;
+				if (designEditor !== null) // Will be null if DesignMode is being disabled while CKEditor resources are loading, in which case editor has not yet been created - e.g. DesignMode(true); DesignMode(false);
+				{
+					designEditor.destroy();
+					designEditor = null;
+				}
 
 				me._internal.Data("designmode", "false");
 
