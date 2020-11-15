@@ -33,12 +33,12 @@ div.FitUiControlInput input:first-child::-ms-clear
 }
 
 /* Error indication */
-div.FitUiControlInput[data-valid="false"]
+div.FitUiControlInput[data-enabled="true"][data-valid="false"]
 {
 	outline: none;
 }
-div.FitUiControlInput[data-valid="false"] input:first-child,
-div.FitUiControlInput[data-valid="false"] textarea:first-child
+div.FitUiControlInput[data-enabled="true"][data-valid="false"] input:first-child,
+div.FitUiControlInput[data-enabled="true"][data-valid="false"] textarea:first-child
 {
 	border-color: red;
 }
@@ -49,6 +49,11 @@ div.FitUiControlInput > span.fa
 	position: absolute;
 	top: 0px;
 	right: -1.5em;
+	cursor: pointer;
+}
+div.FitUiControlInput > span.fa:focus
+{
+	outline: none;
 }
 div.FitUiControlInput[data-maximizable="true"]
 {

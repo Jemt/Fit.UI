@@ -467,7 +467,23 @@ Fit.Events.GetTarget = function(e)
 
 	var ev = e || window.event;
 	var target = ev.srcElement || ev.target;
-	return (target ? target : null);
+	return (target ? target : null); // Should never return null
+}
+
+/// <function container="Fit.Events" name="GetRelatedTarget" access="public" static="true" returns="DOMElement | null">
+/// 	<description>
+/// 		Get a reference to the secondary object related to an event - e.g. the element losing
+/// 		focus in a focus event handler. Returns Null if there is no related event object, or if
+/// 		not supported by the browser.
+/// 	</description>
+/// 	<param name="e" type="Event" default="undefined"> Event argument </param>
+/// </function>
+Fit.Events.GetRelatedTarget = function(e)
+{
+	Fit.Validation.ExpectEvent(e, true);
+
+	var ev = e || window.event;
+	return ev.relatedTarget || null;
 }
 
 /// <function container="Fit.Events" name="GetEvent" access="public" static="true" returns="Event">

@@ -51,37 +51,12 @@ Stacking context, Z-index:
 }
 
 /* Validation error (value validation) */
-.FitUiControl[data-valid="false"]
+.FitUiControl[data-enabled="true"][data-valid="false"]
 {
-	outline: 2px solid red;
+	outline: 0.065em solid red;
 }
-.FitUiControl[data-valid="false"][data-errormessage]:hover:after
-{
-	/* Legacy IE */
-
-	content: attr(data-errormessage);
-	border: 1px solid #333333;
-	border-radius: 3px;
-	background-color: #FEFFDD;
-	padding: 0.65em;
-	font-size: 0.9em;
-	white-space: pre-line;
-	position: absolute;
-	margin-top: 1px;
-	z-index: 500;
-
-	/* Fix if control is aligned to the right */
-	text-align: left;
-}
-.FitUiControl[data-valid="false"][data-errormessage]:not(#LegacyIE):hover:after
-{
-	/* Undo above on modern browsers */
-
-	content: "";
-	display: none;
-}
-.FitUiControl[data-valid="false"][data-errormessage][data-focused="false"]:not(#LegacyIE):hover:before,
-.FitUiControl[data-valid="false"][data-errormessage][data-focused="true"]:not(#LegacyIE):before
+.FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage][data-focused="false"]:not(#LegacyIE):hover:before,
+.FitUiControl[data-enabled="true"][data-valid="false"][data-errormessage][data-focused="true"]:not(#LegacyIE):before
 {
 	/* Modern browsers - placed above control (requires support for transform) */
 
@@ -145,4 +120,33 @@ Stacking context, Z-index:
 	z-index: 99999;
 
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
+}
+
+/* Disabled control */
+
+div.FitUiControl[data-enabled="false"]
+{
+	color: #808080;
+	border-color: #808080;
+}
+div.FitUiControl[data-enabled="false"] input,
+div.FitUiControl[data-enabled="false"] textarea
+{
+	color: #808080;
+	background: white;
+}
+
+/* Disabled layer for legacy IE */
+div.FitUiControl[data-enabled="false"] div.FitUiControlDisabledLayer
+{
+	content: "";
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+
+	/* Layer must have a BG to catch clicks - made 99% transparent */
+	background: white;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=1)";
 }

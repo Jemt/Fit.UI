@@ -129,10 +129,20 @@ Fit.Controls.Button = function(controlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(val) === true)
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
 		{
 			Fit.Dom.Data(element, "enabled", ((val === true) ? "true" : "false"));
-			element.tabIndex = ((val === true) ? 0 : -1);
+
+			if (val === true)
+			{
+				element.tabIndex = 0;
+			}
+			else
+			{
+				Fit.Dom.Attribute(element, "tabindex", null);
+			}
+
+			me._internal.Repaint();
 		}
 
 		return (Fit.Dom.Data(element, "enabled") === "true");

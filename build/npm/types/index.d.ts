@@ -1074,6 +1074,13 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
@@ -1611,6 +1618,13 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
@@ -1997,6 +2011,13 @@ declare namespace Fit
 			* @function Clear
 			*/
 			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
@@ -2756,6 +2777,13 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
@@ -3269,6 +3297,13 @@ declare namespace Fit
 			*/
 			public Clear():void;
 			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
@@ -3664,6 +3699,13 @@ declare namespace Fit
 			* @function Clear
 			*/
 			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
@@ -4578,7 +4620,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAll
 			* @param {Fit.Controls.TreeViewTypeDefs.CancelableSelectionEventHandler<this>} cb - Event handler function.
@@ -4589,7 +4631,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAllComplete
 			* @param {Fit.Controls.TreeViewTypeDefs.SelectionCompleteEventHandler<this>} cb - Event handler function.
@@ -4863,6 +4905,13 @@ declare namespace Fit
 			* @function Clear
 			*/
 			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
@@ -5263,10 +5312,10 @@ declare namespace Fit
 			{
 				// Properties defined by Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs
 				/**
-				* Instance of TreeViewNode.
-				* @member {Fit.Controls.TreeViewNode} Node
+				* Instance of TreeViewNode - Null if Select All was triggered for root nodes (all nodes).
+				* @member {Fit.Controls.TreeViewNode | null} Node
 				*/
-				Node:Fit.Controls.TreeViewNode;
+				Node:Fit.Controls.TreeViewNode | null;
 				/**
 				* Value indicating new selection state.
 				* @member {boolean} Selected
@@ -5940,6 +5989,13 @@ declare namespace Fit
 			* @function Clear
 			*/
 			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
@@ -7009,7 +7065,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAll
 			* @param {Fit.Controls.TreeViewTypeDefs.CancelableSelectionEventHandler<this>} cb - Event handler function.
@@ -7020,7 +7076,7 @@ declare namespace Fit
 			Function receives two arguments:
 			Sender (Fit.Controls.TreeView) and EventArgs object.
 			EventArgs object contains the following properties:
-			- Node: Fit.Controls.TreeViewNode instance
+			- Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 			- Selected: Boolean value indicating new selection state.
 			* @function OnSelectAllComplete
 			* @param {Fit.Controls.TreeViewTypeDefs.SelectionCompleteEventHandler<this>} cb - Event handler function.
@@ -7288,6 +7344,13 @@ declare namespace Fit
 			* @function Clear
 			*/
 			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
 			* @function Focused
@@ -8544,6 +8607,15 @@ declare namespace Fit
 		* @returns Fit.EventTypeDefs.PointerState
 		*/
 		public static GetPointerState():Fit.EventTypeDefs.PointerState;
+		/**
+		* Get a reference to the secondary object related to an event - e.g. the element losing
+		focus in a focus event handler. Returns Null if there is no related event object, or if
+		not supported by the browser.
+		* @function GetRelatedTarget
+		* @param {Event} [e=undefined] - Event argument.
+		* @returns HTMLElement | null
+		*/
+		public static GetRelatedTarget(e?:Event):HTMLElement | null;
 		/**
 		* Get a reference to the object that is affected by an event.
 		* @function GetTarget

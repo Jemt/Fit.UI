@@ -477,7 +477,7 @@ Fit.Controls.FilePicker = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(val) === true)
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
 		{
 			me._internal.Data("enabled", val.toString());
 
@@ -494,8 +494,10 @@ Fit.Controls.FilePicker = function(ctlId)
 
 					if (me.MultiSelectionMode() === true && val === true && inp._file !== undefined && inp._file.Processed === true) // Input controls previously uploaded should remain disabled
 						inp.disabled = true;
-				})
+				});
 			}
+
+			me._internal.Repaint();
 		}
 
 		return (me._internal.Data("enabled") === "true");

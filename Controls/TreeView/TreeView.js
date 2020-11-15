@@ -42,6 +42,7 @@ Fit.Controls.TreeView = function(ctlId)
 	var me = this;
 	var rootContainer = null;		// UL element
 	var rootNode = null;			// Fit.Controls.TreeViewNode instance
+	var focusInEventId = -1;		// ID for OnFocus event handler registered at the document level
 
 	var keyNavigationEnabled = true;
 
@@ -262,7 +263,18 @@ Fit.Controls.TreeView = function(ctlId)
 					var links = node.GetDomElement().getElementsByTagName("a");
 
 					if (links.length === 1)
-						links[0].click();
+					{
+						if (links[0].click) // Some browsers, e.g. Safari 5, does not support click()
+						{
+							links[0].click();
+						}
+						else
+						{
+							var clickEvent = document.createEvent("MouseEvent");
+							clickEvent.initEvent("click", true, true);
+							links[0].dispatchEvent(clickEvent);
+						}
+					}
 				}
 
 				Fit.Events.PreventDefault(ev);
@@ -353,6 +365,42 @@ Fit.Controls.TreeView = function(ctlId)
 			{
 				toggleNodeSelection(node);
 			}
+		}
+
+		// Clicking the TreeView's scrollbar causes it to lose focus to a parent container if it is focusable (has tabindex).
+		// IE not affected though. We detect when user clicks on the TreeView's scrollable container and then reclaims focus
+		// when OnFocus fires at the document root level. Since OnFocus is handled in the capture phase at the document
+		// root level, it happens early enough to prevent the control from firing its OnBlur event.
+		if (Fit.Browser.GetBrowser() !== "MSIE")
+		{
+			var reclaimFocus = false;
+
+			Fit.Events.AddHandler(me.GetDomElement(), "mousedown", true, function(e)
+			{
+				if (Fit.Events.GetTarget(e) === me.GetDomElement()) // True if TreeView container was clicked, including its scrollbar
+				{
+					// Only reclaim focus if a container further up the hierarchy is focusable (has tabindex)
+
+					var parent = me.GetDomElement();
+					while ((parent = parent.parentElement) !== null)
+					{
+						if (parent.tabIndex >= 0)
+						{
+							reclaimFocus = true;
+							break;
+						}
+					}
+				}
+			});
+
+			focusInEventId = Fit.Events.AddHandler(document, "focus", true, function(e)
+			{
+				if (reclaimFocus === true)
+				{
+					reclaimFocus = false; // MUST be set before calling FireOnFocusIn() as this changes focus and fires OnFocus for the document yet again
+					me._internal.FireOnFocusIn();
+				}
+			});
 		}
 
 		Fit.Events.AddHandler(me.GetDomElement(), "contextmenu", function(e) { return Fit.Events.PreventDefault(e); }); // Disable context menu
@@ -979,6 +1027,11 @@ Fit.Controls.TreeView = function(ctlId)
 
 		// This will destroy control - it will no longer work!
 
+		if (focusInEventId !== -1)
+		{
+			Fit.Events.RemoveHandler(document, focusInEventId);
+		}
+
 		me._internal.ExecuteWithNoOnChange(function() // Prevent Dispose() on nodes from firing OnChange when they are removed from hierarchy
 		{
 			rootNode.Dispose();
@@ -996,7 +1049,7 @@ Fit.Controls.TreeView = function(ctlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 
-		me = rootContainer = rootNode = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
+		me = rootContainer = rootNode = focusInEventId = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
 	});
 
 	// ============================================
@@ -1005,7 +1058,9 @@ Fit.Controls.TreeView = function(ctlId)
 
 	/// <container name="Fit.Controls.TreeViewTypeDefs.SelectionEventHandlerArgs">
 	/// 	<description> Selection event handler arguments </description>
-	/// 	<member name="Node" type="Fit.Controls.TreeViewNode"> Instance of TreeViewNode </member>
+	/// 	<member name="Node" type="Fit.Controls.TreeViewNode | null">
+	/// 		Instance of TreeViewNode - Null if Select All was triggered for root nodes (all nodes)
+	/// 	</member>
 	/// 	<member name="Selected" type="boolean"> Value indicating new selection state </member>
 	/// </container>
 
@@ -1110,7 +1165,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
-	/// 		 - Node: Fit.Controls.TreeViewNode instance
+	/// 		 - Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
 	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.CancelableSelectionEventHandler">
@@ -1129,7 +1184,7 @@ Fit.Controls.TreeView = function(ctlId)
 	/// 		Function receives two arguments:
 	/// 		Sender (Fit.Controls.TreeView) and EventArgs object.
 	/// 		EventArgs object contains the following properties:
-	/// 		 - Node: Fit.Controls.TreeViewNode instance
+	/// 		 - Node: Fit.Controls.TreeViewNode instance - Null if Select All was triggered for root nodes (all nodes)
 	/// 		 - Selected: Boolean value indicating new selection state
 	/// 	</description>
 	/// 	<param name="cb" type="Fit.Controls.TreeViewTypeDefs.SelectionCompleteEventHandler">
@@ -2157,6 +2212,12 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 					fireOnChange = true;
 				}
 			});
+
+			// if (tv.GetTreeView().Enabled() === false)
+			// {
+			// 	tv.GetTreeView().Enabled(true);
+			// 	tv.GetTreeView().Enabled(false);
+			// }
 
 			// Fire OnChange if selections were made
 

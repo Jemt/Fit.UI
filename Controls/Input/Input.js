@@ -25,6 +25,7 @@ Fit.Controls.Input = function(ctlId)
 	var minMaxUnit = null;
 	var mutationObserverId = -1;
 	var rootedEventId = -1;
+	var createWhenReadyIntervalId = -1;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	// ============================================
@@ -72,6 +73,31 @@ Fit.Controls.Input = function(ctlId)
 	// ============================================
 	// Public - overrides
 	// ============================================
+
+	// See documentation on ControlBase
+	this.Enabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
+		{
+			me._internal.Data("enabled", val === true ? "true" : "false");
+
+			input.disabled = val === false;
+
+			if (designEditor !== null && designEditor._isReadyForInteraction === true) // ReadOnly mode will be set when instance is ready, if not ready at this time
+			{
+				designEditor.setReadOnly(input.disabled);
+
+				// Unfortunately there is no API for changing the tabIndex
+				designEditor.container.$.querySelector("[contenteditable]").tabIndex = input.disabled === true ? -1 : 0;
+			}
+
+			me._internal.Repaint();
+		}
+
+		return me._internal.Data("enabled") === "true";
+	}
 
 	// See documentation on ControlBase
 	this.Focused = function(focus)
@@ -271,7 +297,12 @@ Fit.Controls.Input = function(ctlId)
 			Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = isIe8 = null;
+		if (createWhenReadyIntervalId !== -1)
+		{
+			clearInterval(createWhenReadyIntervalId);
+		}
+
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = null;
 
 		base();
 	});
@@ -458,6 +489,7 @@ Fit.Controls.Input = function(ctlId)
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
+				input.disabled = oldInput.disabled;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -494,6 +526,7 @@ Fit.Controls.Input = function(ctlId)
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
+				input.disabled = oldInput.disabled;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -557,9 +590,11 @@ Fit.Controls.Input = function(ctlId)
 				// Create maximize/minimize button
 
 				cmdResize = document.createElement("span");
+				cmdResize.tabIndex = -1; // Allow button to temporarily gain focus so control does not fire OnBlur
 				cmdResize.onclick = function()
 				{
 					me.Maximized(!me.Maximized());
+					me.Focused(true);
 				}
 				Fit.Dom.AddClass(cmdResize, "fa");
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
@@ -776,27 +811,52 @@ Fit.Controls.Input = function(ctlId)
 						if (me === null)
 							return; // Control was disposed while waiting for jQuery UI to load
 
+						if (me.DesignMode() === false)
+							return; // DesignMode was disabled while waiting for resources to load
+
 						createEditor();
 					});
 				}
 				else if (window.CKEDITOR === null)
 				{
-					var iId = -1;
-					iId = setInterval(function()
+					if (createWhenReadyIntervalId === -1) // Make sure DesignMode has not been enabled multiple times - e.g. DesignMode(true); DesignMode(false); DesignMode(true); - in which case an interval timer may already be "waiting" for CKEditor resources to finish loading
 					{
-						if (me === null)
+						createWhenReadyIntervalId = setInterval(function()
 						{
-							// Control was disposed while waiting for CKEditor to finish loading
-							clearInterval(iId);
-							return;
-						}
+							/*if (me === null)
+							{
+								// Control was disposed while waiting for CKEditor to finish loading
+								clearInterval(iId);
+								return;
+							}*/
 
-						if (window.CKEDITOR !== null)
-						{
-							clearInterval(iId);
-							createEditor();
-						}
-					}, 500);
+							if (window.CKEDITOR !== null)
+							{
+								clearInterval(createWhenReadyIntervalId);
+								createWhenReadyIntervalId = -1;
+
+								// Create editor if still in DesignMode (might have been disabled while waiting for
+								// CKEditor resources to finish loading), and if editor has not already been created.
+								// Editor may already exist if control had DesignMode enabled, then disabled, and then
+								// enabled once again.
+								// If the control is the first one to enabled DesignMode, it will start loading CKEditor
+								// resources and postpone editor creation until resources have finished loading.
+								// When disabled and re-enabled, the control will realize that resources are being loaded,
+								// and postpone editor creation once again, this time using the interval timer here.
+								// When resources are loaded, it will create the editor instances, and when the interval
+								// timer here executes, it will also create the editor instance, unless we prevent it by
+								// making sure only to do it if designEditor is null. Without this check we might experience
+								// the following warning in the browser console, when editor is being created on the same
+								// textarea control multiple times:
+								// [CKEDITOR] Error code: editor-element-conflict. {editorName: "64992ea4-bd01-4081-b606-aa9ff23f417b_DesignMode"}
+								// [CKEDITOR] For more information about this error go to https://ckeditor.com/docs/ckeditor4/latest/guide/dev_errors.html#editor-element-conflict
+								if (me.DesignMode() === true && designEditor === null)
+								{
+									createEditor();
+								}
+							}
+						}, 500);
+					}
 				}
 				else
 				{
@@ -844,13 +904,19 @@ Fit.Controls.Input = function(ctlId)
 				// Destroy editor - content is automatically synchronized to input control.
 				// Calling destroy() fires OnHide for any dialog currently open, which in turn
 				// disables locked focus state and returns focus to the control.
-				designEditor.destroy();
-				designEditor = null;
+				if (designEditor !== null) // Will be null if DesignMode is being disabled while CKEditor resources are loading, in which case editor has not yet been created - e.g. DesignMode(true); DesignMode(false);
+				{
+					designEditor.destroy();
+					designEditor = null;
+				}
 
 				me._internal.Data("designmode", "false");
 
 				if (wasMultiLineBefore === false)
 					me.MultiLine(false);
+
+				// Remove tabindex used to prevent control from losing focus when clicking toolbar buttons
+				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
 
 				if (focused === true)
 				{
@@ -950,7 +1016,7 @@ Fit.Controls.Input = function(ctlId)
 		// This also prevents control from losing focus if toolbar is clicked without
 		// hitting a button. A value of -1 makes it focusable, but keeps it out of
 		// tab flow (keyboard navigation).
-		me.GetDomElement().tabIndex = -1;
+		me.GetDomElement().tabIndex = -1; // TabIndex is removed if DesignMode is disabled
 
 		var focused = me.Focused();
 		if (focused === true)
@@ -963,6 +1029,9 @@ Fit.Controls.Input = function(ctlId)
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
+			readOnly: me.Enabled() === false,
+			tabIndex: me.Enabled() === false ? -1 : 0,
+			title: "",
 			startupFocus: focused === true ? "end" : false,
 			extraPlugins: "justify,pastefromword",
 			toolbar:
@@ -989,17 +1058,34 @@ Fit.Controls.Input = function(ctlId)
 			{
 				instanceReady: function()
 				{
+					// Enabled state might have been changed while loading.
+					// Unfortunately there is no API for changing the tabIndex.
+					designEditor.setReadOnly(me.Enabled() === false);
+					designEditor.container.$.querySelector("[contenteditable]").tabIndex = me.Enabled() === false ? -1 : 0;
+
 					if (focused === true)
 					{
 						me.Focused(true); // Focus actual input area rather than outer container temporarily focused further up
 					}
 
+					var maximized = me.Maximized(); // Call to Height(..) below will minimize control
+
+					if (maximized === true)
+					{
+						me.Maximized(false); // Minimize to allow editor to initially assume normal height - maximized again afterwards
+					}
+
 					var h = me.Height();
 					me.Height(((h.Value >= 150 && h.Unit === "px") ? h.Value : 150));
 
+					if (maximized === true)
+					{
+						me.Maximized(true);
+					}
+
 					designEditor._isReadyForInteraction = true;
 				},
-				change: function()
+				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
 					input.onkeyup();
 				},
