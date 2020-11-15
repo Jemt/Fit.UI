@@ -36,7 +36,7 @@ div.FitUiControlCheckBox > div
 }
 div.FitUiControlCheckBox[data-checked="false"] > div:before
 {
-    visibility: hidden;
+	visibility: hidden;
 }
 
 div.FitUiControlCheckBox[data-enabled="true"][data-valid="false"]

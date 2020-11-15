@@ -276,7 +276,7 @@ function loadDocumentation(container)
 
 	content.appendChild(createElement("h1", containerInfo.Name + (containerInfo.Extends !== "" ? " (extends " + containerInfo.Extends + ")" : "")));
 
-    content.appendChild(createElement("div", containerInfo.Description.replace(/\n/g, "<br>"), "description"));
+	content.appendChild(createElement("div", containerInfo.Description.replace(/\n/g, "<br>"), "description"));
 
 	// Load members
 
@@ -366,7 +366,7 @@ function createMemberDocumentation(member, prefixContainer)
 	format = format.replace("{[=]}", (member.Default !== "" ? "=" : ""));
 	format = format.replace("{[Default]}", (member.Default !== "" ? (member.Type.toLowerCase() === "string" && member.Default.toLowerCase() !== "null" ? "\"" : "") + "<span class='default'>" + (member.Default.toLowerCase() !== "string.empty" ? member.Default : "") + "</span>" + (member.Type.toLowerCase() === "string" && member.Default.toLowerCase() !== "null" ? "\"" : "") : ""));
 
-    format += (member.Description !== "" ? "<br><span class='description'>" + member.Description.replace(/\n/g, "<br>") + "</span>" : "");
+	format += (member.Description !== "" ? "<br><span class='description'>" + member.Description.replace(/\n/g, "<br>") + "</span>" : "");
 
 	return createElement("div", format, "member");
 }
@@ -404,13 +404,13 @@ function createFunctionDocumentation(func, prefixContainer)
 	formatFunction = formatFunction.replace("{[Returns]}", (func.Returns !== "" ? "<span class='type'>" + func.Returns + "</span>" : ""));
 	formatFunction = formatFunction.replace("{[Name]}", "<span class='function'>" + func.Name + "</span>( " + parms + " )");
 
-    formatFunction += (func.Description !== "" ? "<br><span class='description'>" + func.Description.replace(/\n/g, "<br>") + "</span>" : "");
+	formatFunction += (func.Description !== "" ? "<br><span class='description'>" + func.Description.replace(/\n/g, "<br>") + "</span>" : "");
 
 	for (var i = 0 ; i < func.Parameters.length ; i++)
 	{
 		formatFunction += "<br>" + formatParmDescription;
 		formatFunction = formatFunction.replace("{[Name]}", "<span class='parameter'>" + func.Parameters[i].Name + "</span>");
-        formatFunction = formatFunction.replace("{[Description]}", "<span class='description'>" + func.Parameters[i].Description.replace(/\n/g, "<br>") + "</span>");
+		formatFunction = formatFunction.replace("{[Description]}", "<span class='description'>" + func.Parameters[i].Description.replace(/\n/g, "<br>") + "</span>");
 	}
 
 	return createElement("div", formatFunction, "function");
