@@ -15,6 +15,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
     // Private properties
 
     var elm = domElm;
+	var posState = null; // { position: "", left: "", top: "" };
 	var trgElm = (domTriggerElm ? domTriggerElm : null);
     var me = this;
 
@@ -44,6 +45,25 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
             Fit.Dom.AddClass(elm, "FitDragDropDragging");
 
+			// Initial positioning (used by Reset())
+			if (posState === null)
+			{
+				// Element's positioning is only read on first drag attempt,
+				// and again after Reset() has been called (which sets posState null),
+				// as we can imagine an implementation that lets the user drag
+				// an element and temporarily release it outside of a DropZone, and
+				// then move it again, before finally dropping it into an actual DropZone,
+				// where the positioning set by Draggable is canceled via Reset(), and
+				// thereby reverted to the initial positioning defined by the element.
+
+				posState =
+				{
+					position: elm.style.position,
+					left: elm.style.left,
+					top: elm.style.top
+				};
+			}
+
             // Mouse position in viewport
             var mouseXviewport = (ev.clientX || e.pageX);
             var mouseYviewport = (ev.clientY || e.pageY);
@@ -56,12 +76,18 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
             var state =
             {
                 Draggable: me,
-                Positioning: (Fit.Dom.GetComputedStyle(elm, "position") === "absolute" ? "absolute" : "relative"),
+                Positioning: "relative",
                 Mouse: {Viewport: {X: -1, Y: -1}, Document: {X: -1, Y: -1}},
                 Position: {Viewport: {X: -1, Y: -1}, Document: {X: -1, Y: -1}, Offset: {X: -1, Y: -1}},
                 Events: { OnDragStart: onDragStart, OnDragging: onDragging, OnDragStop: onDragStop },
                 OnSelectStart : document.onselectstart
             };
+
+			var positioning = Fit.Dom.GetComputedStyle(elm, "position");
+			if (positioning === "absolute" || positioning === "fixed")
+			{
+				state.Positioning = positioning;
+			}
 
             // Disable text selection for legacy browsers
             document.onselectstart = function() { return false; }
@@ -194,22 +220,25 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
                 var mouseXviewport = (ev.clientX || e.pageX);
                 var mouseYviewport = (ev.clientY || e.pageY);
 
-                // Mouse position in document.
+				// Positioning (fixed, absolute, or relative)
+				var positioning = Fit.DragDrop.Draggable._internal.active.Positioning;
+
+                // Mouse position in viewport (fixed) or document (absolute or relative).
                 // Potential performance optimization: Only call GetScrollPosition if element
                 // is contained in scrollable element. If not, use window.scrollX/Y instead!
                 //var mouseXdocument = mouseXviewport + window.scrollX;
                 //var mouseYdocument = mouseYviewport + window.scrollY;
-                var scrollPos = Fit.Dom.GetScrollPosition(elm);
+                var scrollPos = (positioning !== "fixed" ? Fit.Dom.GetScrollPosition(elm) : { X: 0, Y: 0 });
                 var mouseXdocument = mouseXviewport + scrollPos.X;
                 var mouseYdocument = mouseYviewport + scrollPos.Y;
 
-                if (Fit.DragDrop.Draggable._internal.active.Positioning === "absolute")
+                if (positioning !== "relative")
                 {
                     // Mouse position within draggable
                     var mouseFromLeft = state.Mouse.Viewport.X - state.Position.Viewport.X;
                     var mouseFromTop = state.Mouse.Viewport.Y - state.Position.Viewport.Y;
 
-                    elm.style.position = "absolute";
+                    elm.style.position = positioning; // absolute or fixed
                     elm.style.left = (mouseXdocument - mouseFromLeft) + "px";
                     elm.style.top = (mouseYdocument - mouseFromTop) + "px";
                 }
@@ -300,9 +329,14 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 	/// </function>
     this.Reset = function()
     {
-        elm.style.position = "";
-        elm.style.left = "";
-        elm.style.top = "";
+		if (posState === null)
+			return;
+
+        elm.style.position = posState.position;
+        elm.style.left = posState.left;
+		elm.style.top = posState.top;
+
+		posState = null;
     }
 
 	/// <function container="Fit.DragDrop.Draggable" name="GetDomElement" access="public" returns="DOMElement">
@@ -332,7 +366,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
 		Fit.Events.RemoveHandler(((trgElm !== null) ? trgElm : elm), mouseDownEventId);
 
-		me = elm = trgElm = onDragStart = onDragging = onDragStop = mouseDownEventId = null;
+		me = elm = posState = trgElm = onDragStart = onDragging = onDragStop = mouseDownEventId = null;
 	}
 
 	// Event handling
