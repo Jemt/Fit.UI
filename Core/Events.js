@@ -40,6 +40,11 @@ Fit.Events = {};
 /// 	<param name="e" type="ClipboardEvent"> Event argument </param>
 /// </function>
 
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackStorage" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="StorageEvent"> Event argument </param>
+/// </function>
+
 /// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackRooted" returns="any">
 /// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
 /// 	<param name="dom" type="DOMElement"> DOM element </param>
@@ -91,6 +96,12 @@ Fit.Events = {};
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"cut" | "copy" | "paste"'> Event name without the 'on' prefix </param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"storage"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackStorage"> JavaScript function to register </param>
 /// </function>
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given DOMElement and returns Event ID </description>
@@ -176,6 +187,16 @@ Fit.Events = {};
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"storage"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCapture" type="boolean">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackStorage"> JavaScript function to register </param>
 /// </function>
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given DOMElement and returns Event ID </description>
