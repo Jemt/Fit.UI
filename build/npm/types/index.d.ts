@@ -622,6 +622,18 @@ declare namespace Fit
 		*/
 		public static GetBrowser(returnAppId:true):"Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown";
 		/**
+		* Get style value applied after stylesheets have been loaded.
+		An empty string or null may be returned if style has not been defined or does not exist.
+		Make sure not to use shorthand properties (e.g. border-color or padding) as some browsers are
+		not capable of calculating these - use the fully qualified property name (e.g. border-left-color
+		or padding-left).
+		* @function GetComputedStyle
+		* @param {HTMLElement} elm - Element which contains desired CSS style value.
+		* @param {string} style - CSS style property name.
+		* @returns string | null
+		*/
+		public static GetComputedStyle(elm:HTMLElement, style:string):string | null;
+		/**
 		* Returns cached object with browser information.
 		* @function GetInfo
 		* @param {false} [returnAppInfo=false] - Set True to have app specific browser information returned - see GetBrowser(..) for details.
@@ -8168,7 +8180,7 @@ declare namespace Fit
 		* Get style value applied after stylesheets have been loaded.
 		An empty string or null may be returned if style has not been defined or does not exist.
 		Make sure not to use shorthand properties (e.g. border-color or padding) as some browsers are
-		not capable of calculating these - use the fullly qualified property name (e.g. border-left-color
+		not capable of calculating these - use the fully qualified property name (e.g. border-left-color
 		or padding-left).
 		* @function GetComputedStyle
 		* @param {HTMLElement} elm - Element which contains desired CSS style value.
@@ -8271,7 +8283,8 @@ declare namespace Fit
 		*/
 		public static GetScrollBars(elm:HTMLElement):Fit.TypeDefs.ScrollBarsPresent;
 		/**
-		* Alias for Fit.Browser.GetScrollDocument().
+		* Get scrolling document element. This is the cross browser
+		equivalent of document.scrollingElement.
 		* @function GetScrollDocument
 		* @returns HTMLElement
 		*/
