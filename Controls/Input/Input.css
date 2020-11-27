@@ -57,7 +57,7 @@ div.FitUiControlInput > span.fa:focus
 }
 div.FitUiControlInput[data-maximizable="true"]
 {
-    margin-right: 2em;
+	margin-right: 2em;
 }
 
 /* Remove outline when input has focus */

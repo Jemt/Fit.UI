@@ -8456,6 +8456,15 @@ declare namespace Fit
 		*/
 		public static AddHandler(element:EventTarget, event:"cut" | "copy" | "paste", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackClipboard):number;
 		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID.
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
+		* @param {"storage"} event - Event name without the 'on' prefix.
+		* @param {Fit.EventsTypeDefs.EventHandlerCallbackStorage} eventFunction - JavaScript function to register.
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:"storage", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackStorage):number;
+		/**
 		* Registers handler for specified event on given DOMElement and returns Event ID.
 		* @function AddHandler
 		* @param {HTMLElement} element - DOM element on to which event handler is registered.
@@ -8550,6 +8559,17 @@ declare namespace Fit
 		* @returns number
 		*/
 		public static AddHandler(element:EventTarget, event:"cut" | "copy" | "paste", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackClipboard):number;
+		/**
+		* Registers handler for specified event on given EventTarget and returns Event ID.
+		* @function AddHandler
+		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
+		* @param {"storage"} event - Event name without the 'on' prefix.
+		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+		* @param {Fit.EventsTypeDefs.EventHandlerCallbackStorage} eventFunction - JavaScript function to register.
+		* @returns number
+		*/
+		public static AddHandler(element:EventTarget, event:"storage", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackStorage):number;
 		/**
 		* Registers handler for specified event on given DOMElement and returns Event ID.
 		* @function AddHandler
@@ -8767,6 +8787,13 @@ declare namespace Fit
 		* @returns any
 		*/
 		type EventHandlerCallbackRooted = (dom:HTMLElement) => any;
+		/**
+		* Event handler callback used with Fit.Events.AddHandler(..).
+		* @callback EventHandlerCallbackStorage
+		* @param {StorageEvent} e - Event argument.
+		* @returns any
+		*/
+		type EventHandlerCallbackStorage = (e:StorageEvent) => any;
 		/**
 		* Event handler callback used with Fit.Events.AddMutationObserver(..).
 		* @callback MutationObserverCallback
