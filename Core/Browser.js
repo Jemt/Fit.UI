@@ -275,7 +275,7 @@ Fit.Browser.ParseUrl = function(url)
 	// but may be fooled by incorrecly formatted URLs,
 	// and does not currently support IPv6 addresses.
 	// But for a solution using Regular Expression it
-	// is works quite well and is very simple in its
+	// works quite well and is very simple in its
 	// implementation.
 
 	// Using JS is possible although known to give slightly
@@ -531,15 +531,30 @@ Fit.Browser.GetScrollBars = function()
 	// inner width is returned:
 	// https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth
 
-	var doc = Fit.Browser.GetScrollDocument();
+	var doc = Fit.Browser.GetScrollDocument(); // <html> in standards mode, otherwise <body>
 
-	if (doc.clientWidth < doc.scrollWidth)
+	// Notice that overflow:hidden set on <body> propagates to the viewport as
+	// defined by the specification (https://www.w3.org/TR/CSS22/visufx.html#propdef-overflow):
+	// "UAs must apply the 'overflow' property set on the root element to the viewport. When the root element
+	//  is an HTML "HTML" element or an XHTML "html" element, and that element has an HTML "BODY" element or an
+	//  XHTML "body" element as a child, user agents must instead apply the 'overflow' property from the first
+	//  such child element to the viewport, if the value on the root element is 'visible'. The 'visible' value
+	//  when used for the viewport must be interpreted as 'auto'. The element from which the value is propagated
+	//  must have a used value for 'overflow' of 'visible'."
+	// Therefore, if overflow:hidden is applied to <body> or <html>, we do not consider the scrollbars enabled,
+	// even though scrollWidth might be greater than clientWidth, and/or scrollHeight might be greater than clientHeight,
+	// which will be the case when content is hidden due to overflow. Scrollbars are hidden!
+	// Also notice that even if <html> or <body> was manipulated to display as a box within the viewport,
+	// scrollbars would still be attached to the sides of the viewport area of the browser. Example:
+	// <body style="width: 100px; height: 100px; border: 1px solid red; overflow: scroll;">
+
+	if (doc.clientWidth < doc.scrollWidth && Fit.Browser.GetComputedStyle(document.body, "overflow-x") !== "hidden" && Fit.Browser.GetComputedStyle(document.documentElement, "overflow-x") !== "hidden")
 	{
 		res.Horizontal.Enabled = true;
 		res.Horizontal.Size = Fit.Browser.GetScrollBarSize();
 	}
 
-	if (doc.clientHeight < doc.scrollHeight)
+	if (doc.clientHeight < doc.scrollHeight && Fit.Browser.GetComputedStyle(document.body, "overflow-y") !== "hidden" && Fit.Browser.GetComputedStyle(document.documentElement, "overflow-y") !== "hidden")
 	{
 		res.Vertical.Enabled = true;
 		res.Vertical.Size = Fit.Browser.GetScrollBarSize();
@@ -572,6 +587,69 @@ Fit.Browser.GetScrollBarSize = function()
 	}
 
 	return Fit._internal.Browser.ScrollBarWidth;
+}
+
+/// <function container="Fit.Browser" name="GetComputedStyle" access="public" static="true" returns="string | null">
+/// 	<description>
+/// 		Get style value applied after stylesheets have been loaded.
+/// 		An empty string or null may be returned if style has not been defined or does not exist.
+/// 		Make sure not to use shorthand properties (e.g. border-color or padding) as some browsers are
+/// 		not capable of calculating these - use the fully qualified property name (e.g. border-left-color
+/// 		or padding-left).
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element which contains desired CSS style value </param>
+/// 	<param name="style" type="string"> CSS style property name </param>
+/// </function>
+Fit.Browser.GetComputedStyle = function(elm, style)
+{
+	Fit.Validation.ExpectDomElement(elm);
+	Fit.Validation.ExpectStringValue(style);
+
+	var res = null;
+
+    if (window.getComputedStyle) // W3C
+	{
+		res = window.getComputedStyle(elm)[style];
+	}
+    else if (elm.currentStyle)
+	{
+		if (style.indexOf("-") !== -1) // Turn e.g. border-bottom-style into borderBottomStyle which is required by legacy browsers
+		{
+			var items = style.split("-");
+			style = "";
+
+			Fit.Array.ForEach(items, function(i)
+			{
+				if (style === "")
+					style = i;
+				else
+					style += i[0].toUpperCase() + i.slice(1); // First character is uppercased (from Fit.String.UpperCaseFirst(..))
+			});
+		}
+
+        res = elm.currentStyle[style]; // Might return strings rather than useful values - e.g. "3em" or "medium"
+
+		// IE Computed Style fix by Dean Edwards - http://disq.us/p/myl99x
+		// Transform values such as 2em or 4pt to actual pixel values.
+
+		if (res !== undefined && res !== null && /^\d+/.test(res) === true && res.toLowerCase().indexOf("px") === -1) // Non-pixel numeric value
+		{
+			// Save original value
+			var orgLeft = elm.style.left;
+
+			// Calculate pixel value
+			var runtimeStyle = elm.runtimeStyle.left;
+			elm.runtimeStyle.left = elm.currentStyle.left;
+			elm.style.left = ((style === "fontSize") ? "1em" : res || 0); // Throws error for a value such as "medium"
+			res = elm.style.pixelLeft + "px";
+
+			// Restore value
+			elm.style.left = orgLeft;
+			elm.runtimeStyle.left = runtimeStyle;
+		}
+	}
+
+    return (res !== undefined ? res : null);
 }
 
 /// <function container="Fit.Browser" name="GetScreenWidth" access="public" static="true" returns="integer">

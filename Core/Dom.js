@@ -74,7 +74,7 @@ Fit.Dom.HasClass = function(elm, cls)
 /// 		Get style value applied after stylesheets have been loaded.
 /// 		An empty string or null may be returned if style has not been defined or does not exist.
 /// 		Make sure not to use shorthand properties (e.g. border-color or padding) as some browsers are
-/// 		not capable of calculating these - use the fullly qualified property name (e.g. border-left-color
+/// 		not capable of calculating these - use the fully qualified property name (e.g. border-left-color
 /// 		or padding-left).
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element which contains desired CSS style value </param>
@@ -82,54 +82,10 @@ Fit.Dom.HasClass = function(elm, cls)
 /// </function>
 Fit.Dom.GetComputedStyle = function(elm, style)
 {
-	Fit.Validation.ExpectDomElement(elm);
-	Fit.Validation.ExpectStringValue(style);
-
-	var res = null;
-
-    if (window.getComputedStyle) // W3C
-	{
-		res = window.getComputedStyle(elm)[style];
-	}
-    else if (elm.currentStyle)
-	{
-		if (style.indexOf("-") !== -1) // Turn e.g. border-bottom-style into borderBottomStyle which is required by legacy browsers
-		{
-			var items = style.split("-");
-			style = "";
-
-			Fit.Array.ForEach(items, function(i)
-			{
-				if (style === "")
-					style = i;
-				else
-					style += Fit.String.UpperCaseFirst(i);
-			});
-		}
-
-        res = elm.currentStyle[style]; // Might return strings rather than useful values - e.g. "3em" or "medium"
-
-		// IE Computed Style fix by Dean Edwards - http://disq.us/p/myl99x
-		// Transform values such as 2em or 4pt to actual pixel values.
-
-		if (res !== undefined && res !== null && /^\d+/.test(res) === true && res.toLowerCase().indexOf("px") === -1) // Non-pixel numeric value
-		{
-			// Save original value
-			var orgLeft = elm.style.left;
-
-			// Calculate pixel value
-			var runtimeStyle = elm.runtimeStyle.left;
-			elm.runtimeStyle.left = elm.currentStyle.left;
-			elm.style.left = ((style === "fontSize") ? "1em" : res || 0); // Throws error for a value such as "medium"
-			res = elm.style.pixelLeft + "px";
-
-			// Restore value
-			elm.style.left = orgLeft;
-			elm.runtimeStyle.left = runtimeStyle;
-		}
-	}
-
-    return (res !== undefined ? res : null);
+	// Functionality has been moved to Fit.Browser where it was needed,
+	// and we do not want Fit.Browser to depend on Fit.Dom, as Fit.Browser
+	// is used quite a bit in Fit.Dom - we risk creating circular dependencies.
+	return Fit.Browser.GetComputedStyle(elm, style);
 }
 
 /// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="Fit.TypeDefs.Dimension">
@@ -945,7 +901,12 @@ Fit.Dom.GetScrollBars = function(elm)
 		// For <html> and <body> clientWidth behaves differently:
 		// https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth
 		// Therefore, make sure Fit.Browser.GetScrollBars() is used to determine scroll for the viewport.
-		Fit.Validation.ThrowError("Unintended use of Fit.Dom.GetScrollBars(..) - please use Fit.Browser.GetScrollBars() to detect scrollbars for the viewport");
+		//Fit.Validation.ThrowError("Unintended use of Fit.Dom.GetScrollBars(..) - please use Fit.Browser.GetScrollBars() to detect scrollbars for the viewport");
+
+		// Scrollbars for <html> and <body> is equivalent to the viewport's scrollbars.
+		// Therefore, we return scrollbar information for the viewport when <html> or <body> is passed.
+
+		return Fit.Browser.GetScrollBars();
 	}
 
 	var res = { Vertical: { Enabled: false, Size: 0 }, Horizontal: { Enabled: false, Size: 0 } };
@@ -1095,12 +1056,16 @@ Fit.Dom.GetOverflowingParent = function(elm)
 
 /// <function container="Fit.Dom" name="GetScrollDocument" access="public" static="true" returns="DOMElement">
 /// 	<description>
-/// 		Alias for Fit.Browser.GetScrollDocument()
+/// 		Get scrolling document element. This is the cross browser
+/// 		equivalent of document.scrollingElement.
 /// 	</description>
 /// </function>
 Fit.Dom.GetScrollDocument = function()
 {
-	return Fit.Browser.GetScrollDocument(); // Functionality has been moved to Fit.Browser - Fit.Dom.GetScrollDocument is now just an alias
+	// Functionality has been moved to Fit.Browser where it was needed,
+	// and we do not want Fit.Browser to depend on Fit.Dom, as Fit.Browser
+	// is used quite a bit in Fit.Dom - we risk creating circular dependencies.
+	return Fit.Browser.GetScrollDocument();
 }
 
 // Internal members
