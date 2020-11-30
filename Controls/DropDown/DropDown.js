@@ -1455,8 +1455,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			if (pickerItem !== null)
 			{
-				var elm = getSelectionElementByValue(selected.Value);
-				elm.childNodes[0].nodeValue = Fit.String.StripHtml(pickerItem.Title);
+				updateSelectionElementTitleByValue(selected.Value, Fit.String.StripHtml(pickerItem.Title));
 
 				Fit.Array.Add(updated, { Title: pickerItem.Title, Value: selected.Value, Exists: true });
 			}
@@ -1465,6 +1464,13 @@ Fit.Controls.DropDown = function(ctlId)
 				Fit.Array.Add(updated, { Title: selected.Title, Value: selected.Value, Exists: false });
 			}
 		});
+
+		// Update text representation if TextSelectionMode is enabled
+		if (me.TextSelectionMode() === true)
+		{
+			me.TextSelectionMode(false);
+			me.TextSelectionMode(true);
+		}
 
 		return updated;
 	}
@@ -2144,7 +2150,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function createItemObject(title, value, valid, domElement, textNode)
 	{
-		Fit.Validation.ExpectString(title);
+		Fit.Validation.ExpectString(title); // NOTICE: Title with any HTML stripped away!
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(valid);
 		Fit.Validation.ExpectDomElement(domElement);
@@ -2158,12 +2164,18 @@ Fit.Controls.DropDown = function(ctlId)
 		return { Title: Fit.Dom.Text(itemElm), Value: decode(Fit.Dom.Data(itemElm, "value")), Valid: Fit.Dom.HasClass(itemElm, "FitUiControlDropDownInvalid") === false, DomElement: itemElm };
 	}*/
 
-	function getSelectionElementByValue(value)
+	function updateSelectionElementTitleByValue(value, newTitle)
 	{
 		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectString(newTitle); // NOTICE: Title with any HTML stripped away!
 
 		var item = itemCollection[value] || null;
-		return item !== null ? item.DomElement : null;
+
+		if (item !== null)
+		{
+			item.Title = newTitle;
+			item.DomElement.childNodes[0].nodeValue = newTitle;
+		}
 	}
 
 	function getFirstSelectionElement()
