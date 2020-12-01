@@ -646,6 +646,8 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				textSelectionCallback = (cb ? cb : null);
 
+				me.ClearInput(); // Clear any value entered by the user and fire OnInputChanged
+
 				updateTextSelection();
 
 				if (me.Focused() === false && (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge"))
@@ -695,6 +697,8 @@ Fit.Controls.DropDown = function(ctlId)
 					}
 				}
 			}
+
+			me._internal.Repaint();
 		}
 
 		return (me._internal.Data("selectionmode") === "text");
@@ -2193,7 +2197,16 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Validation.ExpectInstance(input, HTMLInputElement);
 		Fit.Validation.ExpectString(val, true);
 
+		if (me.TextSelectionMode() === true)
+			return;
+
 		var value = ((Fit.Validation.IsSet(val) === true) ? val : input.value);
+
+		if (value === "")
+		{
+			input.style.width = "";
+			return;
+		}
 
 		// Width of txtPrimary cannot reliably be determined initially if picker is hidden.
 		// Re-calculating when fitWidthToContent gets called again when the picker is visible.
