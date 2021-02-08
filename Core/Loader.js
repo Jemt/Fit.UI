@@ -109,7 +109,7 @@ Fit.Loader.ExecuteScript = function(src, onSuccess, onFailure, context)
 
 			try
 			{
-				eval("(function() { (function(" + args + ") { " + js + " })(" + parms + "); })").call(context ? context : this); // https://jsfiddle.net/yut8fptm/
+				eval("(function() {  return (function() { (function(" + args + ") { " + js + " })(" + parms + "); });  })();").call(context ? context : this); // https://jsfiddle.net/yut8fptm/
 			}
 			catch (err)
 			{
