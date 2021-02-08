@@ -1890,6 +1890,23 @@ declare namespace Fit
 			*/
 			public DatePlaceholder(val?:string | null):string | null;
 			/**
+			* Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
+			This may cause calendar to open upwards if sufficient space is not available below control.
+			If control is contained in a scrollable parent, this will be considered the active viewport,
+			and as such define the active boundaries - unless relativeToViewport is set to True, in which
+			case the actual browser viewport will be used.
+			* @function DetectBoundaries
+			* @param {boolean} [val=undefined] - If defined, True enables collision detection, False disables it (default).
+			* @param {boolean} [relativeToViewport=false] - If defined, True results in viewport being considered the container to which available space is determined.
+			This also results in calendar widget being positioned with position:fixed, allowing it to escape a container
+			with overflow (e.g. overflow:auto|hidden|scroll). Be aware though that this does not work reliably in combination
+			with CSS animation and CSS transform as it creates a new stacking context to which position:fixed becomes relative.
+			A value of False (default) results in available space being determined relative to the boundaries of the
+			control's scroll parent. The calendar widget will stay within its container and not overflow it.
+			* @returns boolean
+			*/
+			public DetectBoundaries(val?:boolean, relativeToViewport?:boolean):boolean;
+			/**
 			* Get/set format used by the DatePicker control. This will affect the format
 			in which the date is presented, as well as the value returned by the GetText function.
 			Format takes precedence over locale.
