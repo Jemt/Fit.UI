@@ -96,7 +96,7 @@ Fit.Controls.DropDown = function(ctlId)
 			if (target.tagName !== "INPUT") // Focus input unless already focused (if input was clicked)
 			{
 				focusAssigned = true; // Clicking the item container causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
-				focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
+				focusInput(getInputFromPartiallyHiddenSelection(txtPrimary)); // focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
 			}
 
 			me.OpenDropDown();
@@ -124,7 +124,7 @@ Fit.Controls.DropDown = function(ctlId)
 				// It would otherwise leave the control with no blinking cursor.
 				// Also, we want the control to be ready for input and keyboard navigation.
 				focusAssigned = true; // Clicking the arrow causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
-				focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
+				focusInput(getInputFromPartiallyHiddenSelection(txtPrimary)); //focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary));
 			}
 		}
 		arrow.onclick = function(e)
@@ -538,7 +538,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			if (val === true)
 			{
-				var c = partiallyHidden !== null ? partiallyHidden.previousSibling : txtPrimary;
+				var c = getInputFromPartiallyHiddenSelection(txtPrimary); //partiallyHidden !== null ? partiallyHidden.previousSibling : txtPrimary;
 				var v = c.value;
 
 				// Set focus
@@ -572,6 +572,11 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
+		if (visibilityObserverId !== -1)
+		{
+			Fit.Events.RemoveMutationObserver(visibilityObserverId);
+		}
 
 		if (widthObserverId !== -1)
 		{
@@ -1172,7 +1177,7 @@ Fit.Controls.DropDown = function(ctlId)
 			// in which case the first input field (left side) is focused instead, since txtPrimary will also
 			// have been hidden due to word wrapping being disabled in Single Selection Mode.
 
-			focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary)); // partiallyHidden.previousSibling is the same as searchLeft
+			focusInput(getInputFromPartiallyHiddenSelection(txtPrimary)); //focusInput(((partiallyHidden !== null) ? partiallyHidden.previousSibling : txtPrimary)); // partiallyHidden.previousSibling is the same as searchLeft
 		}
 
 		// Fire OnChange event
@@ -1526,9 +1531,10 @@ Fit.Controls.DropDown = function(ctlId)
 		txtActive.style.width = "";
 
 		var txt = ((focusAssigned === true) ? txtActive : txtPrimary);
+		txt = getInputFromPartiallyHiddenSelection(txt); // Will not return input for partially hidden item if control is currently invisible! We perform this check again in the mutation observer further down.
 
-		if (partiallyHidden !== null)
-			txt = partiallyHidden.previousSibling;
+		// if (partiallyHidden !== null)
+		// 	txt = partiallyHidden.previousSibling;
 
 		txt.value = val;
 		prevValue = val;
@@ -1561,7 +1567,25 @@ Fit.Controls.DropDown = function(ctlId)
 				{
 					if (Fit.Dom.IsVisible(txt) === true)
 					{
-						fitWidthToContent(txt);
+						if (txt === txtActive) // If user managed to activate another input field before Mutation Observer fired, input will now have been cleared (see txt.onfocus), in which case there is nothing to adjust for
+						{
+							// If SetInputValue(..) was called while control was invisible, any partially hidden item
+							// would not have been registered yet, so the input value would have been assigned to txtPrimary.
+							// If a partially hidden item (an item wider than the control) was in fact added, txtPrimary
+							// will now have been pushed "out of view" by the selected item.
+							// Detect this and move input value to visible input field to the left of partially hidden item.
+							var visibleInput = getInputFromPartiallyHiddenSelection(txt);
+							if (visibleInput !== txt)
+							{
+								visibleInput.value = txt.value;
+								txt.value = "";
+								txt = visibleInput;
+								txtActive = visibleInput;
+							}
+
+							fitWidthToContent(txt);
+						}
+
 						disconnect(); // Observers are expensive - remove when no longer needed
 						visibilityObserverId = -1;
 					}
@@ -1847,7 +1871,7 @@ Fit.Controls.DropDown = function(ctlId)
 				initialFocus = false;
 
 				if (me.TextSelectionMode() === false)
-					me.ClearInput(txtPrimary);
+					me.ClearInput(getInputFromPartiallyHiddenSelection(txtPrimary));
 			}
 
 			txtActive = txt;
@@ -1952,7 +1976,7 @@ Fit.Controls.DropDown = function(ctlId)
 				}
 				else // Moving right
 				{
-					if (me.MultiSelectionMode() === false && partiallyHidden !== null)
+					if (me.MultiSelectionMode() === false && getInputFromPartiallyHiddenSelection() !== null) //partiallyHidden !== null)
 					{
 						// Let browser handle navigation - only left input control can receive focus at this point
 
@@ -2002,7 +2026,7 @@ Fit.Controls.DropDown = function(ctlId)
 				if (me.TextSelectionMode() === true)
 					return;
 
-				if (me.MultiSelectionMode() === false && partiallyHidden !== null)
+				if (me.MultiSelectionMode() === false && getInputFromPartiallyHiddenSelection() !== null) //partiallyHidden !== null)
 					return;
 
 				moveToInput("Next");
@@ -2221,7 +2245,8 @@ Fit.Controls.DropDown = function(ctlId)
 		var innerWidth = Fit.Dom.GetInnerWidth(itemContainer);
 		newWidth = ((offsetLeft + newWidth > innerWidth) ? innerWidth - offsetLeft : newWidth);
 
-		input.style.width = newWidth + "px";
+		//input.style.width = (newWidth < 0 ? innerWidth : newWidth) + "px";
+		input.style.width = (newWidth > 0 ? newWidth + "px" : ""); // New width is negative if input field is pushed outside of control's "viewport" due to wide selected item (partially hidden item due to overflow)
 	}
 
 	function moveToInput(direction) // direction = Next/Prev
@@ -2372,6 +2397,23 @@ Fit.Controls.DropDown = function(ctlId)
 					item.nextSibling.tabIndex = 0; // Fully visible - part of tab flow
 			});
 		}
+	}
+
+	function getInputFromPartiallyHiddenSelection(inputToUseIfNotPartiallyHidden)
+	{
+		Fit.Validation.ExpectDomElement(inputToUseIfNotPartiallyHidden, true);
+
+		if (tabOrderObserverId !== -1 && Fit.Dom.IsVisible(me.GetDomElement()) === true)
+		{
+			// Selected items were added while control was hidden, so tab order optimization was postponed. We need
+			// to make sure this is executed before we can determine whether a partially hidden item exists or not.
+
+			optimizeTabOrder(); // Will set partiallyHidden
+			Fit.Events.RemoveMutationObserver(tabOrderObserverId);
+			tabOrderObserverId = -1;
+		}
+
+		return (partiallyHidden && partiallyHidden.previousSibling) || (inputToUseIfNotPartiallyHidden || null); // partiallyHidden.previousSibling is the left input field for a selected item
 	}
 
 	function optimizeDropDownPosition(force)
