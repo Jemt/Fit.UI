@@ -21,10 +21,6 @@ div.FitUiControlDropDownItems /* Item container */
 	position: relative; /* Allow absolute positioning of arrow icon within item container */
 	overflow: hidden; /* Prevent large items from overflowing boundaries, in case of tiny control width */
 }
-div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems
-{
-	white-space: nowrap; /* Make sure txtPrimary does not word wrap in Single Selection Mode */
-}
 div.FitUiControlDropDown[data-focused="true"][data-device="Phone"] div.FitUiControlDropDownItems,
 div.FitUiControlDropDown[data-focused="true"][data-device="Tablet"] div.FitUiControlDropDownItems
 {
@@ -77,11 +73,20 @@ div.FitUiControlDropDownItems > span /* Selection container */
 {
 	display: inline-block;
 	white-space: nowrap;
-	margin-top: 0.225em; /* Overridden for Multi Selection Mode below, so this applies to Single Selection Mode only */
+	margin-top: 0.05em;
+	margin-bottom: 0.05em;
 
 	/* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - apply alternative margins */
 	margin-top: 0.1em\9;
 	margin-bottom: 0.1em\9;
+
+	/* Make sure selection container does not exceed control boundaries */
+	max-width: calc(100% - 0.3em); /* 0.3em = padding-left in div.FitUiControlDropDownItems */
+	max-width: 90%\9; /* IE8 does not support calc(..) */
+
+	/* Make room for left and right side input fields which are positioned in padding area using negative margin */
+	padding-left: 5px;
+	padding-right: 5px;
 }
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span /* Selection container */
 {
@@ -93,10 +98,27 @@ div.FitUiControlDropDownItems > span:focus /* Remove outline when focus is tempo
 	outline: none;
 }
 
+div.FitUiControlDropDownItems > span > span /* Selection */
+{
+	/* Make sure text in selected items is truncated if it is too wide */
+	display: inline-block;
+	width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	/* Vertically align with left and right side input fields */
+	vertical-align: middle;
+
+	/* Allow positioning of delete button which is placed in padding area */
+	position: relative;
+	padding-right: 1.5em;
+}
+
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span > span /* Selection (in multi selection mode only) */
 {
-	display: inline-block;
-	padding: 0.15em 0.25em 0.15em 0.25em;
+	padding-top: 0.15em;
+	padding-left: 0.25em;
+	padding-bottom: 0.25em;
 	border: 0.065em solid silver;
 	border-width: 1px\9;
 	border-radius: 2px;
@@ -118,8 +140,17 @@ div.FitUiControlDropDownItems > span > span.FitUiControlDropDownInvalid /* Inval
 div.FitUiControlDropDownItems > span > span > i /* Delete button */
 {
 	color: #CCCCCC;
-	padding-left: 0.4em;
 	cursor: pointer;
+
+	/* Take out of flow so delete button doesn't get truncated due to text-overflow - position in right side padding area */
+	position: absolute;
+	top: 0.15em;
+	right: 0.35em;
+}
+div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span > span > i /* Delete button */
+{
+	/* Adjust for smaller font-size in Multi Selection Mode */
+	top: 0.375em;
 }
 /*div.FitUiControlDropDown[data-multiselect="false"] div.FitUiControlDropDownItems > span > span > i*/ /* Delete button in selection (in single selection mode only) */
 /*{
@@ -146,6 +177,7 @@ div.FitUiControlDropDownHidden span
 {
 	white-space: pre;
 }
+
 div.FitUiControlDropDownItems input
 {
 	/* Make input adopt font settings which must be exactly identical to font settings applied to hidden
@@ -163,26 +195,31 @@ div.FitUiControlDropDownItems input
 
 	margin: 0px;
 	padding: 0px;
+
+	/* Vertically align with selection */
+	vertical-align: middle;
+	padding: 0.15em 0em;
 }
 
 div.FitUiControlDropDownItems > input
 {
-	margin-top: 0.25em;		/* Align input vertically - will be unset when items are selected in which case input aligns with baseline */
+	margin-top: 0.05em;		/* Align input vertically */
 	margin-top: 0\9;		/* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
 }
 div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > input
 {
-	/* Align input vertically - will be unset when items are selected in which case input aligns with baseline */
-	/* Margin-top needs to be greater in Multi Selection Mode because font-size (em) has been reduced in this mode. */
-	margin-top: 0.4em;
-	margin-top: 0\9; /* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
-}
-div.FitUiControlDropDown div.FitUiControlDropDownItems > span + input
-{
-	margin-top: 0px; /* Remove margin when items are selected - will align with baseline */
+	margin-top: 0.25em;		/* Align input vertically - adjust for smaller font size in Multi Selection Mode */
+	margin-top: 0\9;		/* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
 }
 
-div.FitUiControlDropDownItems span > span + input /* Right input in selection container */
+div.FitUiControlDropDownItems > span > input:first-child /* Left input in selection container */
+{
+	/* Move left side input into item container's padding area so
+	   the content of the container doesn't exceed its max-width */
+	margin-left: -5px;
+}
+
+div.FitUiControlDropDownItems > span > span + input /* Right input in selection container */
 {
 	text-align: right;
 	padding-right: 1px; /* IE8: Prevent cursor from disappearing */
@@ -193,6 +230,69 @@ div.FitUiControlDropDownItems input::-ms-clear /* Remove clear button in IE10 - 
 	display: none;
 }
 
+/* Make active input field wrap to new line when entering text in Visual Mode */
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems > span + input
+{
+	/* Make sure primary input field does not word wrap when DropDown is squeezed, by taking it out of flow */
+	position: absolute;
+	position: static\9; /* It doesn't work in legacy IE without a position (x,y) */
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems[data-editing="true"] > input[data-editing="true"]
+{
+	position: static; /* Undo position:absolute used to prevent "word wrapping" of input (txtPrimary) if control is squeezed */
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems[data-editing="true"] > span + input[data-editing="true"] /* Only if items have been added (span + input) */
+{
+	/* Indent text in primary input field when it "word wraps", equivalent
+	   to width of left and right input controls in selected items */
+	padding-left: 5px;
+	padding-right: 5px;
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems > span[data-editing="true"]
+{
+	display: block; /* Make sure item is placed on a separate line in case it floats in front of or next to another item */
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems > span[data-editing="true"] > span
+{
+	/* Do not assume width:100% for selection when "word wrapping" item (when item container has display:block - see above).
+	   If the control is 800px wide, then the item being "word wrapped" will also assume this width, even if the title is short.
+	   Unfortunately this also results in text-overflow being disabled, as it requires a width being set. But it's better than
+	   a short item assuming the full width of the control.
+	   However, this may also result in the item becoming wider than control, which in turn results in the item becoming partially
+	   hidden (right side input field will be hidden due to overflow). But that's fine - it doesn't pose a problem. The user can
+	   still TAB navigate to the input field that has been hidden due to overflow as it becomes visible again on TAB press. */
+	width: auto;
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems[data-editing="true"] > input[data-editing="true"],
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems > span[data-editing="true"] > input[data-editing="true"]
+{
+	/* Place active input field on separate line - "word wrap" input */
+	display: block;
+	width: 100%;
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems > span[data-editing="true"] > span:after
+{
+	/* When the input field "word wraps" (see above), it no longer affects the calculation of max-width
+	   for the selected item's container, so we will see that it shrinks the width of the input field.
+	   To compensate for this, we introduce a hidden element within the item that takes up the same amount
+	   of space as the input field before it was wrapped to a new line. */
+	content: "";
+	display: inline-block;
+	width: 5px;
+	height: 1em;
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems > span[data-editing="true"] > span + input[data-editing="true"] /* Right input in selection container */
+{
+	/* Undo right aligment */
+	text-align: left;
+	padding-right: 0px; /* Undo IE8 fix to make sure text cursor does not disappear when text is aligned to the right */
+}
+div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems > span[data-editing="true"] > input[data-editing="true"]:first-child
+{
+	/* If typing into left input field, make sure it is properly indented, equivalent to the indentation of selected items */
+	margin-left: 0px; /* Undo negative margin used to move input field into selection container's padding area */
+}
+
 /* Placeholder (not enabled on IE8/9) */
 /* Placeholder attributes are only set when placeholder is supposed to
    be displayed. The text color for placeholders is defined i Styles.css. */
@@ -201,19 +301,15 @@ div.FitUiControlDropDown[data-focused="false"] div.FitUiControlDropDownItems[dat
 {
 	content: attr(data-placeholder);
 }
-div.FitUiControlDropDown[data-selectionmode="visual"] div.FitUiControlDropDownItems[data-placeholder]:after
-{
-	 /* Position above input field */
-	margin-left: -5px;
-}
-div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItems[data-placeholder]:after
+div.FitUiControlDropDownItems[data-placeholder]:after
 {
 	/* Position above input field */
 	position: absolute;
 	left: 0.3em;
-	top: 0.3em;
+	top: 0.35em;
 	top: 0\9;
 	width: calc(100% - 0.3em - 2em); /* 0.3em is padding-left in control, 2em is the width of the dropdown arrow - calc requires IE9+ */
+	white-space: nowrap;
 	overflow: hidden;
 }
 
@@ -300,7 +396,7 @@ div.FitUiControlDropDown[data-selectionmode="text"] div.FitUiControlDropDownItem
 {
 	font-size: 1em;
 	width: 100%;
-	margin-top: 0.2em;
+	margin-top: 0.1em;
 	margin-top: 0\9; /* Equal height for all controls not enabled in legacy IE where controls assume height of content instead - unset margin */
 }
 div.FitUiControlDropDown[data-selectionmode="text"][data-focused="false"] div.FitUiControlDropDownItems > input

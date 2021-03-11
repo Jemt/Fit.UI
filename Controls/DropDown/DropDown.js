@@ -994,7 +994,7 @@ Fit.Controls.DropDown = function(ctlId)
 		var cmdDelete = document.createElement("i");
 		Fit.Dom.AddClass(cmdDelete, "fa");
 		Fit.Dom.AddClass(cmdDelete, "fa-times");
-		cmdDelete.tabIndex = 0; // Prevents control from losing focus when clicking button - will not interfear with tab flow since we have custom handling for that
+		cmdDelete.tabIndex = -1; // Prevents control from losing focus when clicking button - will not interfear with tab flow as -1 makes it focusable, but not part of tab flow
 		cmdDelete.onclick = function(e) // OnClick fires after MouseUp
 		{
 			// Whether OnClick fires depends on what browser is being used. A couple of tests reveal this:
@@ -1501,6 +1501,10 @@ Fit.Controls.DropDown = function(ctlId)
 		inp.value = "";
 		inp.style.width = "";
 
+		Fit.Dom.Data(inp.parentElement, "editing", null);
+		Fit.Dom.Data(inp, "editing", null);
+		me._internal.Repaint();
+
 		if (inp === txtActive)
 			prevValue = "";
 
@@ -1529,6 +1533,10 @@ Fit.Controls.DropDown = function(ctlId)
 
 		txtActive.value = "";
 		txtActive.style.width = "";
+
+		Fit.Dom.Data(txtActive.parentElement, "editing", val !== "" ? "true" : null);
+		Fit.Dom.Data(txtActive, "editing", val !== "" ? "true" : null);
+		me._internal.Repaint();
 
 		var txt = ((focusAssigned === true) ? txtActive : txtPrimary);
 		txt = getInputFromPartiallyHiddenSelection(txt); // Will not return input for partially hidden item if control is currently invisible! We perform this check again in the mutation observer further down.
@@ -1837,6 +1845,10 @@ Fit.Controls.DropDown = function(ctlId)
 				prevValue = txt.value;
 				var pastedValue = txt.value;
 
+				Fit.Dom.Data(txt.parentElement, "editing", "true");
+				Fit.Dom.Data(txt, "editing", "true");
+				me._internal.Repaint();
+
 				if (fireOnPaste(txt.value) === true)
 				{
 					if (txt.value === pastedValue)
@@ -1864,6 +1876,13 @@ Fit.Controls.DropDown = function(ctlId)
 
 		txt.onfocus = function(e)
 		{
+			if (Fit.Dom.GetIndex(txt.parentElement) === itemCollectionOrdered.length - 1 && txt.nextSibling === null)
+			{
+				// Right input control in last selected item - focus txtPrimary instead so it word wraps alone when entering text
+				txtPrimary.focus();
+				return;
+			}
+
 			focusAssigned = true;
 
 			if (initialFocus === true)
@@ -1891,6 +1910,13 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 
 			focusAssigned = false;
+
+			if (txt.value === "")
+			{
+				Fit.Dom.Data(txt.parentElement, "editing", null);
+				Fit.Dom.Data(txt, "editing", null);
+				me._internal.Repaint();
+			}
 		}
 
 		var timeOutId = -1;
@@ -2140,7 +2166,7 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		}
 
-		txt.onkeypress = function(e) // Fires continuously (unless suppressed in OnKeyDown) - character codes are available when a real value is entered
+		txt.onkeypress = function(e) // Fires continuously for real character keys (unless suppressed in OnKeyDown) - character codes are available when a real value is entered
 		{
 			var ev = Fit.Events.GetEvent(e);
 
@@ -2149,6 +2175,10 @@ Fit.Controls.DropDown = function(ctlId)
 				updatePlaceholder(true, true); // Make sure placeholder is removed immediately on keystroke
 				fitWidthToContent(txt, txt.value + String.fromCharCode(ev.charCode)); // TODO: Will not work properly if multiple characters are selected, and just one character is entered - the input field will obtain an incorrect width until next key stroke. The solution is NOT to always use setTimeout since the delayed update is noticeable.
 			}
+
+			Fit.Dom.Data(txt.parentElement, "editing", "true");
+			Fit.Dom.Data(txt, "editing", "true");
+			me._internal.Repaint();
 		}
 
 		txt.onkeyup = function(e) // Fires only once when a key is released (unless suppressed in OnKeyDown)
@@ -2218,6 +2248,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function fitWidthToContent(input, val) // Set width of input field equivalent to its content
 	{
+		return; // This function is no longer needed - input fields now "word wrap" and assume full width of control
+
 		Fit.Validation.ExpectInstance(input, HTMLInputElement);
 		Fit.Validation.ExpectString(val, true);
 
@@ -2343,12 +2375,20 @@ Fit.Controls.DropDown = function(ctlId)
 			if (input === txtActive)
 				return;
 
+			if ((txtActive.parentElement === itemContainer && input === txtPrimary) || (txtActive.parentElement !== itemContainer && Fit.Dom.Contained(txtActive.parentElement, input) === false))
+				Fit.Dom.Data(input.parentElement, "editing", null);
+			Fit.Dom.Data(input, "editing", null);
+
 			me.ClearInput(input);
 		});
+
+		me._internal.Repaint(); // Repaint - data attributes changed above
 	}
 
 	function optimizeTabOrder(item)
 	{
+		return;
+
 		Fit.Validation.ExpectDomElement(item, true);
 
 		// Fix tab order for passed item only
@@ -2401,6 +2441,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function getInputFromPartiallyHiddenSelection(inputToUseIfNotPartiallyHidden)
 	{
+		return inputToUseIfNotPartiallyHidden || null;
+
 		Fit.Validation.ExpectDomElement(inputToUseIfNotPartiallyHidden, true);
 
 		if (tabOrderObserverId !== -1 && Fit.Dom.IsVisible(me.GetDomElement()) === true)
