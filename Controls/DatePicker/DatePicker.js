@@ -1160,7 +1160,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		var below = true;
 		var forceFixed = false;
 
-		var overflowParent = (detectBoundariesRelToViewPort === false ? Fit.Dom.GetOverflowingParent(selfDom) /* returns null when there is no positioned parent - document is offsetParent */ : null);
+		var overflowParent = (detectBoundariesRelToViewPort === false ? Fit.Dom.GetOverflowingParent(selfDom) : null); // Contrary to GetScrollParent(..), GetOverflowingParent(..) also take overflow:hidden into account
 		var offsetParent = selfDom.offsetParent;
 
 		if (overflowParent !== null && overflowParent !== offsetParent && Fit.Dom.Contained(overflowParent, offsetParent) === false)

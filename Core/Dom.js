@@ -32,16 +32,16 @@ Fit.Dom.RemoveClass = function(elm, cls)
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectStringValue(cls);
 
-    var arr = elm.className.split(" ");
-    var newCls = "";
+	var arr = elm.className.split(" ");
+	var newCls = "";
 
-    Fit.Array.ForEach(arr, function(item)
-    {
-        if (item !== cls)
-            newCls += ((newCls !== "") ? " " : "") + item;
-    });
+	Fit.Array.ForEach(arr, function(item)
+	{
+		if (item !== cls)
+			newCls += ((newCls !== "") ? " " : "") + item;
+	});
 
-    elm.className = newCls;
+	elm.className = newCls;
 }
 
 /// <function container="Fit.Dom" name="HasClass" access="public" static="true" returns="boolean">
@@ -54,19 +54,19 @@ Fit.Dom.HasClass = function(elm, cls)
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectStringValue(cls);
 
-    var arr = elm.className.split(" ");
+	var arr = elm.className.split(" ");
 	var found = false;
 
-    Fit.Array.ForEach(arr, function(item)
-    {
-        if (item === cls)
+	Fit.Array.ForEach(arr, function(item)
+	{
+		if (item === cls)
 		{
 			found = true;
 			return false; // Stop loop
 		}
-    });
+	});
 
-    return found;
+	return found;
 }
 
 /// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string | null">
@@ -492,16 +492,16 @@ Fit.Dom.GetDepth = function(elm)
 {
 	Fit.Validation.ExpectNode(elm);
 
-    var i = 0;
-    var parent = elm.parentElement;
+	var i = 0;
+	var parent = elm.parentElement;
 
-    while (parent)
-    {
-        i++;
-        parent = parent.parentElement;
-    }
+	while (parent)
+	{
+		i++;
+		parent = parent.parentElement;
+	}
 
-    return i;
+	return i;
 }
 
 /// <function container="Fit.Dom" name="Contained" access="public" static="true" returns="boolean">
@@ -514,17 +514,17 @@ Fit.Dom.Contained = function(container, elm)
 	Fit.Validation.ExpectDomElement(container);
 	Fit.Validation.ExpectNode(elm);
 
-    var parent = elm.parentElement;
+	var parent = elm.parentElement;
 
-    while (parent)
-    {
-        if (parent === container)
+	while (parent)
+	{
+		if (parent === container)
 			return true;
 
-        parent = parent.parentElement;
-    }
+		parent = parent.parentElement;
+	}
 
-    return false;
+	return false;
 }
 
 /// <function container="Fit.Dom" name="IsVisible" access="public" static="true" returns="boolean">
@@ -656,17 +656,17 @@ Fit.Dom.GetParentOfType = function(element, parentType)
 	Fit.Validation.ExpectNode(element);
 	Fit.Validation.ExpectStringValue(parentType);
 
-    var parent = element.parentElement;
+	var parent = element.parentElement;
 
-    while (parent !== null)
-    {
-        if (parent.tagName.toLowerCase() === parentType.toLowerCase())
+	while (parent !== null)
+	{
+		if (parent.tagName.toLowerCase() === parentType.toLowerCase())
 			return parent;
 
-        parent = parent.parentElement;
-    }
+		parent = parent.parentElement;
+	}
 
-    return null;
+	return null;
 }
 
 /// <function container="Fit.Dom" name="Wrap" access="public" static="true">
@@ -976,8 +976,14 @@ Fit.Dom.GetScrollPosition = function(elm)
 
 /// <function container="Fit.Dom" name="GetScrollParent" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
-/// 		Get element's scroll parent. Returns null if element passed
-/// 		is placed on its own stacking context (has position:fixed).
+/// 		Get element's scroll parent (parent that has overflow:auto or overflow:scroll,
+/// 		and that affects the position of the element if scrolled). This may not necessarily
+/// 		be the first parent with overflow set - it also depends on the element's offsetParent.
+/// 		For a parent to be considered the scroll parent, it must be scrollable, and the element
+/// 		passed to this function must be relatively positioned against this scroll parent, or
+/// 		relatively positioned against an element within the scroll parent that is statically
+/// 		positioned, or in turn relatively positioned against the scroll parent.
+/// 		Returns null if element passed is placed on its own stacking context with position:fixed.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get scroll parent for </param>
 /// </function>
@@ -988,25 +994,39 @@ Fit.Dom.GetScrollParent = function(elm)
 	var pos = Fit.Dom.GetComputedStyle(elm, "position");
 
 	if (pos === "fixed")
-    {
-		return null; // No scroll parent when element has its own stacking context
+	{
+		return null; // No scroll parent when element has its own stacking context with position:fixed
 	}
 
-    while ((elm = elm.parentElement))
-    {
-		if (pos === "absolute" && Fit.Dom.GetComputedStyle(elm, "position") === "static") // static is default positioning
-        {
-			continue; // Skip parent if element is floating outside of it using absolute positioning
-		}
+	var offsetParent = elm.offsetParent;
 
+	while ((elm = elm.parentElement))
+	{
 		var regEx = /scroll|auto/;
-        var overflow = Fit.Dom.GetComputedStyle(elm, "overflow");
+		var overflow = Fit.Dom.GetComputedStyle(elm, "overflow");
 		var overflowX = Fit.Dom.GetComputedStyle(elm, "overflow-x");
 		var overflowY = Fit.Dom.GetComputedStyle(elm, "overflow-y");
 
-		if (regEx.test(overflow) === true || regEx.test(overflowX) || regEx.test(overflowY))
-        {
+		if (regEx.test(overflow) === true || regEx.test(overflowX) === true || regEx.test(overflowY) === true)
+		{
+			// Parent found with overflow:scroll or overflow:auto.
+			// However, it may not be this parent that affects the position of the element when scrolled.
+			// If the element passed has position:absolute, and the current parent is not itself positioned
+			// (which makes it the element's offsetParent), and the element's offsetParent is located outside
+			// of the parent with overflow set, then we ignore this parent and continue the search.
+			if (pos === "absolute" && elm !== offsetParent && Fit.Dom.Contained(elm, offsetParent) === false)
+			{
+				continue; // Skip parent if element is floating over it or outside of it using absolute positioning
+			}
+
 			return elm;
+		}
+
+		if (Fit.Dom.GetComputedStyle(elm, "position") === "fixed")
+		{
+			// Parent with position:fixed reached. It no longer matters if an element further up the hierarchy
+			// is scrollable, since position:fixed creates a new stacking context independent from the document.
+			return null;
 		}
 	}
 
@@ -1017,12 +1037,32 @@ Fit.Dom.GetScrollParent = function(elm)
 
 /// <function container="Fit.Dom" name="GetOverflowingParent" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
-/// 		Get element's parent that has overflow set to auto, scroll, or hidden.
-/// 		Returns null if element passed has no parent with overflow.
+/// 		Get parent that has overflow set to auto, scroll, or hidden (hidden is optional).
+/// 		To get the parent that actually affects the position of the element when scrolled,
+/// 		use GetScrollParent(..) instead, as it may not be the first parent with overflow set.
+/// 		Which parent affects the position of an element when scrolled depends on which element
+/// 		is the offsetParent - it might not be an element within the overflowing parent, or
+/// 		the overflowing parent itself, which would be required to affect the element's position
+/// 		when the overflowing parent is scrolled.
+/// 		A scrollable container will only affect an element's position if it is statically positioned
+/// 		within the scrollable parent, or if it is positioned relative to another statically positioned element
+/// 		within the parent with overflow, or if the parent with overflow itself is positioned, which makes it the
+/// 		offsetParent, hence causing the element to scroll along.
+/// 		In most cases GetScrollParent(..) will be the correct function to use.
+/// 		Exceptions to this is when we also want to include overflow:hidden, or if we have an
+/// 		element with position:absolute that is positioned relative to the document or an element
+/// 		outside of the overflowing/scrollable parent, and we still want a reference to the nearest
+/// 		parent with overflow set.
+/// 		Returns null if element passed is placed on its own stacking context with position:fixed.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get overflowing parent for </param>
+/// 	<param name="scrollableOnly" type="boolean" default="false">
+/// 		Flag indicating whether to only consider parents with overflow:auto or overflow:scroll.
+/// 		Parents with overflow:hidden will be ignored. As such, only a parent with the ability to
+/// 		scroll overflowing content into view can be returned.
+/// 	</param>
 /// </function>
-Fit.Dom.GetOverflowingParent = function(elm)
+Fit.Dom.GetOverflowingParent = function(elm, scrollableOnly)
 {
 	Fit.Validation.ExpectDomElement(elm);
 
@@ -1031,23 +1071,29 @@ Fit.Dom.GetOverflowingParent = function(elm)
 	var pos = Fit.Dom.GetComputedStyle(elm, "position");
 
 	if (pos === "fixed")
-    {
-		return null; // No scroll parent when element has its own stacking context
+	{
+		return null; // No overflowing parent when element has its own stacking context with position:fixed
 	}
 
-	var regEx = /scroll|auto|hidden/;
+	var regEx = scrollableOnly === true ? /scroll|auto/ : /scroll|auto|hidden/;
 	var current = elm;
 
 	while ((current = current.parentElement) !== null)
 	{
-		if (pos === "absolute" && Fit.Dom.GetComputedStyle(elm, "position") === "static") // static is default positioning
-        {
-			continue; // Skip parent if element is floating outside of it using absolute positioning
-		}
+		var overflow = Fit.Dom.GetComputedStyle(current, "overflow");
+		var overflowX = Fit.Dom.GetComputedStyle(current, "overflow-x");
+		var overflowY = Fit.Dom.GetComputedStyle(current, "overflow-y");
 
-		if (regEx.test(Fit.Dom.GetComputedStyle(current, "overflowY")) === true || regEx.test(Fit.Dom.GetComputedStyle(current, "overflowX")) === true)
+		if (regEx.test(overflow) === true || regEx.test(overflowX) === true || regEx.test(overflowY) === true)
 		{
 			return current;
+		}
+
+		if (Fit.Dom.GetComputedStyle(current, "position") === "fixed")
+		{
+			// Parent with position:fixed reached. It no longer matters if an element further up the hierarchy
+			// has overflow, since position:fixed creates a new stacking context independent from the document.
+			return null;
 		}
 	}
 

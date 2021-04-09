@@ -118,6 +118,242 @@ Tests.ComputedStyles = function()
 	}
 }
 
+Tests.ScrollingAndOverflowingParent = function()
+{
+	var div1 = document.createElement("div");
+	div1.id = "div1";
+	var div2 = document.createElement("div");
+	div2.id = "div2";
+	var div3 = document.createElement("div");
+	div3.id = "div3";
+	var div4 = document.createElement("div");
+	div4.id = "div4";
+
+	// Hierarchy:
+	// <body>
+	//     <div1>
+	//         <div2>
+	//             <div3>
+	//                 <div4></div4>
+	//             </div3>
+	//         </div2>
+	//     </div1>
+	// </body>
+	document.body.appendChild(div1);
+	div1.appendChild(div2);
+	div2.appendChild(div3);
+	div3.appendChild(div4);
+
+	var expected = [];
+	var results = [];
+
+	this.Description = "ScrollParent and OverflowingParent can be reliably determined";
+
+	this.Execute = function()
+	{
+		// Test 1
+
+		div1.style.cssText = "";
+		div2.style.cssText = "";
+		div3.style.cssText = "";
+		div4.style.cssText = "";
+
+		expected.push({
+			ScrollParent: document.documentElement,
+			OverflowParent: null
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 2
+
+		div1.style.cssText = "";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px;";
+		div3.style.cssText = "";
+		div4.style.cssText = "";
+
+		expected.push({
+			ScrollParent: div2,
+			OverflowParent: div2
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 3
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px;";
+		div3.style.cssText = "";
+		div4.style.cssText = "";
+
+		expected.push({
+			ScrollParent: div2,
+			OverflowParent: div2
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 4
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px;";
+		div3.style.cssText = "";
+		div4.style.cssText = "position: absolute;"; // Positioned relative to div1 - parent with overflow:auto will not affect its position when scrolled, so document is considered scroll parent
+
+		expected.push({
+			ScrollParent: document.documentElement,
+			OverflowParent: div2
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 5
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px;";
+		div3.style.cssText = "position: relative;";
+		div4.style.cssText = "position: absolute;"; // Positioned relative to div3 which is statically positioned within div2, which therefore makes div2 the scroll parent
+
+		expected.push({
+			ScrollParent: div2,
+			OverflowParent: div2
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 6
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px; position: relative;";
+		div3.style.cssText = "";
+		div4.style.cssText = "position: absolute;"; // Positioned relative to div2 which has both overflow and is positioned, and therefore makes div2 the scroll parent
+
+		expected.push({
+			ScrollParent: div2,
+			OverflowParent: div2
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 7
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px; position: relative;";
+		div3.style.cssText = "position: relative;";
+		div4.style.cssText = "position: fixed;"; // Independent stacking context
+
+		expected.push({
+			ScrollParent: null,
+			OverflowParent: null
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 8
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px; position: relative;";
+		div3.style.cssText = "position: fixed;";
+		div4.style.cssText = ""; // Part of independent stacking context (div3)
+
+		expected.push({
+			ScrollParent: null,
+			OverflowParent: null
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 9
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px; position: fixed;";
+		div3.style.cssText = "";
+		div4.style.cssText = ""; // Part of independent stacking context (div2) that has overflow
+
+		expected.push({
+			ScrollParent: div2,
+			OverflowParent: div2
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+
+		// Test 10
+
+		div1.style.cssText = "position: relative;";
+		div2.style.cssText = "overflow: auto; width: 100px; height: 30px; position: fixed;";
+		div3.style.cssText = "";
+		div4.style.cssText = "position: absolute;"; // Positioned relative to div2 which has both overflow and is positioned, and therefore makes div2 the scroll parent
+
+		expected.push({
+			ScrollParent: div2,
+			OverflowParent: div2
+		});
+
+		results.push({
+			ScrollParent: Fit.Dom.GetScrollParent(div4),
+			OverflowParent: Fit.Dom.GetOverflowingParent(div4)
+		});
+	}
+
+	this.Assertions =
+	[
+		{
+			Message: "Test returns expected result for calls to GetScrollParent and GetOverflowingParent in different configurations",
+			Expected: true,
+			GetResult: function()
+			{
+				for (var i = 0 ; i < results.length ; i++)
+				{
+					if (expected[i].ScrollParent !== results[i].ScrollParent || expected[i].OverflowParent !== results[i].OverflowParent)
+					{
+						var err = "";
+						err += "Result from Test " + (i + 1) + " is not as expected!\n";
+						err += "Expected scroll parent = " + (expected[i].ScrollParent && expected[i].ScrollParent.id || "null") + "\n";
+						err += "Expected overflow parent = " + (expected[i].OverflowParent && expected[i].OverflowParent.id || "null") + "\n";
+						err += "Actual scroll parent = " + (results[i].ScrollParent && results[i].ScrollParent.id || "null") + "\n";
+						err += "Actual overflow parent = " + (results[i].OverflowParent && results[i].OverflowParent.id || "null") + "\n";
+						throw new Error(err);
+					}
+				}
+
+				return true;
+			}
+		}
+	]
+
+	this.Dispose = function()
+	{
+		Fit.Dom.Remove(div1); // Contains div2, div3, and div4
+	}
+}
+
 Tests.DomVisibility = function()
 {
 	// Visible

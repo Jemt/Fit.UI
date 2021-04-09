@@ -2093,7 +2093,7 @@ Fit.Controls.DropDown = function(ctlId)
 			var condNotEnoughSpaceBelow = false;	// Flag indicating whether DropDown menu has insufficient space below control - opens upwards if this is true and mostSpaceAboveControl is true
 			var condNotEnoughSpaceRightSide = false;// Flag indicating whether DropDown menu has insufficient space to the right of control - opens to the left if this is true and mostSpaceLeftOfControl is true
 
-			var overflowParent = Fit.Dom.GetOverflowingParent(me.GetDomElement());
+			var overflowParent = Fit.Dom.GetOverflowingParent(me.GetDomElement()); // Contrary to GetScrollParent(..), GetOverflowingParent(..) also take overflow:hidden into account
 
 			if (overflowParent !== null) // Contained in custom scroll parent (not document)
 			{
