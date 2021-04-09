@@ -8311,13 +8311,31 @@ declare namespace Fit
 		*/
 		public static GetInnerDimensions(elm:HTMLElement):Fit.TypeDefs.Dimension;
 		/**
-		* Get element's parent that has overflow set to auto, scroll, or hidden.
-		Returns null if element passed has no parent with overflow.
+		* Get parent that has overflow set to auto, scroll, or hidden (hidden is optional).
+		To get the parent that actually affects the position of the element when scrolled,
+		use GetScrollParent(..) instead, as it may not be the first parent with overflow set.
+		Which parent affects the position of an element when scrolled depends on which element
+		is the offsetParent - it might not be an element within the overflowing parent, or
+		the overflowing parent itself, which would be required to affect the element's position
+		when the overflowing parent is scrolled.
+		A scrollable container will only affect an element's position if it is statically positioned
+		within the scrollable parent, or if it is positioned relative to another statically positioned element
+		within the parent with overflow, or if the parent with overflow itself is positioned, which makes it the
+		offsetParent, hence causing the element to scroll along.
+		In most cases GetScrollParent(..) will be the correct function to use.
+		Exceptions to this is when we also want to include overflow:hidden, or if we have an
+		element with position:absolute that is positioned relative to the document or an element
+		outside of the overflowing/scrollable parent, and we still want a reference to the nearest
+		parent with overflow set.
+		Returns null if element passed is placed on its own stacking context with position:fixed.
 		* @function GetOverflowingParent
 		* @param {HTMLElement} elm - Element to get overflowing parent for.
+		* @param {boolean} [scrollableOnly=false] - Flag indicating whether to only consider parents with overflow:auto or overflow:scroll.
+		Parents with overflow:hidden will be ignored. As such, only a parent with the ability to
+		scroll overflowing content into view can be returned.
 		* @returns HTMLElement | null
 		*/
-		public static GetOverflowingParent(elm:HTMLElement):HTMLElement | null;
+		public static GetOverflowingParent(elm:HTMLElement, scrollableOnly?:boolean):HTMLElement | null;
 		/**
 		* Returns first parent of specified type for a given element if found, otherwise Null.
 		* @function GetParentOfType
@@ -8370,8 +8388,14 @@ declare namespace Fit
 		*/
 		public static GetScrollDocument():HTMLElement;
 		/**
-		* Get element's scroll parent. Returns null if element passed
-		is placed on its own stacking context (has position:fixed).
+		* Get element's scroll parent (parent that has overflow:auto or overflow:scroll,
+		and that affects the position of the element if scrolled). This may not necessarily
+		be the first parent with overflow set - it also depends on the element's offsetParent.
+		For a parent to be considered the scroll parent, it must be scrollable, and the element
+		passed to this function must be relatively positioned against this scroll parent, or
+		relatively positioned against an element within the scroll parent that is statically
+		positioned, or in turn relatively positioned against the scroll parent.
+		Returns null if element passed is placed on its own stacking context with position:fixed.
 		* @function GetScrollParent
 		* @param {HTMLElement} elm - Element to get scroll parent for.
 		* @returns HTMLElement | null
