@@ -2253,33 +2253,6 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.Dialog
 			/**
-			* Display alert dialog.
-			* @function Alert
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
-			/**
 			* Add button to dialog.
 			* @function AddButton
 			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button.
@@ -2447,6 +2420,33 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Display alert dialog.
+			* @function Alert
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -7851,37 +7851,21 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Cookies
 		/**
-		* Returns cookie value if found, otherwise Null.
-		* @function Get
-		* @param {string} name - Unique cookie name.
-		* @returns string | null
-		*/
-		public static Get(name:string):string | null;
-		/**
-		* Remove cookie.
-		* @function Remove
-		* @param {string} name - Unique cookie name.
-		* @param {string} [path=undefined] - Optional cookie path.
-		If cookie was defined on a custom path, the
-		same path must be specified to remove the cookie.
-		*/
-		public static Remove(name:string, path?:string):void;
-		/**
-		* Create or update cookie.
-		* @function Set
-		* @param {string} name - Unique cookie name.
-		* @param {string} value - Cookie value (cannot contain semicolon!).
-		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
-		no expiration time will cause it to expire when session ends.
-		* @param {string} [path=undefined] - Optional cookie path.
-		Specifying no path makes cookie accessible to entire domain.
-		*/
-		public static Set(name:string, value:string, seconds?:number, path?:string):void;
-		/**
-		* Create instance of cookie container isolated to either current path or a custom path.
+		* Create instance of cookie container isolated to either current path (default)
+		or a custom path, and optionally an alternative part of the domain (by default
+		cookies are available only on the current domain, while defining a domain makes
+		cookies available to that particular domain and subdomains).
 		* @function Cookies
 		*/
 		constructor();
+		/**
+		* Get/set portion of domain to which cookies are isolated.
+		* @function Domain
+		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
+		Null to unset it to make cookies available to current domain only (excluding subdomains).
+		* @returns string | null
+		*/
+		public Domain(val?:string | null):string | null;
 		/**
 		* Returns cookie value if found, otherwise Null.
 		* @function Get
@@ -7901,16 +7885,30 @@ declare namespace Fit
 		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
 		is completely transparent.
 		* @function Prefix
-		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value.
-		* @returns string
+		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
+		* @returns string | null
 		*/
-		public Prefix(val?:string):string;
+		public Prefix(val?:string):string | null;
 		/**
 		* Remove cookie.
 		* @function Remove
 		* @param {string} name - Unique cookie name.
 		*/
 		public Remove(name:string):void;
+		/**
+		* Get/set SameSite policy.
+		* @function SameSite
+		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
+		* @returns string | null
+		*/
+		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
+		/**
+		* Get/set Secure flag.
+		* @function Secure
+		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
+		* @returns boolean
+		*/
+		public Secure(val?:boolean):boolean;
 		/**
 		* Create or update cookie.
 		* @function Set
@@ -7920,6 +7918,71 @@ declare namespace Fit
 		no expiration time will cause it to expire when session ends.
 		*/
 		public Set(name:string, value:string, seconds?:number):void;
+		/**
+		* Returns cookie value if found, otherwise Null.
+		* @function Get
+		* @param {string} name - Unique cookie name.
+		* @returns string | null
+		*/
+		public static Get(name:string):string | null;
+		/**
+		* Remove cookie.
+		* @function Remove
+		* @param {string} name - Unique cookie name.
+		* @param {string} [path=undefined] - Optional cookie path.
+		If cookie was defined on a custom path, the
+		same path must be specified to remove the cookie.
+		* @param {string} [domain=undefined] - Optional cookie domain.
+		If cookie was defined on a specific domain, the
+		same domain must be specified to remove the cookie.
+		*/
+		public static Remove(name:string, path?:string, domain?:string):void;
+		/**
+		* Remove cookie.
+		* @function Remove
+		* @param {Fit.CookiesDefs.CookieIdentity} cookie - Cookie to remove.
+		*/
+		public static Remove(cookie:Fit.CookiesDefs.CookieIdentity):void;
+		/**
+		* Create or update cookie.
+		* @function Set
+		* @param {string} name - Unique cookie name.
+		* @param {string} value - Cookie value (cannot contain semicolon!).
+		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
+		no expiration time will cause it to expire when session ends.
+		* @param {string} [path=undefined] - Optional cookie path.
+		Specifying no path makes cookie accessible to entire domain.
+		Specifying a path makes the cookie accessible to that particular path only.
+		However, this is not a security feature! A page can read cookies from any path
+		by creating an iframe with the path of the cookies, and read them through
+		the iframe's contentDocument.cookie property.
+		* @param {string} [domain=undefined] - Optional cookie domain.
+		Not specifying a domain restricts the cookie to the host portion of the page currently loaded.
+		Specifying a domain makes the cookies accessible to the domain and subdomains.
+		It is not possible to specify a foreign domain name - this will be silently ignored.
+		Example: domain.com or sub.domain.com.
+		* @param {"None" | "Lax" | "Strict"} [sameSite=undefined] - Optional Same-Site policy determining whether to accept cookie and send it along with HTTP requests.
+		Different browsers (and versions) default to different values/behaviour, and a lot of different versions
+		are known to incorrectly handle SameSite, so don't expect this to work reliably across browsers.
+		Some browers may even work differently across platforms, despite being the same version, such as Safari on macOS and iOS.
+		Furthermore the behaviour may vary depending on browser configuration (configuration flags).
+		See https://www.chromium.org/updates/same-site/incompatible-clients
+		and https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite#browser_compatibility
+		and https://caniuse.com/same-site-cookie-attribute
+		None = Cookie is included with cross-site requests, but only when Secure is True.
+		Lax = Cookie is included with all types of Same-Site requests, but only for top-level
+		navigation for cross-site requests (GET/HEAD requests only, and only in main window/frame).
+		Strict = Cookie is included with all types of Same-Site requests, never for cross-site requests.
+		More recent versions of Chrome (and Chrome based browsers) default to Lax.
+		* @param {boolean} [secure=undefined] - Optional flag determining whether to accept and send along cookie on secure connections only.
+		*/
+		public static Set(name:string, value:string, seconds?:number, path?:string, domain?:string, sameSite?:"None" | "Lax" | "Strict", secure?:boolean):void;
+		/**
+		* Create or update cookie.
+		* @function Set
+		* @param {Fit.CookiesDefs.Cookie} newCookie - New or updated cookie.
+		*/
+		public static Set(newCookie:Fit.CookiesDefs.Cookie):void;
 	}
 	/**
 	* Core features extending the capabilities of native JS.
@@ -9917,6 +9980,80 @@ declare namespace Fit
 			* @member {number} Red
 			*/
 			Red:number;
+		}
+	}
+	/**
+	* 
+	* @namespace [Fit.CookiesDefs CookiesDefs]
+	*/
+	namespace CookiesDefs
+	{
+		/**
+		* New cookie.
+		* @class [Fit.CookiesDefs.Cookie Cookie]
+		*/
+		class Cookie
+		{
+			// Properties defined by Fit.CookiesDefs.Cookie
+			/**
+			* See Fit.Cookies.Set(..) function's description for its sameSite argument.
+			* @member {"None" | "Lax" | "Strict"} [SameSite=undefined]
+			*/
+			SameSite?:"None" | "Lax" | "Strict";
+			/**
+			* See Fit.Cookies.Set(..) function's description for its seconds argument.
+			* @member {number} [Seconds=undefined]
+			*/
+			Seconds?:number;
+			/**
+			* See Fit.Cookies.Set(..) function's description for its secure argument.
+			* @member {boolean} [Secure=undefined]
+			*/
+			Secure?:boolean;
+			/**
+			* See Fit.Cookies.Set(..) function's description for its value argument.
+			* @member {string} Value
+			*/
+			Value:string;
+			// Properties defined by Fit.CookiesDefs.CookieIdentity
+			/**
+			* See Fit.Cookies.Set(..) function's description for its domain argument.
+			* @member {string} [Domain=undefined]
+			*/
+			Domain?:string;
+			/**
+			* See Fit.Cookies.Set(..) function's description for its name argument.
+			* @member {string} Name
+			*/
+			Name:string;
+			/**
+			* See Fit.Cookies.Set(..) function's description for its path argument.
+			* @member {string} [Path=undefined]
+			*/
+			Path?:string;
+		}
+		/**
+		* Cookie identity.
+		* @class [Fit.CookiesDefs.CookieIdentity CookieIdentity]
+		*/
+		class CookieIdentity
+		{
+			// Properties defined by Fit.CookiesDefs.CookieIdentity
+			/**
+			* See Fit.Cookies.Set(..) function's description for its domain argument.
+			* @member {string} [Domain=undefined]
+			*/
+			Domain?:string;
+			/**
+			* See Fit.Cookies.Set(..) function's description for its name argument.
+			* @member {string} Name
+			*/
+			Name:string;
+			/**
+			* See Fit.Cookies.Set(..) function's description for its path argument.
+			* @member {string} [Path=undefined]
+			*/
+			Path?:string;
 		}
 	}
 	/**
