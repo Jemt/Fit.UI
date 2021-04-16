@@ -618,11 +618,11 @@ Fit.Browser.GetComputedStyle = function(elm, style)
 
 	var res = null;
 
-    if (window.getComputedStyle) // W3C
+	if (window.getComputedStyle) // W3C
 	{
 		res = window.getComputedStyle(elm)[style];
 	}
-    else if (elm.currentStyle)
+	else if (elm.currentStyle)
 	{
 		if (style.indexOf("-") !== -1) // Turn e.g. border-bottom-style into borderBottomStyle which is required by legacy browsers
 		{
@@ -638,7 +638,7 @@ Fit.Browser.GetComputedStyle = function(elm, style)
 			});
 		}
 
-        res = elm.currentStyle[style]; // Might return strings rather than useful values - e.g. "3em" or "medium"
+		res = elm.currentStyle[style]; // Might return strings rather than useful values - e.g. "3em" or "medium"
 
 		// IE Computed Style fix by Dean Edwards - http://disq.us/p/myl99x
 		// Transform values such as 2em or 4pt to actual pixel values.
@@ -660,7 +660,7 @@ Fit.Browser.GetComputedStyle = function(elm, style)
 		}
 	}
 
-    return (res !== undefined ? res : null);
+	return (res !== undefined ? res : null);
 }
 
 /// <function container="Fit.Browser" name="GetScreenWidth" access="public" static="true" returns="integer">
