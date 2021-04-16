@@ -341,15 +341,26 @@ Fit.Browser.ParseUrl = function(url)
 
 	if (fullPath !== "")
 	{
-		var pathInfo = fullPath.split("/");
+		// Separate path from resource - e.g. path/to/index.php is separated into path/to/ and index.php
 
-		// Construct path without resource (/path/to/resource.php => /path/to/)
-		result.Path += pathInfo.slice(0, -1).join("/") + (pathInfo.length > 0 ? "/" : "");
+		var pathInfo = fullPath.split("/"); // E.g. index.php or path/to/ or path/to/index.php
 
-		// Add resource (e.g. resource.php) if found in URL
-		if (pathInfo[pathInfo.length - 1] !== "")
+		if (pathInfo.length === 1)
 		{
-			result.Resource = pathInfo[pathInfo.length - 1];
+			// Only resource contained, no path - e.g. index.php
+			result.Resource = fullPath;
+		}
+		else
+		{
+			// Path and maybe resource contained - e.g. path/to/ or path/to/index.php
+
+			result.Path += pathInfo.slice(0, -1).join("/") + "/"; // Slice to remove last portion of array which is either the resource or an empty string if path is something like path/to/
+
+			// Add resource (e.g. resource.php) if found in URL - last item in array is an empty string for a path such as path/to/
+			if (pathInfo[pathInfo.length - 1] !== "")
+			{
+				result.Resource = pathInfo[pathInfo.length - 1];
+			}
 		}
 	}
 

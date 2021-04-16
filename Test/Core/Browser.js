@@ -31,6 +31,62 @@ Tests.ParseUrl = function()
 			_TestUrl: "https://localhost/"
 		},
 		{
+			Url: "https://sitemagic.org/page1",
+			Protocol: "https",
+			Port: -1,
+			Auth: null,
+			Host: "sitemagic.org",
+			FullPath: "/page1",
+			Path: "/",
+			Resource: "page1",
+			Parameters: {},
+			Hash: null,
+			Anchor: null, // Backwards compatibility
+			_TestUrl: "https://sitemagic.org/page1"
+		},
+		{
+			Url: "http://localhost/page1.php?arg=val&parm=data#section",
+			Protocol: "http",
+			Port: -1,
+			Auth: null,
+			Host: "localhost",
+			FullPath: "/page1.php",
+			Path: "/",
+			Resource: "page1.php",
+			Parameters: { arg: "val", parm: "data" },
+			Hash: "section",
+			Anchor: "section", // Backwards compatibility
+			_TestUrl: "http://localhost/page1.php?arg=val&parm=data#section"
+		},
+		{
+			Url: "https://sitemagic.org/folder1/",
+			Protocol: "https",
+			Port: -1,
+			Auth: null,
+			Host: "sitemagic.org",
+			FullPath: "/folder1/",
+			Path: "/folder1/",
+			Resource: null,
+			Parameters: {},
+			Hash: null,
+			Anchor: null, // Backwards compatibility
+			_TestUrl: "https://sitemagic.org/folder1/"
+		},
+		{
+			Url: "http://sitemagic.org/?arg=val&parm=data#section",
+			Protocol: "http",
+			Port: -1,
+			Auth: null,
+			Host: "sitemagic.org",
+			FullPath: "/",
+			Path: "/",
+			Resource: null,
+			Parameters: { arg: "val", parm: "data" },
+			Hash: "section",
+			Anchor: "section", // Backwards compatibility
+			_TestUrl: "http://sitemagic.org/?arg=val&parm=data#section"
+		},
+		{
 			Url: "FTP://user:pass@sub.localhost:21/wwwroot/demo/",
 			Protocol: "ftp",
 			Port: 21,
@@ -127,7 +183,7 @@ Tests.ParseUrl = function()
 	{
 		Fit.Array.ForEach(tests, function(test)
 		{
-			var parsed = Fit.Browser.ParseUrl(test.Url);
+			var parsed = Fit.Browser.ParseUrl(test._TestUrl);
 			parsed._TestUrl = test._TestUrl; // Make sure result object is equal to test case - otherwise every test will fail
 			Fit.Array.Add(results, parsed);
 		});

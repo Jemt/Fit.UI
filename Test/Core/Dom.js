@@ -471,6 +471,17 @@ Tests.DomVisibility = function()
 			}
 		},
 	]
+
+	this.Dispose = function()
+	{
+		Fit.Dom.Remove(domElmNormalVisible);
+		Fit.Dom.Remove(domElmPositionAbsVisible);
+		Fit.Dom.Remove(domElmPositionFixVisible);
+		Fit.Dom.Remove(domElmVisibilityHidden);
+		Fit.Dom.Remove(domElmNormalInvisible);
+		Fit.Dom.Remove(domElmPositionAbsInvisible);
+		Fit.Dom.Remove(domElmPositionFixInvisible);
+	}
 }
 
 ;(function()
