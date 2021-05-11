@@ -306,6 +306,7 @@ Tests.AddRemove = function()
 
 			this.Dispose = function()
 			{
+				window.scrollTo(0, 0);
 				Fit.Dom.Remove(highDivCausingScroll);
 			}
 		}
