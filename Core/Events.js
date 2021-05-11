@@ -116,14 +116,15 @@ Fit.Events = {};
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackGeneric"> JavaScript function to register </param>
 /// </function>
 //  ------------------------------------------------------------------------------------------
-//  Overloads with useCapture argument
+//  Overloads with useCapture or options argument
 //  ------------------------------------------------------------------------------------------
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"keydown" | "keyup" | "keypress"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackKeyboard"> JavaScript function to register </param>
@@ -132,8 +133,9 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackMouse"> JavaScript function to register </param>
@@ -142,8 +144,9 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"popstate"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackPopState"> JavaScript function to register </param>
@@ -152,8 +155,9 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"hashchange"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackHashChange"> JavaScript function to register </param>
@@ -162,8 +166,9 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"focus" | "focusin" | "focusout" | "blur"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackFocus"> JavaScript function to register </param>
@@ -172,8 +177,9 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"beforeunload"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload"> JavaScript function to register </param>
@@ -182,8 +188,9 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"cut" | "copy" | "paste"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
@@ -192,8 +199,9 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type='"storage"'> Event name without the 'on' prefix </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackStorage"> JavaScript function to register </param>
@@ -202,15 +210,18 @@ Fit.Events = {};
 /// 	<description> Registers handler for specified event on given DOMElement and returns Event ID </description>
 /// 	<param name="element" type="DOMElement"> DOM element on to which event handler is registered </param>
 /// 	<param name="event" type='"#rooted"'> Event name </param>
-/// 	<param name="useCapture" type="boolean"> This argument is ignored for the specialized #rooted event </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		This argument is ignored for the specialized #rooted event.
+/// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackRooted"> JavaScript function to register </param>
 /// </function>
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
 /// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackGeneric"> JavaScript function to register </param>
@@ -219,7 +230,7 @@ Fit.Events.AddHandler = function()
 {
 	var element = null;
 	var event = null;
-	var useCapture = false; // false = event bubbling (reverse of event capturing)
+	var useCaptureOrOptions = false; // false = event bubbling (reverse of event capturing)
 	var eventFunction = null;
 
 	if (arguments.length === 3)
@@ -232,25 +243,52 @@ Fit.Events.AddHandler = function()
 	{
 		element = arguments[0];
 		event = arguments[1];
-		useCapture = arguments[2];
+		useCaptureOrOptions = arguments[2];
 		eventFunction = arguments[3];
 	}
 
 	Fit.Validation.ExpectEventTarget(element);
 	Fit.Validation.ExpectStringValue(event);
-	Fit.Validation.ExpectBoolean(useCapture);
+	Fit.Validation.ExpectBoolean(typeof(useCaptureOrOptions) !== "object" ? useCaptureOrOptions : true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Capture || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Once || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Passive || true);
 	Fit.Validation.ExpectFunction(eventFunction);
 
 	if (event.toLowerCase() === "#rooted") // Custom event
 	{
-		if (useCapture === true)
-			Fit.Validation.ThrowError("Event capturing is not supported for Rooted event");
+		if (useCaptureOrOptions)
+			Fit.Validation.ThrowError("Event capturing or event options not supported for Rooted event");
 
 		Fit.Array.Add(Fit._internal.Events.OnRootedHandlers, { Element: element, Parent: element.parentElement, Event: event, Callback: eventFunction });
 	}
 	else if (element.addEventListener) // W3C
 	{
-		element.addEventListener(event, eventFunction, useCapture);
+		var options = false;
+
+		if (useCaptureOrOptions === true)
+		{
+			options = true;
+		}
+		else if (useCaptureOrOptions)
+		{
+			options = {};
+
+			if (useCaptureOrOptions.Capture !== undefined)
+			{
+				options.capture = useCaptureOrOptions.Capture;
+			}
+			if (useCaptureOrOptions.Once !== undefined)
+			{
+				options.once = useCaptureOrOptions.Once;
+			}
+			if (useCaptureOrOptions.Passive !== undefined)
+			{
+				options.passive = useCaptureOrOptions.Passive;
+			}
+		}
+
+		element.addEventListener(event, eventFunction, options);
 	}
 	else if (element.attachEvent) // IE
 	{
@@ -278,7 +316,7 @@ Fit.Events.AddHandler = function()
 
 	var eventId = element._internal.Events.Handlers.length;
 
-	Fit.Array.Add(element._internal.Events.Handlers, { Event: event, Handler: eventFunction, UseCapture: useCapture, Id: eventId });
+	Fit.Array.Add(element._internal.Events.Handlers, { Event: event, Handler: eventFunction, UseCaptureOrOptions: useCaptureOrOptions, Id: eventId });
 
 	// Fire event function for onload event if document in window/iframe has already been loaded.
 	// Notice that no event argument is passed to function since we don't have one.
@@ -325,8 +363,9 @@ Fit.Events.AddHandler = function()
 /// 	<description> Remove event handler for specified event on given EventTarget </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+/// 		If event handler was registered with event options for more fine-grained control, these options are passed instead.
 /// 	</param>
 /// 	<param name="eventFunction" type="function"> JavaScript function to remove </param>
 /// </function>
@@ -334,7 +373,7 @@ Fit.Events.RemoveHandler = function()
 {
 	var element = null;
 	var event = null;
-	var useCapture = false; // false = event bubbling (reverse of event capturing)
+	var useCaptureOrOptions = false; // false = event bubbling (reverse of event capturing)
 	var eventFunction = null;
 
 	if (arguments.length === 2)
@@ -354,7 +393,7 @@ Fit.Events.RemoveHandler = function()
 
 		event = handler.Event;
 		eventFunction = handler.Handler;
-		useCapture = handler.UseCapture;
+		useCaptureOrOptions = handler.UseCaptureOrOptions;
 	}
 	else if (arguments.length === 3)
 	{
@@ -366,23 +405,25 @@ Fit.Events.RemoveHandler = function()
 	{
 		element = arguments[0];
 		event = arguments[1];
-		useCapture = arguments[2];
+		useCaptureOrOptions = arguments[2];
 		eventFunction = arguments[3];
 	}
 
 	Fit.Validation.ExpectEventTarget(element);
 	Fit.Validation.ExpectStringValue(event);
-	Fit.Validation.ExpectBoolean(useCapture);
+	Fit.Validation.ExpectBoolean(typeof(useCaptureOrOptions) !== "object" ? useCaptureOrOptions : true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Capture || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Once || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Passive || true);
 	Fit.Validation.ExpectFunction(eventFunction);
 
 	if (event.toLowerCase() === "#rooted")
 	{
 		var handlers = Fit._internal.Events.OnRootedHandlers;
-		var remove = null;
 
 		Fit.Array.ForEach(handlers, function(handler)
 		{
-			if (element === handler.Element && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Callback && useCapture === false)
+			if (element === handler.Element && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Callback && useCaptureOrOptions === false)
 			{
 				handler.Removed = true; // Allow OnRooted handler to remove element without causing a "Collection was modified" exception - properly removed in timer responsible for observing elements
 				return false; // Break loop
@@ -391,7 +432,44 @@ Fit.Events.RemoveHandler = function()
 	}
 	else if (element.removeEventListener)
 	{
-		element.removeEventListener(event, eventFunction, useCapture);
+		// Notice regarding useCaptureOrOptions:
+		// Only the capture flag is used when removing event handlers.
+		// This can be either a boolean or an object like this: { capture: true|false }.
+		// Other flags are not considered - or at least should not have been. But unfortunately
+		// some browser versions are known to be byggy in this regard.
+		// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener
+		// "It's worth noting that some browser releases have been inconsistent on this, and
+		//  unless you have specific reasons otherwise, it's probably wise to use the same values
+		//  used for the call to addEventListener() when calling removeEventListener()".
+		// Nothing in the documentation states that the same object reference must be used.
+		// In fact it states "it's probably wise to use the same VALUES ..." in the quote above.
+		// This has been verified using unit tests on various browsers (see Tests/Core/Events.js).
+
+		var options = false;
+
+		if (useCaptureOrOptions === true)
+		{
+			options = true;
+		}
+		else if (useCaptureOrOptions)
+		{
+			options = {};
+
+			if (useCaptureOrOptions.Capture !== undefined)
+			{
+				options.capture = useCaptureOrOptions.Capture;
+			}
+			if (useCaptureOrOptions.Once !== undefined)
+			{
+				options.once = useCaptureOrOptions.Once;
+			}
+			if (useCaptureOrOptions.Passive !== undefined)
+			{
+				options.passive = useCaptureOrOptions.Passive;
+			}
+		}
+
+		element.removeEventListener(event, eventFunction, options);
 	}
 	else if (element.detachEvent)
 	{
@@ -408,7 +486,7 @@ Fit.Events.RemoveHandler = function()
 		{
 			var handler = element._internal.Events.Handlers[i];
 
-			if (handler !== null && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && useCapture === handler.UseCapture)
+			if (handler !== null && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && Fit.Core.IsEqual(useCaptureOrOptions, handler.UseCaptureOrOptions) === true)
 			{
 				element._internal.Events.Handlers[i] = null;
 				break;
