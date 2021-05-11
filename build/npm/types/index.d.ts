@@ -8604,110 +8604,119 @@ declare namespace Fit
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"keydown" | "keyup" | "keypress"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackKeyboard} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"keydown" | "keyup" | "keypress", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackKeyboard):number;
+		public static AddHandler(element:EventTarget, event:"keydown" | "keyup" | "keypress", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackKeyboard):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackMouse} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackMouse):number;
+		public static AddHandler(element:EventTarget, event:"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackMouse):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"popstate"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackPopState} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"popstate", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackPopState):number;
+		public static AddHandler(element:EventTarget, event:"popstate", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackPopState):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"hashchange"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackHashChange} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"hashchange", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackHashChange):number;
+		public static AddHandler(element:EventTarget, event:"hashchange", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackHashChange):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"focus" | "focusin" | "focusout" | "blur"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackFocus} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"focus" | "focusin" | "focusout" | "blur", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackFocus):number;
+		public static AddHandler(element:EventTarget, event:"focus" | "focusin" | "focusout" | "blur", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackFocus):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"beforeunload"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"beforeunload", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload):number;
+		public static AddHandler(element:EventTarget, event:"beforeunload", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"cut" | "copy" | "paste"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackClipboard} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"cut" | "copy" | "paste", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackClipboard):number;
+		public static AddHandler(element:EventTarget, event:"cut" | "copy" | "paste", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackClipboard):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"storage"} event - Event name without the 'on' prefix.
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackStorage} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:"storage", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackStorage):number;
+		public static AddHandler(element:EventTarget, event:"storage", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackStorage):number;
 		/**
 		* Registers handler for specified event on given DOMElement and returns Event ID.
 		* @function AddHandler
 		* @param {HTMLElement} element - DOM element on to which event handler is registered.
 		* @param {"#rooted"} event - Event name.
-		* @param {boolean} useCapture - This argument is ignored for the specialized #rooted event.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - This argument is ignored for the specialized #rooted event.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackRooted} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:HTMLElement, event:"#rooted", useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackRooted):number;
+		public static AddHandler(element:HTMLElement, event:"#rooted", useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackRooted):number;
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {string} event - Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.).
-		* @param {boolean} useCapture - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+		Alternatively pass options object to control behaviour on a more fine-grained scale.
 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackGeneric} eventFunction - JavaScript function to register.
 		* @returns number
 		*/
-		public static AddHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackGeneric):number;
+		public static AddHandler(element:EventTarget, event:string, useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackGeneric):number;
 		/**
 		* Registers mutation observer which is invoked when a DOMElement is updated. By default
 		only attributes and dimensions are observed. Use deep flag to have children and character data observed too.
@@ -8799,10 +8808,11 @@ declare namespace Fit
 		* @function RemoveHandler
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed.
 		* @param {string} event - Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.).
-		* @param {boolean} useCapture - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+		If event handler was registered with event options for more fine-grained control, these options are passed instead.
 		* @param {Function} eventFunction - JavaScript function to remove.
 		*/
-		public static RemoveHandler(element:EventTarget, event:string, useCapture:boolean, eventFunction:Function):void;
+		public static RemoveHandler(element:EventTarget, event:string, useCaptureOrOptions:boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Function):void;
 		/**
 		* Remove mutation observer.
 		* @function RemoveMutationObserver
