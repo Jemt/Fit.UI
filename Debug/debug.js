@@ -4,12 +4,12 @@ view.LoadUrl("debug.html", function(sender)
 {
 	var item = null;
 
-	var input = new Fit.Controls.Input(Fit.Data.CreateGuid());
+	var input = new Fit.Controls.Input();
 	input.Value("Hello world");
 	item = view.Content.Controls.AddItem();
 	item.Control = input.GetDomElement();
 
-	var datepicker = new Fit.Controls.DatePicker(Fit.Data.CreateGuid());
+	var datepicker = new Fit.Controls.DatePicker();
 	datepicker.Date(new Date());
 	item = view.Content.Controls.AddItem();
 	item.Control = datepicker.GetDomElement();
