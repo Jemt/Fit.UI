@@ -1087,6 +1087,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -1631,6 +1632,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -2042,6 +2044,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -2807,6 +2810,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -3127,6 +3131,8 @@ declare namespace Fit
 			public DropZoneText(val?:string):string;
 			/**
 			* Get/set value indicating whether control is enabled or not.
+			Any files added to the control prior to being disabled, will
+			not be included with a traditional postback to the server.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If specified, True enables control, False disables it.
 			* @returns boolean
@@ -3327,6 +3333,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -3730,6 +3737,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -4936,6 +4944,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -6020,6 +6029,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
@@ -7375,6 +7385,7 @@ declare namespace Fit
 			public Clear():void;
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
 			* @function Enabled
 			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
 			* @returns boolean
