@@ -93,6 +93,7 @@ Fit.Controls.Input = function(ctlId)
 				designEditor.container.$.querySelector("[contenteditable]").tabIndex = input.disabled === true ? -1 : 0;
 			}
 
+			me._internal.UpdateInternalState();
 			me._internal.Repaint();
 		}
 

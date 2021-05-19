@@ -68,6 +68,7 @@ Fit.Controls.FilePicker = function(ctlId)
 	{
 		var inp = document.createElement("input");
 		inp.type = "file";
+		inp.name = "SelectedFiles" + me.GetId() + "[]"; // Used when uploading via postback - each file is sent separately as "SelectedFile" when uploading using the Upload(..) function
 		inp.onchange = function(e) // e may be null if called programmatically from FilePicker.Clear()
 		{
 			// The modern control clears any previously selected files when a new selection is made.
@@ -152,8 +153,6 @@ Fit.Controls.FilePicker = function(ctlId)
 		}
 		else // Legacy control
 		{
-			inp.name = "SelectedFile";
-
 			Fit.Array.Add(inputs, inp);
 			me._internal.AddDomElement(inp);
 		}
@@ -470,7 +469,11 @@ Fit.Controls.FilePicker = function(ctlId)
 	}
 
 	/// <function container="Fit.Controls.FilePicker" name="Enabled" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether control is enabled or not </description>
+	/// 	<description>
+	/// 		Get/set value indicating whether control is enabled or not.
+	/// 		Any files added to the control prior to being disabled, will
+	/// 		not be included with a traditional postback to the server.
+	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If specified, True enables control, False disables it </param>
 	/// </function>
 	this.Enabled = function(val)
@@ -497,6 +500,7 @@ Fit.Controls.FilePicker = function(ctlId)
 				});
 			}
 
+			me._internal.UpdateInternalState();
 			me._internal.Repaint();
 		}
 

@@ -259,6 +259,7 @@ Fit.Controls.CheckBox = function(ctlId)
 				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
 			}
 
+			me._internal.UpdateInternalState();
 			me._internal.Repaint();
 		}
 

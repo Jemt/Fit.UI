@@ -244,6 +244,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
+	var txtEnabled = null;
 	var baseControlDisabled = false;	// True if BaseControl's implementation of Enabled(..) disabled the control
 	var ie8DisabledLayer = null;		// Layer used to block clicks in IE8 when control is disabled
 
@@ -276,6 +277,11 @@ Fit.Controls.ControlBase = function(controlId)
 		txtValid.type = "hidden";
 		txtValid.name = "FitUIValid" + me.GetId();
 		Fit.Dom.Add(container, txtValid);
+
+		txtEnabled = document.createElement("input");
+		txtEnabled.type = "hidden";
+		txtEnabled.name = "FitUIEnabled" + me.GetId();
+		Fit.Dom.Add(container, txtEnabled);
 
 		me.OnChange(function(sender)
 		{
@@ -348,7 +354,7 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = baseControlDisabled = ie8DisabledLayer = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
 		base();
 	});
 
@@ -434,7 +440,10 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Enabled" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether control is enabled or disabled </description>
+	/// 	<description>
+	/// 		Get/set value indicating whether control is enabled or disabled.
+	/// 		A disabled control's value and state is still included on postback, if part of a form.
+	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined">
 	/// 		If defined, True enables control (default), False disables control.
 	/// 	</param>
@@ -450,7 +459,7 @@ Fit.Controls.ControlBase = function(controlId)
 			var disableSelector = "input, textarea, select, button";
 			var disableEvents = {
 				"contextmenu": preventEventDefault,
-				"click": stopEventPropagation,
+				"click": stopEventPropagation, // For a link it will also suppress navigation (prevent default) - see stopEventPropagation
 				"dblclick": stopEventPropagation,
 				"mousedown": stopEventPropagation,
 				"mouseup": stopEventPropagation,
@@ -493,11 +502,18 @@ Fit.Controls.ControlBase = function(controlId)
 
 				Fit.Array.ForEach(dom.querySelectorAll(disableSelector), function(elm)
 				{
+					// Disabled vs ReadOnly: https://stackoverflow.com/questions/7730695/whats-the-difference-between-disabled-disabled-and-readonly-readonly-for-ht
+
+					if (elm === txtValue || elm === txtDirty || elm === txtValid || elm === txtEnabled)
+					{
+						return; // Skip controls holding state so we can retain state across postbacks - these controls are hidden and have no event handlers attached
+					}
+
 					elm._fitDisabled = elm.disabled;
-					elm.disabled = true;
+					elm.disabled = true; // Element will not have events fired (e.g. OnFocus and OnClick), it does not receive focus on TAB navigation, and its value is excluded on form submit - most browsers grays out the element
 
 					elm._fitReadOnly = elm.readOnly;
-					elm.readOnly = true;
+					elm.readOnly = true; // Merely makes it read only, but without changing the appearance to reflect the read only state - not supported by all element types (e.g. <select> and <button>)
 				});
 
 				// Prevent focusable elements from gaining focus via click and tab navigation
@@ -564,6 +580,7 @@ Fit.Controls.ControlBase = function(controlId)
 				});
 			}
 
+			updateInternalState();
 			me._internal.Repaint();
 		}
 
@@ -1144,6 +1161,7 @@ Fit.Controls.ControlBase = function(controlId)
 		txtValue.value = me.Value().toString(); // TBD: Why .toString() ? It always returns a string!
 		txtDirty.value = ((me.IsDirty() === true) ? "1" : "0");
 		txtValid.value = ((me.IsValid() === true) ? "1" : "0");
+		txtEnabled.value = ((me.Enabled() === true) ? "1" : "0");
 
 		me._internal.Data("dirty", ((me.IsDirty() === true) ? "true" : "false"));
 	}
@@ -1318,6 +1336,11 @@ Fit.Controls.ControlBase = function(controlId)
 		}
 
 		me._internal.Repaint();
+	}
+
+	this._internal.UpdateInternalState = function()
+	{
+		updateInternalState();
 	}
 
 	init();
