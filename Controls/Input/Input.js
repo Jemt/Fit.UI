@@ -775,6 +775,18 @@ Fit.Controls.Input = function(ctlId)
 
 									return;
 								}
+
+								// Move dialog to control - otherwise placed in the root of the document where it pollutes,
+								// and makes it impossible to interact with the dialog in light dismissable panels and callouts.
+								// Dialog is placed alongside control and not within the control's container, to prevent Fit.UI
+								// styling from affecting the dialog.
+
+								var ckeDialogElement = this.getElement().$;
+								Fit.Dom.InsertAfter(Fit._internal.Controls.Input.ActiveEditorForDialog.GetDomElement(), ckeDialogElement);
+
+								// 2nd+ time dialog is opened it remains invisible - make it appear and position it
+								ckeDialogElement.style.display = !CKEDITOR.env.ie || CKEDITOR.env.edge ? "flex" : ""; // https://github.com/ckeditor/ckeditor4/blob/8b208d05d1338d046cdc8f971c9faf21604dd75d/plugins/dialog/plugin.js#L152
+								this.layout(); // 'this' is the dialog instance - layout() positions dialog
 							});
 
 							dialog.on("hide", function(ev) // Fires when user closes dialog, or when hide() is called on dialog, or if destroy() is called on editor instance from Dispose() or DesignMode(false)
