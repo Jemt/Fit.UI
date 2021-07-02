@@ -104,7 +104,7 @@ Fit.Http.Request = function(uri)
 		customHeaders[key.toLowerCase()] = { Key: key, Value: value };
 	}
 
-	/// <function container="Fit.Http.Request" name="GetHeader" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="GetHeader" access="public" returns="string | null">
 	/// 	<description> Get request header - returns Null if not found </description>
 	/// 	<param name="key" type="string"> Header name </param>
 	/// </function>
@@ -218,7 +218,7 @@ Fit.Http.Request = function(uri)
 			formData = {};
 			ensureContentTypeHeaderForFormData();
 		}
-		
+
 		formData[key] = { Value: value, Encode: (uriEncode !== false) };
 	}
 
@@ -229,11 +229,11 @@ Fit.Http.Request = function(uri)
 		Fit.Validation.ExpectBoolean(uriEncode, true);
 
 		Fit.Browser.Log("Use of deprecated AddData(..) function to set form data on instance of Fit.Http.Request - please use AddFormData(..) instead!")
-		
+
 		me.AddFormData(key, value, uriEncode);
 	}
 
-	/// <function container="Fit.Http.Request" name="GetFormData" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="GetFormData" access="public" returns="string | null">
 	/// 	<description> Get form value added to form data collection - returns Null if not found </description>
 	/// 	<param name="key" type="string"> Data key </param>
 	/// </function>
@@ -266,9 +266,9 @@ Fit.Http.Request = function(uri)
 			me.RemoveHeader("content-type");
 	}
 
-	/// <function container="Fit.Http.Request" name="Method" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="Method" access="public" returns='"GET" | "POST" | "HEAD" | "PUT" | "DELETE" | "OPTIONS"'>
 	/// 	<description> Get/set request method (e.g. GET, POST, HEAD, PUT, DELETE, OPTIONS) </description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, changes HTTP request method to specified value </param>
+	/// 	<param name="val" type='"GET" | "POST" | "HEAD" | "PUT" | "DELETE" | "OPTIONS"' default="undefined"> If defined, changes HTTP request method to specified value </param>
 	/// </function>
 	this.Method = function(val)
 	{
@@ -419,7 +419,7 @@ Fit.Http.Request = function(uri)
 		return httpRequest.responseText;
 	}
 
-	/// <function container="Fit.Http.Request" name="GetResponseJson" access="public" returns="object">
+	/// <function container="Fit.Http.Request" name="GetResponseJson" access="public" returns="object | null">
 	/// 	<description>
 	/// 		Returns result from request as JSON object, Null if no response was returned.
 	/// 		Return value will only be as expected if GetCurrentState() returns a value of 4
@@ -473,7 +473,7 @@ Fit.Http.Request = function(uri)
 		return httpRequest.status;
 	}
 
-	/// <function container="Fit.Http.Request" name="GetResponseHeaders" access="public" returns="object[]">
+	/// <function container="Fit.Http.Request" name="GetResponseHeaders" access="public" returns="{ Key: string, Value: string }[]">
 	/// 	<description> Get response headers - returned array contain objects with Key (string) and Value (string) properties </description>
 	/// </function>
 	this.GetResponseHeaders = function()
@@ -492,24 +492,48 @@ Fit.Http.Request = function(uri)
 		return headers;
 	}
 
-	/// <function container="Fit.Http.Request" name="GetResponseHeader" access="public" returns="string">
+	/// <function container="Fit.Http.Request" name="GetResponseHeader" access="public" returns="string | null">
 	/// 	<description> Get response header (e.g. text/html) - returns Null if not found </description>
 	/// 	<param name="key" type="string"> Header key (e.g. Content-Type) </param>
 	/// </function>
 	this.GetResponseHeader = function(key)
 	{
 		Fit.Validation.ExpectString(key);
-		return httpRequest.getResponseHeader(key);
+
+		var headerValue = httpRequest.getResponseHeader(key);
+
+		if (headerValue === "" && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 10) // Legacy IE returns an empty string for non-existing headers - make sure it exists or return Null if it does not
+		{
+			var found = false;
+
+			Fit.Array.ForEach(me.GetResponseHeaders(), function(header)
+			{
+				if (header.Key.toLowerCase() === key.toLowerCase())
+				{
+					found = true;
+					return false; // Break loop
+				}
+			});
+
+			headerValue = (found === true ? headerValue : null);
+		}
+
+		return headerValue;
 	}
 
 	// Events
+
+	/// <function container="Fit.Http.RequestTypeDefs" name="EventHandler">
+	/// 	<description> Request event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of request which triggered event </param>
+	/// </function>
 
 	/// <function container="Fit.Http.Request" name="OnStateChange" access="public">
 	/// 	<description>
 	/// 		Add function to invoke when request state is changed.
 	/// 		Use GetCurrentState() to read the state at the given time.
 	/// 	</description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when state changes.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -527,7 +551,7 @@ Fit.Http.Request = function(uri)
 	/// 		Add function to invoke when request is initiated.
 	/// 		Request can be canceled by returning False.
 	/// 	</description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request is initiated.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -540,7 +564,7 @@ Fit.Http.Request = function(uri)
 
 	/// <function container="Fit.Http.Request" name="OnSuccess" access="public">
 	/// 	<description> Add function to invoke when request is successful </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request finished successfully.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -553,7 +577,7 @@ Fit.Http.Request = function(uri)
 
 	/// <function container="Fit.Http.Request" name="OnFailure" access="public">
 	/// 	<description> Add function to invoke when request is unsuccessful </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request finished, but not successfully.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -566,7 +590,7 @@ Fit.Http.Request = function(uri)
 
 	/// <function container="Fit.Http.Request" name="OnAbort" access="public">
 	/// 	<description> Add function to invoke when request is canceled </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.RequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request is canceled.
 	/// 		Fit.Http.Request instance is passed to function.
 	/// 	</param>
@@ -607,7 +631,7 @@ Fit.Http.Request = function(uri)
 		{
 			Fit.Array.ForEach(onStateChange, function(handler) { handler(me); });
 		},
-		
+
 		FireOnSuccess: function()
 		{
 			Fit.Array.ForEach(onSuccessHandlers, function(handler) { handler(me); });
@@ -740,7 +764,7 @@ Fit.Http.JsonRequest = function(url)
 		Fit.Validation.ThrowError("Use SetData(..) to set JSON request data for JSON WebService");
 	}
 
-	/// <function container="Fit.Http.JsonRequest" name="GetResponseJson" access="public" returns="object">
+	/// <function container="Fit.Http.JsonRequest" name="GetResponseJson" access="public" returns="object | null">
 	/// 	<description>
 	/// 		Returns result from request as JSON object, Null if no response was returned.
 	/// 		Return value will only be as expected if GetCurrentState() returns a value of 4
@@ -870,7 +894,7 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 		data[key] = ((uriEncode === false) ? value : encodeURIComponent(value).replace(/%20/g, "+"));
 	}
 
-	/// <function container="Fit.Http.JsonpRequest" name="GetParameter" access="public" returns="string">
+	/// <function container="Fit.Http.JsonpRequest" name="GetParameter" access="public" returns="string | null">
 	/// 	<description> Get URL parameter value - returns Null if parameter is not defined </description>
 	/// 	<param name="key" type="string"> URL parameter key </param>
 	/// </function>
@@ -981,12 +1005,17 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 
 	// Events
 
+	/// <function container="Fit.Http.JsonpRequestTypeDefs" name="EventHandler">
+	/// 	<description> JsonpRequest event handler </description>
+	/// 	<param name="sender" type="Fit.Http.JsonpRequest"> Instance of JsonpRequest which triggered event </param>
+	/// </function>
+
 	/// <function container="Fit.Http.JsonpRequest" name="OnRequest" access="public">
 	/// 	<description>
 	/// 		Add function to invoke when request is initiated.
 	/// 		Request can be canceled by returning False.
 	/// 	</description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.JsonpRequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request is initiated.
 	/// 		Fit.Http.JsonpRequest instance is passed to function.
 	/// 	</param>
@@ -999,7 +1028,7 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 
 	/// <function container="Fit.Http.JsonpRequest" name="OnSuccess" access="public">
 	/// 	<description> Add function to invoke when request is successful </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.JsonpRequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request finished successfully.
 	/// 		Fit.Http.JsonpRequest instance is passed to function.
 	/// 	</param>
@@ -1012,7 +1041,7 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 
 	/// <function container="Fit.Http.JsonpRequest" name="OnTimeout" access="public">
 	/// 	<description> Add function to invoke when request is unsuccessful due to timeout </description>
-	/// 	<param name="func" type="function">
+	/// 	<param name="func" type="Fit.Http.JsonpRequestTypeDefs.EventHandler">
 	/// 		JavaScript function invoked when request timed out.
 	/// 		Fit.Http.JsonpRequest instance is passed to function.
 	/// 	</param>

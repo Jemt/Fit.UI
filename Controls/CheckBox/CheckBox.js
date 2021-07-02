@@ -89,9 +89,10 @@ Fit.Controls.CheckBox = function(ctlId)
 	}
 
 	// See documentation on ControlBase
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -99,11 +100,11 @@ Fit.Controls.CheckBox = function(ctlId)
 
 			if (valStr === "true")
 			{
-				me.Checked(true);
+				me.Checked(true, preserveDirtyState);
 			}
 			else if (valStr === "false")
 			{
-				me.Checked(false);
+				me.Checked(false, preserveDirtyState);
 			}
 		}
 
@@ -113,8 +114,13 @@ Fit.Controls.CheckBox = function(ctlId)
 	/// <function container="Fit.Controls.CheckBox" name="Checked" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether control is checked </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, control's checked state is updated to specified value </param>
+	/// 	<param name="preserveDirtyState" type="boolean" default="false">
+	/// 		If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+	/// 		If dirty state is reset (default), the control value will be compared against the value passed,
+	/// 		to determine whether it has been changed by the user or not, when IsDirty() is called.
+	/// 	</param>
 	/// </function>
-	this.Checked = function(val, preserveDirtyState) // preserveDirtyState is for internal use only - do not add to documentation!
+	this.Checked = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
@@ -138,10 +144,10 @@ Fit.Controls.CheckBox = function(ctlId)
 		return (Fit.Dom.Data(me.GetDomElement(), "checked") === "true");
 	}
 
-	/// <function container="Fit.Controls.CheckBox" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.CheckBox" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit) // Differs from ControlBase.Width(..) when -1 is passed - this control resets to width:auto while ControlBase resets to width:200px
 	{
@@ -240,10 +246,21 @@ Fit.Controls.CheckBox = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(val) === true)
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
 		{
 			Fit.Dom.Data(me.GetDomElement(), "enabled", val.toString());
-			me.GetDomElement().tabIndex = ((val === true) ? 0 : -1);
+
+			if (val === true)
+			{
+				me.GetDomElement().tabIndex = 0;
+			}
+			else
+			{
+				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
+			}
+
+			me._internal.UpdateInternalState();
+			me._internal.Repaint();
 		}
 
 		return (Fit.Dom.Data(me.GetDomElement(), "enabled") === "true");

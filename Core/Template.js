@@ -1,4 +1,5 @@
 /// <container name="Fit.Template">
+/// 	<![CDATA[
 /// 	Templating engine allowing for separation between layout and logic.
 ///
 /// 	// Example code
@@ -47,6 +48,7 @@
 /// 	&#160;&#160;&#160;&#160; &lt;/tr&gt;
 /// 	&#160;&#160;&#160;&#160; &lt;!-- /LIST Users --&gt;
 /// 	&lt;/table&gt;
+/// 	]]>
 /// </container>
 
 /// <function container="Fit.Template" name="Template" access="public">
@@ -107,10 +109,16 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 		parse(htmlSource);
 	}
 
+	/// <function container="Fit.TemplateTypeDefs" name="LoadUrlCallback">
+	/// 	<description> Callback invoked when template is loaded </description>
+	/// 	<param name="sender" type="Fit.Template"> Instance of Template </param>
+	/// 	<param name="html" type="string"> Template's HTML content </param>
+	/// </function>
+
 	/// <function container="Fit.Template" name="LoadUrl" access="public">
 	/// 	<description> Load HTML from URL asynchronously </description>
 	/// 	<param name="url" type="string"> URL to HTML template </param>
-	/// 	<param name="cb" type="function">
+	/// 	<param name="cb" type="Fit.TemplateTypeDefs.LoadUrlCallback">
 	/// 		Callback function invoked once HTML template has
 	/// 		been loaded. Template instance and raw HTML data
 	/// 		is passed to function. At this point placeholders
@@ -257,7 +265,7 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 
 		var renderTarget = ((container !== null) ? container : toElement);
 		var nodes = Fit.Array.Copy(dom.childNodes); // Copy to prevent "Collection was modified" error when rendering elements, which moves them to a new parent
-		
+
 		nodesRendered = [];
 
 		if (Fit.Validation.IsSet(renderTarget) === true)
@@ -296,16 +304,64 @@ Fit.Template = function(refreshable, autoDispose) // http://fiddle.jshell.net/5s
 	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
 	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
 	/// 	<param name="elmId" type="string"> Element ID </param>
-	/// 	<param name="eventType" type="string"> Event type (e.g. &quot;click&quot; or &quot;mouseover&quot;) </param>
-	/// 	<param name="cb" type="function"> Event handler function which takes event argument </param>
+	/// 	<param name="event" type='"keydown" | "keyup" | "keypress"'> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackKeyboard"> JavaScript function to register </param>
 	/// </function>
-	this.AddEventHandler = function(elmId, eventType, cb)
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type='"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"'> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackMouse"> JavaScript function to register </param>
+	/// </function>
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type='"popstate"'> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackPopState"> JavaScript function to register </param>
+	/// </function>
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type='"hashchange"'> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackHashChange"> JavaScript function to register </param>
+	/// </function>
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type='"focus" | "focusin" | "focusout" | "blur"'> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackFocus"> JavaScript function to register </param>
+	/// </function>
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type='"beforeunload"'> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload"> JavaScript function to register </param>
+	/// </function>
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type='"cut" | "copy" | "paste"'> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
+	/// </function>
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type='"#rooted"'> Event name </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackRooted"> JavaScript function to register </param>
+	/// </function>
+	/// <function container="Fit.Template" name="AddEventHandler" access="public" returns="integer">
+	/// 	<description> Add event handler to element within template given by element ID - event handler ID is returned </description>
+	/// 	<param name="elmId" type="string"> Element ID </param>
+	/// 	<param name="event" type="string"> Event name without the 'on' prefix </param>
+	/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackGeneric"> JavaScript function to register </param>
+	/// </function>
+	this.AddEventHandler = function(elmId, event, eventFunction)
 	{
 		Fit.Validation.ExpectStringValue(elmId);
-		Fit.Validation.ExpectStringValue(eventType);
-		Fit.Validation.ExpectFunction(cb);
+		Fit.Validation.ExpectStringValue(event);
+		Fit.Validation.ExpectFunction(eventFunction);
 
-		Fit.Array.Add(eventHandlers, { ElementId: elmId, EventType: eventType, Callback: cb });
+		Fit.Array.Add(eventHandlers, { ElementId: elmId, EventType: event, Callback: eventFunction });
 		return (eventHandlers.length - 1);
 	}
 

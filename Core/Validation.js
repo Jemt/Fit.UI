@@ -27,6 +27,12 @@ Fit._internal.Validation.Clone = null;
 	// Make sure we can use Fit.Validation.ExpectInstance(selectedFileFromInput, File, true)
 	if (!window.File)
 		window.File = function() {};
+
+	// Some versions of Firefox temporarily removed NamedNodeMap.
+	// They renamed it to MozNamedAttrMap, but it was later restored.
+	// https://bugzilla.mozilla.org/show_bug.cgi?id=858344
+	if (!window.NamedNodeMap)
+		window.NamedNodeMap = function() {};
 })();
 
 // ==========================================================
@@ -443,7 +449,7 @@ Fit.Validation.IsSet = function(obj)
 
 /// <function container="Fit.Validation" name="ThrowError" access="public" static="true">
 /// 	<description> Throw error and provide stack trace to browser console </description>
-/// 	<param name="msg" type="object"> Object to validate </param>
+/// 	<param name="msg" type="string"> Error message </param>
 /// </function>
 Fit.Validation.ThrowError = function(msg)
 {
@@ -520,6 +526,8 @@ Fit._internal.Validation.IsCollectionType = function(val) // Used by Fit.Validat
 	else if (val instanceof StaticNodeList)
 		return true;
 	else if (val instanceof HTMLCollection)
+		return true;
+	else if (val instanceof NamedNodeMap)
 		return true;
 	else if (val instanceof FileList)
 		return true;

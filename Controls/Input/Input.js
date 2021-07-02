@@ -25,6 +25,7 @@ Fit.Controls.Input = function(ctlId)
 	var minMaxUnit = null;
 	var mutationObserverId = -1;
 	var rootedEventId = -1;
+	var createWhenReadyIntervalId = -1;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	// ============================================
@@ -74,38 +75,139 @@ Fit.Controls.Input = function(ctlId)
 	// ============================================
 
 	// See documentation on ControlBase
+	this.Enabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
+		{
+			me._internal.Data("enabled", val === true ? "true" : "false");
+
+			input.disabled = val === false;
+
+			if (designEditor !== null && designEditor._isReadyForInteraction === true) // ReadOnly mode will be set when instance is ready, if not ready at this time
+			{
+				designEditor.setReadOnly(input.disabled);
+
+				// Unfortunately there is no API for changing the tabIndex
+				designEditor.container.$.querySelector("[contenteditable]").tabIndex = input.disabled === true ? -1 : 0;
+			}
+
+			me._internal.UpdateInternalState();
+			me._internal.Repaint();
+		}
+
+		return me._internal.Data("enabled") === "true";
+	}
+
+	// See documentation on ControlBase
 	this.Focused = function(focus)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
 
-		var elm = ((designEditor !== null) ? designEditor : input);
+		var elm = ((designEditor !== null) ? designEditor : input); // Notice: designEditor is an instance of CKEditor, not a DOM element
 
 		if (Fit.Validation.IsSet(focus) === true)
 		{
 			if (focus === true)
+			{
+				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
+				{
+					// Remove flag used to auto close editor dialog, in case Focused(false)
+					// was called followed by Focused(true), while editor dialog was loading.
+					delete Fit._internal.Controls.Input.ActiveDialogForEditorCanceled;
+				}
+
 				elm.focus();
-			else if (elm !== designEditor) // Blur doesn't work for CKEditor!
-				elm.blur();
+			}
+			else // Remove focus
+			{
+				if (designEditor !== null)
+				{
+					if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
+					{
+						if (Fit._internal.Controls.Input.ActiveDialogForEditor !== null)
+						{
+							// A dialog (e.g. link or image dialog) is currently open, and will now be closed
+
+							// Hide dialog - fires dialog's OnHide event and returns focus to editor
+							Fit._internal.Controls.Input.ActiveDialogForEditor.hide();
+
+							// CKEditor instance has no blur() function, so we call blur() on DOM element currently focused within CKEditor
+							Fit.Dom.GetFocused().blur();
+
+							// Fire OnBlur manually as blur() above didn't trigger this, as it normally
+							// would. The call to the dialog's hide() function fires its OnHide event
+							// which disables the focus lock, but does so asynchronously, which is
+							// why OnBlur does not fire via ControlBase's onfocusout handler.
+							me._internal.FireOnBlur();
+						}
+						else
+						{
+							// A dialog (e.g. link or image dialog) is currently loading. This situation
+							// can be triggered for debugging purposes by adding the following code in the
+							// beforeCommandExec event handler:
+							// setTimeout(function() { me.Focused(false); }, 0);
+							// Alternatively register an onwheel/onscroll handler on the document that
+							// removes focus from the control, and quickly scroll the document while the
+							// dialog is loading. Use network throttling to increase the load time of the
+							// dialog if necessary.
+
+							// Make dialog close automatically when loaded and shown - handled in dialog's OnShow event handler
+							Fit._internal.Controls.Input.ActiveDialogForEditorCanceled = true;
+
+							// CKEditor instance has no blur() function, so we call blur() on DOM element currently focused within CKEditor.
+							// Notice that OnBlur does not fire immediately (focus state is locked), but does so when dialog's OnHide event fires (async).
+							// While we could fire it immediately and prevent it from firing when the dialog's OnHide event fires, it would prevent
+							// developers from using the OnBlur event to dispose a control in Design Mode, since CKEditor fails when being disposed
+							// while dialogs are open. Focused() will return False after the call to blur() below though - as expected.
+							Fit.Dom.GetFocused().blur();
+						}
+					}
+					else
+					{
+						// Make sure this control is focused so that one control instance can not
+						// be used to accidentially remove focus from another control instance.
+						if (Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused()) === true)
+						{
+							// CKEditor instance has no blur() function, so we call blur() on DOM element currently focused within CKEditor
+							Fit.Dom.GetFocused().blur();
+						}
+					}
+				}
+				else
+				{
+					elm.blur();
+				}
+			}
 		}
 
 		if (designEditor !== null)
 		{
-			return (designEditor._focused === true); // Focused element is found in an iFrame so we have to rely on the HTML Editor instance to provide this information
+			// Considered focused if a dialog is opened.
+			// DISABLED:
+			// Only one element on a page can be focused, and with this approach, two individual
+			// controls could both return True from Focused() which does not seem appropriate.
+			/*if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
+				return true;*/
+
+			return Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused());
 		}
 
 		return (Fit.Dom.GetFocused() === elm);
 	}
 
 	// See documentation on ControlBase
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			var fireOnChange = (me.Value() !== val);
+			var fireOnChange = (designEditor === null && me.Value() !== val); // DesignEditor invokes input.onchange() if value is changed
 
-			orgVal = val;
+			orgVal = (preserveDirtyState !== true ? val : orgVal);
 			preVal = val;
 
 			if (designEditor !== null)
@@ -140,8 +242,49 @@ Fit.Controls.Input = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
+		if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
+		{
+			if (Fit._internal.Controls.Input.ActiveDialogForEditor === null)
+			{
+				// Dialog is currently loading.
+				// CKEditor will throw an error if disposed while a dialog (e.g. the link dialog) is loading,
+				// leaving a modal layer on the page behind, making it unusable. This may happen if disposed
+				// from e.g. a DOM event handler, a mutation observer, a timer, or an AJAX request. The input control
+				// itself does not fire any events while the dialog is loading which could trigger this situation, so
+				// this can only happen from "external code".
+
+				// WARNING: This has the potential to leak memory if dialog never loads and resumes task of disposing control!
+				Fit._internal.Controls.Input.ActiveEditorForDialogDestroyed = designEditor;
+				Fit.Dom.Remove(me.GetDomElement());
+
+				// Detect memory leak
+				/* setTimeout(function()
+				{
+					if (me !== null)
+					{
+						Fit.Browser.Log("WARNING: Input in DesignMode was not properly disposed in time - potential memory leak detected");
+					}
+				}, 5000); // Usually the load time for a dialog is barely measurable, so 5 seconds seems sufficient */
+
+				return;
+			}
+			else
+			{
+				Fit._internal.Controls.Input.ActiveDialogForEditor.hide(); // Fires dialog's OnHide event
+			}
+		}
+
 		if (designEditor !== null)
+		{
+			// Destroying editor also fires OnHide event for any dialog currently open, which will clean up
+			// Fit._internal.Controls.Input.ActiveEditorForDialog;
+			// Fit._internal.Controls.Input.ActiveEditorForDialogDestroyed;
+			// Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed;
+			// Fit._internal.Controls.Input.ActiveDialogForEditor;
+			// Fit._internal.Controls.Input.ActiveDialogForEditorCanceled;
+
 			designEditor.destroy();
+		}
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
@@ -155,7 +298,12 @@ Fit.Controls.Input = function(ctlId)
 			Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = isIe8 = null;
+		if (createWhenReadyIntervalId !== -1)
+		{
+			clearInterval(createWhenReadyIntervalId);
+		}
+
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = null;
 
 		base();
 	});
@@ -333,12 +481,16 @@ Fit.Controls.Input = function(ctlId)
 
 			if (val === true && input.tagName === "INPUT")
 			{
+				var focused = me.Focused();
+
 				var oldInput = input;
 				me._internal.RemoveDomElement(oldInput);
 
 				input = document.createElement("textarea");
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
+				input.placeholder = oldInput.placeholder;
+				input.disabled = oldInput.disabled;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
@@ -346,11 +498,16 @@ Fit.Controls.Input = function(ctlId)
 				if (me.Height().Value === -1)
 					me.Height(150);
 
+				if (focused === true)
+					input.focus();
+
 				me._internal.Data("multiline", "true");
 				repaint();
 			}
 			else if (val === false && input.tagName === "TEXTAREA")
 			{
+				var focused = me.Focused();
+
 				var oldInput = input;
 				me._internal.RemoveDomElement(oldInput);
 
@@ -369,11 +526,16 @@ Fit.Controls.Input = function(ctlId)
 				input.type = "text";
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
+				input.placeholder = oldInput.placeholder;
+				input.disabled = oldInput.disabled;
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
 
 				me.Height(-1);
+
+				if (focused === true)
+					input.focus();
 
 				wasMultiLineBefore = false;
 
@@ -429,9 +591,11 @@ Fit.Controls.Input = function(ctlId)
 				// Create maximize/minimize button
 
 				cmdResize = document.createElement("span");
+				cmdResize.tabIndex = -1; // Allow button to temporarily gain focus so control does not fire OnBlur
 				cmdResize.onclick = function()
 				{
 					me.Maximized(!me.Maximized());
+					me.Focused(true);
 				}
 				Fit.Dom.AddClass(cmdResize, "fa");
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
@@ -506,8 +670,20 @@ Fit.Controls.Input = function(ctlId)
 		{
 			var designMode = (me._internal.Data("designmode") === "true");
 
+			if (Fit._internal.Controls.Input.ActiveEditorForDialog === me && Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed === true)
+				designMode = false; // Not considered in Design Mode if scheduled to be disabled (postponed because a dialog is currently loading)
+
 			if (val === true && designMode === false)
 			{
+				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
+				{
+					// Control is actually already in Design Mode, but waiting
+					// for dialog to finish loading, so DesignMode can be disabled (scheduled).
+					// Remove flag responsible for disabling DesignMode so it remains an editor.
+					delete Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed;
+					return;
+				}
+
 				if (me.MultiLine() === true)
 					wasMultiLineBefore = true;
 				else
@@ -521,32 +697,179 @@ Fit.Controls.Input = function(ctlId)
 
 					Fit.Loader.LoadScript(Fit.GetUrl() + "/Resources/CKEditor/ckeditor.js", function(src) // Using Fit.GetUrl() rather than Fit.GetPath() to allow editor to be used on e.g. JSFiddle (Cross-Origin Resource Sharing policy)
 					{
+						// WARNING: Control could potentially have been disposed at this point, but
+						// we still need to finalize the configuration of CKEditor which is global.
+
 						if (Fit.Validation.IsSet(Fit._internal.Controls.Input.DefaultSkin) === true)
 						{
 							CKEDITOR.config.skin = Fit._internal.Controls.Input.DefaultSkin;
 						}
-						
+
+						// Register OnShow and OnHide event handlers when a dialog is opened for the first time.
+						// IMPORTANT: These event handlers are shared by all input control instances in Design Mode,
+						// so we cannot use 'me' to access the current control for which a dialog is opened.
+						// Naturally 'me' will always be a reference to the first control that opened a given dialog.
+						CKEDITOR.on("dialogDefinition", function(e) // OnDialogDefinition fires only once
+						{
+							//var dialogName = e.data.name;
+							var dialog = e.data.definition.dialog;
+
+							dialog.on("show", function(ev)
+							{
+								if (Fit._internal.Controls.Input.ActiveDialogForEditorCanceled)
+								{
+									// Focused(false) was called on control while dialog was loading - close dialog
+
+									if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 9)
+									{
+										// CKEditor uses setTimeout(..) to focus an input field in the dialog, but if the dialog is
+										// closed immediately, that input field will be removed from DOM along with the dialog of course,
+										// which in IE8 results in an error:
+										// "Can't move focus to the control because it is invisible, not enabled, or of a type that does not accept the focus."
+										// Other browsers simply ignore the request to focus a control that is no longer found in DOM.
+										setTimeout(function()
+										{
+											ev.sender.hide(); // Fires OnHide
+										}, 100);
+									}
+									else
+									{
+										ev.sender.hide(); // Fires OnHide
+									}
+
+									return;
+								}
+
+								if (Fit._internal.Controls.Input.ActiveEditorForDialog === undefined)
+									return; // Control was disposed while waiting for dialog to load and open
+
+								// Keep instance to dialog so we can close it if e.g. Focused(false) is invoked
+								Fit._internal.Controls.Input.ActiveDialogForEditor = ev.sender;
+
+								if (Fit._internal.Controls.Input.ActiveEditorForDialogDestroyed)
+								{
+									// Dispose() was called on control while dialog was loading.
+									// Since destroying editor while a dialog is loading would cause
+									// an error in CKEditor, the operation has been postponed til dialog's
+									// OnShow event fires, and the dialog is ready.
+									setTimeout(function()
+									{
+										// Dispose() calls destroy() on editor which closes dialog and causes the dialog's OnHide event to fire.
+										// Dispose() uses Fit._internal.Controls.Input.ActiveDialogForEditor, which is why it is set above, before
+										// checking whether control has been destroyed (scheduled for destruction).
+										Fit._internal.Controls.Input.ActiveEditorForDialog.Dispose();
+									}, 0); // Postponed - CKEditor throws an error if destroyed from OnShow event handler
+
+									return;
+								}
+
+								if (Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed)
+								{
+									setTimeout(function()
+									{
+										delete Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed;
+
+										// DesignMode(false) calls destroy() on editor which closes dialog and causes the dialog's OnHide event to fire.
+										Fit._internal.Controls.Input.ActiveEditorForDialog.DesignMode(false);
+									}, 0); // Postponed - CKEditor throws an error if destroyed from OnShow event handler
+
+									return;
+								}
+
+								// Move dialog to control - otherwise placed in the root of the document where it pollutes,
+								// and makes it impossible to interact with the dialog in light dismissable panels and callouts.
+								// Dialog is placed alongside control and not within the control's container, to prevent Fit.UI
+								// styling from affecting the dialog.
+
+								var ckeDialogElement = this.getElement().$;
+								Fit.Dom.InsertAfter(Fit._internal.Controls.Input.ActiveEditorForDialog.GetDomElement(), ckeDialogElement);
+
+								// 2nd+ time dialog is opened it remains invisible - make it appear and position it
+								ckeDialogElement.style.display = !CKEDITOR.env.ie || CKEDITOR.env.edge ? "flex" : ""; // https://github.com/ckeditor/ckeditor4/blob/8b208d05d1338d046cdc8f971c9faf21604dd75d/plugins/dialog/plugin.js#L152
+								this.layout(); // 'this' is the dialog instance - layout() positions dialog
+							});
+
+							dialog.on("hide", function(ev) // Fires when user closes dialog, or when hide() is called on dialog, or if destroy() is called on editor instance from Dispose() or DesignMode(false)
+							{
+								var inputControl = Fit._internal.Controls.Input.ActiveEditorForDialog;
+								var showCanceledDueToBlur = Fit._internal.Controls.Input.ActiveDialogForEditorCanceled === true;
+
+								// Clean up global references accessible while dialog is open
+								delete Fit._internal.Controls.Input.ActiveEditorForDialog;
+								delete Fit._internal.Controls.Input.ActiveEditorForDialogDestroyed;
+								delete Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed;
+								delete Fit._internal.Controls.Input.ActiveDialogForEditor;
+								delete Fit._internal.Controls.Input.ActiveDialogForEditorCanceled;
+
+								// Disable focus lock - let ControlBase handle OnFocus and OnBlur automatically again.
+								// This is done postponed since unlocking it immediately will cause OnFocus to fire when
+								// dialog returns focus to the editor.
+								setTimeout(function()
+								{
+									if (inputControl.GetDomElement() === null)
+										return; // Control was disposed - OnHide was fired because destroy() was called on editor instance from Dispose()
+
+									inputControl._internal.FocusStateLocked(false);
+
+									if (showCanceledDueToBlur === true)
+									{
+										// Undo focus which dialog returned to editor.
+										// ControlBase fires OnBlur because focus state was unlocked above.
+										Fit.Dom.GetFocused().blur();
+									}
+								}, 0);
+							});
+						});
+
+						if (me === null)
+							return; // Control was disposed while waiting for jQuery UI to load
+
+						if (me.DesignMode() === false)
+							return; // DesignMode was disabled while waiting for resources to load
+
 						createEditor();
 					});
 				}
 				else if (window.CKEDITOR === null)
 				{
-					var iId = -1;
-					iId = setInterval(function()
+					if (createWhenReadyIntervalId === -1) // Make sure DesignMode has not been enabled multiple times - e.g. DesignMode(true); DesignMode(false); DesignMode(true); - in which case an interval timer may already be "waiting" for CKEditor resources to finish loading
 					{
-						if (me === null)
+						createWhenReadyIntervalId = setInterval(function()
 						{
-							// Control was disposed while waiting for CKEditor to finish loading
-							clearInterval(iId);
-							return;
-						}
+							/*if (me === null)
+							{
+								// Control was disposed while waiting for CKEditor to finish loading
+								clearInterval(iId);
+								return;
+							}*/
 
-						if (window.CKEDITOR !== null)
-						{
-							clearInterval(iId);
-							createEditor();
-						}
-					}, 500);
+							if (window.CKEDITOR !== null)
+							{
+								clearInterval(createWhenReadyIntervalId);
+								createWhenReadyIntervalId = -1;
+
+								// Create editor if still in DesignMode (might have been disabled while waiting for
+								// CKEditor resources to finish loading), and if editor has not already been created.
+								// Editor may already exist if control had DesignMode enabled, then disabled, and then
+								// enabled once again.
+								// If the control is the first one to enabled DesignMode, it will start loading CKEditor
+								// resources and postpone editor creation until resources have finished loading.
+								// When disabled and re-enabled, the control will realize that resources are being loaded,
+								// and postpone editor creation once again, this time using the interval timer here.
+								// When resources are loaded, it will create the editor instances, and when the interval
+								// timer here executes, it will also create the editor instance, unless we prevent it by
+								// making sure only to do it if designEditor is null. Without this check we might experience
+								// the following warning in the browser console, when editor is being created on the same
+								// textarea control multiple times:
+								// [CKEDITOR] Error code: editor-element-conflict. {editorName: "64992ea4-bd01-4081-b606-aa9ff23f417b_DesignMode"}
+								// [CKEDITOR] For more information about this error go to https://ckeditor.com/docs/ckeditor4/latest/guide/dev_errors.html#editor-element-conflict
+								if (me.DesignMode() === true && designEditor === null)
+								{
+									createEditor();
+								}
+							}
+						}, 500);
+					}
 				}
 				else
 				{
@@ -558,13 +881,76 @@ Fit.Controls.Input = function(ctlId)
 			}
 			else if (val === false && designMode === true)
 			{
-				designEditor.destroy(); // Editor content automatically synchronized to input control when destroyed
-				designEditor = null;
+				var focused = me.Focused();
+
+				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
+				{
+					if (Fit._internal.Controls.Input.ActiveDialogForEditor !== null)
+					{
+						focused = true; // Always considered focused when a dialog is open - Focused() returns False which is actually the truth
+						Fit._internal.Controls.Input.ActiveDialogForEditor.hide(); // Fires dialog's OnHide event
+					}
+					else
+					{
+						// Dialog is still loading - calling designEditor.destroy() below will cause an error,
+						// leaving a modal layer on the page behind, making it unusable. This may happen if Design Mode is disabled
+						// from e.g. a DOM event handler, a mutation observer, a timer, or an AJAX request. The input control
+						// itself does not fire any events while the dialog is loading which could trigger this situation, so
+						// this can only happen from "external code".
+
+						// WARNING: This has the potential to leak memory if dialog never loads and resumes task of destroying control!
+						Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed = true;
+
+						// Detect memory leak
+						/* setTimeout(function()
+						{
+							if (me !== null && me.DesignMode() === false && Fit._internal.Controls.Input.ActiveEditorForDialog === me)
+							{
+								Fit.Browser.Log("WARNING: Input in DesignMode was not properly disposed in time - potential memory leak detected");
+							}
+						}, 5000); // Usually the load time for a dialog is barely measurable, so 5 seconds seems sufficient */
+
+						return;
+					}
+				}
+
+				// Destroy editor - content is automatically synchronized to input control.
+				// Calling destroy() fires OnHide for any dialog currently open, which in turn
+				// disables locked focus state and returns focus to the control.
+				if (designEditor !== null) // Will be null if DesignMode is being disabled while CKEditor resources are loading, in which case editor has not yet been created - e.g. DesignMode(true); DesignMode(false);
+				{
+					designEditor.destroy();
+					designEditor = null;
+				}
 
 				me._internal.Data("designmode", "false");
 
 				if (wasMultiLineBefore === false)
 					me.MultiLine(false);
+
+				// Remove tabindex used to prevent control from losing focus when clicking toolbar buttons
+				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
+
+				if (focused === true)
+				{
+					if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 9 && me.MultiLine() === false)
+					{
+						// On IE8 input.focus() does not work if input field is switched to a single line control
+						// above (MultiLine(false)). Wrapping the code in setTimeout(..) solves the problem.
+
+						setTimeout(function()
+						{
+							if (me === null)
+								return; // Control was disposed
+
+							input.focus();
+						}, 0);
+					}
+					else
+					{
+						input.focus();
+					}
+				}
 
 				repaint();
 			}
@@ -611,6 +997,11 @@ Fit.Controls.Input = function(ctlId)
 
 			setTimeout(function() // Queue to allow control to be rooted
 			{
+				if (me === null)
+				{
+					return; // Control was disposed
+				}
+
 				if (retry() === false)
 				{
 					// Still not rooted - add observer to create editor instance once control is rooted
@@ -633,11 +1024,29 @@ Fit.Controls.Input = function(ctlId)
 		var locale = Fit.Internationalization.Locale().length === 2 ? Fit.Internationalization.Locale() : Fit.Internationalization.Locale().substring(0, 2);
 		var lang = Fit.Array.Contains(langSupport, locale) === true ? locale : "en";
 
+		// Prevent control from losing focus when HTML editor is initialized,
+		// e.g. if Design Mode is enabled when ordinary input control gains focus.
+		// This also prevents control from losing focus if toolbar is clicked without
+		// hitting a button. A value of -1 makes it focusable, but keeps it out of
+		// tab flow (keyboard navigation).
+		me.GetDomElement().tabIndex = -1; // TabIndex is removed if DesignMode is disabled
+
+		var focused = me.Focused();
+		if (focused === true)
+		{
+			me.GetDomElement().focus(); // Outer container is focusable - tabIndex set above
+		}
+
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
+			readOnly: me.Enabled() === false,
+			tabIndex: me.Enabled() === false ? -1 : 0,
+			title: "",
+			startupFocus: focused === true ? "end" : false,
+			//extraPlugins: "justify,pastefromword",
 			//extraPlugins: "justify,pastefromword,image,pasteimage,dragresize",
 			//extraPlugins: "justify,pastefromword,base64image",
 			//extraPlugins: "image",
@@ -671,25 +1080,91 @@ Fit.Controls.Input = function(ctlId)
 			{
 				instanceReady: function()
 				{
+					// Enabled state might have been changed while loading.
+					// Unfortunately there is no API for changing the tabIndex.
+					designEditor.setReadOnly(me.Enabled() === false);
+					designEditor.container.$.querySelector("[contenteditable]").tabIndex = me.Enabled() === false ? -1 : 0;
+
+					if (focused === true)
+					{
+						me.Focused(true); // Focus actual input area rather than outer container temporarily focused further up
+					}
+
+					var maximized = me.Maximized(); // Call to Height(..) below will minimize control
+
+					if (maximized === true)
+					{
+						me.Maximized(false); // Minimize to allow editor to initially assume normal height - maximized again afterwards
+					}
+
 					var h = me.Height();
 					me.Height(((h.Value >= 150 && h.Unit === "px") ? h.Value : 150));
 
+					if (maximized === true)
+					{
+						me.Maximized(true);
+					}
+
 					designEditor._isReadyForInteraction = true;
 				},
-				change: function()
+				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
 					input.onkeyup();
 				},
-				focus: function()
+				beforeCommandExec: function(ev)
 				{
-					designEditor._focused = true;
-					me._internal.FireOnFocus();
-				}/*,
-				blur: function() // Not needed when editable area is a <div> (divarea plugin) - ControlBase implements focus/blur handling for all controls, which also ensures that e.g. OnBlur fires for editor before OnClick on e.g. a button
-				{
-					delete designEditor._focused;
-					me._internal.FireOnBlur();
-				}*/
+					if (ev && ev.data && ev.data.command && ev.data.command.dialogName)
+					{
+						// Command triggered was a dialog
+
+						// IE9-IE11 does not fire OnFocus when user clicks a dialog button directly,
+						// without placing the text cursor in the editing area first. To avoid this
+						// problem, we simply ignore dialog commands if control does not already
+						// have focus. We target all versions of IE for consistency.
+						if (me.Focused() === false && Fit.Browser.GetBrowser() === "MSIE")
+						{
+							ev.cancel();
+							return;
+						}
+
+						// Prevent multiple control instances from opening a dialog at the same time.
+						// This is very unlikely to happen, as it requires the second dialog to be
+						// triggered programmatically, since a modal layer is immediately placed on top
+						// of the page when clicking a button that opens a dialog, preventing additional
+						// interaction with editors.
+						// Naturally conflicting CSS causing the modal layer to remain hidden could
+						// allow the user to trigger multiple dialogs. Better safe than sorry.
+						if (Fit._internal.Controls.Input.ActiveEditorForDialog)
+						{
+							ev.cancel();
+							return;
+						}
+
+						// Make sure OnFocus fires before locking focus state
+
+						if (me.Focused() === false)
+						{
+							// Control not focused - make sure OnFocus fires when a button is clicked,
+							// and make sure ControlBase internally considers itself focused, so there is
+							// no risk of OnFocus being fire twice without OnBlur firing in between,
+							// when focus state is unlocked, and focus is perhaps re-assigned to another
+							// DOM element within the control, which will be the case if the design editor
+							// is switched back to an ordinary input field (e.g. using DesignMode(false)).
+							me.Focused(true);
+						}
+
+						// Prevent control from firing OnBlur when dialogs are opened.
+						// Notice that locking the focus state will also prevent OnFocus
+						// from being fired automatically.
+						me._internal.FocusStateLocked(true);
+
+						// Make control available to global dialog event handlers which
+						// cannot access individual control instances otherwise.
+
+						Fit._internal.Controls.Input.ActiveEditorForDialog = me;	// Editor instance is needed when OnHide event is fired for dialog on global CKEditor instance
+						Fit._internal.Controls.Input.ActiveDialogForEditor = null;	// Dialog instance associated with editor will be set when dialog's OnShow event fires
+					}
+				}
 			}
 		});
 	}
@@ -766,10 +1241,7 @@ Fit.Controls.Input = function(ctlId)
 	{
 		if (me.DesignMode() === true)
 		{
-			// Re-create editor with new language.
-			// NOTICE minor issue: Changing language while link dialog (and possibly any dialog)
-			// is open, breaks the editor with a "Cannot read property 'blur' of null" error.
-			
+			// Re-create editor with new language
 			reloadEditor();
 		}
 	}

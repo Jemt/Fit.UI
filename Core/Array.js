@@ -5,12 +5,89 @@ Fit.Array = {};
 
 /// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
 /// 	<description>
-/// 		Iterates through elements in array and passes each value to the provided callback function.
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
 /// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 /// 	</description>
-/// 	<param name="arr" type="array"> Array containing values to iterate through </param>
-/// 	<param name="callback" type="function">
-/// 		Callback function accepting values from the array, passed in turn.
+/// 	<param name="arr" type="$Type[]"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:$Type) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="HTMLCollection"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:HTMLElement) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="NodeList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:Node) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="NamedNodeMap"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:Attr) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="FileList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:File) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="StyleSheetList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:StyleSheet) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="CSSRuleList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:CSSRule) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="object[]"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:object) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
 /// 		Return False from callback to break loop.
 /// 	</param>
 /// </function>
@@ -20,7 +97,7 @@ Fit.Array = {};
 /// 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 /// 	</description>
 /// 	<param name="obj" type="object"> Object containing properties to iterate through </param>
-/// 	<param name="callback" type="function">
+/// 	<param name="callback" type="(key:string) => boolean | void">
 /// 		Callback function accepting properties from the object, passed in turn.
 /// 		Return False from callback to break loop.
 /// 	</param>
@@ -57,7 +134,9 @@ Fit.Array.ForEach = function(obj, callback) // obj not validated - passing null/
 
 /// <function container="Fit.Array" name="Count" access="public" static="true" returns="integer">
 /// 	<description> Returns number of elements in collection </description>
-/// 	<param name="arr" type="array"> Collection to count elements within </param>
+/// 	<param name="arr" type="array | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList">
+/// 		Collection to count elements within
+/// 	</param>
 /// </function>
 /// <function container="Fit.Array" name="Count" access="public" static="true" returns="integer">
 /// 	<description> Returns number of elements in object array </description>
@@ -84,10 +163,12 @@ Fit.Array.Count = function(obj)
 
 /// <function container="Fit.Array" name="HasItems" access="public" static="true" returns="boolean">
 /// 	<description> Returns True if collection has items, otherwise False </description>
-/// 	<param name="arr" type="array"> Collection to investigate </param>
+/// 	<param name="arr" type="array | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList">
+/// 		Collection to investigate
+/// 	</param>
 /// </function>
 /// <function container="Fit.Array" name="HasItems" access="public" static="true" returns="boolean">
-/// 	<description> Returns True if collection has items, otherwise False </description>
+/// 	<description> Returns True if object array has items, otherwise False </description>
 /// 	<param name="obj" type="object"> Object array to investigate </param>
 /// </function>
 Fit.Array.HasItems = function(obj)
@@ -111,15 +192,99 @@ Fit.Array.HasItems = function(obj)
 
 /// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
 /// 	<description>
-/// 		Recursively iterates through objects in array and passes each object to the provided callback function.
+/// 		Recursively iterates through objects in collection and passes each object to the provided callback function.
 /// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 /// 	</description>
-/// 	<param name="arr" type="array"> Array containing objects to iterate through </param>
+/// 	<param name="arr" type="$Type[]"> Collection containing objects to iterate through </param>
 /// 	<param name="childrenProperty" type="string">
 /// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
 /// 	</param>
-/// 	<param name="callback" type="function">
-/// 		Callback function accepting objects from the array, passed in turn.
+/// 	<param name="callback" type="(obj:$Type) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Recursively iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="HTMLCollection"> Collection containing objects to iterate through </param>
+/// 	<param name="childrenProperty" type="string">
+/// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
+/// 	</param>
+/// 	<param name="callback" type="(obj:HTMLElement) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Recursively iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="NodeList"> Collection containing objects to iterate through </param>
+/// 	<param name="childrenProperty" type="string">
+/// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
+/// 	</param>
+/// 	<param name="callback" type="(obj:Node) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Recursively iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="NamedNodeMap"> Collection containing objects to iterate through </param>
+/// 	<param name="childrenProperty" type="string">
+/// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
+/// 	</param>
+/// 	<param name="callback" type="(obj:Attr) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Recursively iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="FileList"> Collection containing objects to iterate through </param>
+/// 	<param name="childrenProperty" type="string">
+/// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
+/// 	</param>
+/// 	<param name="callback" type="(obj:File) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Recursively iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="StyleSheetList"> Collection containing objects to iterate through </param>
+/// 	<param name="childrenProperty" type="string">
+/// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
+/// 	</param>
+/// 	<param name="callback" type="(obj:StyleSheet) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Return False from callback to break loop.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Recurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Recursively iterates through objects in collection and passes each object to the provided callback function.
+/// 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
+/// 	</description>
+/// 	<param name="arr" type="CSSRuleList"> Collection containing objects to iterate through </param>
+/// 	<param name="childrenProperty" type="string">
+/// 		Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren")
+/// 	</param>
+/// 	<param name="callback" type="(obj:CSSRule) => boolean | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
 /// 		Return False from callback to break loop.
 /// 	</param>
 /// </function>
@@ -162,15 +327,93 @@ Fit.Array.Recurse = function(arr, childrenProperty, callback)
 
 /// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
 /// 	<description>
-/// 		Iterate objects in collection and pass each object to provided callback.
+/// 		Iterates through objects in collection and passes each object to provided callback.
 /// 		Callback is expected to return any children supposed to be iterated too, or Null
-/// 		if further/deeper iteration is not necessary.
+/// 		if further/deeper iteration is not required.
 /// 	</description>
-/// 	<param name="arr" type="array"> Array containing objects to iterate through </param>
-/// 	<param name="callback" type="function">
-/// 		Callback function accepting objects from the array, passed in turn.
+/// 	<param name="arr" type="$Type[]"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:$Type) => $Type[] | null | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
 /// 		Function must return children collection to continue recursive operation,
-/// 		or Null to prevent further processing.
+/// 		or Null (or nothing) to stop further processing.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to provided callback.
+/// 		Callback is expected to return any children supposed to be iterated too, or Null
+/// 		if further/deeper iteration is not required.
+/// 	</description>
+/// 	<param name="arr" type="HTMLCollection"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:HTMLElement) => HTMLCollection | HTMLElement[] | null | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Function must return children collection to continue recursive operation,
+/// 		or Null (or nothing) to stop further processing.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to provided callback.
+/// 		Callback is expected to return any children supposed to be iterated too, or Null
+/// 		if further/deeper iteration is not required.
+/// 	</description>
+/// 	<param name="arr" type="NodeList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:Node) => NodeList | Node[] | null | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Function must return children collection to continue recursive operation,
+/// 		or Null (or nothing) to stop further processing.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to provided callback.
+/// 		Callback is expected to return any children supposed to be iterated too, or Null
+/// 		if further/deeper iteration is not required.
+/// 	</description>
+/// 	<param name="arr" type="NamedNodeMap[]"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:Attr) => NamedNodeMap | Attr[] | null | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Function must return children collection to continue recursive operation,
+/// 		or Null (or nothing) to stop further processing.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to provided callback.
+/// 		Callback is expected to return any children supposed to be iterated too, or Null
+/// 		if further/deeper iteration is not required.
+/// 	</description>
+/// 	<param name="arr" type="FileList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:File) => FileList | File[] | null | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Function must return children collection to continue recursive operation,
+/// 		or Null (or nothing) to stop further processing.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to provided callback.
+/// 		Callback is expected to return any children supposed to be iterated too, or Null
+/// 		if further/deeper iteration is not required.
+/// 	</description>
+/// 	<param name="arr" type="StyleSheetList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:StyleSheet) => StyleSheetList | StyleSheet[] | null | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Function must return children collection to continue recursive operation,
+/// 		or Null (or nothing) to stop further processing.
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="CustomRecurse" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Iterates through objects in collection and passes each object to provided callback.
+/// 		Callback is expected to return any children supposed to be iterated too, or Null
+/// 		if further/deeper iteration is not required.
+/// 	</description>
+/// 	<param name="arr" type="CSSRuleList"> Collection containing objects to iterate through </param>
+/// 	<param name="callback" type="(obj:CSSRule) => CSSRuleList | CSSRule[] | null | void">
+/// 		Callback function accepting objects from the collection, passed in turn.
+/// 		Function must return children collection to continue recursive operation,
+/// 		or Null (or nothing) to stop further processing.
 /// 	</param>
 /// </function>
 Fit.Array.CustomRecurse = function(arr, callback) // arr not validated - passing null/undefined is allowed - no iteration is performed in this case
@@ -233,10 +476,10 @@ Fit.Array.Move = function(arr, fromIdx, toIdx)
 	}
 }
 
-/// <function container="Fit.Array" name="Merge" access="public" static="true" returns="array">
+/// <function container="Fit.Array" name="Merge" access="public" static="true" returns="($TypeA | $TypeB)[]">
 /// 	<description> Merge/join two arrays </description>
-/// 	<param name="arr1" type="array"> Array 1 to merge with array 2 </param>
-/// 	<param name="arr2" type="array"> Array 2 to merge with array 1 </param>
+/// 	<param name="arr1" type="$TypeA[]"> Array 1 to merge with array 2 </param>
+/// 	<param name="arr2" type="$TypeB[]"> Array 2 to merge with array 1 </param>
 /// </function>
 Fit.Array.Merge = function(arr1, arr2)
 {
@@ -282,8 +525,10 @@ Fit.Array.Clear = function(arr)
 }
 
 /// <function container="Fit.Array" name="GetIndex" access="public" static="true" returns="integer">
-/// 	<description> Returns index of object in array if found, otherwise a value of -1 is returned </description>
-/// 	<param name="arr" type="array"> Array to search through </param>
+/// 	<description> Returns index of object in collection if found, otherwise a value of -1 is returned </description>
+/// 	<param name="arr" type="array | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList">
+/// 		Collection to search through
+/// 	</param>
 /// 	<param name="obj" type="object"> Object to obtain index for </param>
 /// </function>
 Fit.Array.GetIndex = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
@@ -297,11 +542,13 @@ Fit.Array.GetIndex = function(arr, obj) // obj not validated - passing any objec
     return -1;
 }
 
-/// <function container="Fit.Array" name="GetKeys" access="public" static="true" returns="array">
-/// 	<description> Returns all keys in array (indices) - 0, 1, 2, 3, ... </description>
-/// 	<param name="arr" type="array"> Array to get keys from </param>
+/// <function container="Fit.Array" name="GetKeys" access="public" static="true" returns="integer[]">
+/// 	<description> Returns all keys in collection (indices) - 0, 1, 2, 3, ... </description>
+/// 	<param name="arr" type="array | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList">
+/// 		Collection to get keys from
+/// 	</param>
 /// </function>
-/// <function container="Fit.Array" name="GetKeys" access="public" static="true" returns="array">
+/// <function container="Fit.Array" name="GetKeys" access="public" static="true" returns="string[]">
 /// 	<description> Returns all keys (property names) in object </description>
 /// 	<param name="obj" type="object"> Object to get keys from </param>
 /// </function>
@@ -328,8 +575,10 @@ Fit.Array.GetKeys = function(obj)
 }
 
 /// <function container="Fit.Array" name="Contains" access="public" static="true" returns="boolean">
-/// 	<description> Returns True if given object is contained in array, otherwise False </description>
-/// 	<param name="arr" type="array"> Array to search through </param>
+/// 	<description> Returns True if given object is contained in collection, otherwise False </description>
+/// 	<param name="arr" type="array | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList">
+/// 		Collection to search through
+/// 	</param>
 /// 	<param name="obj" type="object"> Object to look for </param>
 /// </function>
 Fit.Array.Contains = function(arr, obj) // obj not validated - passing any object or undefined/null is allowed
@@ -338,30 +587,78 @@ Fit.Array.Contains = function(arr, obj) // obj not validated - passing any objec
     return (Fit.Array.GetIndex(arr, obj) > -1);
 }
 
-/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="array">
-/// 	<description>
-/// 		Returns a shallow copy of the array. Notice that collection type is not preserved,
-/// 		meaning e.g. a NodeList or FileList will be returned as a traditional array holding
-/// 		references to the objects - just like Fit.Array.ToArray(..) does.
-/// 		For a deep copy see Fit.Core.Clone(..)
-/// 	</description>
-/// 	<param name="arr" type="array"> Array to copy </param>
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="$Type[]">
+/// 	<description> Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..). </description>
+/// 	<param name="arr" type="$Type[]"> Collection to copy </param>
+/// </function>
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="HTMLElement[]">
+/// 	<description> Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..). </description>
+/// 	<param name="arr" type="HTMLCollection"> Collection to copy </param>
+/// </function>
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="Node[]">
+/// 	<description> Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..). </description>
+/// 	<param name="arr" type="NodeList"> Collection to copy </param>
+/// </function>
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="Attr[]">
+/// 	<description> Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..). </description>
+/// 	<param name="arr" type="NamedNodeMap"> Collection to copy </param>
+/// </function>
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="File[]">
+/// 	<description> Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..). </description>
+/// 	<param name="arr" type="FileList"> Collection to copy </param>
+/// </function>
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="StyleSheet[]">
+/// 	<description> Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..). </description>
+/// 	<param name="arr" type="StyleSheetList"> Collection to copy </param>
+/// </function>
+/// <function container="Fit.Array" name="Copy" access="public" static="true" returns="CSSRule[]">
+/// 	<description> Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..). </description>
+/// 	<param name="arr" type="CSSRuleList"> Collection to copy </param>
 /// </function>
 Fit.Array.Copy = function(arr)
 {
-	Fit.Validation.ExpectCollection(arr);
+	/*Fit.Validation.ExpectCollection(arr);
+
+	// Notice that collection type is not preserved, meaning e.g. a NodeList or FileList will be returned
+	// as a traditional array holding references to the objects - just like Fit.Array.ToArray(..) does.
 
 	var newArr = [];
 	Fit.Array.ForEach(arr, function(item)
 	{
 		newArr.push(item);
 	});
-	return newArr;
+	return newArr;*/
+
+	return Fit.Array.ToArray(arr);
 }
 
-/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="array">
-/// 	<description> Convert collection (NodeList, StaticNodeList, or HTMLCollection) to JS array </description>
-/// 	<param name="coll" type="object"> Collection to convert to array </param>
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="HTMLElement[]">
+/// 	<description> Convert collection to a traditional JavaScript array </description>
+/// 	<param name="coll" type="HTMLCollection"> Collection to convert to array </param>
+/// </function>
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="Node[]">
+/// 	<description> Convert collection to a traditional JavaScript array </description>
+/// 	<param name="coll" type="NodeList"> Collection to convert to array </param>
+/// </function>
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="Attr[]">
+/// 	<description> Convert collection to a traditional JavaScript array </description>
+/// 	<param name="coll" type="NamedNodeMap"> Collection to convert to array </param>
+/// </function>
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="File[]">
+/// 	<description> Convert collection to a traditional JavaScript array </description>
+/// 	<param name="coll" type="FileList"> Collection to convert to array </param>
+/// </function>
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="StyleSheet[]">
+/// 	<description> Convert collection to a traditional JavaScript array </description>
+/// 	<param name="coll" type="StyleSheetList"> Collection to convert to array </param>
+/// </function>
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="CSSRule[]">
+/// 	<description> Convert collection to a traditional JavaScript array </description>
+/// 	<param name="coll" type="CSSRuleList"> Collection to convert to array </param>
+/// </function>
+/// <function container="Fit.Array" name="ToArray" access="public" static="true" returns="$Type[]">
+/// 	<description> Copy array to a new array </description>
+/// 	<param name="coll" type="$Type[]"> Array to copy to a new array </param>
 /// </function>
 Fit.Array.ToArray = function(coll)
 {
@@ -376,14 +673,66 @@ Fit.Array.ToArray = function(coll)
 }
 
 /// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
-/// 	<description> Join objects from an array into a string </description>
-/// 	<param name="arr" type="array"> Array containing objects </param>
+/// 	<description> Join objects from a collection into a string </description>
+/// 	<param name="arr" type="$Type[]"> Collection containing objects </param>
 /// 	<param name="separator" type="string"> String used to glue values together </param>
-/// 	<param name="callback" type="function"> Callback returning string representation of objects passed from array in turn </param>
+/// 	<param name="callback" type="(obj:$Type) => string">
+/// 		Callback returning string representation of objects passed from collection in turn
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
+/// 	<description> Join objects from a collection into a string </description>
+/// 	<param name="arr" type="HTMLCollection"> Collection containing objects </param>
+/// 	<param name="separator" type="string"> String used to glue values together </param>
+/// 	<param name="callback" type="(obj:HTMLElement) => string">
+/// 		Callback returning string representation of objects passed from collection in turn
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
+/// 	<description> Join objects from a collection into a string </description>
+/// 	<param name="arr" type="NodeList"> Collection containing objects </param>
+/// 	<param name="separator" type="string"> String used to glue values together </param>
+/// 	<param name="callback" type="(obj:Node) => string">
+/// 		Callback returning string representation of objects passed from collection in turn
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
+/// 	<description> Join objects from a collection into a string </description>
+/// 	<param name="arr" type="NamedNodeMap"> Collection containing objects </param>
+/// 	<param name="separator" type="string"> String used to glue values together </param>
+/// 	<param name="callback" type="(obj:Attr) => string">
+/// 		Callback returning string representation of objects passed from collection in turn
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
+/// 	<description> Join objects from a collection into a string </description>
+/// 	<param name="arr" type="FileList"> Collection containing objects </param>
+/// 	<param name="separator" type="string"> String used to glue values together </param>
+/// 	<param name="callback" type="(obj:File) => string">
+/// 		Callback returning string representation of objects passed from collection in turn
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
+/// 	<description> Join objects from a collection into a string </description>
+/// 	<param name="arr" type="StyleSheetList"> Collection containing objects </param>
+/// 	<param name="separator" type="string"> String used to glue values together </param>
+/// 	<param name="callback" type="(obj:StyleSheet) => string">
+/// 		Callback returning string representation of objects passed from collection in turn
+/// 	</param>
+/// </function>
+/// <function container="Fit.Array" name="Join" access="public" static="true" returns="string">
+/// 	<description> Join objects from a collection into a string </description>
+/// 	<param name="arr" type="CSSRuleList"> Collection containing objects </param>
+/// 	<param name="separator" type="string"> String used to glue values together </param>
+/// 	<param name="callback" type="(obj:CSSRule) => string">
+/// 		Callback returning string representation of objects passed from collection in turn
+/// 	</param>
 /// </function>
 Fit.Array.Join = function(arr, separator, callback)
 {
 	Fit.Validation.ExpectCollection(arr);
+	Fit.Validation.ExpectString(separator);
+	Fit.Validation.ExpectFunction(callback);
 
 	var result = "";
 

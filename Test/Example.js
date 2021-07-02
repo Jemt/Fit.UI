@@ -12,7 +12,7 @@ Tests.DomManipulation = function()
 		document.body.appendChild(elm);
 	}
 
-	//this.PostponeValidation = 1500; // Optional - postpone validation for 1500 ms after Execute is invoked
+	//this.PostponeVerification = 1500; // Optional - postpone verification for 1500 ms after Execute is invoked
 	this.Assertions =
 	[
 		{

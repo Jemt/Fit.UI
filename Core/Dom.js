@@ -32,16 +32,16 @@ Fit.Dom.RemoveClass = function(elm, cls)
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectStringValue(cls);
 
-    var arr = elm.className.split(" ");
-    var newCls = "";
+	var arr = elm.className.split(" ");
+	var newCls = "";
 
-    Fit.Array.ForEach(arr, function(item)
-    {
-        if (item !== cls)
-            newCls += ((newCls !== "") ? " " : "") + item;
-    });
+	Fit.Array.ForEach(arr, function(item)
+	{
+		if (item !== cls)
+			newCls += ((newCls !== "") ? " " : "") + item;
+	});
 
-    elm.className = newCls;
+	elm.className = newCls;
 }
 
 /// <function container="Fit.Dom" name="HasClass" access="public" static="true" returns="boolean">
@@ -54,27 +54,27 @@ Fit.Dom.HasClass = function(elm, cls)
 	Fit.Validation.ExpectDomElement(elm);
 	Fit.Validation.ExpectStringValue(cls);
 
-    var arr = elm.className.split(" ");
+	var arr = elm.className.split(" ");
 	var found = false;
 
-    Fit.Array.ForEach(arr, function(item)
-    {
-        if (item === cls)
+	Fit.Array.ForEach(arr, function(item)
+	{
+		if (item === cls)
 		{
 			found = true;
 			return false; // Stop loop
 		}
-    });
+	});
 
-    return found;
+	return found;
 }
 
-/// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string">
+/// <function container="Fit.Dom" name="GetComputedStyle" access="public" static="true" returns="string | null">
 /// 	<description>
 /// 		Get style value applied after stylesheets have been loaded.
 /// 		An empty string or null may be returned if style has not been defined or does not exist.
 /// 		Make sure not to use shorthand properties (e.g. border-color or padding) as some browsers are
-/// 		not capable of calculating these - use the fullly qualified property name (e.g. border-left-color
+/// 		not capable of calculating these - use the fully qualified property name (e.g. border-left-color
 /// 		or padding-left).
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element which contains desired CSS style value </param>
@@ -82,70 +82,23 @@ Fit.Dom.HasClass = function(elm, cls)
 /// </function>
 Fit.Dom.GetComputedStyle = function(elm, style)
 {
-	Fit.Validation.ExpectDomElement(elm);
-	Fit.Validation.ExpectStringValue(style);
-
-	var res = null;
-
-    if (window.getComputedStyle) // W3C
-	{
-		res = window.getComputedStyle(elm)[style];
-	}
-    else if (elm.currentStyle)
-	{
-		if (style.indexOf("-") !== -1) // Turn e.g. border-bottom-style into borderBottomStyle which is required by legacy browsers
-		{
-			var items = style.split("-");
-			style = "";
-
-			Fit.Array.ForEach(items, function(i)
-			{
-				if (style === "")
-					style = i;
-				else
-					style += Fit.String.UpperCaseFirst(i);
-			});
-		}
-
-        res = elm.currentStyle[style]; // Might return strings rather than useful values - e.g. "3em" or "medium"
-
-		// IE Computed Style fix by Dean Edwards - http://disq.us/p/myl99x
-		// Transform values such as 2em or 4pt to actual pixel values.
-
-		if (res !== undefined && res !== null && /^\d+/.test(res) === true && res.toLowerCase().indexOf("px") === -1) // Non-pixel numeric value
-		{
-			// Save original value
-			var orgLeft = elm.style.left;
-
-			// Calculate pixel value
-			var runtimeStyle = elm.runtimeStyle.left;
-			elm.runtimeStyle.left = elm.currentStyle.left;
-			elm.style.left = ((style === "fontSize") ? "1em" : res || 0); // Throws error for a value such as "medium"
-			res = elm.style.pixelLeft + "px";
-
-			// Restore value
-			elm.style.left = orgLeft;
-			elm.runtimeStyle.left = runtimeStyle;
-		}
-	}
-
-    return (res !== undefined ? res : null);
+	// Functionality has been moved to Fit.Browser where it was needed,
+	// and we do not want Fit.Browser to depend on Fit.Dom, as Fit.Browser
+	// is used quite a bit in Fit.Dom - we risk creating circular dependencies.
+	return Fit.Browser.GetComputedStyle(elm, style);
 }
 
-/// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetInnerDimensions" access="public" static="true" returns="Fit.TypeDefs.Dimension">
 /// 	<description>
-/// 		Returns object with X and Y properties (integers) with inner dimensions of specified
+/// 		Returns object with Width and Height properties (integers) with inner dimensions of specified
 /// 		container. Inner dimensions are width and height with padding and borders substracted.
 /// 		Result returned will be as expected no matter the box-sizing model being used.
-/// 		The space consumed by scrollbars (if present) can optionally be substracted.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get inner dimensions for </param>
-/// 	<param name="substractScrollbars" type="boolean" default="false"> Set True to substract space consumed by scrollbars </param>
 /// </function>
-Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
+Fit.Dom.GetInnerDimensions = function(elm)
 {
 	Fit.Validation.ExpectDomElement(elm);
-	Fit.Validation.ExpectBoolean(substractScrollbars, true);
 
 	if (elm === document.documentElement) // If document element (<html>) is passed
 	{
@@ -156,13 +109,6 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		Fit.Validation.ThrowError("Unable to determine inner dimensions for document element (<html>). Maybe you wanted Fit.Dom.GetInnerDimensions(document.body) or Fit.Browser.GetViewPortDimensions().");
 	}
 
-	// NOTICE:
-	// To get the inner dimensions of the document, pass document.body
-	// and not document.documentElement! But be aware that document.body
-	// does not have the document scrollbars - document.documentElement does.
-	// But the scrollbars may affect the amount of space available for document.body,
-	// which this function takes into account, just like any other scrollable container.
-
 	var width = elm.offsetWidth;
 	var height = elm.offsetHeight;
 
@@ -171,14 +117,8 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-left"));
 		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-right"));
 
-		// Substract borders unless dimensions without scrollbars are being requested,
-		// in which case borders are not included with calculation based on offsetWidth
-		// and clientWidth further down.
-		if (elm === document.body || substractScrollbars !== true)
-		{
-			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
-			width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
-		}
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-left-width"));
+		width -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-right-width"));
 	}
 
 	if (height !== 0) // Height is 0 if element is either not visible, or truly 0px
@@ -186,37 +126,17 @@ Fit.Dom.GetInnerDimensions = function(elm, substractScrollbars)
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-top"));
 		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "padding-bottom"));
 
-		if (elm === document.body || substractScrollbars !== true)
-		{
-			// Substract borders unless dimensions without scrollbars are being requested,
-			// in which case borders are not included with calculation based on offsetHeight
-			// and clientHeight further down.
-			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
-			height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
-		}
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-top-width"));
+		height -= Fit._internal.Dom.GetPx(Fit.Dom.GetComputedStyle(elm, "border-bottom-width"));
 	}
 
-	if (substractScrollbars === true)
-	{
-		if (elm === document.body)
-		{
-			// For document.body the scrollbars are added outside of document.body rather than inside of it,
-			// causing the container to be squeezed a bit.
-			// Therefore the width of the scrollbars must be added to the width of the container to get the
-			// width without scrollbars.
-			// A horizontal scrollbar does not affect the height since content just grows vertically.
-			// This is different from width where content just overflows the boundaries of document.body.
-			width += Fit.Browser.GetViewPortDimensions().Width - document.documentElement.offsetWidth;
-		}
-		else
-		{
-			// Substract scrollbars and borders
-			width -= elm.offsetWidth - elm.clientWidth;
-			height -= elm.offsetHeight - elm.clientHeight;
-		}
-	}
+	var res = { Width: Math.floor(width), Height: Math.floor(height) };
 
-	return { X: Math.floor(width), Y: Math.floor(height) };
+	// Backwards compatibility
+	res.X = res.Width;
+	res.Y = res.Height;
+
+	return res;
 }
 
 Fit.Dom.GetInnerWidth = function(elm) // Backward compatibility
@@ -354,17 +274,31 @@ Fit.Dom.Remove = function(elm)
 {
 	Fit.Validation.ExpectNode(elm);
 
-	if (elm.parentElement === null)
-		return; // Element not rooted
+	// Remove element if mounted
 
-	elm.parentElement.removeChild(elm);
+	if (elm.parentElement === undefined)
+	{
+		// Remove TextNode in IE
+		// https://developer.mozilla.org/en-US/docs/Web/API/Node/parentElement
+		// "On some browsers, the parentElement property is only defined on nodes that
+		//  are themselves an Element. In particular, it is not defined on text nodes."
+
+		if (elm.parentNode !== null) // Notice: might be null even though TextNode is added to a parent node, if entire document was cleared using document.body.innerHTML="";
+		{
+			elm.parentNode.removeChild(elm);
+		}
+	}
+	else if (elm.parentElement !== null)
+	{
+		elm.parentElement.removeChild(elm);
+	}
 }
 
-/// <function container="Fit.Dom" name="Attribute" access="public" static="true" returns="string">
-/// 	<description> Get/set attribute on DOMElement </description>
+/// <function container="Fit.Dom" name="Attribute" access="public" static="true" returns="string | null">
+/// 	<description> Get/set attribute on DOMElement - returns Null if attribute does not exist </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to which attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of attribute to set or retrieve </param>
-/// 	<param name="value" type="string" default="undefined">
+/// 	<param name="value" type="string | null" default="undefined">
 /// 		If defined, attribute is updated with specified value.
 /// 		Passing Null results in attribute being removed.
 /// 	</param>
@@ -380,14 +314,14 @@ Fit.Dom.Attribute = function(elm, name, value)
 	else if (value === null)
 		elm.removeAttribute(name);
 
-	return elm.getAttribute(name);
+	return elm.hasAttribute(name) === true ? elm.getAttribute(name) : null;
 }
 
-/// <function container="Fit.Dom" name="Data" access="public" static="true" returns="string">
-/// 	<description> Get/set data attribute on DOMElement </description>
+/// <function container="Fit.Dom" name="Data" access="public" static="true" returns="string | null">
+/// 	<description> Get/set data attribute on DOMElement - returns Null if data attribute does not exist </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to which data attribute is set and/or returned from </param>
 /// 	<param name="name" type="string"> Name of data attribute to set or retrieve </param>
-/// 	<param name="value" type="string" default="undefined">
+/// 	<param name="value" type="string | null" default="undefined">
 /// 		If defined, data attribute is updated with specified value.
 /// 		Passing Null results in data attribute being removed.
 /// 	</param>
@@ -407,7 +341,7 @@ Fit.Dom.Data = function(elm, name, value)
 /// <function container="Fit.Dom" name="CreateElement" access="public" static="true" returns="DOMNode">
 /// 	<description>
 /// 		Create element with the specified HTML content.
-/// 		HTML content is (by default) wrapped in a &lt;div&gt; if it produced multiple elements.
+/// 		HTML content is (by default) wrapped in a <![CDATA[ &lt;div&gt; ]]> if it produced multiple elements.
 /// 		If content on the other hand produces only one outer element, that particular element is returned.
 /// 		It is possible to construct DOM objects of type Element, Text, and Comment.
 /// 		The container type used to wrap multiple elements can be changed using the containerTagName argument.
@@ -415,7 +349,7 @@ Fit.Dom.Data = function(elm, name, value)
 /// 	<param name="html" type="string"> HTML element to create DOMElement from </param>
 /// 	<param name="containerTagName" type="string" default="div">
 /// 		If defined, and html argument produces multiple element, the result is wrapped in a container of
-/// 		the specified type. If not set, multiple elements will be wrapped in a &lt;div&gt; container.
+/// 		the specified type. If not set, multiple elements will be wrapped in a <![CDATA[ &lt;div&gt; ]]> container.
 /// 	</param>
 /// </function>
 Fit.Dom.CreateElement = function(html, containerTagName)
@@ -558,16 +492,16 @@ Fit.Dom.GetDepth = function(elm)
 {
 	Fit.Validation.ExpectNode(elm);
 
-    var i = 0;
-    var parent = elm.parentElement;
+	var i = 0;
+	var parent = elm.parentElement;
 
-    while (parent)
-    {
-        i++;
-        parent = parent.parentElement;
-    }
+	while (parent)
+	{
+		i++;
+		parent = parent.parentElement;
+	}
 
-    return i;
+	return i;
 }
 
 /// <function container="Fit.Dom" name="Contained" access="public" static="true" returns="boolean">
@@ -580,17 +514,17 @@ Fit.Dom.Contained = function(container, elm)
 	Fit.Validation.ExpectDomElement(container);
 	Fit.Validation.ExpectNode(elm);
 
-    var parent = elm.parentElement;
+	var parent = elm.parentElement;
 
-    while (parent)
-    {
-        if (parent === container)
+	while (parent)
+	{
+		if (parent === container)
 			return true;
 
-        parent = parent.parentElement;
-    }
+		parent = parent.parentElement;
+	}
 
-    return false;
+	return false;
 }
 
 /// <function container="Fit.Dom" name="IsVisible" access="public" static="true" returns="boolean">
@@ -651,7 +585,7 @@ Fit.Dom.IsVisible = function(elm)
 	return (previous === document.documentElement); // If last parent reached is not <html>, then element is not rooted in DOM yet
 }
 
-/// <function container="Fit.Dom" name="GetConcealer" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetConcealer" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
 /// 		Get container responsible for hiding given element.
 /// 		Element passed will be returned if hidden itself.
@@ -687,7 +621,7 @@ Fit.Dom.GetConcealer = function(elm)
 	return null; // Not rooted in DOM yet
 }
 
-/// <function container="Fit.Dom" name="GetFocused" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetFocused" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
 /// 		Returns element currently focused. If no element is focused, the document body is returned.
 /// 		Null will be returned if the document has not been loaded yet.
@@ -712,7 +646,7 @@ Fit.Dom.GetFocused = function()
 	return focused;
 }
 
-/// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetParentOfType" access="public" static="true" returns="DOMElement | null">
 /// 	<description> Returns first parent of specified type for a given element if found, otherwise Null </description>
 /// 	<param name="element" type="DOMNode"> Element to find parent for </param>
 /// 	<param name="parentType" type="string"> Tagname of parent element to look for </param>
@@ -722,17 +656,17 @@ Fit.Dom.GetParentOfType = function(element, parentType)
 	Fit.Validation.ExpectNode(element);
 	Fit.Validation.ExpectStringValue(parentType);
 
-    var parent = element.parentElement;
+	var parent = element.parentElement;
 
-    while (parent !== null)
-    {
-        if (parent.tagName.toLowerCase() === parentType.toLowerCase())
+	while (parent !== null)
+	{
+		if (parent.tagName.toLowerCase() === parentType.toLowerCase())
 			return parent;
 
-        parent = parent.parentElement;
-    }
+		parent = parent.parentElement;
+	}
 
-    return null;
+	return null;
 }
 
 /// <function container="Fit.Dom" name="Wrap" access="public" static="true">
@@ -802,13 +736,13 @@ Fit.Dom.SetCaretPosition = function(input, pos)
 	}
 }
 
-/// <function container="Fit.Dom" name="GetBoundingPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetBoundingPosition" access="public" static="true" returns="Fit.TypeDefs.Position | null">
 /// 	<description>
 /// 		Get position for visible element within viewport.
 /// 		Object returned contains an X and Y property
 /// 		with the desired integer values (pixels).
 /// 		Contrary to Fit.Dom.GetPosition(elm, true) which returns
-/// 		the position to the margin edge, this function returns the 
+/// 		the position to the margin edge, this function returns the
 /// 		position of the element's border edge, and is the recommended
 /// 		approach.
 /// 		Null will be returned if element is not visible.
@@ -821,13 +755,13 @@ Fit.Dom.GetBoundingPosition = function(elm)
 
 	if (Fit.Dom.IsVisible(elm) === false)
 		return null;
-	
+
 	var bcr = elm.getBoundingClientRect();
 
 	return { X: Math.round(bcr.x || bcr.left), Y: Math.round(bcr.y || bcr.top) }; // Several legacy browsers use top/left instead of x/y
 }
 
-/// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="Fit.TypeDefs.Position | null">
 /// 	<description>
 /// 		Get position for visible element.
 /// 		Object returned contains an X and Y property
@@ -883,7 +817,7 @@ Fit._internal.Dom.GetPosition = function(elm, relativeToViewport, internalKeepMa
 	return pos;
 }
 
-/// <function container="Fit.Dom" name="GetRelativePosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetRelativePosition" access="public" static="true" returns="Fit.TypeDefs.Position | null">
 /// 	<description>
 /// 		Get element position relative to a positioned parent or ancestor (offsetParent).
 /// 		Coordinates returned are relative to document if no positioned parent or ancestor is found.
@@ -948,7 +882,60 @@ Fit.Dom.GetRelativePosition = function(elm)
 	return pos;
 }
 
-/// <function container="Fit.Dom" name="GetScrollPosition" access="public" static="true" returns="object">
+/// <function container="Fit.Dom" name="GetScrollBars" access="public" static="true" returns="Fit.TypeDefs.ScrollBarsPresent">
+/// 	<description>
+/// 		Get information about scrollbars within a given DOM element.
+/// 		Returns an object with Vertical and Horizontal properties, each containing
+/// 		Enabled and Size properties, which can be used to determine whether scrolling is enabled,
+/// 		and the size of the scrollbar. The size remains 0 when scrolling is not enabled.
+/// 		To determine whether the browser's viewport has scrolling enabled, use Fit.Browser.GetScrollBars().
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to get scrollbar information for </param>
+/// </function>
+Fit.Dom.GetScrollBars = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	if (elm === document.documentElement || elm === document.body)
+	{
+		// For <html> and <body> clientWidth behaves differently:
+		// https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth
+		// Therefore, make sure Fit.Browser.GetScrollBars() is used to determine scroll for the viewport.
+		//Fit.Validation.ThrowError("Unintended use of Fit.Dom.GetScrollBars(..) - please use Fit.Browser.GetScrollBars() to detect scrollbars for the viewport");
+
+		// Scrollbars for <html> and <body> is equivalent to the viewport's scrollbars.
+		// Therefore, we return scrollbar information for the viewport when <html> or <body> is passed.
+
+		return Fit.Browser.GetScrollBars();
+	}
+
+	var res = { Vertical: { Enabled: false, Size: 0 }, Horizontal: { Enabled: false, Size: 0 } };
+
+	// NOTICE:
+	// It has been observed that on Chrome 86 on macOS High Sierra with scrollbars set to be always shown,
+	// scrollWidth and scrollHeight sometimes are reported to have a value of +1 higher than
+	// clientWidth and clientHeight, but no scrollbars are shown until the difference between
+	// the scrollWidth/Height and clientWidth/Height is increased a bit more. Decreasing the value again
+	// to just +1 does not remove the scrollbars again, so this works as expected. But even though
+	// the scrollbars do not show with a difference of just 1px initially, the area is in fact scrollable
+	// by the 1px difference. The missing scrollbars must be a bug in macOS or Chrome.
+
+	if (elm.scrollWidth > elm.clientWidth) // Has horizontal scrollbar
+	{
+		res.Horizontal.Enabled = true;
+		res.Horizontal.Size = Fit.Browser.GetScrollBarSize();
+	}
+
+	if (elm.scrollHeight > elm.clientHeight) // Has vertical scrollbar
+	{
+		res.Vertical.Enabled = true;
+		res.Vertical.Size = Fit.Browser.GetScrollBarSize();
+	}
+
+	return res;
+}
+
+/// <function container="Fit.Dom" name="GetScrollPosition" access="public" static="true" returns="Fit.TypeDefs.Position">
 /// 	<description>
 /// 		Get number of pixels specified element's container(s)
 /// 		have been scrolled. This gives us the total scroll value
@@ -987,10 +974,16 @@ Fit.Dom.GetScrollPosition = function(elm)
 	return pos;
 }
 
-/// <function container="Fit.Dom" name="GetScrollParent" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetScrollParent" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
-/// 		Get element's scroll parent. Returns null if element passed
-/// 		is placed on its own stacking context (has position:fixed).
+/// 		Get element's scroll parent (parent that has overflow:auto or overflow:scroll,
+/// 		and that affects the position of the element if scrolled). This may not necessarily
+/// 		be the first parent with overflow set - it also depends on the element's offsetParent.
+/// 		For a parent to be considered the scroll parent, it must be scrollable, and the element
+/// 		passed to this function must be relatively positioned against this scroll parent, or
+/// 		relatively positioned against an element within the scroll parent that is statically
+/// 		positioned, or in turn relatively positioned against the scroll parent.
+/// 		Returns null if element passed is placed on its own stacking context with position:fixed.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get scroll parent for </param>
 /// </function>
@@ -1001,25 +994,39 @@ Fit.Dom.GetScrollParent = function(elm)
 	var pos = Fit.Dom.GetComputedStyle(elm, "position");
 
 	if (pos === "fixed")
-    {
-		return null; // No scroll parent when element has its own stacking context
+	{
+		return null; // No scroll parent when element has its own stacking context with position:fixed
 	}
 
-    while ((elm = elm.parentElement))
-    {
-		if (pos === "absolute" && Fit.Dom.GetComputedStyle(elm, "position") === "static") // static is default positioning
-        {
-			continue; // Skip parent if element is floating outside of it using absolute positioning
-		}
+	var offsetParent = elm.offsetParent;
 
+	while ((elm = elm.parentElement))
+	{
 		var regEx = /scroll|auto/;
-        var overflow = Fit.Dom.GetComputedStyle(elm, "overflow");
+		var overflow = Fit.Dom.GetComputedStyle(elm, "overflow");
 		var overflowX = Fit.Dom.GetComputedStyle(elm, "overflow-x");
 		var overflowY = Fit.Dom.GetComputedStyle(elm, "overflow-y");
 
-		if (regEx.test(overflow) === true || regEx.test(overflowX) || regEx.test(overflowY))
-        {
+		if (regEx.test(overflow) === true || regEx.test(overflowX) === true || regEx.test(overflowY) === true)
+		{
+			// Parent found with overflow:scroll or overflow:auto.
+			// However, it may not be this parent that affects the position of the element when scrolled.
+			// If the element passed has position:absolute, and the current parent is not itself positioned
+			// (which makes it the element's offsetParent), and the element's offsetParent is located outside
+			// of the parent with overflow set, then we ignore this parent and continue the search.
+			if (pos === "absolute" && elm !== offsetParent && Fit.Dom.Contained(elm, offsetParent) === false)
+			{
+				continue; // Skip parent if element is floating over it or outside of it using absolute positioning
+			}
+
 			return elm;
+		}
+
+		if (Fit.Dom.GetComputedStyle(elm, "position") === "fixed")
+		{
+			// Parent with position:fixed reached. It no longer matters if an element further up the hierarchy
+			// is scrollable, since position:fixed creates a new stacking context independent from the document.
+			return null;
 		}
 	}
 
@@ -1028,14 +1035,34 @@ Fit.Dom.GetScrollParent = function(elm)
 	return Fit.Dom.GetScrollDocument();
 }
 
-/// <function container="Fit.Dom" name="GetOverflowingParent" access="public" static="true" returns="DOMElement">
+/// <function container="Fit.Dom" name="GetOverflowingParent" access="public" static="true" returns="DOMElement | null">
 /// 	<description>
-/// 		Get element's parent that has overflow set to auto, scroll, or hidden.
-/// 		Returns null if element passed has now parent with overflow.
+/// 		Get parent that has overflow set to auto, scroll, or hidden (hidden is optional).
+/// 		To get the parent that actually affects the position of the element when scrolled,
+/// 		use GetScrollParent(..) instead, as it may not be the first parent with overflow set.
+/// 		Which parent affects the position of an element when scrolled depends on which element
+/// 		is the offsetParent - it might not be an element within the overflowing parent, or
+/// 		the overflowing parent itself, which would be required to affect the element's position
+/// 		when the overflowing parent is scrolled.
+/// 		A scrollable container will only affect an element's position if it is statically positioned
+/// 		within the scrollable parent, or if it is positioned relative to another statically positioned element
+/// 		within the parent with overflow, or if the parent with overflow itself is positioned, which makes it the
+/// 		offsetParent, hence causing the element to scroll along.
+/// 		In most cases GetScrollParent(..) will be the correct function to use.
+/// 		Exceptions to this is when we also want to include overflow:hidden, or if we have an
+/// 		element with position:absolute that is positioned relative to the document or an element
+/// 		outside of the overflowing/scrollable parent, and we still want a reference to the nearest
+/// 		parent with overflow set.
+/// 		Returns null if element passed is placed on its own stacking context with position:fixed.
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> Element to get overflowing parent for </param>
+/// 	<param name="scrollableOnly" type="boolean" default="false">
+/// 		Flag indicating whether to only consider parents with overflow:auto or overflow:scroll.
+/// 		Parents with overflow:hidden will be ignored. As such, only a parent with the ability to
+/// 		scroll overflowing content into view can be returned.
+/// 	</param>
 /// </function>
-Fit.Dom.GetOverflowingParent = function(elm)
+Fit.Dom.GetOverflowingParent = function(elm, scrollableOnly)
 {
 	Fit.Validation.ExpectDomElement(elm);
 
@@ -1044,23 +1071,29 @@ Fit.Dom.GetOverflowingParent = function(elm)
 	var pos = Fit.Dom.GetComputedStyle(elm, "position");
 
 	if (pos === "fixed")
-    {
-		return null; // No scroll parent when element has its own stacking context
+	{
+		return null; // No overflowing parent when element has its own stacking context with position:fixed
 	}
 
-	var regEx = /scroll|auto|hidden/;
+	var regEx = scrollableOnly === true ? /scroll|auto/ : /scroll|auto|hidden/;
 	var current = elm;
 
 	while ((current = current.parentElement) !== null)
 	{
-		if (pos === "absolute" && Fit.Dom.GetComputedStyle(elm, "position") === "static") // static is default positioning
-        {
-			continue; // Skip parent if element is floating outside of it using absolute positioning
-		}
+		var overflow = Fit.Dom.GetComputedStyle(current, "overflow");
+		var overflowX = Fit.Dom.GetComputedStyle(current, "overflow-x");
+		var overflowY = Fit.Dom.GetComputedStyle(current, "overflow-y");
 
-		if (regEx.test(Fit.Dom.GetComputedStyle(current, "overflowY")) === true || regEx.test(Fit.Dom.GetComputedStyle(current, "overflowX")) === true)
+		if (regEx.test(overflow) === true || regEx.test(overflowX) === true || regEx.test(overflowY) === true)
 		{
 			return current;
+		}
+
+		if (Fit.Dom.GetComputedStyle(current, "position") === "fixed")
+		{
+			// Parent with position:fixed reached. It no longer matters if an element further up the hierarchy
+			// has overflow, since position:fixed creates a new stacking context independent from the document.
+			return null;
 		}
 	}
 
@@ -1075,37 +1108,10 @@ Fit.Dom.GetOverflowingParent = function(elm)
 /// </function>
 Fit.Dom.GetScrollDocument = function()
 {
-	if (Fit._internal.Dom.ScrollDocument === undefined)
-	{
-		if (document.scrollingElement)
-		{
-			Fit._internal.Dom.ScrollDocument = document.scrollingElement;
-		}
-		else
-		{
-			var iframe = document.createElement("iframe");
-			iframe.style.cssText = "height: 1px; position: fixed; top: -100px; left: -100px;";
-
-			document.documentElement.appendChild(iframe);
-
-			var doc = iframe.contentWindow.document;
-			doc.write("<!DOCTYPE html><div style='height: 100px'>&nbsp;</div>");
-			doc.close();
-
-			if (doc.documentElement.scrollHeight > doc.body.scrollHeight)
-			{
-				Fit._internal.Dom.ScrollDocument = document.documentElement;
-			}
-			else
-			{
-				Fit._internal.Dom.ScrollDocument = document.body;
-			}
-
-			iframe.parentNode.removeChild(iframe);
-		}
-	}
-
-	return Fit._internal.Dom.ScrollDocument;
+	// Functionality has been moved to Fit.Browser where it was needed,
+	// and we do not want Fit.Browser to depend on Fit.Dom, as Fit.Browser
+	// is used quite a bit in Fit.Dom - we risk creating circular dependencies.
+	return Fit.Browser.GetScrollDocument();
 }
 
 // Internal members

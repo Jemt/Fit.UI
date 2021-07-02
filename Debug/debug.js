@@ -4,7 +4,7 @@ var view = new Fit.Template(true);
 view.AllowUnsafeContent(false);
 view.LoadUrl("debug.html", function(sender)
 {
-    var item = null;
+	var item = null;
 
     window.input = new Fit.Controls.Input(Fit.Data.CreateGuid());
 	//input.Value("Velkommen til vores online demo :-)<br><br>");

@@ -56,12 +56,12 @@ Fit.Controls.WSListView = function(ctlId)
 		return url;
 	}
 
-	/// <function container="Fit.Controls.WSListView" name="JsonpCallback" access="public" returns="string">
+	/// <function container="Fit.Controls.WSListView" name="JsonpCallback" access="public" returns="string | null">
 	/// 	<description>
 	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
 	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
 	/// 	</description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// 	<param name="val" type="string | null" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
 	/// </function>
 	this.JsonpCallback = function(val)
 	{
@@ -75,9 +75,14 @@ Fit.Controls.WSListView = function(ctlId)
 		return jsonpCallback;
 	}
 
+	/// <function container="Fit.Controls.WSListViewTypeDefs" name="ReloadCallback">
+	/// 	<description> Reload callback </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSListView" name="Reload" access="public">
 	/// 	<description> Load/reload data from WebService </description>
-	/// 	<param name="cb" type="function" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.WSListViewTypeDefs.ReloadCallback" default="undefined">
 	/// 		If defined, callback function is invoked when data has been loaded
 	/// 		and populated - takes Sender (Fit.Controls.WSListView) as an argument.
 	/// 	</param>
@@ -121,6 +126,47 @@ Fit.Controls.WSListView = function(ctlId)
 	// Events
 	// ============================================
 
+	/// <container name="Fit.Controls.WSListViewTypeDefs.EventHandlerArgs">
+	/// 	<description> Event handler arguments </description>
+	/// 	<member name="Sender" type="$TypeOfThis"> Instance of control </member>
+	/// 	<member name="Request" type="Fit.Http.JsonRequest | Fit.Http.JsonpRequest"> Instance of JsonRequest or JsonpRequest </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSListViewTypeDefs.JsonItem">
+	/// 	<description> JSON list item </description>
+	/// 	<member name="Value" type="string"> Unique value </member>
+	/// 	<member name="Title" type="string" default="undefined"> Title - using Value if not defined </member>
+	/// 	<member name="Selectable" type="boolean" default="undefined"> Value indicating whether item can be selected or not - selectable by default </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSListViewTypeDefs.DataHandlerEventArgs" extends="Fit.Controls.WSListViewTypeDefs.EventHandlerArgs">
+	/// 	<description> Data event handler arguments </description>
+	/// 	<member name="Items" type="Fit.Controls.WSListViewTypeDefs.JsonItem[]"> JSON list items </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSListViewTypeDefs.AbortHandlerEventArgs" extends="Fit.Controls.WSListViewTypeDefs.EventHandlerArgs">
+	/// 	<description> Abort event handler arguments </description>
+	/// 	<member name="Items" type="null"> JSON list items </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.WSListViewTypeDefs" name="CancelableRequestEventHandler" returns="boolean | void">
+	/// 	<description> Request event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSListViewTypeDefs.EventHandlerArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSListViewTypeDefs" name="DataEventHandler">
+	/// 	<description> Response event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSListViewTypeDefs.DataHandlerEventArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSListViewTypeDefs" name="AbortEventHandler">
+	/// 	<description> Abort event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSListViewTypeDefs.AbortHandlerEventArgs"> Event arguments </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSListView" name="OnRequest" access="public">
 	/// 	<description>
 	/// 		Add event handler fired when data is being requested.
@@ -131,7 +177,9 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		 - Sender: Fit.Controls.WSListView instance
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSListViewTypeDefs.CancelableRequestEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnRequest = function(cb)
 	{
@@ -150,7 +198,9 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Items: JSON items received from WebService
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSListViewTypeDefs.DataEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnResponse = function(cb)
 	{
@@ -168,7 +218,9 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Items: JSON items received from WebService (Null in this particular case)
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSListViewTypeDefs.AbortEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnAbort = function(cb)
 	{
@@ -186,7 +238,9 @@ Fit.Controls.WSListView = function(ctlId)
 	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Items: JSON items received from WebService
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSListViewTypeDefs.DataEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnPopulated = function(cb)
 	{
@@ -240,6 +294,9 @@ Fit.Controls.WSListView = function(ctlId)
 
 		var onSuccess = function(data)
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			// Fire OnResponse
 
 			eventArgs.Items = ((data instanceof Array) ? data : []);
@@ -268,11 +325,17 @@ Fit.Controls.WSListView = function(ctlId)
 
 		var onFailure = function(httpStatusCode)
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			Fit.Validation.ThrowError("Unable to get data - request failed with HTTP Status code " + httpStatusCode)
 		};
 
 		var onAbort = function()
 		{
+			if (me === null)
+				return; // Control was disposed while waiting for data to be loaded
+
 			fireEventHandlers(onAbortHandlers, eventArgs);
 		}
 

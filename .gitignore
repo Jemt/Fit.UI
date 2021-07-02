@@ -6,6 +6,7 @@ build/Fit.UI.min.css
 build/Fit.UI.js
 build/Fit.UI.min.js
 build/SimpleDocs.html
+build/SimpleDocs.json
 build/fit-ui-*-*-*.zip
 
 build/npm

@@ -10,6 +10,8 @@ div.FitUiControlDatePicker input[type="text"]
 	width: 100%;
 	height: 100%;
 	padding: 0.2em;
+	padding-left: 0.3em;
+	padding-right: 0.3em;
 	margin: 0px;
 	font-size: inherit;
 	border: 0.065em solid #BBBBBB;
@@ -53,11 +55,11 @@ div.FitUiControlDatePicker[data-time="true"] input[type="text"] + input[type="te
 }
 
 /* Error indication */
-div.FitUiControlDatePicker[data-valid="false"]
+div.FitUiControlDatePicker[data-enabled="true"][data-valid="false"]
 {
 	outline: none;
 }
-div.FitUiControlDatePicker[data-valid="false"] input[type="text"]
+div.FitUiControlDatePicker[data-enabled="true"][data-valid="false"] input[type="text"]
 {
 	border-color: red;
 }

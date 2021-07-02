@@ -124,7 +124,7 @@ UnitTestHelper.TestValues =
 									}
 								]
 							}
-						],
+						]
 					},
 					{
 						Title: "Child node 1.2",
@@ -169,10 +169,10 @@ UnitTestHelper.TestValues =
 									}
 								]
 							}
-						],
-					},
+						]
+					}
 				]
-			},
+			}
 		]]
 	},
 	{

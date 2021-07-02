@@ -46,7 +46,7 @@ Fit.Controls.Component = function(controlId)
 	{
 		return container;
 	}
-	
+
 	/// <function container="Fit.Controls.Component" name="Render" access="public">
 	/// 	<description> Render control, either inline or to element specified </description>
 	/// 	<param name="toElement" type="DOMElement" default="undefined"> If defined, control is rendered to this element </param>
@@ -122,6 +122,11 @@ Fit.Controls.Component = function(controlId)
 		}
 	}
 
+	this._internal.IsIe8 = function()
+	{
+		return isIe8;
+	}
+
 	init();
 }
 
@@ -146,14 +151,35 @@ Fit.Controls.ControlBase = function(controlId)
 	/// 		Selected items are returned in the first format described, also with reserved characters URIEncoded.
 	/// 		Providing a new value to this function results in OnChange being fired.
 	/// 	</description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, items are selected </param>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// 	<param name="preserveDirtyState" type="boolean" default="false">
+	/// 		If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+	/// 		If dirty state is reset (default), the control value will be compared against the value passed,
+	/// 		to determine whether it has been changed by the user or not, when IsDirty() is called.
+	/// 	</param>
 	/// </function>
-	this.Value = function(val)
+	this.Value = function(val, preserveDirtyState)
 	{
 		// Function MUST remember to fire OnChange event when
 		// value is changed, both programmatically and by user.
 
 		Fit.Validation.ThrowError("Not implemented");
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="UserValue" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
+	/// 		Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
+	/// 		characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
+	/// 		value. The intention with UserValue(..) is to mimic the behaviour of what the user can do with the user interface control.
+	/// 		For picker controls the value format is equivalent to the one dictated by the Value(..) function.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// </function>
+	this.UserValue = function(val)
+	{
+		//Fit.Validation.ThrowError("Not implemented");
+		return me.Value(val, true); // Default implementation - change value but do not reset dirty state
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="IsDirty" access="public" returns="boolean">
@@ -195,13 +221,15 @@ Fit.Controls.ControlBase = function(controlId)
 	var scope = null;
 	var required = false;
 	var orgDirtyFunction = null;
-	var validationExpr = null;
-	var validationError = null;
-	var validationErrorType = -1; // 0 = Required, 1 = RegEx validation, 2 = Callback validation
+	var validationExpr = null;			// Obsolete - used by SetValidationExpression
+	var validationError = null;			// Obsolete - used by SetValidationExpression
+	var validationErrorType = -1;		// 0 = Required, 1 = RegEx validation via SetValidationExpression(..), 2 = Callback validation via SetValidationHandler(..), 3 = Callback validation via SetValidationCallback(..), 4 = RegEx or Callback validation via AddValidationRule(..)
 	var validationCallbackFunc = null;	// Obsolete - used by SetValidationCallback
 	var validationCallbackError = null;	// Obsolete - used by SetValidationCallback
-	var validationHandlerFunc = null;
-	var validationHandlerError = null;
+	var validationHandlerFunc = null;	// Obsolete - used by SetValidationHandler
+	var validationHandlerError = null;	// Obsolete - used by SetValidationHandler
+	var validationRules = [];
+	var validationRuleError = null;
 	var lazyValidation = false;
 	var hasValidated = false;
 	var blockAutoPostBack = false; // Used by AutoPostBack mechanism to prevent multiple postbacks, e.g on double click
@@ -212,9 +240,13 @@ Fit.Controls.ControlBase = function(controlId)
 	var onBlurTimeout = null;		// Used by OnFocusIn and OnFocusOut handlers
 	var ensureFocusFires = false;	// Used by OnFocusIn and OnFocusOut handlers
 	var waitingForFocus = false;	// Used by OnFocusIn and OnFocusOut handlers
+	var focusStateLocked = false;	// Used by OnFocusIn and OnFocusOut handlers
 	var txtValue = null;
 	var txtDirty = null;
 	var txtValid = null;
+	var txtEnabled = null;
+	var baseControlDisabled = false;	// True if BaseControl's implementation of Enabled(..) disabled the control
+	var ie8DisabledLayer = null;		// Layer used to block clicks in IE8 when control is disabled
 
 	function init()
 	{
@@ -224,6 +256,7 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Data("focused", "false");
 		me._internal.Data("valid", "true");
 		me._internal.Data("dirty", "false");
+		me._internal.Data("enabled", "true");
 
 		me._internal.Data("device", ((Fit.Browser.GetInfo().IsMobile === false) ? "Desktop" : (Fit.Browser.GetInfo().IsPhone === true) ? "Phone" : "Tablet"));
 
@@ -245,6 +278,11 @@ Fit.Controls.ControlBase = function(controlId)
 		txtValid.name = "FitUIValid" + me.GetId();
 		Fit.Dom.Add(container, txtValid);
 
+		txtEnabled = document.createElement("input");
+		txtEnabled.type = "hidden";
+		txtEnabled.name = "FitUIEnabled" + me.GetId();
+		Fit.Dom.Add(container, txtEnabled);
+
 		me.OnChange(function(sender)
 		{
 			if (blockAutoPostBack === false && me.AutoPostBack() === true && document.forms.length > 0)
@@ -259,7 +297,7 @@ Fit.Controls.ControlBase = function(controlId)
 			}
 		});
 
-		if (Fit.Browser.GetBrowser() !== "MSIE" || Fit.Browser.GetVersion() >= 9)
+		if (me._internal.IsIe8() === false)
 		{
 			// Notice: Using Capture (true argument) for these handlers,
 			// meaning they are fired before the event reach its target.
@@ -316,15 +354,15 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = txtValue = txtDirty = txtValid = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
 		base();
 	});
 
 
-	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="object">
+	/// <function container="Fit.Controls.ControlBase" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control width - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control width is updated to specified value. A value of -1 resets control width. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control width is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control width is updated to specified CSS unit </param>
 	/// </function>
 	this.Width = function(val, unit)
 	{
@@ -348,10 +386,10 @@ Fit.Controls.ControlBase = function(controlId)
 		return width;
 	}
 
-	/// <function container="Fit.Controls.ControlBase" name="Height" access="public" returns="object">
+	/// <function container="Fit.Controls.ControlBase" name="Height" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set control height - returns object with Value and Unit properties </description>
 	/// 	<param name="val" type="number" default="undefined"> If defined, control height is updated to specified value. A value of -1 resets control height. </param>
-	/// 	<param name="unit" type="string" default="px"> If defined, control height is updated to specified CSS unit </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="px"> If defined, control height is updated to specified CSS unit </param>
 	/// </function>
 	this.Height = function(val, unit)
 	{
@@ -399,6 +437,154 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		Fit.Validation.ExpectStringValue(val);
 		return Fit.Dom.HasClass(container, val);
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="Enabled" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether control is enabled or disabled.
+	/// 		A disabled control's value and state is still included on postback, if part of a form.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined">
+	/// 		If defined, True enables control (default), False disables control.
+	/// 	</param>
+	/// </function>
+	this.Enabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== me.Enabled())
+		{
+			baseControlDisabled = val === false;
+
+			var disableSelector = "input, textarea, select, button";
+			var disableEvents = {
+				"contextmenu": preventEventDefault,
+				"click": stopEventPropagation, // For a link it will also suppress navigation (prevent default) - see stopEventPropagation
+				"dblclick": stopEventPropagation,
+				"mousedown": stopEventPropagation,
+				"mouseup": stopEventPropagation,
+				"mousemove": stopEventPropagation,
+				"keydown": stopEventPropagation,
+				"keypress": stopEventPropagation,
+				"keyup": stopEventPropagation,
+				"touchstart": stopEventPropagation,
+				"touchmove": stopEventPropagation,
+				"touchend": stopEventPropagation,
+				"touchcancel": stopEventPropagation
+			};
+
+			var dom = me.GetDomElement();
+
+			me._internal.Data("enabled", val === true ? "true" : "false");
+
+			if (val === false) // Disable control
+			{
+				me.Focused(false);
+
+				// Prevent interaction with controls
+
+				if (me._internal.IsIe8() === false)
+				{
+					// Register events handlers suppressing user interactions such as clicks and keystrokes
+					Fit.Array.ForEach(disableEvents, function(eventName)
+					{
+						Fit.Events.AddHandler(dom, eventName, true, disableEvents[eventName]);
+					});
+				}
+				else // IE8
+				{
+					ie8DisabledLayer = document.createElement("div");
+					ie8DisabledLayer.className = "FitUiControlDisabledLayer";
+					Fit.Dom.Add(me.GetDomElement(), ie8DisabledLayer);
+				}
+
+				// Disable HTML controls
+
+				Fit.Array.ForEach(dom.querySelectorAll(disableSelector), function(elm)
+				{
+					// Disabled vs ReadOnly: https://stackoverflow.com/questions/7730695/whats-the-difference-between-disabled-disabled-and-readonly-readonly-for-ht
+
+					if (elm === txtValue || elm === txtDirty || elm === txtValid || elm === txtEnabled)
+					{
+						return; // Skip controls holding state so we can retain state across postbacks - these controls are hidden and have no event handlers attached
+					}
+
+					elm._fitDisabled = elm.disabled;
+					elm.disabled = true; // Element will not have events fired (e.g. OnFocus and OnClick), it does not receive focus on TAB navigation, and its value is excluded on form submit - most browsers grays out the element
+
+					elm._fitReadOnly = elm.readOnly;
+					elm.readOnly = true; // Merely makes it read only, but without changing the appearance to reflect the read only state - not supported by all element types (e.g. <select> and <button>)
+				});
+
+				// Prevent focusable elements from gaining focus via click and tab navigation
+
+				Fit.Array.CustomRecurse([dom], function(elm)
+				{
+					if (Fit.Dom.Attribute(elm, "tabindex") !== null) // Since .tabIndex always has a value, we have to use Attribute(..) to determine whether it has been explicitely set or not
+					{
+						elm._fitTabIndex = elm.tabIndex;
+						Fit.Dom.Attribute(elm, "tabindex", null); // Remove tabindex - a value of -1 only takes it our of tab flow, but the object remains focusable on click
+
+						if (elm.tagName === "A")
+						{
+							// Links by default have tabindex set to 0 when tabindex attribute
+							// is not explicitely declared. For onFocusIn() to be able to determine
+							// whether links can be ignored, we assign -1. See onFocusIn() for details.
+							elm.tabIndex = -1;
+						}
+					}
+
+					return elm.children;
+				});
+			}
+			else if (val === true)
+			{
+				// Allow user interactions again
+
+				if (me._internal.IsIe8() === false)
+				{
+					// Remove events handlers suppressing user interactions such as clicks and keystrokes
+					Fit.Array.ForEach(disableEvents, function(eventName)
+					{
+						Fit.Events.RemoveHandler(dom, eventName, true, disableEvents[eventName]);
+					});
+				}
+				else
+				{
+					Fit.Dom.Remove(ie8DisabledLayer);
+					ie8DisabledLayer = null;
+				}
+
+				// Re-enable HTML controls
+
+				Fit.Array.ForEach(dom.querySelectorAll(disableSelector), function(elm)
+				{
+					elm.disabled = elm._fitDisabled;
+					delete elm._fitDisabled;
+
+					elm.readOnly = elm._fitReadOnly;
+					delete elm._fitReadOnly;
+				});
+
+				// Allow focusable elements to gain focus again
+
+				Fit.Array.CustomRecurse([dom], function(elm)
+				{
+					if (elm._fitTabIndex !== undefined)
+					{
+						elm.tabIndex = elm._fitTabIndex;
+						delete elm._fitTabIndex;
+					}
+
+					return elm.children;
+				});
+			}
+
+			updateInternalState();
+			me._internal.Repaint();
+		}
+
+		return me._internal.Data("enabled") === "true";
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Visible" access="public" returns="boolean">
@@ -486,8 +672,11 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationExpression" access="public">
-	/// 	<description> Set regular expression used to perform on-the-fly validation against control value </description>
-	/// 	<param name="regEx" type="RegExp" nullable="true"> Regular expression to validate against </param>
+	/// 	<description>
+	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
+	/// 		Set regular expression used to perform on-the-fly validation against control value.
+	/// 	</description>
+	/// 	<param name="regEx" type="RegExp | null"> Regular expression to validate against </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
 	/// 	</param>
@@ -497,6 +686,8 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Validation.ExpectRegExp(regEx, true); // Allow Null/undefined which disables validation
 		Fit.Validation.ExpectString(errorMsg, true);
 
+		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationExpression - please use AddValidationRule instead");
+
 		validationExpr = (regEx ? regEx : null);
 		validationError = (errorMsg ? errorMsg : null);
 
@@ -505,10 +696,10 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationCallback" access="public">
 	/// 	<description>
-	/// 		DEPRECATED! Please use SetValidationHandler(..) instead.
+	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
 	/// 		Set callback function used to perform on-the-fly validation against control value.
 	/// 	</description>
-	/// 	<param name="cb" type="function" nullable="true"> Function receiving control value - must return True if value is valid, otherwise False </param>
+	/// 	<param name="cb" type="function | null"> Function receiving control value - must return True if value is valid, otherwise False </param>
 	/// 	<param name="errorMsg" type="string" default="undefined">
 	/// 		If defined, specified error message is displayed when user clicks or hovers validation error indicator
 	/// 	</param>
@@ -518,7 +709,7 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Validation.ExpectFunction(cb, true); // Allow Null/undefined which disables validation
 		Fit.Validation.ExpectString(errorMsg, true);
 
-		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationCallback - please use SetValidationHandler instead");
+		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationCallback - please use AddValidationRule instead");
 
 		validationHandlerFunc = null;
 		validationCallbackFunc = (cb ? cb : null);;
@@ -528,8 +719,11 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="SetValidationHandler" access="public">
-	/// 	<description> Set callback function used to perform on-the-fly validation against control value </description>
-	/// 	<param name="cb" type="function" nullable="true">
+	/// 	<description>
+	/// 		DEPRECATED! Please use AddValidationRule(..) instead.
+	/// 		Set callback function used to perform on-the-fly validation against control value
+	/// 	</description>
+	/// 	<param name="cb" type="function | null">
 	/// 		Function receiving an instance of the control and its value.
 	/// 		An error message string must be returned if value is invalid,
 	/// 		otherwise Null or an empty string if the value is valid.
@@ -539,10 +733,87 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		Fit.Validation.ExpectFunction(cb, true); // Allow Null/undefined which disables validation
 
+		Fit.Browser.LogDeprecated("Use of deprecated function SetValidationHandler - please use AddValidationRule instead");
+
 		validationCallbackFunc = null;
 		validationHandlerFunc = (cb ? cb : null);
 		validationHandlerError = null;
 
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBaseTypeDefs" name="ValidationCallback" returns="boolean | string | void">
+	/// 	<description> Validation callback used with AddValidationRule(..) inherited from Fit.Controls.ControlBase </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Control to validate </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
+	/// 	<description> Set callback function used to perform on-the-fly validation against control </description>
+	/// 	<param name="validator" type="Fit.Controls.ControlBaseTypeDefs.ValidationCallback">
+	/// 		Function receiving an instance of the control.
+	/// 		A value of False or a non-empty string with an
+	/// 		error message must be returned if value is invalid.
+	/// 	</param>
+	/// </function>
+	/// <function container="Fit.Controls.ControlBase" name="AddValidationRule" access="public">
+	/// 	<description> Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function </description>
+	/// 	<param name="validator" type="RegExp"> Regular expression to validate value against </param>
+	/// 	<param name="errorMessage" type="string" default="undefined"> Optional error message displayed if value validation fails </param>
+	/// </function>
+	this.AddValidationRule = function(validator, errorMessage)
+	{
+		Fit.Validation.ExpectIsSet(validator);
+		Fit.Validation.ExpectString(errorMessage, true);
+
+		if (typeof(validator) === "function")
+		{
+			Fit.Validation.ExpectFunction(validator);
+			validationRules.push( { Type: "Callback", Validator: validator, ErrorMessage: null } );
+		}
+		else
+		{
+			Fit.Validation.ExpectRegExp(validator);
+			validationRules.push( { Type: "RegExp", Validator: validator, ErrorMessage: errorMessage || null } );
+		}
+
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
+	/// 	<description> Remove validation function used to perform on-the-fly validation against control </description>
+	/// 	<param name="validator" type="Fit.Controls.ControlBaseTypeDefs.ValidationCallback"> Validation function registered using AddValidationRule(..) </param>
+	/// </function>
+	/// <function container="Fit.Controls.ControlBase" name="RemoveValidationRule" access="public">
+	/// 	<description> Remove regular expression used to perform on-the-fly validation against control value </description>
+	/// 	<param name="validator" type="RegExp"> Regular expression registered using AddValidationRule(..) </param>
+	/// </function>
+	this.RemoveValidationRule = function(validator) // Function or RegExp
+	{
+		var found = null;
+
+		Fit.Array.ForEach(validationRules, function(rule)
+		{
+			if (rule.Validator === validator)
+			{
+				found = rule;
+				return false; // Break loop
+			}
+		});
+
+		if (found !== null)
+		{
+			Fit.Array.Remove(validationRules, found);
+		}
+
+		me._internal.Validate();
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="RemoveAllValidationRules" access="public">
+	/// 	<description> Remove all validation rules </description>
+	/// </function>
+	this.RemoveAllValidationRules = function()
+	{
+		validationRules = [];
 		me._internal.Validate();
 	}
 
@@ -556,8 +827,10 @@ Fit.Controls.ControlBase = function(controlId)
 	this.IsValid = function()
 	{
 		validationErrorType = -1;
+		validationHandlerError = null;
+		validationRuleError = null;
 
-		if (validationExpr === null && validationCallbackFunc === null && validationHandlerFunc === null && required === false)
+		if (validationExpr === null && validationCallbackFunc === null && validationHandlerFunc === null && required === false && validationRules.length === 0)
 			return true;
 
 		var obj = me.Value();
@@ -577,7 +850,6 @@ Fit.Controls.ControlBase = function(controlId)
 
 		if (validationHandlerFunc !== null)
 		{
-			validationHandlerError = null;
 			var errorMessage = validationHandlerFunc(me, val);
 
 			if (errorMessage !== null && errorMessage !== "" && typeof(errorMessage) === "string")
@@ -591,6 +863,38 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			validationErrorType = 3;
 			return false;
+		}
+
+		if (validationRules.length > 0)
+		{
+			Fit.Array.ForEach(validationRules, function(rule)
+			{
+				if (rule.Type === "Callback")
+				{
+					var result = rule.Validator(me);
+
+					if (result === false || (typeof(result) === "string" && result !== ""))
+					{
+						validationErrorType = 4;
+						validationRuleError = result || null;
+						return false; // Break loop
+					}
+				}
+				else // RegExp
+				{
+					if (rule.Validator.test(me.Value()) === false)
+					{
+						validationErrorType = 4;
+						validationRuleError = rule.ErrorMessage;
+						return false; // Break loop
+					}
+				}
+			});
+
+			if (validationErrorType === 4)
+			{
+				return false;
+			}
 		}
 
 		return true;
@@ -616,6 +920,7 @@ Fit.Controls.ControlBase = function(controlId)
 			{
 				me._internal.Data("valid", "true");
 				me._internal.Data("errormessage", null);
+				Fit.Dom.Attribute(me.GetDomElement(), "title", null); // Title attribute holds error message in IE8
 			}
 			else
 			{
@@ -630,9 +935,14 @@ Fit.Controls.ControlBase = function(controlId)
 	// Events
 	// ============================================
 
+	/// <function container="Fit.Controls.ControlBaseTypeDefs" name="BaseEvent">
+	/// 	<description> Event handler receiving an instance of the control firing the event </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Control instance </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.ControlBase" name="OnChange" access="public">
 	/// 	<description> Register OnChange event handler which is invoked when control value is changed either programmatically or by user </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnChange = function(cb)
 	{
@@ -642,7 +952,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnFocus" access="public">
 	/// 	<description> Register OnFocus event handler which is invoked when control gains focus </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnFocus = function(cb)
 	{
@@ -652,7 +962,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	/// <function container="Fit.Controls.ControlBase" name="OnBlur" access="public">
 	/// 	<description> Register OnBlur event handler which is invoked when control loses focus </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (ControlBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.ControlBaseTypeDefs.BaseEvent"> Event handler function which accepts Sender (ControlBase) </param>
 	/// </function>
 	this.OnBlur = function(cb)
 	{
@@ -664,8 +974,82 @@ Fit.Controls.ControlBase = function(controlId)
 	// Private
 	// ============================================
 
+	function stopEventPropagation(e) // Used to suppress user interaction when control is disabled
+	{
+		Fit.Events.StopPropagation(e);
+
+		if (e.type === "click" && Fit.Events.GetTarget(e).tagName === "A")
+		{
+			preventEventDefault(e); // Prevent navigation
+		}
+	}
+
+	function preventEventDefault(e) // Used to suppress user interaction when control is disabled
+	{
+		Fit.Events.PreventDefault(e);
+	}
+
 	function onFocusIn(e)
 	{
+		if (baseControlDisabled === true && Fit.Dom.GetFocused() !== me.GetDomElement())
+		{
+			// An element in control gained focus, even though control is disabled. This might happen
+			// if data is loaded async and control's DOM is populated after control has been disabled.
+
+			var focused = Fit.Dom.GetFocused(); // Element that gained focus
+
+			if (me._internal.IsIe8() === true && focused === ie8DisabledLayer)
+			{
+				return; // User clicked on IE8's Disabled Layer - IE fires OnFocusIn, even for elements that are not focusable
+			}
+
+			// Enable and re-disable control if an element within the control received focus,
+			// which will ensure focusable elements within control lose their ability to receive focus.
+			// Notice: the focus event always fires for hyperlinks, no matter what, since they are always
+			// focusable. So unless the hyperlink is explicitely set to be focusable on tab navigation
+			// (tabIndex >= 0), there is no need to enable and re-disable the control. Enabled(false) will
+			// make sure to set tabIndex to -1 for links so we do not trigger the code below again and again.
+			if (focused.tagName !== "A" || focused.tabIndex >= 0)
+			{
+				// Display warning so we don't get confused as to why tab navigation suddently acts weird.
+				// If this gets annoying, the control triggering this warning should override Enabled(..) to make its
+				// own specific implementation, rather than relying on ControlBase's very generic (but free) approach.
+				var msg = "";
+				msg += "Disabled control '" + me.GetId() + "' received focus because an object was introduced in the control ";
+				msg += "that is focusable, which did not exist when the control was disabled. Control's disabled state will ";
+				msg += "now be updated to prevent this from happening again with the control's current state. Since the control ";
+				msg += "has already received focus, and we do not know the exact tab navigation order of the page, focus will ";
+				msg += "now be returned to the component previously focused. The user will experience this as TAB navigation "
+				msg += "being ignored for this keystroke, but it will work the next time. To avoid this, make sure to disable ";
+				msg += "the control once it is ready - e.g. fully populated.";
+				console.warn(msg);
+
+				me.Enabled(true);
+				me.Enabled(false);
+			}
+
+			// Since control is not focusable when disabled, and we don't know
+			// which element is the next/previous focusable one, we return focus
+			// to the element from which focus was handed over (previously focused).
+			var related = Fit.Events.GetRelatedTarget(e);
+			if (related !== null && related.tabIndex >= 0)
+			{
+				//console.warn("Returning focus to previously focused element");
+				related.focus();
+			}
+			else
+			{
+				//console.warn("Removing focus from disabled control");
+				Fit.Dom.GetFocused().blur(); // There is either no related element (first focus on page), or it has tabIndex -1 (e.g. a hyperlink which had its tabIndex set to -1 when Enabled(false) was called)
+			}
+		}
+
+		if (me.Enabled() === false)
+			return;
+
+		if (focusStateLocked === true)
+			return;
+
 		// Note on how OnFocus and OnBlur is handled:
 		// OnFocus in JS fires for focusable elements only, meaning
 		// elements with tabIndex set.
@@ -730,6 +1114,12 @@ Fit.Controls.ControlBase = function(controlId)
 
 	function onFocusOut(e)
 	{
+		if (me === null) // Disposed while focused (e.g. from an onscroll event handler)
+			return;
+
+		if (focusStateLocked === true)
+			return;
+
 		// See comments in onFocusIn(..)
 
 		var fireBlur = null;
@@ -771,6 +1161,7 @@ Fit.Controls.ControlBase = function(controlId)
 		txtValue.value = me.Value().toString(); // TBD: Why .toString() ? It always returns a string!
 		txtDirty.value = ((me.IsDirty() === true) ? "1" : "0");
 		txtValid.value = ((me.IsValid() === true) ? "1" : "0");
+		txtEnabled.value = ((me.Enabled() === true) ? "1" : "0");
 
 		me._internal.Data("dirty", ((me.IsDirty() === true) ? "true" : "false"));
 	}
@@ -781,6 +1172,11 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			var locale = Fit.Internationalization.GetSystemLocale();
 			me._internal.Data("errormessage", locale.Translations.Required);
+
+			if (me._internal.IsIe8() === true)
+			{
+				Fit.Dom.Attribute(me.GetDomElement(), "title", locale.Translations.Required);
+			}
 		}
 	}
 
@@ -796,10 +1192,12 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			cb(me);
 		});
-	},
+	}
 
 	this._internal.FireOnFocus = function()
 	{
+		ensureFocusFires = false; // Usually set to False in onfocusin event handler, but specialized controls may fire OnFocus as well, in which case we assume control has in fact gained focus
+
 		me._internal.Data("focused", "true");
 		me._internal.Repaint();
 
@@ -807,7 +1205,7 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			cb(me);
 		});
-	},
+	}
 
 	this._internal.FireOnBlur = function()
 	{
@@ -818,7 +1216,40 @@ Fit.Controls.ControlBase = function(controlId)
 		{
 			cb(me);
 		});
-	},
+	}
+
+	this._internal.FocusStateLocked = function(value)
+	{
+		Fit.Validation.ExpectBoolean(value, true);
+
+		// Prevent control from firing OnFocus (onfocusin) and OnBlur (onfocusout) automatically.
+		// Specialized controls can use this to either suppress OnFocus and OnBlur invocation temporarily,
+		// or take over the responsibility of handling invocation of OnBlur and OnFocus.
+		// This is useful if a control for instance opens a modal dialog and gives it focus, in which case the
+		// control would lose focus and fire OnBlur. But since the dialog is considered part of the control, we
+		// do not want OnBlur to fire. We can use FocusStateLocked(..) to make the control preserve its current
+		// focused state, and let the specialized control handle invocation of focus events when needed, and hand
+		// back control to ControlBase when the modal dialog closes.
+
+		// Notice regarding Focused(): One could argue that Focused() should return True if focus state is locked,
+		// if control was focused when lock was enabled, and if OnBlur has not been fired. But that means that two
+		// controls could return True from Focused() which is just wrong, and the Focused() state would contradict
+		// what is returned from Fit.Dom.GetFocused() or document.activeElement, which could potentially lead to
+		// incorrect behaviour. So Focused() must give us the truth, even when focus state is locked.
+
+		if (Fit.Validation.IsSet(value) === true)
+		{
+			if (value !== focusStateLocked)
+			{
+				focusStateLocked = value;
+
+				// Make sure ControlBase can handle focus in/out properly when focus state is unlocked again
+				hasFocus = Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused()) === true;
+			}
+		}
+
+		return focusStateLocked;
+	}
 
 	this._internal.ExecuteWithNoOnChange = function(cb)
 	{
@@ -853,19 +1284,19 @@ Fit.Controls.ControlBase = function(controlId)
 			Fit.Dom.Data(container, key, val);
 
 		return Fit.Dom.Data(container, key);
-	},
+	}
 
 	this._internal.AddDomElement = function(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm);
 		Fit.Dom.InsertBefore(txtValue, elm); //Fit.Dom.Add(container, elm);
-	},
+	}
 
 	this._internal.RemoveDomElement = function(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm);
 		Fit.Dom.Remove(elm);
-	},
+	}
 
 	this._internal.Validate = function(force)
 	{
@@ -881,6 +1312,8 @@ Fit.Controls.ControlBase = function(controlId)
 
 		if (valid === false)
 		{
+			me._internal.Data("errormessage", null);
+
 			if (validationErrorType === 0)
 				me._internal.Data("errormessage", Fit.Internationalization.GetSystemLocale().Translations.Required);
 			else if (validationErrorType === 1 && validationError !== null)
@@ -889,13 +1322,25 @@ Fit.Controls.ControlBase = function(controlId)
 				me._internal.Data("errormessage", validationHandlerError.replace("\r", "").replace(/<br.*>/i, "\n"));
 			else if (validationErrorType === 3 && validationCallbackError !== null)
 				me._internal.Data("errormessage", validationCallbackError.replace("\r", "").replace(/<br.*>/i, "\n"));
+			else if (validationErrorType === 4 && validationRuleError !== null)
+				me._internal.Data("errormessage", validationRuleError.replace("\r", "").replace(/<br.*>/i, "\n"));
 		}
 		else
 		{
 			me._internal.Data("errormessage", null);
 		}
 
+		if (me._internal.IsIe8() === true)
+		{
+			Fit.Dom.Attribute(me.GetDomElement(), "title", me._internal.Data("errormessage"));
+		}
+
 		me._internal.Repaint();
+	}
+
+	this._internal.UpdateInternalState = function()
+	{
+		updateInternalState();
 	}
 
 	init();
@@ -905,11 +1350,19 @@ Fit.Controls.ControlBase = function(controlId)
 // Public static
 // ============================================
 
-/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="object">
+/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="Fit.Controls.Component | null">
 /// 	<description> Get control by unique Control ID - returns Null if not found </description>
 /// 	<param name="id" type="string"> Unique Control ID </param>
 /// </function>
-Fit.Controls.Find = function(id)
+/// <function container="Fit.Controls" name="Find" access="public" static="true" returns="$ExpectedControlType | null">
+/// 	<description> Get control by unique Control ID - returns Null if not found </description>
+/// 	<param name="id" type="string"> Unique Control ID </param>
+/// 	<param name="expectedType" type="$ExpectedControlType">
+/// 		For development environments supporting JSDoc and generics (e.g. VSCode), make Find(..) return found component
+/// 		as specified type. For instance to return a type as Fit.Controls.DropDown, specify Fit.Controls.DropDown.prototype.
+/// 	</param>
+/// </function>
+Fit.Controls.Find = function(id, expectedType) // The expectedType argument is there only to add support for a generic return type via typings
 {
 	Fit.Validation.ExpectStringValue(id);
 	return ((Fit._internal.ControlBase.Controls[id] !== undefined) ? Fit._internal.ControlBase.Controls[id] : null);

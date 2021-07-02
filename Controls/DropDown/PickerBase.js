@@ -37,13 +37,13 @@ Fit.Controls.PickerBase = function()
 	// Public
 	// ============================================
 
-	/// <function container="Fit.Controls.PickerBase" name="MaxHeight" access="public" returns="object">
+	/// <function container="Fit.Controls.PickerBase" name="MaxHeight" access="public" returns="Fit.TypeDefs.CssValue">
 	/// 	<description> Get/set max height of control - returns object with Value (number) and Unit (string) properties </description>
 	/// 	<param name="value" type="number" default="undefined"> If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content. </param>
-	/// 	<param name="unit" type="string" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
+	/// 	<param name="unit" type="Fit.TypeDefs.CssUnit" default="undefined"> If defined, max height is updated to specified CSS unit, otherwise px is assumed </param>
 	/// </function>
 	this.MaxHeight = function(value, unit)
-    {
+	{
 		Fit.Validation.ExpectNumber(value, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
@@ -70,18 +70,25 @@ Fit.Controls.PickerBase = function()
 		}
 
 		return res;
-    }
+	}
 
 	// ============================================
 	// Events fired by host control
 	// ============================================
+
+	/// <function container="Fit.Controls.PickerBaseTypeDefs" name="BaseEventHandler">
+	/// 	<description> Event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// </function>
 
 	/// <function container="Fit.Controls.PickerBase" name="OnShow" access="public">
 	/// 	<description>
 	/// 		Register event handler fired when picker control is shown in host control.
 	/// 		The following argument is passed to event handler function: Sender (PickerBase).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.BaseEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnShow = function(cb)
 	{
@@ -94,7 +101,9 @@ Fit.Controls.PickerBase = function()
 	/// 		Register event handler fired when picker control is hidden in host control.
 	/// 		The following argument is passed to event handler function: Sender (PickerBase).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.BaseEventHandler">
+	/// 		Event handler function
+	/// 	</param>
 	/// </function>
 	this.OnHide = function(cb)
 	{
@@ -106,6 +115,25 @@ Fit.Controls.PickerBase = function()
 	// Events fired by picker control itself
 	// ============================================
 
+	/// <container name="Fit.Controls.PickerBaseTypeDefs.SelectionEventHandlerArguments">
+	/// 	<description> Selection event handler arguments </description>
+	/// 	<member name="Title" type="string"> Item title </member>
+	/// 	<member name="Value" type="string"> Item value </member>
+	/// 	<member name="Selected" type="boolean"> Flag indicating whether item is selected or not </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.PickerBaseTypeDefs" name="SelectionChangingEventHandler" returns="boolean | void">
+	/// 	<description> Selection changing event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.PickerBaseTypeDefs.SelectionEventHandlerArguments"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.PickerBaseTypeDefs" name="SelectionChangedEventHandler">
+	/// 	<description> Selection changed event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.PickerBaseTypeDefs.SelectionEventHandlerArguments"> Event arguments </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionChanging" access="public">
 	/// 	<description>
 	/// 		Register event handler fired when item selection is changing.
@@ -113,13 +141,13 @@ Fit.Controls.PickerBase = function()
 	/// 		The following arguments are passed to event handler function:
 	/// 		Sender (PickerBase), EventArgs (containing Title (string), Value (string), and Selected (boolean) properties).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.SelectionChangingEventHandler"> Event handler function </param>
 	/// </function>
-    this.OnItemSelectionChanging = function(cb)
-    {
+	this.OnItemSelectionChanging = function(cb)
+	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onChangingHandlers, cb);
-    }
+	}
 
 	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionChanged" access="public">
 	/// 	<description>
@@ -129,17 +157,19 @@ Fit.Controls.PickerBase = function()
 	/// 		The following arguments are passed to event handler function:
 	/// 		Sender (PickerBase), EventArgs (containing Title (string), Value (string), and Selected (boolean) properties).
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.SelectionChangedEventHandler"> Event handler function </param>
 	/// </function>
-    this.OnItemSelectionChanged = function(cb)
-    {
+	this.OnItemSelectionChanged = function(cb)
+	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onChangeHandlers, cb);
-    }
+	}
 
 	/// <function container="Fit.Controls.PickerBase" name="OnItemSelectionComplete" access="public">
 	/// 	<description> Register event handler invoked when a series of related item changes are completed </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (PickerBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.BaseEventHandler">
+	/// 		Event handler function which accepts Sender (PickerBase)
+	/// 	</param>
 	/// </function>
 	this.OnItemSelectionComplete = function(cb)
 	{
@@ -149,7 +179,9 @@ Fit.Controls.PickerBase = function()
 
 	/// <function container="Fit.Controls.PickerBase" name="OnFocusIn" access="public">
 	/// 	<description> Register OnFocusIn event handler which is invoked when picker gains focus </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (PickerBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.BaseEventHandler">
+	/// 		Event handler function which accepts Sender (PickerBase)
+	/// 	</param>
 	/// </function>
 	this.OnFocusIn = function(cb)
 	{
@@ -159,7 +191,9 @@ Fit.Controls.PickerBase = function()
 
 	/// <function container="Fit.Controls.PickerBase" name="OnFocusOut" access="public">
 	/// 	<description> Register OnFocusOut event handler which is invoked when picker loses focus </description>
-	/// 	<param name="cb" type="function"> Event handler function which accepts Sender (PickerBase) </param>
+	/// 	<param name="cb" type="Fit.Controls.PickerBaseTypeDefs.BaseEventHandler">
+	/// 		Event handler function which accepts Sender (PickerBase)
+	/// 	</param>
 	/// </function>
 	this.OnFocusOut = function(cb)
 	{
@@ -226,6 +260,12 @@ Fit.Controls.PickerBase = function()
 		me._internal.FireOnItemSelectionChanged("", value, selected, programmaticallyChanged);
 	}
 
+	/// <container name="Fit.Controls.PickerBaseTypeDefs.Item">
+	/// 	<description> Item information </description>
+	/// 	<member name="Title" type="string"> Item title </member>
+	/// 	<member name="Value" type="string"> Item value </member>
+	/// </container>
+
 	/// <function container="Fit.Controls.PickerBase" name="SetSelections" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (optional).
@@ -234,7 +274,9 @@ Fit.Controls.PickerBase = function()
 	/// 		If picker defines preselected items, firing OnItemSelectionChanged
 	/// 		for these items, will update the host control appropriately.
 	/// 	</description>
-	/// 	<param name="items" type="array"> Array containing selected items: {Title:string, Value:string} </param>
+	/// 	<param name="items" type="Fit.Controls.PickerBaseTypeDefs.Item[]">
+	/// 		Array containing selected items: {Title:string, Value:string}
+	/// 	</param>
 	/// </function>
 	this.SetSelections = function(items)
 	{
@@ -247,7 +289,7 @@ Fit.Controls.PickerBase = function()
 		});
 	}
 
-	/// <function container="Fit.Controls.PickerBase" name="GetItemByValue" access="public" returns="object">
+	/// <function container="Fit.Controls.PickerBase" name="GetItemByValue" access="public" returns="Fit.Controls.PickerBaseTypeDefs.Item | null">
 	/// 	<description>
 	/// 		Overridden by control developers (optional).
 	/// 		Host control may invoke this function, for instance to update the title of selected items,

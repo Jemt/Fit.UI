@@ -145,7 +145,13 @@ Fit.Controls.ListView = function(controlId)
 		list.appendChild(entry);
 	}
 
-	/// <function container="Fit.Controls.ListView" name="GetItem" access="public" returns="object">
+	/// <container name="Fit.Controls.ListViewTypeDefs.ListViewItem">
+	/// 	<description> ListView item </description>
+	/// 	<member name="Title" type="string"> Item title </member>
+	/// 	<member name="Value" type="string"> Unique item value </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.ListView" name="GetItem" access="public" returns="Fit.Controls.ListViewTypeDefs.ListViewItem | null">
 	/// 	<description> Get item by value - returns object with Title (string) and Value (string) properties if found, otherwise Null </description>
 	/// 	<param name="value" type="string"> Value of item to retrieve </param>
 	/// </function>
@@ -220,31 +226,31 @@ Fit.Controls.ListView = function(controlId)
 		}
 	}
 
-    this.HandleEvent = function(e)
-    {
+	this.HandleEvent = function(e)
+	{
 		Fit.Validation.ExpectEvent(e, true);
 
-        var ev = Fit.Events.GetEvent(e);
+		var ev = Fit.Events.GetEvent(e);
 
-        if (ev.type === "keydown")
-        {
-            if (ev.keyCode === 38) // arrow up
-            {
-                moveUp();
+		if (ev.type === "keydown")
+		{
+			if (ev.keyCode === 38) // arrow up
+			{
+				moveUp();
 
 				// Prevent scrollable div from scrolling up
 				Fit.Events.PreventDefault(ev);
-            }
-            else if (ev.keyCode === 40) // arrow down
-            {
-                moveDown();
+			}
+			else if (ev.keyCode === 40) // arrow down
+			{
+				moveDown();
 
 				// Prevent scrollable div from scrolling down
 				Fit.Events.PreventDefault(ev);
-            }
-            else if (ev.keyCode === 13) // enter
-            {
-                if (active === null && list.children.length === 1)
+			}
+			else if (ev.keyCode === 13) // enter
+			{
+				if (active === null && list.children.length === 1)
 					moveDown(); // Select first item if no item is selected
 
 				if (active !== null)
@@ -261,10 +267,10 @@ Fit.Controls.ListView = function(controlId)
 
 				// Prevent form submit
 				Fit.Events.PreventDefault(ev);
-            }
-        }
+			}
+		}
 	}
-	
+
 	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
 	{
 		Fit.Validation.ExpectBoolean(calledInternally, true);
@@ -282,9 +288,9 @@ Fit.Controls.ListView = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function(calledInternally)
 	{
 		Fit.Validation.ExpectBoolean(calledInternally, true);
-		
+
 		base(); // Component.Dispose()
-		
+
 		if (calledInternally !== true)
 		{
 			me.Destroy(true); // PickerBase.Destroy()
@@ -293,7 +299,7 @@ Fit.Controls.ListView = function(controlId)
 		me = list = active = isIe8 = null;
 	});
 
-    // ============================================
+	// ============================================
 	// Private
 	// ============================================
 
@@ -343,39 +349,39 @@ Fit.Controls.ListView = function(controlId)
 		}
 	}
 
-    function moveUp()
-    {
-        if (list.children.length === 0)
-            return;
+	function moveUp()
+	{
+		if (list.children.length === 0)
+			return;
 
-        // Select item
+		// Select item
 
-        if (active === null) // Select first entry if no selection is made
-        {
+		if (active === null) // Select first entry if no selection is made
+		{
 			setActive(list.firstChild);
-        }
-        else if (active.previousSibling !== null) // Select previous entry if available
-        {
+		}
+		else if (active.previousSibling !== null) // Select previous entry if available
+		{
 			setActive(active.previousSibling);
-        }
-    }
+		}
+	}
 
-    function moveDown()
-    {
-        if (list.children.length === 0)
-            return;
+	function moveDown()
+	{
+		if (list.children.length === 0)
+			return;
 
-        // Select item
+		// Select item
 
-        if (active === null) // Select first entry if no selection is made
-        {
+		if (active === null) // Select first entry if no selection is made
+		{
 			setActive(list.firstChild);
-        }
-        else if (active.nextSibling !== null) // Select next entry if available
-        {
+		}
+		else if (active.nextSibling !== null) // Select next entry if available
+		{
 			setActive(active.nextSibling);
-        }
-    }
+		}
+	}
 
 	function repaint()
 	{

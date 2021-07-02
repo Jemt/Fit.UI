@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
-        echo "Bash script must be executing within the build folder"
-        exit
+	echo "Bash script must be executing within the build folder"
+	exit
 fi
 
 # Compile Fit.UI
@@ -26,7 +26,8 @@ docsGenerated=0
 
 if [[ -x $(command -v mono) ]] ; then
 	echo "Invoking SimpleDocs"
-	mono SimpleDocs/SimpleDocs.exe
+	mono SimpleDocs/SimpleDocs.exe --OutputFormat=HTML --ResultFile=SimpleDocs.html
+	mono SimpleDocs/SimpleDocs.exe --OutputFormat=JSON --ResultFile=SimpleDocs.json
 	docsGenerated=1
 else
 	echo "WARNING: Mono Framework not installed - unable to generate documentation!"
@@ -64,6 +65,18 @@ else
 	echo "WARNING: Unable to generate TypeScript typings - no documentation generated!"
 	echo "Press ENTER to continue."
 	read
+fi
+
+# Update NPM package
+
+if [[ -d ../node_modules ]] ; then
+	echo "Installing updated Fit.UI NPM package to allow testing of type definitions"
+
+	if [[ -d ../node_modules/fit-ui ]] ; then
+		rm -R ../node_modules/fit-ui
+	fi
+
+	cp -R npm ../node_modules/fit-ui
 fi
 
 echo "Build completed"

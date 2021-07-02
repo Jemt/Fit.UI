@@ -33,6 +33,8 @@ Fit.Controls.DatePicker = function(ctlId)
 	var focused = false;		// Whether control is currently focused
 	var restoreView = false;	// Whether to keep calendar widget on given year/month when temporarily closing and opening it again
 	var updateCalConf = true;	// Whether to set/update calendar widget settings - true on initial load
+	var detectBoundaries = false;				// Flag indicating whether calendar widget should detect viewport collision and open upwards when needed
+	var detectBoundariesRelToViewPort = false;	// Flag indicating whether calendar widget should be positioned relative to viewport (true) or scroll parent (false)
 
 	var isMobile = Fit.Browser.GetInfo().IsMobile;
 	var inputMobile = null;		// Native date picker on mobile devices - value selected is synchronized to input field defined above (remains Null on desktop devices)
@@ -131,6 +133,8 @@ Fit.Controls.DatePicker = function(ctlId)
 		// Prevent OnFocus from firing when user interacts with calendar widget which
 		// is not contained in div.FitUiControlDatePicker (changing month/year and selecting date).
 		// Focus is returned to input almost immediately after interacting with calendar widget.
+		// TODO/TBD: Use FocusStateLocked instead? See https://github.com/Jemt/Fit.UI/issues/103
+		//  - Also see FireOnBlur override further down.
 		me._internal.FireOnFocus = Fit.Core.CreateOverride(me._internal.FireOnFocus, function()
 		{
 			if (focused === false)
@@ -143,6 +147,8 @@ Fit.Controls.DatePicker = function(ctlId)
 		// Prevent OnBlur from firing when user interacts with calendar widget which
 		// is not contained in div.FitUiControlDatePicker (changing month/year).
 		// Focus is returned to input almost immediately after interacting with calendar widget.
+		// TODO/TBD: Use FocusStateLocked instead? See https://github.com/Jemt/Fit.UI/issues/103
+		//  - Also see FireOnFocus override above.
 		me._internal.FireOnBlur = Fit.Core.CreateOverride(me._internal.FireOnBlur, function()
 		{
 			if (open === false)
@@ -232,10 +238,10 @@ Fit.Controls.DatePicker = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
 
+		var inp = ((inputMobile === null) ? input : inputMobile);
+
 		if (Fit.Validation.IsSet(focus) === true)
 		{
-			var inp = ((inputMobile === null) ? input : inputMobile);
-
 			if (focus === true)
 			{
 				inp.focus();
@@ -249,13 +255,24 @@ Fit.Controls.DatePicker = function(ctlId)
 			}
 		}
 
-		return focused;
+		return Fit.Dom.GetFocused() === inp;
 	}
 
-	// See documentation on ControlBase
-	this.Value = function(val) // ONLY accepts YYYY-MM-DD[ hh:mm]
+	/// <function container="Fit.Controls.DatePicker" name="Value" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set control value in the following format: YYYY-MM-DD[ hh:mm]
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// 	<param name="preserveDirtyState" type="boolean" default="false">
+	/// 		If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+	/// 		If dirty state is reset (default), the control value will be compared against the value passed,
+	/// 		to determine whether it has been changed by the user or not, when IsDirty() is called.
+	/// 	</param>
+	/// </function>
+	this.Value = function(val, preserveDirtyState) // ONLY accepts YYYY-MM-DD[ hh:mm]
 	{
 		Fit.Validation.ExpectString(val, true);
+		Fit.Validation.ExpectBoolean(preserveDirtyState, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -280,7 +297,10 @@ Fit.Controls.DatePicker = function(ctlId)
 				input.value = Fit.Date.Format(date, me.Format());
 				preVal = input.value;
 
-				orgVal = date;
+				if (preserveDirtyState !== true)
+				{
+					orgVal = date;
+				}
 
 				if (inputTime !== null)
 				{
@@ -299,7 +319,10 @@ Fit.Controls.DatePicker = function(ctlId)
 				input.value = "";
 				preVal = "";
 
-				orgVal = null;
+				if (preserveDirtyState !== true)
+				{
+					orgVal = null;
+				}
 
 				if (inputTime !== null)
 				{
@@ -342,6 +365,68 @@ Fit.Controls.DatePicker = function(ctlId)
 		return "";
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="UserValue" access="public" returns="string">
+	/// 	<description>
+	/// 		Get/set value as if it was changed by the user.
+	/// 		Contrary to Value(..), this function allows for a partial (or invalid) date value.
+	/// 		If the time picker is enabled (see Time(..)) then both the date and time portion can
+	/// 		be set, separated by a space (e.g. 2020-10-25 14:30).
+	/// 		OnChange fires if value provided is valid. See ControlBase.UserValue(..) for more details.
+	/// 	</description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is inserted into control </param>
+	/// </function>
+	this.UserValue = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			// Current state
+
+			var curDate = input.value;
+			var curTime = (inputTime !== null ? inputTime.value : null);
+			var onChangeFired = false;
+
+			// Parse date and time value
+
+			var datePortion = val;
+			var timePortion = null;
+
+			if (inputTime !== null && val.indexOf(" ") !== -1)
+			{
+				datePortion = val.substring(0, val.indexOf(" "));
+				timePortion = val.substring(val.indexOf(" ") + 1);
+			}
+
+			if (val === "" && inputTime !== null)
+			{
+				timePortion = "";
+			}
+
+			// Update input fields and fire OnChange
+
+			input.value = datePortion;
+
+			if (inputTime !== null)
+			{
+				inputTime.value = (timePortion !== null ? timePortion : "");
+
+				if (curTime !== inputTime.value)
+				{
+					inputTime.onchange(); // Does not fire DatePicker's OnChange if datatime value is invalid, or if value is identical to previously valid value assigned
+					onChangeFired = true;
+				}
+			}
+
+			if (onChangeFired === false && curDate !== input.value)
+			{
+				input.onchange(); // Does not fire DatePicker's OnChange if date value is invalid, or if value is identical to previously valid value assigned
+			}
+		}
+
+		return input.value + (inputTime !== null && inputTime.value !== "" ? " " + inputTime.value : "");
+	}
+
 	// See documentation on ControlBase
 	this.IsDirty = function()
 	{
@@ -381,7 +466,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = input = inputTime = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = weeks = jquery = datepicker = startDate = open = focused = restoreView = isMobile = inputMobile = inputTimeMobile = null;
+		me = input = inputTime = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = placeholderDate = placeholderTime = weeks = jquery = datepicker = startDate = open = focused = restoreView = updateCalConf = detectBoundaries = detectBoundariesRelToViewPort = isMobile = inputMobile = inputTimeMobile = null;
 		base();
 	});
 
@@ -508,9 +593,9 @@ Fit.Controls.DatePicker = function(ctlId)
 		return format;
 	}
 
-	/// <function container="Fit.Controls.DatePicker" name="DatePlaceholder" access="public" returns="string">
+	/// <function container="Fit.Controls.DatePicker" name="DatePlaceholder" access="public" returns="string | null">
 	/// 	<description> Get/set date placeholder value. Returns Null if not set. </description>
-	/// 	<param name="val" type="string" default="undefined">
+	/// 	<param name="val" type="string | null" default="undefined">
 	/// 		If defined, placeholder is updated. Pass Null to use default
 	/// 		placeholder, or an empty string to remove placeholder.
 	/// 	</param>
@@ -528,9 +613,9 @@ Fit.Controls.DatePicker = function(ctlId)
 		return placeholderDate;
 	}
 
-	/// <function container="Fit.Controls.DatePicker" name="TimePlaceholder" access="public" returns="string">
+	/// <function container="Fit.Controls.DatePicker" name="TimePlaceholder" access="public" returns="string | null">
 	/// 	<description> Get/set time placeholder value. Returns Null if not set. </description>
-	/// 	<param name="val" type="string" default="undefined">
+	/// 	<param name="val" type="string | null" default="undefined">
 	/// 		If defined, placeholder is updated. Pass Null to use default
 	/// 		placeholder, or an empty string to remove placeholder.
 	/// 	</param>
@@ -762,6 +847,38 @@ Fit.Controls.DatePicker = function(ctlId)
 		return (inputTime !== null);
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="DetectBoundaries" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
+	/// 		This may cause calendar to open upwards if sufficient space is not available below control.
+	/// 		If control is contained in a scrollable parent, this will be considered the active viewport,
+	/// 		and as such define the active boundaries - unless relativeToViewport is set to True, in which
+	/// 		case the actual browser viewport will be used.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables collision detection, False disables it (default) </param>
+	/// 	<param name="relativeToViewport" type="boolean" default="false">
+	/// 		If defined, True results in viewport being considered the container to which available space is determined.
+	/// 		This also results in calendar widget being positioned with position:fixed, allowing it to escape a container
+	/// 		with overflow (e.g. overflow:auto|hidden|scroll). Be aware though that this does not work reliably in combination
+	/// 		with CSS animation and CSS transform as it creates a new stacking context to which position:fixed becomes relative.
+	/// 		A value of False (default) results in available space being determined relative to the boundaries of the
+	/// 		control's scroll parent. The calendar widget will stay within its container and not overflow it.
+	/// 	</param>
+	/// </function>
+	this.DetectBoundaries = function(val, relativeToViewport)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+		Fit.Validation.ExpectBoolean(relativeToViewport, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			detectBoundaries = val;
+			detectBoundariesRelToViewPort = val === true && relativeToViewport === true;
+		}
+
+		return detectBoundaries;
+	}
+
 	/// <function container="Fit.Controls.DatePicker" name="Show" access="public">
 	/// 	<description>
 	/// 		Calling this function will open the calendar widget.
@@ -778,6 +895,8 @@ Fit.Controls.DatePicker = function(ctlId)
 				var focused = Fit.Dom.GetFocused();
 
 				datepicker.datepicker("show");
+
+				moveCalenderWidgetLocally();
 
 				if (focused === inputTime)
 					inputTime.focus();
@@ -862,12 +981,18 @@ Fit.Controls.DatePicker = function(ctlId)
 
 			Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/external/jquery/jquery.js", function(src)
 			{
+				if (me === null)
+					return; // Control was disposed while waiting for jQuery to load
+
 				jquery = $;
 				Fit._internal.Controls.DatePicker.jQuery = $; // jQuery instance is shared between multiple instances of DatePicker
 				$.noConflict(true);
 
 				Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/jquery-ui.js", function(src)
 				{
+					if (me === null)
+						return; // Control was disposed while waiting for jQuery UI to load
+
 					createDatePicker();
 					cb();
 
@@ -930,6 +1055,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/i18n/datepicker-" + locale + ".js", function(src)
 					{
+						if (me === null)
+						{
+							return; // Control was disposed while waiting for locale to load
+						}
+
 						if (datepicker.jq.datepicker.regional[locale])
 						{
 							me.Show(); // Causes beforeShow to be fired again
@@ -943,7 +1073,8 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				// Update settings in case they were changed
 
-				var val = me.Value();
+				var val = me.Value();			// Always returns value in the YYYY-MM-DD[ hh:mm] format, but returns an empty string if value entered is invalid
+				var actualValue = input.value;	// Since me.Value() returns an empty string if value is invalid, which might be the case if date is only partially entered, we keep the actual value entered as well
 
 				if (updateCalConf === true) // Only update settings if actually changed, as this results in input value being updated, causing cursor position to change in IE
 				{
@@ -973,8 +1104,21 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				open = true;
 
-				if (val !== me.Value()) // Value cleared because locale loaded has a format different from the one previously loaded
+				// The calendar widget clears the input value if it is invalid, which will be the case if user is in the process of entering a
+				// value while the calendar widget is loading, or if a new locale is loaded with a format different from the one previously loaded.
+
+				if (val === "" && actualValue !== "" && input.value === "")
 				{
+					// An invalid (possibly partial) date value was entered. The 'val' variable is empty because me.Value() returns an empty string for invalid
+					// values, while 'actualValue' is not, as it originates from the input field directly. Since input.value is now empty, the calendar widget
+					// has cleared the input field due to the invalid format. We therefore restore it to allow the user to proceed entering the value.
+					input.value = actualValue;
+				}
+				else if (val !== me.Value())
+				{
+					// The calendar widget cleared the input field because locale loaded has a format different from the one previously loaded.
+					// We restore it by re-assigning the 'val' value using me.Value(..) which uses the generic YYYY-MM-DD[ hh:mm] format.
+
 					me._internal.ExecuteWithNoOnChange(function()
 					{
 						me.Value(val);
@@ -985,6 +1129,8 @@ Fit.Controls.DatePicker = function(ctlId)
 			{
 				open = false;
 
+				moveCalenderWidgetGlobally();
+
 				// Make sure properly formatted value is used if user entered
 				// the value manually and pressed ESC to close the calendar.
 				// Calendar widget returns focus if closed using ESC key.
@@ -993,6 +1139,91 @@ Fit.Controls.DatePicker = function(ctlId)
 		});
 
 		datepicker.jq = jq;
+	}
+
+	function moveCalenderWidgetLocally()
+	{
+		// We want the benefits of a connected calendar control (connected to input control),
+		// but do not want it rendered in the root of the document. It pollutes the global scope,
+		// and it doesn't work with dialogs with light dismiss, since interacting with the calendar
+		// in the document root will close/dismiss such callouts.
+		// Ideally we should move the calendar widget inside the control's container, but then it
+		// would be affected by Fit.UI's styling which would cause issues with the visual appearance.
+		// Instead we move it below the DatePicker control and make sure it is still properly positioned.
+		// For more details see https://github.com/Jemt/Fit.UI/issues/116
+
+		var selfDom = me.GetDomElement();
+		var calendarWidget = document.getElementById("fitui-datepicker-div");
+
+		Fit.Dom.InsertAfter(selfDom, calendarWidget);
+
+		var below = true;
+		var forceFixed = false;
+
+		var overflowParent = (detectBoundariesRelToViewPort === false ? Fit.Dom.GetOverflowingParent(selfDom) : null); // Contrary to GetScrollParent(..), GetOverflowingParent(..) also take overflow:hidden into account
+		var offsetParent = selfDom.offsetParent;
+
+		if (overflowParent !== null && overflowParent !== offsetParent && Fit.Dom.Contained(overflowParent, offsetParent) === false)
+		{
+			// Control is contained in a parent with overflow:hidden|scroll|auto, but offsetParent,
+			// which calendar widget is positioned against, it outside of overflow/scroll parent.
+			// With position:absolute this would result in calendar widget scrolling along with the document,
+			// but not when scrolling the scroll container, which would confuse the user. Force position:fixed.
+			forceFixed = true;
+		}
+
+		if (detectBoundaries === true)
+		{
+			// Determine whether to position calendar widget below or above control
+
+			var visualBoundaryBottomPosition = overflowParent !== null && forceFixed === false ? Fit.Dom.GetBoundingPosition(overflowParent).Y + overflowParent.offsetHeight : Fit.Browser.GetViewPortDimensions().Height;
+			var controlBottomPosition = Fit.Dom.GetBoundingPosition(selfDom).Y + selfDom.offsetHeight;
+			var spaceBelowControl = visualBoundaryBottomPosition - controlBottomPosition;
+			var verticalScrollbarHeight = overflowParent !== null && detectBoundariesRelToViewPort === false && forceFixed === false ? Fit.Dom.GetScrollBars(overflowParent).Horizontal.Size : 0; // No need to compensate for scrollbars in viewport as Fit.Browser.GetViewPortDimensions() exclude these by default
+
+			below = (spaceBelowControl >= calendarWidget.offsetHeight + verticalScrollbarHeight);
+		}
+
+		if (below === true) // Position calendar widget below control
+		{
+			if (detectBoundariesRelToViewPort === true || forceFixed === true) // Position relative to viewport (position:fixed) - can escape a container with overflow:hidden|scroll|auto
+			{
+				calendarWidget.style.position = "fixed";
+				calendarWidget.style.left =  Fit.Dom.GetPosition(selfDom, true).X + "px";
+				calendarWidget.style.top = (Fit.Dom.GetPosition(selfDom, true).Y + selfDom.offsetHeight) + "px";
+			}
+			else // Position relative to offsetParent (position:absolute)
+			{
+				calendarWidget.style.position = "absolute";
+				calendarWidget.style.left = selfDom.offsetLeft + "px";
+				calendarWidget.style.top = (selfDom.offsetTop + selfDom.offsetHeight) + "px";
+			}
+		}
+		else // Position calendar widget above control
+		{
+			if (detectBoundariesRelToViewPort === true || forceFixed === true) // Position relative to viewport (position:fixed) - can escape a container with overflow:hidden|scroll|auto
+			{
+				calendarWidget.style.position = "fixed";
+				calendarWidget.style.left =  Fit.Dom.GetPosition(selfDom, true).X + "px";
+				calendarWidget.style.top = (Fit.Dom.GetPosition(selfDom, true).Y - calendarWidget.offsetHeight) + "px"
+			}
+			else // Position relative to offsetParent (position:absolute)
+			{
+				calendarWidget.style.position = "absolute";
+				calendarWidget.style.left = selfDom.offsetLeft + "px";
+				calendarWidget.style.top = (selfDom.offsetTop - calendarWidget.offsetHeight) + "px";
+			}
+		}
+	}
+
+	function moveCalenderWidgetGlobally() // Undo everything done in moveCalenderWidgetLocally()
+	{
+		var calendarWidget = document.getElementById("fitui-datepicker-div");
+		Fit.Dom.Add(document.body, calendarWidget);
+
+		calendarWidget.style.position = ""; // "absolute"
+		calendarWidget.style.left = "";
+		calendarWidget.style.top = "";
 	}
 
 	function getJqueryUiDatePickerFormat()

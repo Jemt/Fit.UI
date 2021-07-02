@@ -2,9 +2,11 @@
 // Execute parser: node Parser.js > index.ts.d
 // Expects file SimpleDocs.html to be accessible.
 // Alternatively test in a browser which is great for debugging:
-// https://jsfiddle.net/f2mzr0gz/1/
-// The JSFiddle loads the TypingsGenerator and parses the documentation
+// TypingsGenerator.html loads TypingsGenerator and parses the documentation
 // directly in the browser, allowing us to use the JS debugger.
+// The generated type definitions are written to the browser console.
+
+// @ts-nocheck
 
 var isNodeJs = (typeof(window) === "undefined");
 var globals = isNodeJs ? global : window;
@@ -73,6 +75,14 @@ if (isNodeJs === true)
 			Merge: function(arr1, arr2)
 			{
 				return arr1.concat(arr2);
+			}
+		},
+
+		String:
+		{
+			Trim: function(str)
+			{
+				return str.replace(/^\s+|\s+$/g, "");
 			}
 		}/*,
 
@@ -146,7 +156,16 @@ function Parser()
 	{
 		var startParsing = function(data)
 		{
-			var resp = data;
+			containers = data.Containers;
+			ensureParentContainers();
+			aliasTypes = getAliases();
+
+			properties = data.Members;
+			functions = data.Functions;
+
+			enums = getEnums();
+
+			/*var resp = data;
 			var regex = /eval\("(.*?)"\)/g;
 
 			var res = regex.exec(resp);
@@ -162,7 +181,7 @@ function Parser()
 			res = regex.exec(resp);
 			functions = eval(res[1]);
 
-			enums = getEnums();
+			enums = getEnums();*/
 
 			if (cb)
 			{
@@ -172,10 +191,11 @@ function Parser()
 
 		if (isNodeJs === false)
 		{
-			var r = new Fit.Http.Request("SimpleDocs.html");
+			var r = new Fit.Http.Request("SimpleDocs.json");
 			r.OnSuccess(function(sender)
 			{
-				startParsing(r.GetResponseText());
+				//startParsing(r.GetResponseText());
+				startParsing(r.GetResponseJson());
 			});
 			r.Start();
 		}
@@ -183,10 +203,11 @@ function Parser()
 		{
 			var fs = require('fs');
 
-			fs.readFile("SimpleDocs.html", "utf8", function(err, data)
+			fs.readFile("SimpleDocs.json", "utf8", function(err, data)
 			{
 				if (err) throw err;
-				startParsing(data);
+				//startParsing(data);
+				startParsing(JSON.parse(data));
 			});
 		}
 	}
@@ -202,14 +223,16 @@ function Parser()
 
 		Fit.Array.ForEach(containers, function(c)
 		{
-			if (c.Name.indexOf(".") === -1)
-				return; // Skip root container
+			var parentContainer = c.Name;
 
-			var parentContainer = c.Name.substring(0, c.Name.lastIndexOf(".")); // Parses e.g. Fit.Http from Fit.Http.Request or Fit from Fit.Array.
-
-			if (ensured[parentContainer] === undefined && getContainerByName(parentContainer) === null)
+			while (parentContainer.indexOf(".") > -1)
 			{
-				ensured[parentContainer] = { Name: parentContainer, Description: "", Extends: "" };
+				parentContainer = parentContainer.substring(0, parentContainer.lastIndexOf(".")); // Parses e.g. Fit.Http from Fit.Http.Request or Fit from Fit.Array.
+
+				if (ensured[parentContainer] === undefined && getContainerByName(parentContainer) === null)
+				{
+					ensured[parentContainer] = { Name: parentContainer, Description: "", Extends: "" };
+				}
 			}
 		});
 
@@ -233,7 +256,7 @@ function Parser()
 				return; // Skip
 
 			var shortContainerName = container.Name.substring(container.Name.lastIndexOf(".") + 1); // E.g. Fit.Controls.Button => Button
-			
+
 			if (globals[shortContainerName] !== undefined)
 			{
 				// Type already exists (e.g. Array or Date) - register alias
@@ -290,6 +313,22 @@ function Parser()
 		return matches;
 	}
 
+	function getEnumByName(enumName)
+	{
+		var found = null;
+
+		Fit.Array.ForEach(enums, function(enumObj)
+		{
+			if (enumObj.Name === enumName)
+			{
+				found = enumObj;
+				return false; // Break loop
+			}
+		});
+
+		return found;
+	}
+
 	function getProperties(container) // Get public properties (e.g. possible values for an enum)
 	{
 		return get(properties, container);
@@ -297,7 +336,68 @@ function Parser()
 
 	function getFunctions(container) // Get functions related to a specific container
 	{
-		return get(functions, container);
+		var funcs = get(functions, container);
+
+		var matches = [];
+
+		Fit.Array.ForEach(funcs, function(f)
+		{
+			if (f.Access !== "") // If access modifier is missing, it is considered a callback - a type definition for a function signature
+				Fit.Array.Add(matches, f);
+		});
+
+		return matches;
+	}
+
+	function getFunctionByName(func) // Get function based on name/path, e.g. Fit.Validation.ExpectBoolean
+	{
+		var functionName = func.substring(func.lastIndexOf(".") + 1); // E.g. Fit.Validation.ExpectBoolean => ExpectBoolean
+		var containerName = func.indexOf(".") > -1 ? func.substring(0, func.lastIndexOf(".")) : "Fit"; // E.g. Fit.Validation.ExpectBoolean => Fit.Validation
+		var found = null;
+
+		Fit.Array.ForEach(getFunctions(containerName), function(f)
+		{
+			if (f.Name === functionName)
+			{
+				found = f;
+				return false; // Break loop
+			}
+		});
+
+		return found;
+	}
+
+	function getCallbacks(container) // Get callbacks related to a specific container
+	{
+		var funcs = get(functions, container);
+
+		var matches = [];
+
+		Fit.Array.ForEach(funcs, function(f)
+		{
+			if (f.Access === "") // This is the type definition for a callback - the signature of a function
+				Fit.Array.Add(matches, f);
+		});
+
+		return matches;
+	}
+
+	function getCallbackByName(callback) // Get callback based on name/path, e.g. Fit.ArrayTypeDefs.ForEachCallback
+	{
+		var callbackName = callback.substring(callback.lastIndexOf(".") + 1); // E.g. Fit.ArrayTypeDefs.ForEachCallback => ForEachCallback
+		var containerName = callback.indexOf(".") > -1 ? callback.substring(0, callback.lastIndexOf(".")) : "Fit"; // E.g. Fit.ArrayTypeDefs.ForEachCallback => Fit.ArrayTypeDefs
+		var callback = null;
+
+		Fit.Array.ForEach(getCallbacks(containerName), function(cb)
+		{
+			if (cb.Name === callbackName)
+			{
+				callback = cb;
+				return false; // Break loop
+			}
+		});
+
+		return callback;
 	}
 
 	function get(collection, container) // Helper function
@@ -405,7 +505,7 @@ function Parser()
 				values += (values !== "" ? "," : "");
 
 				values += "\n" + tabs + "\t/** " + formatDescription(p.Description, tabs) + " */";
-				values += "\n" + tabs + "\t" + p.Name + " = \"" + p.Default + "\"";
+				values += "\n" + tabs + "\t" + (/^[a-z0-9]+$/i.test(p.Name) === true ? p.Name : "\"" + p.Name + "\"") + " = \"" + p.Default + "\"";
 			});
 
 			res += values;
@@ -417,13 +517,19 @@ function Parser()
 
 		// Handle containers considered to be classes
 
+		var dtoGenerics = (declareAsNamespace === false ? getGenericsUsageFromDtoOrCallback(longContainerName) : []);
+
 		res += "\n" + tabs + "/**";
 		res += "\n" + tabs + "* " + formatDescription(containerObject.Description, tabs);
 		res += "\n" + tabs + "* @" + (declareAsNamespace === true ? "namespace" : "class") + " [" + longContainerName + " " + shortContainerName + "]";
+		Fit.Array.ForEach(dtoGenerics, function(genericName)
+		{
+			res += "\n" + tabs + "* @template " + genericName;
+		});
 		res += "\n" + tabs + "*/";
 
 		res += "\n" + tabs + (declareAsNamespace === true ? (longContainerName === "Fit" ? "declare " : "") + "namespace " : "class ");
-		res += shortContainerName;
+		res += shortContainerName + getGenericsString(dtoGenerics);
 		res += "\n" + tabs + "{";
 
 		// Add class members (properties and functions - e.g. Fit.Template.Content or Fit.GetPath())
@@ -449,7 +555,7 @@ function Parser()
 			Fit.Array.ForEach(aliasTypes, function(alias)
 			{
 				res += "\n";
-				
+
 				if (alias.Name === "Array")
 				{
 					res += "type " + alias.Alias + " = " + alias.Name + "<any>;";
@@ -498,15 +604,15 @@ function Parser()
 		{
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(p.Description, tabs);
-			res += "\n" + tabs + "* @member {" + (p.Nullable === true ? "(" + getType(p.Type) + "|null)" : getType(p.Type))+ "} " + p.Name;
+			res += "\n" + tabs + "* @member {" + convertToJsDocType(getType(p.Type)) + (p.Nullable === true ? "|null" : "")+ "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name);
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + p.Name + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
+			res += "\n" + tabs + p.Name + (p.Default ? "?" : "") + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
 		});
 
 		// Add functions
 
-		var functions = getFunctions(longContainerName);
+		var functions = Fit.Array.Merge(getFunctions(longContainerName), getCallbacks(longContainerName));
 
 		if (functions.length > 0)
 			res += "\n" + tabs + "// Functions defined by " + longContainerName;
@@ -517,11 +623,22 @@ function Parser()
 
 			var returnType = null;
 			var returnTypeAlias = null;
+			var generics = [];
 
 			if (f.Returns)
 			{
 				returnType = getType(f.Returns);
 				returnTypeAlias = getType(f.Returns, true);
+
+				generics = getGenerics(f.Returns);
+
+				Fit.Array.ForEach(getGenericsUsageFromDtoOrCallback(f.Returns), function(genName)
+				{
+					if (Fit.Array.Contains(generics, genName) === false)
+					{
+						generics.push(genName);
+					}
+				});
 			}
 
 			// Construct function signature
@@ -532,7 +649,14 @@ function Parser()
 			var access = null;
 			var funcName = null;
 
-			if (hasSubClassOrEnum === true && f.Static === true) // NOTICE: Will not work if we add support for creating instances of "Fit"! We can't mix static functions and object functions!
+			var isCallback = checkIsCallback(f);
+
+			if (isCallback === true)
+			{
+				access = "type "; // Specify "export type " to make it available externally
+				funcName = f.Name;
+			}
+			else if (hasSubClassOrEnum === true && f.Static === true) // NOTICE: Will not work if we add support for creating instances of "Fit"! We can't mix static functions and object functions!
 			{
 				access = "export function ";
 				funcName = f.Name;
@@ -545,15 +669,37 @@ function Parser()
 
 			var parms = getParameterString(f, tabs);
 
+			Fit.Array.ForEach(parms.Generics, function(genericName)
+			{
+				if (Fit.Array.Contains(generics, genericName) === false)
+				{
+					generics.push(genericName);
+				}
+			});
+
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(f.Description, tabs);
-			res += "\n" + tabs + "* @function " + f.Name;
+			Fit.Array.ForEach(generics, function(genericName) // https://github.com/google/closure-compiler/wiki/Generic-Types and https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html
+			{
+				if (isCallback === false && genericName === "TypeOfThis")
+					return; // Skip - TypeOfThis is a special generic type used to pass 'this' type to a callback to have e.g. OnChange pass Sender as the specialized control type rather than ControlBase
+
+				res += "\n" + tabs + "* @template " + genericName; // @template must be defined before @callback
+			});
+			res += "\n" + tabs + (isCallback === false ? "* @function " : "* @callback ") + f.Name;
 			res += parms.Docs;
 			if (returnType !== null)
-				res += "\n" + tabs + "* @returns " + returnType;
+				res += "\n" + tabs + "* @returns " + convertToJsDocType(returnType);
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + access + funcName + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+			if (isCallback === true)
+			{
+				res += "\n" + tabs + access + funcName + getGenericsString(generics) + " = " + "(" + parms.Typings + ") => " + (returnTypeAlias !== null ? returnTypeAlias : "void") + ";";
+			}
+			else
+			{
+				res += "\n" + tabs + access + funcName + getGenericsString(generics, "SkipTypeOfThis") + "(" + parms.Typings + ")" + (funcName !== "constructor" ? ":" + (returnTypeAlias !== null ? returnTypeAlias : "void") : "") + ";";
+			}
 		});
 
 		// Add members (properties and functions) from containers/classes from which the current container/class extends.
@@ -576,7 +722,10 @@ function Parser()
 		// PickerBase in particular. TypeScript supports interfaces out of the box.
 
 		for (var i = 0 ; i < exts.length ; i++)
+		{
+			getType(exts[i]); // Throws error if type is missing (not defined, often due to typo)
 			res += getMembersForContainer(exts[i], tabs, true);
+		}
 
 		return res;
 	}
@@ -586,24 +735,230 @@ function Parser()
 		var tabs = ((tabsStr !== undefined) ? tabsStr : "");
 		var str = "";
 		var docs = "";
+		var generics = [];
+
+		var isCallback = checkIsCallback(functionInstance);
 
 		Fit.Array.ForEach(functionInstance.Parameters, function(p)
 		{
-			//var containerInstance = getContainerByName(p.Type.replace("[]", "")); // Null for e.g. string, boolean, integer, etc.
+			// Find generics required by named callbacks (as apposed to anonymous/inline callbacks).
+			// Notice that the generic types used by named callbacks must be defined with the
+			// same name as the generics used in the function declaration, in order for
+			// the typings generator to be able to associate generics from function input
+			// parameters to named callback input parameters. Example - notice how both declarations use $Type:
+			// <function container="Fit.ArrayTypeDefs" name="ForEachObjectCallback" returns="boolean | void">
+			//     <param name="obj" type="$Type"> Object from array </param>
+			// </function>
+			// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+			//     <param name="arr" type="$Type[]"> Array with objects </param>
+			//     <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback"> Callback receiving objects </param>
+			// </function>
+			// Being able to declare the required generics would be more desirable, but this would require
+			// changes to SimpleDocs since using less-than and greater-than is not allowed in XML:
+			// <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback<$Type, $TypeB, ..>"> </param>
+			// But since this is not possible, we would need to either extend SimpleDocs with support like this:
+			// <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback" generics="$Type, $typeB, .."> </param>
+			// or use an alternative syntax for passing generics to the type attribute like this (ugly!):
+			// <param name="callback" type="Fit.ArrayTypeDefs.ForEachObjectCallback{$Type, $TypeB, ..}"> </param>
+			// We will go with the requirement to use identical naming in both function declaration and named callback declaration
+			// for now. However, if this is completely unacceptable, inline declaration of a callback signature is supported,
+			// which works fine and doesn't get too bloated, when there is only a couple of callback arguments.
+			// <function container="Fit.Array" name="ForEach" access="public" static="true" returns="boolean">
+			//     <param name="arr" type="$Type[]"> Array with objects </param>
+			//     <param name="callback" type="(obj:$Type) => boolean | void"> Callback receiving objects </param>
+			// </function>
 
-			docs += "\n" + tabs + "* @param {" + (p.Nullable === true ? "(" + getType(p.Type) + "|null)" : getType(p.Type))+ "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
+			docs += "\n" + tabs + "* @param {" + convertToJsDocType(getType(p.Type, false, isCallback)) + (p.Nullable === true ? "|null" : "") + "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name) + " - " + formatDescription(p.Description, tabs);
 
 			str += (str !== "" ? ", " : "") + p.Name;
 			str += (p.Default ? "?" : "");
 			str += ":";
-			str += getType(p.Type, true) + (p.Nullable === true ? " | null" : "");
+			str += getType(p.Type, true, isCallback) + (p.Nullable === true ? " | null" : "");
+
+			Fit.Array.ForEach(Fit.Array.Merge(getGenerics(p.Type) /* E.g. $MyType[]|string[] */, getGenericsUsageFromDtoOrCallback(p.Type) /* E.g. String|Fit.Demo.CustomTypeUsingGenerics|Fit.Demo.CallbackUsingGenerics */), function(genericName)
+			{
+				if (Fit.Array.Contains(generics, genericName) === false)
+				{
+					generics.push(genericName);
+				}
+			});
 		});
 
-		return { Typings: str, Docs: docs };
+		return { Typings: str, Docs: docs, Generics: generics };
 	}
 
-	function getType(type, resolveAlias)
+	function getGenerics(type) // Parses names of generic types defined from e.g. $MyType or $MyType|$AnotherType or ($MyType[])=>$Type
 	{
+		var generics = [];
+		var regex = /\$(\w+)/g;
+		var match = null;
+
+		while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = name of type
+		{
+			generics.push(match[1]);
+		}
+
+		return generics;
+	}
+
+	function getGenericsUsageFromDtoOrCallback(type) // Get list of all generics used by container (DTO class) or named callback
+	{
+		var generics = [];
+
+		var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)/g; // Also found in getTypes(..) along with an explaination - make changes both places!
+		var match = null;
+
+		while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type
+		{
+			var container = getContainerByName(match[2]); // Null if not a container
+
+			// Only extract generic types for data transfer object classes which only define properties.
+			// Generics in class functions are mostly used to define an input type and an equivalent
+			// return type, and we do not want these to be added to the class definition. For instance we would not
+			// want to define the Array class as "class Fit.Array<TypeA, TypeB>" just because Fit.Array.Merge(..)
+			// defines the usage of TypeA and TypeB.
+			// However, remember that property types can still describe functions! So rather than describing class
+			// function implementations (public/private/static), they merely describe the function signature.
+			// So to sum up, <container> elements with only <member> elements will have generics returned while
+			// <container> elements that also define <function> elements will not.
+			if (container !== null && getFunctions(match[2]).length === 0)
+			{
+				// DISABLED - see comment above!
+				/*var functions = getFunctions(container.Name);
+				Fit.Array.ForEach(functions, function(func)
+				{
+					Fit.Array.ForEach(func.Parameters, function(param)
+					{
+						var paramGenerics = getGenerics(param.Type);
+
+						Fit.Array.ForEach(paramGenerics, function(genericName)
+						{
+							if (Fit.Array.Contains(generics, genericName) === false)
+							{
+								generics.push(genericName);
+							}
+						});
+					});
+				});*/
+
+				var properties = getProperties(container.Name); // Properties can describe both data types AND function signatures
+
+				Fit.Array.ForEach(properties, function(prop)
+				{
+					var propGenerics = getGenerics(prop.Type);
+
+					Fit.Array.ForEach(propGenerics, function(genericName)
+					{
+						if (Fit.Array.Contains(generics, genericName) === false)
+						{
+							generics.push(genericName);
+						}
+					});
+				});
+
+				// Include generics from types from which we extend
+
+				var exts = ((container.Extends !== "") ? container.Extends.split(";") : []);
+
+				Fit.Array.ForEach(exts, function(ext)
+				{
+					Fit.Array.ForEach(getGenericsUsageFromDtoOrCallback(ext), function(genericName)
+					{
+						if (Fit.Array.Contains(generics, genericName) === false)
+						{
+							generics.push(genericName);
+						}
+					});
+				});
+			}
+			else
+			{
+				var callback = getCallbackByName(match[2]); // Null if not a named callback
+
+				if (callback !== null)
+				{
+					Fit.Array.ForEach(callback.Parameters, function(cbParm)
+					{
+						Fit.Array.ForEach(Fit.Array.Merge(getGenerics(cbParm.Type), getGenericsUsageFromDtoOrCallback(cbParm.Type)), function(genericName)
+						{
+							if (Fit.Array.Contains(generics, genericName) === false)
+							{
+								generics.push(genericName);
+							}
+						});
+					});
+
+					Fit.Array.ForEach(Fit.Array.Merge(getGenerics(callback.Returns), getGenericsUsageFromDtoOrCallback(callback.Returns)), function(genericName)
+					{
+						if (Fit.Array.Contains(generics, genericName) === false)
+						{
+							generics.push(genericName);
+						}
+					});
+				}
+			}
+		}
+
+		return generics;
+	}
+
+	function getGenericsString(genericsArray, actionForTypeOfThis)
+	{
+		var str = "";
+
+		var toInclude = [];
+
+		Fit.Array.ForEach(genericsArray, function(genName)
+		{
+			if (actionForTypeOfThis === "SkipTypeOfThis" && genName === "TypeOfThis")
+				return;
+
+			if (actionForTypeOfThis === "RenameTypeOfThis" && genName === "TypeOfThis")
+				genName = "this";
+
+			toInclude.push(genName);
+		});
+
+		if (toInclude.length > 0)
+		{
+			str = "<" + toInclude.join(", ") + ">";
+		}
+
+		return str;
+	}
+
+	function getType(type, resolveAlias, doNotRenameTypeOfThis)
+	{
+		if (type.indexOf("|") > -1 || type.indexOf(":") > -1 || type.indexOf("+") > -1)
+		{
+			// Multipe types (e.g.: integer | (string | Date)[])[]), type(s) in an anonymous
+			// callback (e.g.: (val:$MyType, compare:string) => void), or intersection types (e.g.: TypeA + TypeB) present.
+			// Make sure actual types are resolved. However, be aware not to use types as parameter names in anonymous functions!
+			// For instance (integer:integer)=>boolean|integer will translate the name of the argument, not just
+			// the type, turning it into (number:number)=>boolean|number. Since this is just type declarations without
+			// implementation, it's of no big deal, but it does create inconsistency with the HTML documentation.
+			// In any event, using types as parameter names is bad practice.
+
+			// Capture names of all types - all names come after a starting paranthesis, a space, a colon (function argument type),
+			// equal-or-greater-than arrow (function return type), or a pipe, and can optionally start with a dollar sign if it is a generic type.
+
+			var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)/g; // Also found in getGenericsUsageFromDtoOrCallback(..) - make changes both places!
+			var match = null;
+			var newType = type; // Perform replacement on copy of string to avoid affecting regex matching which keeps an internal index of where to continue with next search
+
+			while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type
+			{
+				newType = newType.replace(match[0], match[1] + getType(match[2], resolveAlias));
+			}
+
+			return newType.replace(/\+/g, "&"); // In XML documentation we use + to specify intersection types (e.g.: TypeA + TypeB => TypeA & TypeB)
+		}
+
+		if (type.indexOf("$") > -1) // Generics start with a dollar sign which needs to be removed
+		{
+			return type.replace(/\$/g, ""); // E.g. $Type converts to Type or ($Type)=>$Type[] converts to (Type)=>Type[]
+		}
+
 		if (resolveAlias === true)
 		{
 			var alias = getAlias(type);
@@ -626,16 +981,121 @@ function Parser()
 			return "Function";
 		else if (type === "integer") // TODO: Integer is not supported in TypeScript, but passing in a decimal where an integer is expected will cause Fit.UI to throw a type validation exception runtime
 			return "number";
+		else if (type === "integer[]")
+			return "number[]";
+
+		// Expand enum.
+		// An enum such as Fit.Demo.MyEnum with OptionA and OptionB is expanded to
+		// Fit.Demo.MyEnum|"OptionA"|"OptionB" to allow the use of both the enum and its values.
+
+		var enumObj = getEnumByName(type);
+
+		if (enumObj !== null)
+		{
+			Fit.Array.ForEach(getProperties(type), function(enumValue)
+			{
+				type += " | " + "\"" + enumValue.Default + "\"";
+			});
+
+			return type;
+		}
+
+		// Make sure custom types exist (catch typos)
+
+		var checkType = type.replace("[]", ""); // Remove array brackets
+
+		if (checkType.indexOf("Fit.") > -1 && getContainerByName(checkType) === null && getFunctionByName(checkType) === null && getCallbackByName(checkType) === null && getEnumByName(checkType) === null)
+		{
+			throw new Error("Type not found: " + type);
+		}
+
+		// Return type as-is, but with generics attached if defined (e.g. SomeType<TypeA, TypeB>)
+
+		var renameTypeOfThis = doNotRenameTypeOfThis !== true && checkIsCallback(type) === true; // doNotRenameTypeOfThis is true if a callback argument needs to pass TypeOfThis to another callback
+
+		return type + getGenericsString(getGenericsUsageFromDtoOrCallback(type), renameTypeOfThis === true ? "RenameTypeOfThis" : undefined);
+	}
+
+	function convertToJsDocType(type) // Returns type as-is if conversion is not required
+	{
+		// Handle dictionaries
+
+		// Converts e.g. {[key:string]:string|number} to Object.<string,string|number>.
+		// Nested dictionaries are supported as well: {[row:string]: {[column:string]:string|number}}
+		// Support for nested dictionaries is achieved by matching individual dictionaries, replacing
+		// them with placeholders, making the outer dictionary match the regular expression too, e.g.:
+		// {[row:string]: {[column:string]:string|number}}  ==>  {[row:string]: DICTREPLACEMENT0}
+		// and {[row:string]: DICTREPLACEMENT0}  ==>  DICTREPLACEMENT1
+		// The placeholders will be replaced with their equivalent JSDoc dictionaries like this:
+		// DICTREPLACEMENT1  ==>  Object.<string, DICTREPLACEMENT0>
+		// and Object.<string, DICTREPLACEMENT0>  ==>  Object.<string, Object.<string, string|number>>
+
+		var regex = /\{\s*\[\s*(\w+)\s*:\s*(\w+)\s*\]\s*:\s*(\w+(\s*\|\s*\w+)*)\s*\}/g; // https://regex101.com/r/SelKCi/3/
+		var match = null;
+
+		var replacements = [];
+		var retry = true;
+		var testString = type;
+
+		while (retry === true) // Make sure regex search re-runs to find nested dictionaries
+		{
+			regex.lastIndex = 0; // Reset regex
+			retry = false;
+			testString = type; // Matching and replacing on different strings to avoid affecting internal regex index used to find next match
+
+			while ((match = regex.exec(testString)) !== null) // match[0] = full match, match[1] = name of dictionary key, match[2] = dictionary key type, match[3] = dictionary value type(s)
+			{
+				if (match[2].toLowerCase() !== "string")
+				{
+					throw new Error("Unsupported key type in associative array - must be of type string but found " + match[2] + ": " + match[0]);
+				}
+
+				replacements.push("Object.<string, " + match[3] + ">"); // Key type (string) MUST be in lower case for JSDoc intellisense to work
+				type = type.replace(match[0], "DICTREPLACEMENT" + (replacements.length - 1));
+				retry = true;
+			}
+		}
+
+		for (var i = replacements.length - 1 ; i >= 0 ; i--)
+		{
+			type = type.replace("DICTREPLACEMENT" + i, replacements[i]);
+		}
 
 		return type;
 	}
 
+	function checkIsCallback(value)
+	{
+		if (typeof(value) === "string") // Callback name, e.g. Fit.Controls.ControlBaseTypeDefs.BaseEvent
+		{
+			return getCallbackByName(value) !== null;
+		}
+		else if (value.Returns !== undefined && value.Access !== undefined) // Function object since it has Returns and Access properties
+		{
+			return value.Access === ""; // True if function is not a public/private function, but merely a callback signature (type definition)
+		}
+
+		throw new Error("Invalid value passed to checkIsCallback(..)");
+	}
+
 	function formatDescription(description, tabs)
 	{
-		description = description.replace(/<br>/g, "\n" + tabs);
-		description = description.replace(/&#160;&#160;&#160;&#160; ?/g, "\t");
+		description = description.replace(/\n/g, "\n" + tabs);
+		//description = description.replace(/<br>/g, "\n" + tabs);
+		//description = description.replace(/&#160;&#160;&#160;&#160; ?/g, "\t");
 		description = description.replace(/\/\*/g, "//");
 		description = description.replace(/\*\//g, "");
+
+		if (description !== "" && /\.$/.test(description) === false)
+		{
+			// Make sure all descriptions ends with a period. VSCode will display multiple
+			// descriptions on one line if multiple types are possible, and we hover/select
+			// a member which they have in common. For instance Selectable here:
+			// wsDropDown.OnResponse(function(sender, args) { console.log(args.Data[0].Selectable); })
+			// The Data property is an array of two types which both define Selectable with different
+			// descriptions.
+			description += ".";
+		}
 
 		return description;
 	}

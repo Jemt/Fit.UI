@@ -67,7 +67,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			requestCount--;
 
 			fireEventHandlers(onResponseHandlers, list, eventArgs);
-			
+
 			cmdOpen.className = classes;
 			currentRequest = null;
 
@@ -149,9 +149,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 		tree.OnAbort(function(sender, eventArgs)
 		{
 			requestCount--;
-			
+
 			fireEventHandlers(onAbortHandlers, tree, eventArgs);
-			
+
 			if (requestCount === 0)
 			{
 				cmdOpen.className = classes;
@@ -251,6 +251,12 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="AutoUpdateSelectedCallback">
+	/// 	<description> AutoUpdateSelected callback </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="updatedItems" type="Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]"> Updated items </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSDropDown" name="AutoUpdateSelected" access="public">
 	/// 	<description>
 	/// 		Automatically update title of selected items based on data from WebService.
@@ -266,7 +272,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		dropdown.AutoUpdateSelected(function(sender, updated) { console.log(&quot;All selected&quot;, dropdown.GetSelections()); });
 	/// 		For additiona details see UpdateSelected().
 	/// 	</description>
-	/// 	<param name="cb" type="function" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback" default="undefined">
 	/// 		Optional callback function invoked when selected items have been updated
 	/// 	</param>
 	/// </function>
@@ -372,12 +378,12 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return list.Url();
 	}
 
-	/// <function container="Fit.Controls.WSDropDown" name="JsonpCallback" access="public" returns="string">
+	/// <function container="Fit.Controls.WSDropDown" name="JsonpCallback" access="public" returns="string | null">
 	/// 	<description>
 	/// 		Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
 	/// 		Often this argument is simply &quot;callback&quot;. Passing Null disables JSONP communication again.
 	/// 	</description>
-	/// 	<param name="val" type="string" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
+	/// 	<param name="val" type="string | null" default="undefined"> If defined, enables JSONP and updates JSONP callback argument </param>
 	/// </function>
 	this.JsonpCallback = function(val)
 	{
@@ -392,6 +398,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return list.JsonpCallback();
 	}
 
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="ClearDataCallback">
+	/// 	<description> Event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// </function>
+
 	/// <function container="Fit.Controls.WSDropDown" name="ClearData" access="public">
 	/// 	<description>
 	/// 		Call this function to make control reload data when needed,
@@ -400,14 +411,14 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		Use callback to pick up execution once data has been cleared.
 	/// 		Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
 	/// 	</description>
-	/// 	<param name="cb" type="function" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.ClearDataCallback" default="undefined">
 	/// 		If defined, callback is invoked when data is cleared
 	/// 	</param>
 	/// </function>
 	this.ClearData = function(cb)
 	{
 		Fit.Validation.ExpectFunction(cb, true);
-		
+
 		// Postpone if WebService operation is currently running
 
 		if (requestCount > 0)
@@ -419,12 +430,12 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		// Clear data/cache/state
 
-		hideLinesForFlatData = true;	// Make TreeView hide helper lines if nodes received have no children	
+		hideLinesForFlatData = true;	// Make TreeView hide helper lines if nodes received have no children
 		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
 		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
 
 		// Cancel pending search operation if scheduled
-		
+
 		cancelSearch();
 
 		// Invoke callback
@@ -483,6 +494,8 @@ Fit.Controls.WSDropDown = function(ctlId)
 		list.Destroy();
 		tree.Destroy();
 
+		cancelSearch();
+
 		me = list = tree = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = onRequestHandlers = onResponseHandlers = null;
 
 		base();
@@ -491,6 +504,43 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// ============================================
 	// Events
 	// ============================================
+
+	/// <container name="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs">
+	/// 	<description> Request event arguments </description>
+	/// 	<member name="Sender" type="$TypeOfThis"> Instance of control </member>
+	/// 	<member name="Picker" type="Fit.Controls.WSTreeView | Fit.Controls.WSListView"> Instance of picker control causing web service request </member>
+	/// 	<member name="Node" type="Fit.Controls.TreeViewNode | null"> Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request </member>
+	/// 	<member name="Search" type="string"> Search value if entered by user </member>
+	/// 	<member name="Request" type="Fit.Http.JsonpRequest | Fit.Http.JsonRequest"> Instance of JsonpRequest or JsonRequest </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs" extends="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs">
+	/// 	<description> Response event arguments </description>
+	/// 	<member name="Data" type="Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[]"> JSON data received from web service </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs" extends="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs">
+	/// 	<description> Aborted request event arguments </description>
+	/// 	<member name="Data" type="null"> JSON data received from web service </member>
+	/// </container>
+
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="CancelableRequestEventHandler">
+	/// 	<description> Cancelable request event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.RequestEventArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="ResponseEventHandler">
+	/// 	<description> Response event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs"> Event arguments </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="RequestAbortedEventHandler">
+	/// 	<description> Aborted request handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs"> Event arguments </param>
+	/// </function>
 
 	/// <function container="Fit.Controls.WSDropDown" name="OnRequest" access="public">
 	/// 	<description>
@@ -503,9 +553,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered by user
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler"> Event handler function </param>
 	/// </function>
 	this.OnRequest = function(cb)
 	{
@@ -524,10 +574,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered by user
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Data: JSON data received from WebService
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler"> Event handler function </param>
 	/// </function>
 	this.OnResponse = function(cb)
 	{
@@ -545,10 +595,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		 - Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
 	/// 		 - Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
 	/// 		 - Search: Search value if entered by user
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
 	/// 		 - Data: JSON data received from WebService (Null in this particular case)
-	/// 		 - Request: Fit.Http.Request or Fit.Http.JsonRequest instance
 	/// 	</description>
-	/// 	<param name="cb" type="function"> Event handler function </param>
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler"> Event handler function </param>
 	/// </function>
 	this.OnAbort = function(cb)
 	{
@@ -590,7 +640,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	function searchData(value)
 	{
-		// Abort time responsible for starting search request X milliseconds after user stops typing
+		// Abort timer responsible for starting search request X milliseconds after user stops typing
 
 		cancelSearch();
 
@@ -687,7 +737,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 				eventArgs.Children = newArgs.Data;
 			else if (eventArgs.Items) // WSListView
 				eventArgs.Items = newArgs.Data;
-			
+
 			if (newArgs.Request !== eventArgs.Request)
 			{
 				// Support for changing request instans to

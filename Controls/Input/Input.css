@@ -10,6 +10,8 @@ div.FitUiControlInput textarea:first-child
 	width: 100%;
 	height: 100%;
 	padding: 0.2em;
+	padding-left: 0.3em;
+	padding-right: 0.3em;
 	margin: 0px;
 	text-align: inherit;
 	font-size: inherit;
@@ -31,12 +33,12 @@ div.FitUiControlInput input:first-child::-ms-clear
 }
 
 /* Error indication */
-div.FitUiControlInput[data-valid="false"]
+div.FitUiControlInput[data-enabled="true"][data-valid="false"]
 {
 	outline: none;
 }
-div.FitUiControlInput[data-valid="false"] input:first-child,
-div.FitUiControlInput[data-valid="false"] textarea:first-child
+div.FitUiControlInput[data-enabled="true"][data-valid="false"] input:first-child,
+div.FitUiControlInput[data-enabled="true"][data-valid="false"] textarea:first-child
 {
 	border-color: red;
 }
@@ -47,15 +49,21 @@ div.FitUiControlInput > span.fa
 	position: absolute;
 	top: 0px;
 	right: -1.5em;
+	cursor: pointer;
+}
+div.FitUiControlInput > span.fa:focus
+{
+	outline: none;
 }
 div.FitUiControlInput[data-maximizable="true"]
 {
-    margin-right: 2em;
+	margin-right: 2em;
 }
 
 /* Remove outline when input has focus */
 div.FitUiControlInput input:first-child:focus,
-div.FitUiControlInput textarea:first-child:focus
+div.FitUiControlInput textarea:first-child:focus,
+div.FitUiControlInput[data-designmode="true"]:focus /* Prevent outline if toolbar is clicked */
 {
 	outline: none;
 }

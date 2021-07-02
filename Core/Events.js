@@ -3,27 +3,234 @@
 /// </container>
 Fit.Events = {};
 
+// See TypeScript's GlobalEventHandlersEventMap (lib.dom.d.ts) which reveals how named events map to event types.
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackKeyboard" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="KeyboardEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackMouse" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="MouseEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackPopState" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="PopStateEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackHashChange" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="HashChangeEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackFocus" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="FocusEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackBeforeUnload" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="BeforeUnloadEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackClipboard" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="ClipboardEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackStorage" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="StorageEvent"> Event argument </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackRooted" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="dom" type="DOMElement"> DOM element </param>
+/// </function>
+
+/// <function container="Fit.EventsTypeDefs" name="EventHandlerCallbackGeneric" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddHandler(..) </description>
+/// 	<param name="e" type="Event"> Event argument </param>
+/// </function>
+
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
-/// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
-/// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
+/// 	<param name="event" type='"keydown" | "keyup" | "keypress"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackKeyboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackMouse"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"popstate"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackPopState"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"hashchange"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackHashChange"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"focus" | "focusin" | "focusout" | "blur"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackFocus"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"beforeunload"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"cut" | "copy" | "paste"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"storage"'> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackStorage"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given DOMElement and returns Event ID </description>
+/// 	<param name="element" type="DOMElement"> DOM element on to which event handler is registered </param>
+/// 	<param name="event" type='"#rooted"'> Event name </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackRooted"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type="string"> Event name without the 'on' prefix </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackGeneric"> JavaScript function to register </param>
+/// </function>
+//  ------------------------------------------------------------------------------------------
+//  Overloads with useCapture or options argument
+//  ------------------------------------------------------------------------------------------
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"keydown" | "keyup" | "keypress"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackKeyboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackMouse"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"popstate"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackPopState"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"hashchange"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackHashChange"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"focus" | "focusin" | "focusout" | "blur"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackFocus"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"beforeunload"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"cut" | "copy" | "paste"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackClipboard"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
+/// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
+/// 	<param name="event" type='"storage"'> Event name without the 'on' prefix </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
+/// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackStorage"> JavaScript function to register </param>
+/// </function>
+/// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
+/// 	<description> Registers handler for specified event on given DOMElement and returns Event ID </description>
+/// 	<param name="element" type="DOMElement"> DOM element on to which event handler is registered </param>
+/// 	<param name="event" type='"#rooted"'> Event name </param>
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
+/// 		This argument is ignored for the specialized #rooted event.
+/// 	</param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackRooted"> JavaScript function to register </param>
 /// </function>
 /// <function container="Fit.Events" name="AddHandler" access="public" static="true" returns="integer">
 /// 	<description> Registers handler for specified event on given EventTarget and returns Event ID </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) on to which event handler is registered </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
+/// 		Alternatively pass options object to control behaviour on a more fine-grained scale.
 /// 		NOTICE: This feature will be ignored by Internet Explorer 8 and below.
 /// 	</param>
-/// 	<param name="eventFunction" type="function"> JavaScript function to register </param>
+/// 	<param name="eventFunction" type="Fit.EventsTypeDefs.EventHandlerCallbackGeneric"> JavaScript function to register </param>
 /// </function>
 Fit.Events.AddHandler = function()
 {
 	var element = null;
 	var event = null;
-	var useCapture = false; // false = event bubbling (reverse of event capturing)
+	var useCaptureOrOptions = false; // false = event bubbling (reverse of event capturing)
 	var eventFunction = null;
 
 	if (arguments.length === 3)
@@ -36,25 +243,52 @@ Fit.Events.AddHandler = function()
 	{
 		element = arguments[0];
 		event = arguments[1];
-		useCapture = arguments[2];
+		useCaptureOrOptions = arguments[2];
 		eventFunction = arguments[3];
 	}
 
 	Fit.Validation.ExpectEventTarget(element);
 	Fit.Validation.ExpectStringValue(event);
-	Fit.Validation.ExpectBoolean(useCapture);
+	Fit.Validation.ExpectBoolean(typeof(useCaptureOrOptions) !== "object" ? useCaptureOrOptions : true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Capture || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Once || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Passive || true);
 	Fit.Validation.ExpectFunction(eventFunction);
 
 	if (event.toLowerCase() === "#rooted") // Custom event
 	{
-		if (useCapture === true)
-			Fit.Validation.ThrowError("Event capturing is not supported for Rooted event");
+		if (useCaptureOrOptions)
+			Fit.Validation.ThrowError("Event capturing or event options not supported for Rooted event");
 
 		Fit.Array.Add(Fit._internal.Events.OnRootedHandlers, { Element: element, Parent: element.parentElement, Event: event, Callback: eventFunction });
 	}
 	else if (element.addEventListener) // W3C
 	{
-		element.addEventListener(event, eventFunction, useCapture);
+		var options = false;
+
+		if (useCaptureOrOptions === true)
+		{
+			options = true;
+		}
+		else if (useCaptureOrOptions)
+		{
+			options = {};
+
+			if (useCaptureOrOptions.Capture !== undefined)
+			{
+				options.capture = useCaptureOrOptions.Capture;
+			}
+			if (useCaptureOrOptions.Once !== undefined)
+			{
+				options.once = useCaptureOrOptions.Once;
+			}
+			if (useCaptureOrOptions.Passive !== undefined)
+			{
+				options.passive = useCaptureOrOptions.Passive;
+			}
+		}
+
+		element.addEventListener(event, eventFunction, options);
 	}
 	else if (element.attachEvent) // IE
 	{
@@ -82,7 +316,7 @@ Fit.Events.AddHandler = function()
 
 	var eventId = element._internal.Events.Handlers.length;
 
-	Fit.Array.Add(element._internal.Events.Handlers, { Event: event, Handler: eventFunction, UseCapture: useCapture, Id: eventId });
+	Fit.Array.Add(element._internal.Events.Handlers, { Event: event, Handler: eventFunction, UseCaptureOrOptions: useCaptureOrOptions, Id: eventId });
 
 	// Fire event function for onload event if document in window/iframe has already been loaded.
 	// Notice that no event argument is passed to function since we don't have one.
@@ -129,8 +363,9 @@ Fit.Events.AddHandler = function()
 /// 	<description> Remove event handler for specified event on given EventTarget </description>
 /// 	<param name="element" type="EventTarget"> EventTarget (e.g. Window or DOMElement) from which event handler is removed </param>
 /// 	<param name="event" type="string"> Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.) </param>
-/// 	<param name="useCapture" type="boolean">
+/// 	<param name="useCaptureOrOptions" type="boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }">
 /// 		Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
+/// 		If event handler was registered with event options for more fine-grained control, these options are passed instead.
 /// 	</param>
 /// 	<param name="eventFunction" type="function"> JavaScript function to remove </param>
 /// </function>
@@ -138,7 +373,7 @@ Fit.Events.RemoveHandler = function()
 {
 	var element = null;
 	var event = null;
-	var useCapture = false; // false = event bubbling (reverse of event capturing)
+	var useCaptureOrOptions = false; // false = event bubbling (reverse of event capturing)
 	var eventFunction = null;
 
 	if (arguments.length === 2)
@@ -158,7 +393,7 @@ Fit.Events.RemoveHandler = function()
 
 		event = handler.Event;
 		eventFunction = handler.Handler;
-		useCapture = handler.UseCapture;
+		useCaptureOrOptions = handler.UseCaptureOrOptions;
 	}
 	else if (arguments.length === 3)
 	{
@@ -170,23 +405,25 @@ Fit.Events.RemoveHandler = function()
 	{
 		element = arguments[0];
 		event = arguments[1];
-		useCapture = arguments[2];
+		useCaptureOrOptions = arguments[2];
 		eventFunction = arguments[3];
 	}
 
 	Fit.Validation.ExpectEventTarget(element);
 	Fit.Validation.ExpectStringValue(event);
-	Fit.Validation.ExpectBoolean(useCapture);
+	Fit.Validation.ExpectBoolean(typeof(useCaptureOrOptions) !== "object" ? useCaptureOrOptions : true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Capture || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Once || true);
+	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Passive || true);
 	Fit.Validation.ExpectFunction(eventFunction);
 
 	if (event.toLowerCase() === "#rooted")
 	{
 		var handlers = Fit._internal.Events.OnRootedHandlers;
-		var remove = null;
 
 		Fit.Array.ForEach(handlers, function(handler)
 		{
-			if (element === handler.Element && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Callback && useCapture === false)
+			if (element === handler.Element && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Callback && useCaptureOrOptions === false)
 			{
 				handler.Removed = true; // Allow OnRooted handler to remove element without causing a "Collection was modified" exception - properly removed in timer responsible for observing elements
 				return false; // Break loop
@@ -195,7 +432,44 @@ Fit.Events.RemoveHandler = function()
 	}
 	else if (element.removeEventListener)
 	{
-		element.removeEventListener(event, eventFunction, useCapture);
+		// Notice regarding useCaptureOrOptions:
+		// Only the capture flag is used when removing event handlers.
+		// This can be either a boolean or an object like this: { capture: true|false }.
+		// Other flags are not considered - or at least should not have been. But unfortunately
+		// some browser versions are known to be byggy in this regard.
+		// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener
+		// "It's worth noting that some browser releases have been inconsistent on this, and
+		//  unless you have specific reasons otherwise, it's probably wise to use the same values
+		//  used for the call to addEventListener() when calling removeEventListener()".
+		// Nothing in the documentation states that the same object reference must be used.
+		// In fact it states "it's probably wise to use the same VALUES ..." in the quote above.
+		// This has been verified using unit tests on various browsers (see Tests/Core/Events.js).
+
+		var options = false;
+
+		if (useCaptureOrOptions === true)
+		{
+			options = true;
+		}
+		else if (useCaptureOrOptions)
+		{
+			options = {};
+
+			if (useCaptureOrOptions.Capture !== undefined)
+			{
+				options.capture = useCaptureOrOptions.Capture;
+			}
+			if (useCaptureOrOptions.Once !== undefined)
+			{
+				options.once = useCaptureOrOptions.Once;
+			}
+			if (useCaptureOrOptions.Passive !== undefined)
+			{
+				options.passive = useCaptureOrOptions.Passive;
+			}
+		}
+
+		element.removeEventListener(event, eventFunction, options);
 	}
 	else if (element.detachEvent)
 	{
@@ -212,7 +486,7 @@ Fit.Events.RemoveHandler = function()
 		{
 			var handler = element._internal.Events.Handlers[i];
 
-			if (handler !== null && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && useCapture === handler.UseCapture)
+			if (handler !== null && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && Fit.Core.IsEqual(useCaptureOrOptions, handler.UseCaptureOrOptions) === true)
 			{
 				element._internal.Events.Handlers[i] = null;
 				break;
@@ -292,7 +566,23 @@ Fit.Events.GetTarget = function(e)
 
 	var ev = e || window.event;
 	var target = ev.srcElement || ev.target;
-	return (target ? target : null);
+	return (target ? target : null); // Should never return null
+}
+
+/// <function container="Fit.Events" name="GetRelatedTarget" access="public" static="true" returns="DOMElement | null">
+/// 	<description>
+/// 		Get a reference to the secondary object related to an event - e.g. the element losing
+/// 		focus in a focus event handler. Returns Null if there is no related event object, or if
+/// 		not supported by the browser.
+/// 	</description>
+/// 	<param name="e" type="Event" default="undefined"> Event argument </param>
+/// </function>
+Fit.Events.GetRelatedTarget = function(e)
+{
+	Fit.Validation.ExpectEvent(e, true);
+
+	var ev = e || window.event;
+	return ev.relatedTarget || null;
 }
 
 /// <function container="Fit.Events" name="GetEvent" access="public" static="true" returns="Event">
@@ -305,11 +595,19 @@ Fit.Events.GetEvent = function(e)
 	return e || window.event;
 }
 
-/// <function container="Fit.Events" name="GetModifierKeys" access="public" static="true" returns="object">
+/// <container name="Fit.EventTypeDefs.ModifierKeys">
+/// 	<description> Modifier keys </description>
+/// 	<member name="Shift" type="boolean"> True if Shift key is being held down, otherwise False </member>
+/// 	<member name="Ctrl" type="boolean"> True if Ctrl key is being held down, otherwise False </member>
+/// 	<member name="Alt" type="boolean"> True if Alt key is being held down, otherwise False </member>
+/// 	<member name="Meta" type="boolean"> True if Meta key (Windows key on a PC, Cmd key on a Mac) is being held down, otherwise False </member>
+/// 	<member name="KeyUp" type="integer"> Key code if key is released, otherwise -1 </member>
+/// 	<member name="KeyDown" type="integer"> Key code if key is pressed, otherwise -1 </member>
+/// </container>
+
+/// <function container="Fit.Events" name="GetModifierKeys" access="public" static="true" returns="Fit.EventTypeDefs.ModifierKeys">
 /// 	<description>
 /// 		Get object containing information about modifier keys currently being active.
-/// 		Object contains the following properties which are True if the given key is being held down:
-/// 		Shift, Ctrl, Alt, Meta (Cmd key on Mac OSX, Win key on Windows).
 /// 	</description>
 /// </function>
 Fit.Events.GetModifierKeys = function()
@@ -320,19 +618,27 @@ Fit.Events.GetModifierKeys = function()
 		Fit._internal.Events.KeysDown.Ctrl = window.event.ctrlKey === true;
 		Fit._internal.Events.KeysDown.Alt = window.event.altKey === true;
 		Fit._internal.Events.KeysDown.Meta = window.event.metaKey === true;
+		Fit._internal.Events.KeysDown.KeyUp = window.event.type === "keyup" ? window.event.keyCode : -1;
+		Fit._internal.Events.KeysDown.KeyDown = window.event.type === "keypress" || window.event.type === "keydown" ? window.event.keyCode : -1;
 	}
 
 	// Cloning to prevent external code from manipulating the object
 	return Fit.Core.Clone(Fit._internal.Events.KeysDown);
 }
 
-/// <function container="Fit.Events" name="GetPointerState" access="public" static="true" returns="object">
+/// <container name="Fit.EventTypeDefs.PointerState">
+/// 	<description> Pointer state </description>
+/// 	<member name="Buttons" type="{ Primary: boolean, Secondary: boolean }"> Pointer buttons currently activated </member>
+/// 	<member name="Coordinates" type="{ ViewPort: Fit.TypeDefs.Position, Document: Fit.TypeDefs.Position }"> Pointer position within viewport and document, which might have been scrolled </member>
+/// </container>
+
+/// <function container="Fit.Events" name="GetPointerState" access="public" static="true" returns="Fit.EventTypeDefs.PointerState">
 /// 	<description>
 /// 		Get object containing information about pointer.
 /// 		Object contains the following properties:
 /// 		Buttons.Primary/Secondary: Is True if given button is being held down
 /// 		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport
-/// 		Coordinates.Document.X/Y: Mouse coordinates within document which may have been scrolled
+/// 		Coordinates.Document.X/Y: Mouse coordinates within document which might have been scrolled
 /// 	</description>
 /// </function>
 Fit.Events.GetPointerState = function()
@@ -582,6 +888,11 @@ Fit._internal.Events.MutationObserverIntervalId = -1;
 Fit._internal.Events.MutationCheckExecuting = false;
 Fit._internal.Events.MutationRegisterPostponed = [];
 
+/// <function container="Fit.EventsTypeDefs" name="MutationObserverCallback" returns="any">
+/// 	<description> Event handler callback used with Fit.Events.AddMutationObserver(..) </description>
+/// 	<param name="dom" type="DOMElement"> DOM element </param>
+/// </function>
+
 /// <function container="Fit.Events" name="AddMutationObserver" access="public" static="true" returns="integer">
 /// 	<description>
 /// 		Registers mutation observer which is invoked when a DOMElement is updated. By default
@@ -591,7 +902,7 @@ Fit._internal.Events.MutationRegisterPostponed = [];
 /// 		To remove an observer from within the observer function itself, simply call disconnect().
 /// 	</description>
 /// 	<param name="elm" type="DOMElement"> DOMElement to observe </param>
-/// 	<param name="obs" type="function"> JavaScript observer function to register - receives reference to DOMElement being observed when updated </param>
+/// 	<param name="obs" type="Fit.EventsTypeDefs.MutationObserverCallback"> JavaScript observer function to register - receives reference to DOMElement being observed when updated </param>
 /// 	<param name="deep" type="boolean" default="false"> Flag indicating whether to check for modifications within element (children and character data) - this could potentially be expensive </param>
 /// </function>
 Fit.Events.AddMutationObserver = function(elm, obs, deep)
@@ -647,7 +958,7 @@ Fit.Events.AddMutationObserver = function(elm, obs, deep)
 /// <function container="Fit.Events" name="RemoveMutationObserver" access="public" static="true">
 /// 	<description> Remove mutation observer </description>
 /// 	<param name="elm" type="DOMElement"> DOMElement being observed </param>
-/// 	<param name="obs" type="function"> JavaScript observer function to remove </param>
+/// 	<param name="obs" type="Fit.EventsTypeDefs.MutationObserverCallback"> JavaScript observer function to remove </param>
 /// 	<param name="deep" type="boolean" default="undefined"> If defined, observer must have been registered with the same deep value to be removed </param>
 /// </function>
 /// <function container="Fit.Events" name="RemoveMutationObserver" access="public" static="true">
