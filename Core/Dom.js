@@ -716,7 +716,7 @@ Fit.Dom.SetCaretPosition = function(input, pos)
 	Fit.Validation.ExpectDomElement(input);
 	Fit.Validation.ExpectInteger(pos);
 
-	// Notice: This will - unfortunately - not make input fields scroll
+	// Notice: This will - unfortunately - not make input field scroll
 	// its content if cursor is positioned "outside" of input's viewport.
 	// In Chrome this can be solved by blurring and re-focusing control
 	// after setting caret position - but that will not work across all browsers.
