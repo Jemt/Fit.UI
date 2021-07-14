@@ -36,7 +36,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var closeHandlers = [];						// Events (IDs) responsible for closing drop down when user clicks outside of control
 	var dropZone = null;						// Active DropZone (drag and drop support)
 	var isMobile = false;						// Flag indicating whether control is running on a mobile (touch) device
-	var focusInputOnMobile = false;				// Flag indicating whether control should focus input after removing an item or selecting a new item from the picker control
+	var focusInputOnMobile = true;				// Flag indicating whether control should focus input fields (and potentially bring up a virtual keyboard) based on configuration, platform (computer vs touch) and where user initially clicked/touched DropDown to activate it
 	var detectBoundaries = false;				// Flag indicating whether drop down menu should detect viewport collision and open upwards when needed
 	var detectBoundariesRelToViewPort = false;	// Flag indicating whether drop down menu should be positioned relative to viewport (true) or scroll parent (false)
 
@@ -72,22 +72,14 @@ Fit.Controls.DropDown = function(ctlId)
 		// Create item container
 
 		itemContainer = document.createElement("div");
-		itemContainer.onmousedown = function(e)
-		{
-			itemContainer.tabIndex = 0; // Prevent control from losing focus when clicked by temporarily making the element focusable
-		}
-		itemContainer.onmouseup = function(e)
-		{
-			itemContainer.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
-		}
+		itemContainer.tabIndex = -1; // Make it focusable but not part of tab flow
 		itemContainer.onclick = function(e) // Not triggered when user clicks arrow button - it has its own logic and suppresses event propagation
 		{
 			var target = Fit.Events.GetTarget(e);
 
-			focusInputOnMobile = true;
-
 			if (target.tagName !== "INPUT") // Focus input unless already focused (if input was clicked)
 			{
+				focusInputOnMobile = me.InputEnabled() === true; // Focus input on mobile only if input is enabled - otherwise we get a virtual keyboard presented which does nothing - user can still click/touch an input between selected items in Visual Selection Mode to place an item between two existing selections
 				focusAssigned = true; // Clicking the item container causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
 				focusInput(txtPrimary);
 			}
@@ -101,31 +93,10 @@ Fit.Controls.DropDown = function(ctlId)
 		arrow = document.createElement("i");
 		Fit.Dom.AddClass(arrow, "fa");
 		Fit.Dom.AddClass(arrow, "fa-chevron-down");
-		arrow.tabIndex = ((isMobile === true) ? 0 : -1); // We need to be able to focus arrow on mobile to keep DropDown focused (search for the use of arrow.focus())
-		arrow.onmousedown = function(e)
-		{
-			if (isMobile === false)
-				arrow.tabIndex = 0; // Prevent control from losing focus when clicked by temporarily making the element focusable
-		}
-		arrow.onmouseup = function(e)
-		{
-			if (isMobile === false) // Assigning focus on a mobile device often pops up the virtual keyboard which is annoying
-			{
-				arrow.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
-
-				// Prevent DropDown from losing focus when arrow is used to close menu.
-				// It would otherwise leave the control with no blinking cursor.
-				// Also, we want the control to be ready for input and keyboard navigation.
-				focusAssigned = true; // Clicking the arrow causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
-				focusInput(txtPrimary);
-			}
-		}
+		arrow.tabIndex = -1; // Make it focusable but not part of tab flow
 		arrow.onclick = function(e)
 		{
-			focusInputOnMobile = false;
-
-			// Do nothing by default, event propagates out to itemContainer
-			// which opens drop down (See itemContainer.onclick handler above).
+			focusInputOnMobile = false; // On mobile, do not focus input fields when interacting with control, when DropDown was initially activated by clicking/touching arrow icon
 
 			// Close drop down if already open
 			if (me.IsDropDownOpen() === true)
@@ -142,7 +113,29 @@ Fit.Controls.DropDown = function(ctlId)
 				me.OpenDropDown();
 			}
 
-			Fit.Events.StopPropagation(e); // Prevent event from reaching itemContainer.onclick which opens DropDown
+			if (isMobile === false)
+			{
+				focusAssigned = true; // Clicking the arrow causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
+				focusInput(txtPrimary);
+			}
+
+			Fit.Events.StopPropagation(e); // Prevent event from reaching itemContainer.onclick which opens DropDown and might assign a different value to focusInputOnMobile
+		}
+		arrow.onfocus = function(e)
+		{
+			focusAssigned = true;
+		}
+		arrow.onblur = function(e)
+		{
+			if (me === null)
+			{
+				// Fix for Chrome which fires OnChange and OnBlur (in both capturering and bubbling phase)
+				// if control has focus while being removed from DOM, e.g. if used in a dialog closed using ESC.
+				// More details here: https://bugs.chromium.org/p/chromium/issues/detail?id=866242
+				return;
+			}
+
+			focusAssigned = false;
 		}
 
 		// Create primary search textbox
@@ -223,9 +216,10 @@ Fit.Controls.DropDown = function(ctlId)
 
 		me.OnBlur(function()
 		{
+			focusInputOnMobile = true; // Reset to initial value when focus is lost
+
 			if (isMobile === true)
 			{
-				focusInputOnMobile = false;
 				me.CloseDropDown();
 			}
 		});
@@ -479,7 +473,7 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		}
 
-		return (txtActive === Fit.Dom.GetFocused());
+		return (txtActive === Fit.Dom.GetFocused() || arrow === Fit.Dom.GetFocused());
 	}
 
 	// See documentation on ControlBase
@@ -804,12 +798,9 @@ Fit.Controls.DropDown = function(ctlId)
 
 		picker.OnFocusIn(function(sender)
 		{
-			if (isMobile === false || focusInputOnMobile === true)
-			{
-				// Steal back focus - DropDown should remain the focused control
-				focusAssigned = true; // Clicking the picker causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
-				focusInput(txtActive);
-			}
+			// Steal back focus - DropDown should remain the focused control
+			focusAssigned = true; // Clicking the picker causes blur to fire for input fields in drop down which changes focusAssigned to false - it must be true for focusInput(..) to assign focus
+			focusInput(txtActive);
 		});
 	}
 
@@ -926,15 +917,8 @@ Fit.Controls.DropDown = function(ctlId)
 			// This is also the reason why the code in cmdDelete.OnMouseUp
 			// alone is not sufficient. Focus must be assigned to txtPrimary
 			// AFTER RemoveSelection(..) is invoked.
-			if (isMobile === false || focusInputOnMobile === true)
-			{
-				focusAssigned = true;
-				focusInput(txtPrimary);
-			}
-			else
-			{
-				arrow.focus(); // Focus arrow to keep DropDown control focused on mobile
-			}
+			focusAssigned = true;
+			focusInput(txtPrimary);
 
 			// Do not open drop down when an item is removed
 			Fit.Events.StopPropagation(e);
@@ -943,27 +927,13 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			// OnClick is not fired in Firefox when mouse is moved (but not dropped in a new position),
 			// which causes the item to remain intact and focused. Make sure proper element is focused in this case.
-			if (isMobile === false || focusInputOnMobile === true)
-			{
-				focusAssigned = true;
-				focusInput(txtPrimary);
-			}
-			else
-			{
-				arrow.focus(); // Focus arrow to keep DropDown control focused on mobile
-			}
+			focusAssigned = true;
+			focusInput(txtPrimary);
 		}
 
 		// Item container (left input, title box, right input)
 		var container = document.createElement("span");
-		container.onmousedown = function(e)
-		{
-			container.tabIndex = 0; // Prevent control from losing focus when clicked by temporarily making the element focusable
-		}
-		container.onmouseup = function(e)
-		{
-			container.tabIndex = -1; // Remove tabindex to prevent element from interfering with tab flow
-		}
+		container.tabIndex = -1; // Make it focusable but not part of tab flow
 		/*container.onclick = function(e)
 		{
 			focusInputOnMobile = true;
@@ -1671,8 +1641,23 @@ Fit.Controls.DropDown = function(ctlId)
 			clearTextSelectionOnInputChange = false;
 		}
 
+		txt.ontouchstart = function(e) // Ontouchstart fires before onfocus which is needed - txt.onfocus uses focusInputOnMobile
+		{
+			focusInputOnMobile = true; // Always focus inputs on mobile if user initially activated control by clicking/touching an input field
+		}
+
 		txt.onfocus = function(e)
 		{
+			// Move focus to arrow icon if on mobile and if user activated control in a way where bringing focus to
+			// input fields does not make sense (search for focusInputOnMobile), or if control is configured with
+			// TextSelectionMode(true) and InputEnabled(false) which doesn't allow user to place cursor between
+			// selected items, nor write in the input field.
+			if (isMobile === true && (focusInputOnMobile === false || (me.TextSelectionMode() === true && me.InputEnabled() === false)))
+			{
+				arrow.focus(); // Notice that arrow.onfocus will set focusAssigned
+				return;
+			}
+
 			if (Fit.Dom.GetIndex(txt.parentElement) === itemCollectionOrdered.length - 1 && txt.nextSibling === null)
 			{
 				// Right input control in last selected item - focus txtPrimary instead so it word wraps alone when entering text
@@ -1801,9 +1786,9 @@ Fit.Controls.DropDown = function(ctlId)
 					// Set cursor at the beginning of text field.
 					// Suppressing default behaviour to prevent cursor
 					// from jumping to the end. SetCaretPosition(..)
-					// is still necessary to make sure text value
-					// does not remain selected (blue selection) if
-					// focused was assigned using tab navigation.
+					// is also necessary to make sure text value
+					// does not remain selected (blue text selection) if
+					// focus was assigned using tab navigation.
 					Fit.Dom.SetCaretPosition(txtPrimary, 0);
 					Fit.Events.PreventDefault(ev);
 				}
@@ -2028,7 +2013,7 @@ Fit.Controls.DropDown = function(ctlId)
 		txtActive = input;
 
 		if (focusAssigned === true) // Only set focus if user initially assigned focus to control
-			txtActive.focus(); // Notice: Input field's onfocus handler will move focus to txtPrimary if this is the last selection's right side input field
+			txtActive.focus(); // Notice: Input field's onfocus handler will move focus to txtPrimary if this is the last selection's right side input field - on mobile it might redirect focus to the arrow icon to avoid bringing up the virtual keyboard
 	}
 
 	function clearAllInputsButActive()
