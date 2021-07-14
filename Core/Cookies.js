@@ -362,10 +362,8 @@ Fit.Cookies.Remove = function()
 	var path = undefined;
 	var domain = undefined;
 
-	if (arguments.length === 1)
+	if (arguments.length === 1 && typeof(arguments[0]) === "object")
 	{
-		Fit.Validation.ExpectObject(arguments[0]);
-
 		name = arguments[0].Name;
 		path = arguments[0].Path;
 		domain = arguments[0].Domain;
