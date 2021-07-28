@@ -73,3 +73,31 @@ div.FitUiControlInput textarea:first-child
 {
 	resize: none;
 }
+
+/* CKEditor */
+
+/* Hide empty labels in dialogs (make controls align properly in Base64Image dialog) */
+table.cke_dialog_contents label:empty
+{
+	display: none;
+}
+
+/* Override: The bootstrapck skin define margins for content
+   areas in dialogs which makes the vertical scrollbar appear. */
+div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_vbox
+{
+	margin-top: 0px !important; /* Using !mportant since dialog CSS loads late when dialog is opened */
+}
+div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_body label
+{
+	margin-bottom: 0px !important; /* Using !mportant since dialog CSS loads late when dialog is opened */
+}
+
+/* Override: The bootstrapck skin does not align checkboxes and labels properly */
+div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input,
+div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input+label,
+div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input,
+div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input+label
+{
+	vertical-align: top !important; /* Using !mportant since dialog CSS loads late when dialog is opened */
+}

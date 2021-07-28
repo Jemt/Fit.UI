@@ -27,6 +27,8 @@ Fit.Controls.Input = function(ctlId)
 	var rootedEventId = -1;
 	var createWhenReadyIntervalId = -1;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
+	var debounceOnChangeTimeout = -1;
+	var debouncedOnChange = null;
 
 	// ============================================
 	// Init
@@ -40,10 +42,29 @@ Fit.Controls.Input = function(ctlId)
 		input.spellcheck = true;
 		input.onkeyup = function()
 		{
-			if (me.Value() !== preVal)
+			var proceed = function()
 			{
-				preVal = me.Value();
-				me._internal.FireOnChange();
+				var newVal = me.Value();
+
+				if (newVal !== preVal)
+				{
+					preVal = newVal;
+					me._internal.FireOnChange();
+				}
+			};
+
+			if (debounceOnChangeTimeout === -1)
+			{
+				proceed();
+			}
+			else
+			{
+				if (debouncedOnChange === null)
+				{
+					debouncedOnChange = Fit.Core.CreateDebouncer(proceed, debounceOnChangeTimeout);
+				}
+
+				debouncedOnChange.Invoke();
 			}
 		}
 		input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
@@ -68,6 +89,14 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("designmode", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
+
+		me.OnBlur(function(sender)
+		{
+			if (debouncedOnChange !== null)
+			{
+				debouncedOnChange.Flush();
+			}
+		});
 	}
 
 	// ============================================
@@ -303,7 +332,12 @@ Fit.Controls.Input = function(ctlId)
 			clearInterval(createWhenReadyIntervalId);
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = null;
+		if (debouncedOnChange !== null)
+		{
+			debouncedOnChange.Cancel();
+		}
+
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = null;
 
 		base();
 	});
@@ -695,7 +729,7 @@ Fit.Controls.Input = function(ctlId)
 				{
 					window.CKEDITOR = null;
 
-					Fit.Loader.LoadScript(Fit.GetUrl() + "/Resources/CKEditor/ckeditor.js", function(src) // Using Fit.GetUrl() rather than Fit.GetPath() to allow editor to be used on e.g. JSFiddle (Cross-Origin Resource Sharing policy)
+					Fit.Loader.LoadScript(Fit.GetUrl() + "/Resources/CKEditor/ckeditor.js?cacheKey=" + Fit.GetVersion().Version, function(src) // Using Fit.GetUrl() rather than Fit.GetPath() to allow editor to be used on e.g. JSFiddle (Cross-Origin Resource Sharing policy)
 					{
 						// WARNING: Control could potentially have been disposed at this point, but
 						// we still need to finalize the configuration of CKEditor which is global.
@@ -743,6 +777,8 @@ Fit.Controls.Input = function(ctlId)
 								if (Fit._internal.Controls.Input.ActiveEditorForDialog === undefined)
 									return; // Control was disposed while waiting for dialog to load and open
 
+								Fit.Dom.Data(ev.sender.getElement().$, "skin", CKEDITOR.config.skin); // Add e.g. data-skin="bootstrapck" to dialog - used in Input.css
+
 								// Keep instance to dialog so we can close it if e.g. Focused(false) is invoked
 								Fit._internal.Controls.Input.ActiveDialogForEditor = ev.sender;
 
@@ -780,13 +816,16 @@ Fit.Controls.Input = function(ctlId)
 								// and makes it impossible to interact with the dialog in light dismissable panels and callouts.
 								// Dialog is placed alongside control and not within the control's container, to prevent Fit.UI
 								// styling from affecting the dialog.
+								// DISABLED: It breaks file picker controls in dialogs which are hosted in iframes.
+								// When an iframe is re-rooted in DOM it reloads, and any dynamically created content is lost.
+								// We will have to increase the z-index to make sure dialogs open on top of modal layers.
 
-								var ckeDialogElement = this.getElement().$;
+								/*var ckeDialogElement = this.getElement().$;
 								Fit.Dom.InsertAfter(Fit._internal.Controls.Input.ActiveEditorForDialog.GetDomElement(), ckeDialogElement);
 
 								// 2nd+ time dialog is opened it remains invisible - make it appear and position it
 								ckeDialogElement.style.display = !CKEDITOR.env.ie || CKEDITOR.env.edge ? "flex" : ""; // https://github.com/ckeditor/ckeditor4/blob/8b208d05d1338d046cdc8f971c9faf21604dd75d/plugins/dialog/plugin.js#L152
-								this.layout(); // 'this' is the dialog instance - layout() positions dialog
+								this.layout(); // 'this' is the dialog instance - layout() positions dialog*/
 							});
 
 							dialog.on("hide", function(ev) // Fires when user closes dialog, or when hide() is called on dialog, or if destroy() is called on editor instance from Dispose() or DesignMode(false)
@@ -959,6 +998,32 @@ Fit.Controls.Input = function(ctlId)
 		return (me._internal.Data("designmode") === "true");
 	}
 
+	/// <function container="Fit.Controls.Input" name="DebounceOnChange" access="public" returns="integer">
+	/// 	<description>
+	/// 		Get/set number of milliseconds used to postpone onchange event.
+	/// 		Every new keystroke/change resets the timer. Debouncing can
+	/// 		improve performance when working with large amounts of data.
+	/// 	</description>
+	/// 	<param name="timeout" type="integer"> If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing </param>
+	/// </function>
+	this.DebounceOnChange = function(timeout)
+	{
+		Fit.Validation.ExpectInteger(timeout);
+
+		if (Fit.Validation.IsSet(debounceOnChangeTimeout) === true && timeout !== debounceOnChangeTimeout)
+		{
+			debounceOnChangeTimeout = timeout;
+
+			if (debouncedOnChange !== null)
+			{
+				debouncedOnChange.Flush();
+				debouncedOnChange = null; // Re-created when needed with new timeout value
+			}
+		}
+
+		return debounceOnChangeTimeout;
+	}
+
 	// ============================================
 	// Private
 	// ============================================
@@ -1046,13 +1111,9 @@ Fit.Controls.Input = function(ctlId)
 			tabIndex: me.Enabled() === false ? -1 : 0,
 			title: "",
 			startupFocus: focused === true ? "end" : false,
-			//extraPlugins: "justify,pastefromword",
-			//extraPlugins: "justify,pastefromword,image,pasteimage,dragresize",
-			//extraPlugins: "justify,pastefromword,base64image",
-			//extraPlugins: "image",
-			extraPlugins: "justify,pastefromword,base64image,pastebase64,dragresize",
-			toolbar:
-			[
+			extraPlugins: Fit._internal.Controls.Input.EditorPlugins.join(","), // "justify,pastefromword,base64image,base64imagepaste,dragresize",
+			toolbar: Fit._internal.Controls.Input.EditorToolbar,
+			/*[
 				{
 					name: "BasicFormatting",
 					items: [ "Bold", "Italic", "Underline" ]
@@ -1071,15 +1132,16 @@ Fit.Controls.Input = function(ctlId)
 				},
 				{
 					name: "Insert",
-					//items: [ "Image" ]
 					items: [ "base64image" ]
 				}
-			],
+			],*/
 			removeButtons: "", // Set to empty string to prevent CKEditor from removing buttons such as Underline
 			on:
 			{
 				instanceReady: function()
 				{
+					Fit.Dom.Data(designEditor.container.$, "skin", CKEDITOR.config.skin); // Add e.g. data-skin="bootstrapck" to editor - used in Input.css
+
 					// Enabled state might have been changed while loading.
 					// Unfortunately there is no API for changing the tabIndex.
 					designEditor.setReadOnly(me.Enabled() === false);
@@ -1328,5 +1390,45 @@ Fit.Controls.InputType =
 
 Fit.Controls.Input.Type = Fit.Controls.InputType; // Backward compatibility
 
+/// <container name="Fit._internal.Controls.Input">
+/// 	Allows for manipulating control (appearance, features, and behaviour).
+/// 	Features are NOT guaranteed to be backward compatible, and incorrect use might break control!
+/// </container>
 Fit._internal.Controls.Input = {};
+
+/// <member container="Fit._internal.Controls.Input" name="DefaultSkin" access="public" static="true" type="'bootstrapck' | 'moono-lisa' | null">
+/// 	<description> Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control </description>
+/// </member>
 Fit._internal.Controls.Input.DefaultSkin = null; // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created
+
+/// <member container="Fit._internal.Controls.Input" name="EditorPlugins" access="public" static="true" type="('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
+/// 	<description> Additional plugins used with DesignMode </description>
+/// </member>
+Fit._internal.Controls.Input.EditorPlugins = ["justify", "pastefromword", /*"base64image", "base64imagepaste", "dragresize"*/]; // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
+
+/// <member container="Fit._internal.Controls.Input" name="EditorToolbar" access="public" static="true" type="( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]">
+/// 	<description> Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins) </description>
+/// </member>
+Fit._internal.Controls.Input.EditorToolbar =
+[
+	{
+		name: "BasicFormatting",
+		items: [ "Bold", "Italic", "Underline" ]
+	},
+	{
+		name: "Justify",
+		items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
+	},
+	{
+		name: "Lists",
+		items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
+	},
+	{
+		name: "Links",
+		items: [ "Link", "Unlink" ]
+	}/*,
+	{
+		name: "Insert",
+		items: [ "base64image" ]
+	}*/
+];

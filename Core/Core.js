@@ -195,6 +195,78 @@ Fit.Core.CreateOverride = function(originalFunction, newFunction)
 	}
 }
 
+/// <function container="Fit.Core" name="CreateDebouncer" access="public" static="true" returns="Fit.CoreTypeDefs.DebounceFunction">
+/// 	<description>
+/// 		Create a debouncing function that delays execution the specified number of milliseconds.
+/// 		Invoking function multiple times merely postpone execution the specified number of milliseconds.
+/// 		This can greatly increase performance for expensive operations invoked often.
+/// 	</description>
+/// 	<param name="func" type="function"> Reference to function to invoke </param>
+/// 	<param name="timeout" type="integer"> Number of milliseconds to postpone execution </param>
+/// 	<param name="thisArg" type="any" default="undefined"> The value 'this' resolves to within debounced function </param>
+/// </function>
+Fit.Core.CreateDebouncer = function(func, timeoutMilliseconds, thisArg)
+{
+	var timeout = -1;
+	var lastArgs = [];
+
+	/// <container name="Fit.CoreTypeDefs.DebounceFunction">
+	/// </container>
+	var d =
+	{
+		/// <function container="Fit.CoreTypeDefs.DebounceFunction" name="Cancel" access="public">
+		/// 	<description> Cancel debounced function if scheduled for execution </description>
+		/// </function>
+		Cancel: function()
+		{
+			if (timeout !== -1)
+			{
+				clearTimeout(timeout);
+				lastArgs = [];
+				timeout = -1;
+			}
+		},
+
+		/// <member container="Fit.CoreTypeDefs.DebounceFunction" name="Invoke" type="function">
+		/// 	<description> Schedule or re-schedule execution of function </description>
+		/// </member>
+		Invoke: function() // Defined as a <member> of type function to allow variable arguments which <function> does not allow
+		{
+			if (timeout !== -1)
+			{
+				clearTimeout(timeout);
+			}
+
+			lastArgs = arguments;
+
+			timeout = setTimeout(function()
+			{
+				var args = lastArgs;
+
+				lastArgs = [];
+				timeout = -1;
+
+				func.apply(thisArg || this, args); // Might call Invoke again, so do not do cleanup below this line!
+			}, timeoutMilliseconds);
+		},
+
+		/// <function container="Fit.CoreTypeDefs.DebounceFunction" name="Flush" access="public">
+		/// 	<description> Force execution of debounced function if scheduled for execution </description>
+		/// </function>
+		Flush: function()
+		{
+			if (timeout !== -1)
+			{
+				var args = lastArgs; // Cancel() clears lastArgs
+				d.Cancel();
+				func.apply(thisArg || this, args);
+			}
+		}
+	};
+
+	return d;
+}
+
 /// <function container="Fit.Core" name="IsEqual" access="public" static="true" returns="boolean">
 /// 	<description>
 /// 		Compare two JavaScript objects to determine whether they are identical.
@@ -525,7 +597,7 @@ Fit._internal.Core.EnsureStyles = function()
 		if (Fit.Dom.GetComputedStyle(elm, "width") !== "20px")
 		{
 			Fit.Browser.Log("Lazy loading Fit.UI stylesheet. It is recommended to add a stylesheet reference to Fit.UI.min.css to prevent temporarily unstyled content.");
-			Fit.Loader.LoadStyleSheet(Fit.GetUrl() + "/Fit.UI.min.css");
+			Fit.Loader.LoadStyleSheet(Fit.GetUrl() + "/Fit.UI.min.css?cacheKey=" + Fit.GetVersion().Version);
 		}
 
 		Fit.Dom.Remove(elm);

@@ -2,23 +2,11 @@
  * Created by ALL-INKL.COM - Neue Medien Muennich - 04. Feb 2014
  * Licensed under the terms of GPL, LGPL and MPL licenses.
  */
-
-/*
- * Improved by Jimmy Thomsen for CKEditor in Fit.UI (https://fitui.org), licensed under LGPL.
- *  * Improvements to UI (positioning, dimensions, and input experience)
- *  * No longer applying invalid values to vspace, hspace, width, and height when specifying a unit - these are pixel values only
- *  * Added support for em unit for dimensions (width, height, vspace, hspace, and border)
- *  * Better preservation of aspect ratio with support for decimals (% and em)
- *  * Dimensions are now restored if user enters an invalid value, rather than changing them to 0px x 0px
- *  * Made sure image retains a minimum width and height of 10px so the images cannot accidentally become invisible or inaccessible
- */
-
 CKEDITOR.dialog.add("base64imageDialog", function(editor){
 
 	var t = null,
 		selectedImg = null,
-		orgWidth = null, orgHeight = null, // Dimensions parsed from <img> tag - only used to initially set dimensions in dialog and to calculate imgScal
-		prevValidWidth = null, prevValidHeight = null, // Dimensions parsed from <img> tag, or actual image dimensions if not defined in styles. Updated every time dimensions are changed to new valid values. Used to restore dimensions if user enters garbage.
+		orgWidth = null, orgHeight = null,
 		imgPreview = null, urlCB = null, urlI = null, fileCB = null, imgScal = 1, lock = true;
 
 	/* Check File Reader Support */
@@ -52,11 +40,6 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 
 		/* When image is loaded */
 		i.onload = function() {
-
-			// Use dimensions parsed from styles when dialog was opened, in case we are working with an image already found in the document,
-			// or use the image's own dimensions in case the image was just added, or if no styles were defined for the image in the document.
-			prevValidWidth = prevValidWidth || this.width.toString();
-			prevValidHeight = prevValidHeight || this.height.toString();
 
 			/* Remove preview */
 			imgPreview.getElement().setHtml("");
@@ -139,127 +122,48 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 		}
 	};
 
-	function roundWithDecimals(value, decimals) // Logic copied from Fit.UI: https://github.com/Jemt/Fit.UI/blob/51f3a2cd26e3b32d3e1cea83b2e27dc786ce4488/Core/Data.js#L131
-	{
-		var factor = 1;
-		for (var i = 0 ; i < decimals || 0 ; i++) factor = factor * 10;
-		return (value < 0 ? -1 : 1) * Math.round(Math.abs(value * factor)) / factor;
-	}
-
-	var getStyleSize = function(styles, propNameToGet)
-	{
-		// For debugging use https://regex101.com/r/5dVbPY/2
-		// 0 = full match (or null), 1 = junk coming before width attribute, 2 = width (e.g. 2.2em), 3 = width decimals (e.g. .2), 4 = width unit (e.g. em)
-		var regex = new RegExp("(^| |;)" + propNameToGet + " *: *(\\d+(\\.\\d+)?(px|em|%))", "i");
-		var result = regex.exec(styles);
-		return result && (result[4] === "px" ? Math.round(parseFloat(result[2])).toString() : result[2]);
-	};
-
-	var getMarginSize = function(styles, marginType)
-	{
-		// For debugging use https://regex101.com/r/2ITWa7/3/
-		var regexEdge = new RegExp("(^| |;)margin-" + (marginType === "vertical" ? "top" : "left") + " *: *(\\d+(\\.\\d+)?(px|em|%))", "i"); // E.g. margin-top: 2.5em;
-		var regexMargin1 = /(^| |;)margin *: *(\d+(\.\d+)?(px|em|%)) *(;|$)/i; // E.g. margin: 2.5em;
-		var regexMargin2 = /(^| |;)margin *: *(\d+(\.\d+)?(px|em|%)) +(\d+(\.\d+)?(px|em|%)) *(;|$)/i; // E.g. margin: 2.5em 1.85em; (top/bottom left/right)
-		var regexMargin3 = /(^| |;)margin *: *(\d+(\.\d+)?(px|em|%)) +(\d+(\.\d+)?(px|em|%)) +(\d+(\.\d+)?(px|em|%)) +(\d+(\.\d+)?(px|em|%)) *(;|$)/i; // E.g. margin: 2.5em 1.85em 2.5em 1.85em; (top right bottom left)
-
-		var m1 = regexEdge.exec(styles);	// 0 = Full match, ... 2 = margin size, ...
-		var m2 = regexMargin1.exec(styles);	// 0 = Full match, ... 2 = margin size, ...
-		var m3 = regexMargin2.exec(styles);	// 0 = Full match, ... 2 = margin size top/bottom, 5 = margin size left/right, ...
-		var m4 = regexMargin3.exec(styles);	// 0 = Full match, ... 2 = margin size top, 5 = margin size right, 8 = margin size bottom, 11 = margin size left ...
-
-		var result = m1 && m1[2] || m2 && m2[2] || m3 && m3[marginType === "vertical" ? 2 : 5] || m4 && m4[marginType === "vertical" ? 2 : 11];
-		return result && (result.indexOf("px") > -1 ? Math.round(parseFloat(result)).toString() : result);
-	}
-
 	/* Calculate image dimensions */
 	function getImageDimensions() {
-		var w = t.getContentElement("tab-properties", "width").getValue();
-		var h = t.getContentElement("tab-properties", "height").getValue()
 		var o = {
-			"w" : w,
-			"h" : h,
+			"w" : t.getContentElement("tab-properties", "width").getValue(),
+			"h" : t.getContentElement("tab-properties", "height").getValue(),
 			"uw" : "px",
 			"uh" : "px"
 		};
 		if(o.w.indexOf("%") >= 0) o.uw = "%";
-		else if(o.w.indexOf("em") >= 0) o.uw = "em";
 		if(o.h.indexOf("%") >= 0) o.uh = "%";
-		else if(o.h.indexOf("em") >= 0) o.uh = "em";
-		if (o.uw === "px") {
-			o.w = parseInt(o.w, 10);
-		} else {
-			o.w = parseFloat(o.w);
-		}
-		if (o.uh === "px") {
-			o.h = parseInt(o.h, 10);
-		} else {
-			o.h = parseFloat(o.h);
-		}
-		if(isNaN(o.w) || o.w + (o.uw !== "px" ? o.uw : "") !== w) { o.w = 0; o.err = true; };
-		if(isNaN(o.h) || o.h + (o.uh !== "px" ? o.uh : "") !== h) { o.h = 0; o.err = true; };
+		o.w = parseInt(o.w, 10);
+		o.h = parseInt(o.h, 10);
+		if(isNaN(o.w)) o.w = 0;
+		if(isNaN(o.h)) o.h = 0;
 		return o;
 	}
 
 	/* Set image dimensions */
 	function imageDimensions(src) {
 		var o = getImageDimensions();
-		if (o.err) { // User entered an invalid value - restore to latest valid values applied
-			t.getContentElement("tab-properties", "width").setValue(prevValidWidth);
-			t.getContentElement("tab-properties", "height").setValue(prevValidHeight);
-			return;
-		}
 		var u = "px";
 		if(src == "width") {
-			if (prevValidWidth === o.w + (o.uw !== "px" ? o.uw : "")) return; // User did not change value - avoid decimal adjustment on tab navigation
 			if(o.uw == "%") u = "%";
-			else if(o.uw == "em") u = "em";
-			if (u === "px") {
-				o.h = Math.round(o.w / imgScal);
-			} else { // em or % where values might be small so we need better precision to avoid stretching image (e.g. 2em x 0.5em)
-				o.h = roundWithDecimals(o.w / imgScal, 2);
-			}
+			o.h = Math.round(o.w / imgScal);
 		} else {
-			if (prevValidHeight === o.h + (o.uh !== "px" ? o.uh : "")) return; // User did not change value - avoid decimal adjustment on tab navigation
 			if(o.uh == "%") u = "%";
-			else if(o.uh == "em") u = "em";
-			if (u === "px") {
-				o.w = Math.round(o.h * imgScal);
-			} else { // em or % where values might be small so we need better precision to avoid stretching image (e.g. 2em x 0.5em)
-				o.w = roundWithDecimals(o.h * imgScal, 2);
-			}
+			o.w = Math.round(o.h * imgScal);
 		}
 		if(u == "%") {
 			o.w += "%";
 			o.h += "%";
 		}
-		else if(u == "em") {
-			o.w += "em";
-			o.h += "em";
-		}
-		t.getContentElement("tab-properties", "width").setValue(o.w.toString());
-		t.getContentElement("tab-properties", "height").setValue(o.h.toString());
-		prevValidWidth = o.w.toString();
-		prevValidHeight = o.h.toString();
+		t.getContentElement("tab-properties", "width").setValue(o.w),
+		t.getContentElement("tab-properties", "height").setValue(o.h)
 	}
 
-	/* Set number value */
-	function setNumberValue(elem) {
+	/* Set integer Value */
+	function integerValue(elem) {
 		var v = elem.getValue(), u = "";
 		if(v.indexOf("%") >= 0) u = "%";
-		else if(v.indexOf("em") >= 0) u = "em";
-		if (u === "") {
-			v = parseInt(v, 10);
-			if(isNaN(v)) v = 0;
-		} else { // em or %
-			v = parseFloat(v);
-			if(!isNaN(v)) {
-				v = roundWithDecimals(v, 2);
-			} else {
-				v = 0;
-			}
-		}
-
+		v = parseInt(v, 10);
+		if(isNaN(v)) v = 0;
 		elem.setValue(v+u);
 	}
 
@@ -274,21 +178,16 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 					{
 						type: "checkbox",
 						id: "urlcheckbox",
-						//style: "margin-top:5px",
+						style: "margin-top:5px",
 						label: editor.lang.common.url+":"
 					},
 					{
 						type: "text",
 						id: "url",
 						label: "",
-						style: "margin-top: -5px",
 						onChange: function(){ imagePreview("url"); }
 					}
 				]
-			},
-			{ // Spacer
-				type: "hbox",
-				children: []
 			},
 			{
 				type: "hbox",
@@ -297,14 +196,13 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 					{
 						type: "checkbox",
 						id: "filecheckbox",
-						//style: "margin-top:5px",
+						style: "margin-top:5px",
 						label: editor.lang.common.upload+":"
 					},
 					{
 						type: "file",
 						id: "file",
 						label: "",
-						style: "margin-top: -5px",
 						onChange: function(){ imagePreview("file"); }
 					}
 				]
@@ -366,20 +264,14 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			}, this.getContentElement("tab-properties", "lock"));
 
 			/* Change Attributes Events  */
-			this.getContentElement("tab-properties", "width").getInputElement().on("blur", function(){ if(lock) imageDimensions("width"); });
-			this.getContentElement("tab-properties", "height").getInputElement().on("blur", function(){ if(lock) imageDimensions("height"); });
-			this.getContentElement("tab-properties", "vmargin").getInputElement().on("blur", function(){ setNumberValue(this); }, this.getContentElement("tab-properties", "vmargin"));
-			this.getContentElement("tab-properties", "hmargin").getInputElement().on("blur", function(){ setNumberValue(this); }, this.getContentElement("tab-properties", "hmargin"));
-			this.getContentElement("tab-properties", "border").getInputElement().on("blur", function(){ setNumberValue(this); }, this.getContentElement("tab-properties", "border"));
+			this.getContentElement("tab-properties", "width").getInputElement().on("keyup", function(){ if(lock) imageDimensions("width"); });
+			this.getContentElement("tab-properties", "height").getInputElement().on("keyup", function(){ if(lock) imageDimensions("height"); });
+			this.getContentElement("tab-properties", "vmargin").getInputElement().on("keyup", function(){ integerValue(this); }, this.getContentElement("tab-properties", "vmargin"));
+			this.getContentElement("tab-properties", "hmargin").getInputElement().on("keyup", function(){ integerValue(this); }, this.getContentElement("tab-properties", "hmargin"));
+			this.getContentElement("tab-properties", "border").getInputElement().on("keyup", function(){ integerValue(this); }, this.getContentElement("tab-properties", "border"));
 
 		},
 		onShow: function(){
-
-			// NOTICE: IE11 on Win7+IE11 VM seems to be crashing a lot when opening the dialog to edit the properties
-			// of an existing image. It seems to mainly happen when working with relative units (% and em),
-			// and especially if assigning a border to the image. The original plugin had the same problem with %.
-			// The problem can not be reproduced with Win7+IE10 though, nor when testing with IE11 on BrowserStack,
-			// so this might be a problem with the VM or the specific build of IE11 being used.
 
 			/* Remove preview */
 			imgPreview.getElement().setHtml("");
@@ -400,10 +292,8 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			if(selectedImg) {
 
 				/* Set input values from selected image */
-				orgWidth = getStyleSize(selectedImg.getAttribute("style") || "", "width");
-				orgHeight = getStyleSize(selectedImg.getAttribute("style") || "", "height");
-				prevValidWidth = orgWidth;
-				prevValidHeight = orgHeight;
+				if(typeof(selectedImg.getAttribute("width")) == "string") orgWidth = selectedImg.getAttribute("width");
+				if(typeof(selectedImg.getAttribute("height")) == "string") orgHeight = selectedImg.getAttribute("height");
 				if((orgWidth == null || orgHeight == null) && selectedImg.$) {
 					orgWidth = selectedImg.$.width;
 					orgHeight = selectedImg.$.height;
@@ -411,8 +301,8 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 				if(orgWidth != null && orgHeight != null) {
 					t.setValueOf("tab-properties", "width", orgWidth);
 					t.setValueOf("tab-properties", "height", orgHeight);
-					orgWidth = parseFloat(orgWidth);
-					orgHeight = parseFloat(orgHeight);
+					orgWidth = parseInt(orgWidth, 10);
+					orgHeight = parseInt(orgHeight, 10);
 					imgScal = 1;
 					if(!isNaN(orgWidth) && !isNaN(orgHeight) && orgHeight > 0 && orgWidth > 0) imgScal = orgWidth / orgHeight;
 					if(imgScal <= 0) imgScal = 1;
@@ -427,9 +317,9 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 					}
 				}
 				if(typeof(selectedImg.getAttribute("alt")) == "string") t.setValueOf("tab-properties", "alt", selectedImg.getAttribute("alt"));
-				t.setValueOf("tab-properties", "hmargin", getMarginSize(selectedImg.getAttribute("style"), "horizontal") || "0");
-				t.setValueOf("tab-properties", "vmargin", getMarginSize(selectedImg.getAttribute("style"), "vertical") || "0");
-				t.setValueOf("tab-properties", "border", getStyleSize(selectedImg.getAttribute("style"), "border") || "0");
+				if(typeof(selectedImg.getAttribute("hspace")) == "string") t.setValueOf("tab-properties", "hmargin", selectedImg.getAttribute("hspace"));
+				if(typeof(selectedImg.getAttribute("vspace")) == "string") t.setValueOf("tab-properties", "vmargin", selectedImg.getAttribute("vspace"));
+				if(typeof(selectedImg.getAttribute("border")) == "string") t.setValueOf("tab-properties", "border", selectedImg.getAttribute("border"));
 				if(typeof(selectedImg.getAttribute("align")) == "string") {
 					switch(selectedImg.getAttribute("align")) {
 						case "top":
@@ -453,11 +343,7 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			}
 
 		},
-		onOk : function(evArg){
-
-			// NOTICE: IE11 on BrowserStack seems to trigger OnOk twice when pressing ENTER, but this
-			// does not happen when testing locally on a Win7+IE11 VM. The problem might be related
-			// to how BrowserStack map keystrokes from Mac to their in-browser remote Windows session.
+		onOk : function(){
 
 			/* Get image source */
 			var src = "";
@@ -504,19 +390,12 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 
 				if(attr[k][2] == "integer") {
 					if(value.indexOf("%") >= 0) unit = "%";
-					else if(value.indexOf("em") >= 0) unit = "em";
-					if (unit === "px") {
-						value = parseInt(value, 10); // No need to validate - valid values are enforced in the dialog
-					} else { // em or %
-						value = parseFloat(value); // No need to validate - valid values are enforced in the dialog
-					}
+					value = parseInt(value, 10);
+					if(isNaN(value)) value = null; else if(value < attr[k][3]) value = null;
 					if(value != null) {
 						if(unit == "%") {
-							attrvalue = ""; // The width and height attributes are pixel values - specifying a unit does not comply with the spec
+							attrvalue = value+"%";
 							cssvalue = value+"%";
-						} else if(unit == "em") {
-							attrvalue = ""; // The width and height attributes are pixel values - specifying a unit does not comply with the spec
-							cssvalue = value+"em";
 						} else {
 							attrvalue = value;
 							cssvalue = value+"px";
@@ -525,7 +404,7 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 				}
 
 				if(value != null) {
-					attrvalue && newImg.setAttribute(attr[k][0], attrvalue);
+					newImg.setAttribute(attr[k][0], attrvalue);
 					css.push(attr[k][1].replace(/#/g, cssvalue));
 				}
 
@@ -535,43 +414,9 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			/* Insert new image */
 			if(!selectedImg) editor.insertElement(newImg);
 
-			/* Resize image (https://github.com/nmmf/imageresize) */
+			/* Resize image */
 			if(editor.plugins.imageresize) editor.plugins.imageresize.resize(editor, newImg, 800, 800);
 
-			/* Make sure image cannot become hidden or inaccessible with very small width or height */
-			var minWidth = 10, minHeight = 10; // Do not go below 10px! Too much precision is lost if we do, making it impossible to calculate an aspect ratio close to the original!
-			if (newImg.$.offsetWidth < minWidth || newImg.$.offsetHeight < minHeight) { // Notice: .width and .height returns the image size while .offsetWidth and .offsetHeight includes the border applied
-
-				var newMinWidth = minWidth;
-				var newMinHeight = minHeight;
-
-				if (newImg.$.width > newImg.$.height) { // landscape
-					newMinHeight = minHeight;
-					newMinWidth = newMinHeight * imgScal;
-				} else { // portrait or square
-					newMinWidth = minWidth;
-					newMinHeight = newMinWidth / imgScal;
-				}
-
-				newMinWidth = Math.round(newMinWidth);
-				newMinHeight = Math.round(newMinHeight);
-
-				var newCss = [];
-				for (var i = 0 ; i < css.length ; i++) {
-					if (/^width|height/.test(css[i]) === false) {
-						newCss.push(css[i]);
-					}
-				}
-
-				newCss.push("width:" + newMinWidth + "px;");
-				newCss.push("height:" + newMinHeight + "px;");
-
-				newImg.setAttribute("width", newMinWidth.toString());
-				newImg.setAttribute("height", newMinHeight.toString());
-				newImg.setAttribute("style", newCss.join(""));
-
-				//evArg.data.hide = false; // Prevent dialog from closing
-			}
 		},
 
 		/* Dialog form */
@@ -596,28 +441,21 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 						children: [
 							{
 								type: "text",
-								width: "70px",
+								width: "45px",
 								id: "width",
 								label: editor.lang.common.width
 							},
 							{
 								type: "text",
-								width: "70px",
+								width: "45px",
 								id: "height",
 								label: editor.lang.common.height
 							},
 							{
-								type: 'hbox',
-								style: "margin-top:26px;",
-								children:
-								[
-									{
-										type: "checkbox",
-										id: "lock",
-										label: editor.lang.base64image.lockRatio,
-										//style: "margin-top:18px;"
-									}
-								]
+								type: "checkbox",
+								id: "lock",
+								label: editor.lang.base64image.lockRatio,
+								style: "margin-top:18px;"
 							}
 						]
                     },
@@ -640,19 +478,19 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 							},
 							{
 								type: "text",
-								width: "70px",
+								width: "45px",
 								id: "vmargin",
 								label: editor.lang.base64image.vSpace
 							},
 							{
 								type: "text",
-								width: "70px",
+								width: "45px",
 								id: "hmargin",
 								label: editor.lang.base64image.hSpace
 							},
 							{
 								type: "text",
-								width: "70px",
+								width: "45px",
 								id: "border",
 								label: editor.lang.base64image.border
 							}

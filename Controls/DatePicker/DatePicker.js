@@ -979,7 +979,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 			// Load files
 
-			Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/external/jquery/jquery.js", function(src)
+			Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/external/jquery/jquery.js?cacheKey=" + Fit.GetVersion().Version, function(src)
 			{
 				if (me === null)
 					return; // Control was disposed while waiting for jQuery to load
@@ -988,7 +988,7 @@ Fit.Controls.DatePicker = function(ctlId)
 				Fit._internal.Controls.DatePicker.jQuery = $; // jQuery instance is shared between multiple instances of DatePicker
 				$.noConflict(true);
 
-				Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/jquery-ui.js", function(src)
+				Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/jquery-ui.js?cacheKey=" + Fit.GetVersion().Version, function(src)
 				{
 					if (me === null)
 						return; // Control was disposed while waiting for jQuery UI to load
@@ -1053,7 +1053,7 @@ Fit.Controls.DatePicker = function(ctlId)
 				{
 					datepicker.jq.datepicker.regional[locale] = null; // Prevent multiple instances from loading the same locale
 
-					Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/i18n/datepicker-" + locale + ".js", function(src)
+					Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/i18n/datepicker-" + locale + ".js?cacheKey=" + Fit.GetVersion().Version, function(src)
 					{
 						if (me === null)
 						{
