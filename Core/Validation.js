@@ -455,17 +455,20 @@ Fit.Validation.ThrowError = function(msg)
 {
 	if (Fit._internal.Validation.DebugMode === true)
 	{
-		var stackTrace = Fit.Validation.GetStackTrace();
+		/*var stackTrace = Fit.Validation.GetStackTrace();
 		alert("ThrowError: " + msg + ((stackTrace !== "") ? "\n\n" : "") + stackTrace);
 
 		if (window.console && console.trace)
-			console.trace();
+			console.trace();*/
+
+		if (window.console && console.log) console.log("ThrowError: " + msg);
+		if (window.console && console.trace) console.trace(); // Not all browsers produce a stack trace when an error is thrown (below)
 	}
 
 	throw new Error(msg); // Never change this behaviour - we should always re-throw the error to terminate execution
 }
 
-Fit.Validation.GetStackTrace = function()
+Fit.Validation.GetStackTrace = function() // NOTICE: captureStackTrace is a feature of V8/Chromium!
 {
 	if (window.Error === undefined || Error.captureStackTrace === undefined)
 		return "";
