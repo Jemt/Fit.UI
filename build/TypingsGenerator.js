@@ -605,9 +605,11 @@ function Parser()
 			res += "\n" + tabs + "/**";
 			res += "\n" + tabs + "* " + formatDescription(p.Description, tabs);
 			res += "\n" + tabs + "* @member {" + convertToJsDocType(getType(p.Type)) + (p.Nullable === true ? "|null" : "")+ "} " + (p.Default ? "[" + p.Name + "=" + p.Default + "]" : p.Name);
+			if (p.Static === true)
+				res += "\n" + tabs + "* @static";
 			res += "\n" + tabs + "*/";
 
-			res += "\n" + tabs + p.Name + (p.Default ? "?" : "") + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
+			res += "\n" + tabs + (p.Static === true ? "static " : "") + p.Name + (p.Default ? "?" : "") + ":" + getType(p.Type, true) + (p.Nullable === true ? " | null" : "") + ";";
 		});
 
 		// Add functions
@@ -687,6 +689,8 @@ function Parser()
 				res += "\n" + tabs + "* @template " + genericName; // @template must be defined before @callback
 			});
 			res += "\n" + tabs + (isCallback === false ? "* @function " : "* @callback ") + f.Name;
+			if (f.Static === true)
+				res += "\n" + tabs + "* @static";
 			res += parms.Docs;
 			if (returnType !== null)
 				res += "\n" + tabs + "* @returns " + convertToJsDocType(returnType);
