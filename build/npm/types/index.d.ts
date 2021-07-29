@@ -9,12 +9,14 @@ declare namespace Fit
 	/**
 	* Get absolute path to Fit.UI on server - e.g. /libs/fitui.
 	* @function GetPath
+	* @static
 	* @returns string
 	*/
 	export function GetPath():string;
 	/**
 	* Get fully qualified URL to Fit.UI on server - e.g. http://server.com/libs/fitui.
 	* @function GetUrl
+	* @static
 	* @returns string
 	*/
 	export function GetUrl():string;
@@ -22,6 +24,7 @@ declare namespace Fit
 	* Get Fit.UI version object containing the following properties:
 	Major (integer), Minor (integer), Patch (integer), Version (string representing Major.Minor.Patch).
 	* @function GetVersion
+	* @static
 	* @returns Fit.CoreTypeDefs.VersionInfo
 	*/
 	export function GetVersion():Fit.CoreTypeDefs.VersionInfo;
@@ -33,6 +36,7 @@ declare namespace Fit
 	GetUrl() and GetPath(), and from where Fit.UI will
 	load resources dynamically.
 	* @function SetPath
+	* @static
 	* @param {string} basePath - Absolute or relative path to folder containing Fit.UI.
 	*/
 	export function SetPath(basePath:string):void;
@@ -44,6 +48,7 @@ declare namespace Fit
 	GetUrl() and GetPath(), and from where Fit.UI will
 	load resources dynamically.
 	* @function SetUrl
+	* @static
 	* @param {string} baseUrl - Full URL to folder containing Fit.UI.
 	*/
 	export function SetUrl(baseUrl:string):void;
@@ -57,6 +62,7 @@ declare namespace Fit
 		/**
 		* Add object to array.
 		* @function Add
+		* @static
 		* @param {any[]} arr - Array to which object is added.
 		* @param {any} obj - Object to add to array.
 		*/
@@ -64,12 +70,14 @@ declare namespace Fit
 		/**
 		* Clear all items from array.
 		* @function Clear
+		* @static
 		* @param {any[]} arr - Array from which all objects are remove.
 		*/
 		public static Clear(arr:any[]):void;
 		/**
 		* Returns True if given object is contained in collection, otherwise False.
 		* @function Contains
+		* @static
 		* @param {any[] | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList} arr - Collection to search through.
 		* @param {any} obj - Object to look for.
 		* @returns boolean
@@ -79,6 +87,7 @@ declare namespace Fit
 		* Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..).
 		* @template Type
 		* @function Copy
+		* @static
 		* @param {Type[]} arr - Collection to copy.
 		* @returns Type[]
 		*/
@@ -86,6 +95,7 @@ declare namespace Fit
 		/**
 		* Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..).
 		* @function Copy
+		* @static
 		* @param {HTMLCollection} arr - Collection to copy.
 		* @returns HTMLElement[]
 		*/
@@ -93,6 +103,7 @@ declare namespace Fit
 		/**
 		* Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..).
 		* @function Copy
+		* @static
 		* @param {NodeList} arr - Collection to copy.
 		* @returns Node[]
 		*/
@@ -100,6 +111,7 @@ declare namespace Fit
 		/**
 		* Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..).
 		* @function Copy
+		* @static
 		* @param {NamedNodeMap} arr - Collection to copy.
 		* @returns Attr[]
 		*/
@@ -107,6 +119,7 @@ declare namespace Fit
 		/**
 		* Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..).
 		* @function Copy
+		* @static
 		* @param {FileList} arr - Collection to copy.
 		* @returns File[]
 		*/
@@ -114,6 +127,7 @@ declare namespace Fit
 		/**
 		* Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..).
 		* @function Copy
+		* @static
 		* @param {StyleSheetList} arr - Collection to copy.
 		* @returns StyleSheet[]
 		*/
@@ -121,6 +135,7 @@ declare namespace Fit
 		/**
 		* Returns a shallow copy of the collection. For a deep copy see Fit.Core.Clone(..).
 		* @function Copy
+		* @static
 		* @param {CSSRuleList} arr - Collection to copy.
 		* @returns CSSRule[]
 		*/
@@ -128,6 +143,7 @@ declare namespace Fit
 		/**
 		* Returns number of elements in collection.
 		* @function Count
+		* @static
 		* @param {any[] | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList} arr - Collection to count elements within.
 		* @returns number
 		*/
@@ -135,6 +151,7 @@ declare namespace Fit
 		/**
 		* Returns number of elements in object array.
 		* @function Count
+		* @static
 		* @param {any} obj - Object array to count elements within.
 		* @returns number
 		*/
@@ -145,6 +162,7 @@ declare namespace Fit
 		if further/deeper iteration is not required.
 		* @template Type
 		* @function CustomRecurse
+		* @static
 		* @param {Type[]} arr - Collection containing objects to iterate through.
 		* @param {(obj:Type) => Type[] | null | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Function must return children collection to continue recursive operation,
@@ -157,6 +175,7 @@ declare namespace Fit
 		Callback is expected to return any children supposed to be iterated too, or Null
 		if further/deeper iteration is not required.
 		* @function CustomRecurse
+		* @static
 		* @param {HTMLCollection} arr - Collection containing objects to iterate through.
 		* @param {(obj:HTMLElement) => HTMLCollection | HTMLElement[] | null | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Function must return children collection to continue recursive operation,
@@ -169,6 +188,7 @@ declare namespace Fit
 		Callback is expected to return any children supposed to be iterated too, or Null
 		if further/deeper iteration is not required.
 		* @function CustomRecurse
+		* @static
 		* @param {NodeList} arr - Collection containing objects to iterate through.
 		* @param {(obj:Node) => NodeList | Node[] | null | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Function must return children collection to continue recursive operation,
@@ -181,6 +201,7 @@ declare namespace Fit
 		Callback is expected to return any children supposed to be iterated too, or Null
 		if further/deeper iteration is not required.
 		* @function CustomRecurse
+		* @static
 		* @param {NamedNodeMap[]} arr - Collection containing objects to iterate through.
 		* @param {(obj:Attr) => NamedNodeMap | Attr[] | null | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Function must return children collection to continue recursive operation,
@@ -193,6 +214,7 @@ declare namespace Fit
 		Callback is expected to return any children supposed to be iterated too, or Null
 		if further/deeper iteration is not required.
 		* @function CustomRecurse
+		* @static
 		* @param {FileList} arr - Collection containing objects to iterate through.
 		* @param {(obj:File) => FileList | File[] | null | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Function must return children collection to continue recursive operation,
@@ -205,6 +227,7 @@ declare namespace Fit
 		Callback is expected to return any children supposed to be iterated too, or Null
 		if further/deeper iteration is not required.
 		* @function CustomRecurse
+		* @static
 		* @param {StyleSheetList} arr - Collection containing objects to iterate through.
 		* @param {(obj:StyleSheet) => StyleSheetList | StyleSheet[] | null | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Function must return children collection to continue recursive operation,
@@ -217,6 +240,7 @@ declare namespace Fit
 		Callback is expected to return any children supposed to be iterated too, or Null
 		if further/deeper iteration is not required.
 		* @function CustomRecurse
+		* @static
 		* @param {CSSRuleList} arr - Collection containing objects to iterate through.
 		* @param {(obj:CSSRule) => CSSRuleList | CSSRule[] | null | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Function must return children collection to continue recursive operation,
@@ -229,6 +253,7 @@ declare namespace Fit
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @template Type
 		* @function ForEach
+		* @static
 		* @param {Type[]} arr - Collection containing objects to iterate through.
 		* @param {(obj:Type) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -239,6 +264,7 @@ declare namespace Fit
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {HTMLCollection} arr - Collection containing objects to iterate through.
 		* @param {(obj:HTMLElement) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -249,6 +275,7 @@ declare namespace Fit
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {NodeList} arr - Collection containing objects to iterate through.
 		* @param {(obj:Node) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -259,6 +286,7 @@ declare namespace Fit
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {NamedNodeMap} arr - Collection containing objects to iterate through.
 		* @param {(obj:Attr) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -269,6 +297,7 @@ declare namespace Fit
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {FileList} arr - Collection containing objects to iterate through.
 		* @param {(obj:File) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -279,6 +308,7 @@ declare namespace Fit
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {StyleSheetList} arr - Collection containing objects to iterate through.
 		* @param {(obj:StyleSheet) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -289,6 +319,7 @@ declare namespace Fit
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {CSSRuleList} arr - Collection containing objects to iterate through.
 		* @param {(obj:CSSRule) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -299,6 +330,7 @@ declare namespace Fit
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {any[]} arr - Collection containing objects to iterate through.
 		* @param {(obj:any) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
 		Return False from callback to break loop.
@@ -309,6 +341,7 @@ declare namespace Fit
 		* Iterates through object properties and passes each property name to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
 		* @function ForEach
+		* @static
 		* @param {any} obj - Object containing properties to iterate through.
 		* @param {(key:string) => boolean | void} callback - Callback function accepting properties from the object, passed in turn.
 		Return False from callback to break loop.
@@ -318,6 +351,7 @@ declare namespace Fit
 		/**
 		* Returns index of object in collection if found, otherwise a value of -1 is returned.
 		* @function GetIndex
+		* @static
 		* @param {any[] | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList} arr - Collection to search through.
 		* @param {any} obj - Object to obtain index for.
 		* @returns number
@@ -326,6 +360,7 @@ declare namespace Fit
 		/**
 		* Returns all keys in collection (indices) - 0, 1, 2, 3, ...
 		* @function GetKeys
+		* @static
 		* @param {any[] | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList} arr - Collection to get keys from.
 		* @returns number[]
 		*/
@@ -333,6 +368,7 @@ declare namespace Fit
 		/**
 		* Returns all keys (property names) in object.
 		* @function GetKeys
+		* @static
 		* @param {any} obj - Object to get keys from.
 		* @returns string[]
 		*/
@@ -340,6 +376,7 @@ declare namespace Fit
 		/**
 		* Returns True if collection has items, otherwise False.
 		* @function HasItems
+		* @static
 		* @param {any[] | HTMLCollection | NodeList | NamedNodeMap | FileList | StyleSheetList | CSSRuleList} arr - Collection to investigate.
 		* @returns boolean
 		*/
@@ -347,6 +384,7 @@ declare namespace Fit
 		/**
 		* Returns True if object array has items, otherwise False.
 		* @function HasItems
+		* @static
 		* @param {any} obj - Object array to investigate.
 		* @returns boolean
 		*/
@@ -354,6 +392,7 @@ declare namespace Fit
 		/**
 		* Insert object into array at specified index.
 		* @function Insert
+		* @static
 		* @param {any[]} arr - Array into which object is inserted.
 		* @param {number} idx - Index to insert object at.
 		* @param {any} obj - Object to insert into array.
@@ -363,6 +402,7 @@ declare namespace Fit
 		* Join objects from a collection into a string.
 		* @template Type
 		* @function Join
+		* @static
 		* @param {Type[]} arr - Collection containing objects.
 		* @param {string} separator - String used to glue values together.
 		* @param {(obj:Type) => string} callback - Callback returning string representation of objects passed from collection in turn.
@@ -372,6 +412,7 @@ declare namespace Fit
 		/**
 		* Join objects from a collection into a string.
 		* @function Join
+		* @static
 		* @param {HTMLCollection} arr - Collection containing objects.
 		* @param {string} separator - String used to glue values together.
 		* @param {(obj:HTMLElement) => string} callback - Callback returning string representation of objects passed from collection in turn.
@@ -381,6 +422,7 @@ declare namespace Fit
 		/**
 		* Join objects from a collection into a string.
 		* @function Join
+		* @static
 		* @param {NodeList} arr - Collection containing objects.
 		* @param {string} separator - String used to glue values together.
 		* @param {(obj:Node) => string} callback - Callback returning string representation of objects passed from collection in turn.
@@ -390,6 +432,7 @@ declare namespace Fit
 		/**
 		* Join objects from a collection into a string.
 		* @function Join
+		* @static
 		* @param {NamedNodeMap} arr - Collection containing objects.
 		* @param {string} separator - String used to glue values together.
 		* @param {(obj:Attr) => string} callback - Callback returning string representation of objects passed from collection in turn.
@@ -399,6 +442,7 @@ declare namespace Fit
 		/**
 		* Join objects from a collection into a string.
 		* @function Join
+		* @static
 		* @param {FileList} arr - Collection containing objects.
 		* @param {string} separator - String used to glue values together.
 		* @param {(obj:File) => string} callback - Callback returning string representation of objects passed from collection in turn.
@@ -408,6 +452,7 @@ declare namespace Fit
 		/**
 		* Join objects from a collection into a string.
 		* @function Join
+		* @static
 		* @param {StyleSheetList} arr - Collection containing objects.
 		* @param {string} separator - String used to glue values together.
 		* @param {(obj:StyleSheet) => string} callback - Callback returning string representation of objects passed from collection in turn.
@@ -417,6 +462,7 @@ declare namespace Fit
 		/**
 		* Join objects from a collection into a string.
 		* @function Join
+		* @static
 		* @param {CSSRuleList} arr - Collection containing objects.
 		* @param {string} separator - String used to glue values together.
 		* @param {(obj:CSSRule) => string} callback - Callback returning string representation of objects passed from collection in turn.
@@ -428,6 +474,7 @@ declare namespace Fit
 		* @template TypeA
 		* @template TypeB
 		* @function Merge
+		* @static
 		* @param {TypeA[]} arr1 - Array 1 to merge with array 2.
 		* @param {TypeB[]} arr2 - Array 2 to merge with array 1.
 		* @returns (TypeA | TypeB)[]
@@ -436,6 +483,7 @@ declare namespace Fit
 		/**
 		* Move object within array from one position to another.
 		* @function Move
+		* @static
 		* @param {any[]} arr - Array to manipulate.
 		* @param {number} fromIdx - Position of object to move.
 		* @param {number} ToIdx - New object position.
@@ -446,6 +494,7 @@ declare namespace Fit
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 		* @template Type
 		* @function Recurse
+		* @static
 		* @param {Type[]} arr - Collection containing objects to iterate through.
 		* @param {string} childrenProperty - Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren").
 		* @param {(obj:Type) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
@@ -457,6 +506,7 @@ declare namespace Fit
 		* Recursively iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 		* @function Recurse
+		* @static
 		* @param {HTMLCollection} arr - Collection containing objects to iterate through.
 		* @param {string} childrenProperty - Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren").
 		* @param {(obj:HTMLElement) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
@@ -468,6 +518,7 @@ declare namespace Fit
 		* Recursively iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 		* @function Recurse
+		* @static
 		* @param {NodeList} arr - Collection containing objects to iterate through.
 		* @param {string} childrenProperty - Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren").
 		* @param {(obj:Node) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
@@ -479,6 +530,7 @@ declare namespace Fit
 		* Recursively iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 		* @function Recurse
+		* @static
 		* @param {NamedNodeMap} arr - Collection containing objects to iterate through.
 		* @param {string} childrenProperty - Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren").
 		* @param {(obj:Attr) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
@@ -490,6 +542,7 @@ declare namespace Fit
 		* Recursively iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 		* @function Recurse
+		* @static
 		* @param {FileList} arr - Collection containing objects to iterate through.
 		* @param {string} childrenProperty - Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren").
 		* @param {(obj:File) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
@@ -501,6 +554,7 @@ declare namespace Fit
 		* Recursively iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 		* @function Recurse
+		* @static
 		* @param {StyleSheetList} arr - Collection containing objects to iterate through.
 		* @param {string} childrenProperty - Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren").
 		* @param {(obj:StyleSheet) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
@@ -512,6 +566,7 @@ declare namespace Fit
 		* Recursively iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
 		* @function Recurse
+		* @static
 		* @param {CSSRuleList} arr - Collection containing objects to iterate through.
 		* @param {string} childrenProperty - Name of property or argumentless getter function returning children (e.g. "Children" or "GetChildren").
 		* @param {(obj:CSSRule) => boolean | void} callback - Callback function accepting objects from the collection, passed in turn.
@@ -522,6 +577,7 @@ declare namespace Fit
 		/**
 		* Remove object from array.
 		* @function Remove
+		* @static
 		* @param {any[]} arr - Array from which object is remove.
 		* @param {any} obj - Object to remove from array.
 		*/
@@ -529,6 +585,7 @@ declare namespace Fit
 		/**
 		* Remove object from array at specified index.
 		* @function RemoveAt
+		* @static
 		* @param {any[]} arr - Array from which object is remove.
 		* @param {number} idx - Object index in array.
 		*/
@@ -536,6 +593,7 @@ declare namespace Fit
 		/**
 		* Convert collection to a traditional JavaScript array.
 		* @function ToArray
+		* @static
 		* @param {HTMLCollection} coll - Collection to convert to array.
 		* @returns HTMLElement[]
 		*/
@@ -543,6 +601,7 @@ declare namespace Fit
 		/**
 		* Convert collection to a traditional JavaScript array.
 		* @function ToArray
+		* @static
 		* @param {NodeList} coll - Collection to convert to array.
 		* @returns Node[]
 		*/
@@ -550,6 +609,7 @@ declare namespace Fit
 		/**
 		* Convert collection to a traditional JavaScript array.
 		* @function ToArray
+		* @static
 		* @param {NamedNodeMap} coll - Collection to convert to array.
 		* @returns Attr[]
 		*/
@@ -557,6 +617,7 @@ declare namespace Fit
 		/**
 		* Convert collection to a traditional JavaScript array.
 		* @function ToArray
+		* @static
 		* @param {FileList} coll - Collection to convert to array.
 		* @returns File[]
 		*/
@@ -564,6 +625,7 @@ declare namespace Fit
 		/**
 		* Convert collection to a traditional JavaScript array.
 		* @function ToArray
+		* @static
 		* @param {StyleSheetList} coll - Collection to convert to array.
 		* @returns StyleSheet[]
 		*/
@@ -571,6 +633,7 @@ declare namespace Fit
 		/**
 		* Convert collection to a traditional JavaScript array.
 		* @function ToArray
+		* @static
 		* @param {CSSRuleList} coll - Collection to convert to array.
 		* @returns CSSRule[]
 		*/
@@ -579,6 +642,7 @@ declare namespace Fit
 		* Copy array to a new array.
 		* @template Type
 		* @function ToArray
+		* @static
 		* @param {Type[]} coll - Array to copy to a new array.
 		* @returns Type[]
 		*/
@@ -609,6 +673,7 @@ declare namespace Fit
 		* Returns name of browser. Possible values are: Chrome (which also covers modern versions of Opera and Edge),
 		Safari, Edge (version 12-18), MSIE (version 8-11), Firefox, Opera (version 1-12), Unknown.
 		* @function GetBrowser
+		* @static
 		* @param {false} [returnAppId=false] - Set True to have app specific identifier returned.
 		* @returns "Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"
 		*/
@@ -617,6 +682,7 @@ declare namespace Fit
 		* Returns browser app identifer. Possible values are: Chrome, Safari, Edge (version 12-18), EdgeChromium (version 85+),
 		MSIE (version 8-11), Firefox, Opera (version 1-12), OperaChromium (version 15+), Unknown.
 		* @function GetBrowser
+		* @static
 		* @param {true} returnAppId - Set True to have app specific identifier returned.
 		* @returns "Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown"
 		*/
@@ -628,6 +694,7 @@ declare namespace Fit
 		not capable of calculating these - use the fully qualified property name (e.g. border-left-color
 		or padding-left).
 		* @function GetComputedStyle
+		* @static
 		* @param {HTMLElement} elm - Element which contains desired CSS style value.
 		* @param {string} style - CSS style property name.
 		* @returns string | null
@@ -636,6 +703,7 @@ declare namespace Fit
 		/**
 		* Returns cached object with browser information.
 		* @function GetInfo
+		* @static
 		* @param {false} [returnAppInfo=false] - Set True to have app specific browser information returned - see GetBrowser(..) for details.
 		* @returns Fit.BrowserTypeDefs.BrowserInfo
 		*/
@@ -643,6 +711,7 @@ declare namespace Fit
 		/**
 		* Returns cached object with browser app information.
 		* @function GetInfo
+		* @static
 		* @param {true} returnAppInfo - Set True to have app specific browser information returned - see GetBrowser(..) for details.
 		* @returns Fit.BrowserTypeDefs.BrowserAppInfo
 		*/
@@ -650,24 +719,28 @@ declare namespace Fit
 		/**
 		* Returns browser language - e.g. "da" (Danish), "en" (English) etc.
 		* @function GetLanguage
+		* @static
 		* @returns string
 		*/
 		public static GetLanguage():string;
 		/**
 		* Returns page height in pixels.
 		* @function GetPageHeight
+		* @static
 		* @returns number
 		*/
 		public static GetPageHeight():number;
 		/**
 		* Returns page width in pixels.
 		* @function GetPageWidth
+		* @static
 		* @returns number
 		*/
 		public static GetPageWidth():number;
 		/**
 		* Returns query string information.
 		* @function GetQueryString
+		* @static
 		* @param {string} [alternativeUrl=undefined] - Alternative URL to parse.
 		* @returns Fit.BrowserTypeDefs.QueryString
 		*/
@@ -675,6 +748,7 @@ declare namespace Fit
 		/**
 		* Returns object with Width and Height properties specifying screen dimensions.
 		* @function GetScreenDimensions
+		* @static
 		* @param {boolean} [onlyAvailable=false] - Set True to return only available space (may be reduced by e.g. Start menu (Windows) or Dock (Linux/OSX).
 		* @returns Fit.TypeDefs.Dimension
 		*/
@@ -682,6 +756,7 @@ declare namespace Fit
 		/**
 		* Get screen height.
 		* @function GetScreenHeight
+		* @static
 		* @param {boolean} [onlyAvailable=false] - Set True to return only available space (may be reduced by e.g. start menu (Windows) or Dock (Linux/OSX).
 		* @returns number
 		*/
@@ -689,6 +764,7 @@ declare namespace Fit
 		/**
 		* Get screen width.
 		* @function GetScreenWidth
+		* @static
 		* @param {boolean} [onlyAvailable=false] - Set True to return only available space (may be reduced by e.g. start menu (Windows) or Dock (Linux/OSX).
 		* @returns number
 		*/
@@ -700,6 +776,7 @@ declare namespace Fit
 		and the size of the scrollbar. The size remains 0 when scrolling is not enabled.
 		To determine whether a DOM element has scrolling enabled, use Fit.Dom.GetScrollBars(..).
 		* @function GetScrollBars
+		* @static
 		* @returns Fit.TypeDefs.ScrollBarsPresent
 		*/
 		public static GetScrollBars():Fit.TypeDefs.ScrollBarsPresent;
@@ -708,6 +785,7 @@ declare namespace Fit
 		no scrollbars are currently present. For browsers and operating systems
 		hiding scrollbars for scrollable objects, the value returned will be 0 (zero).
 		* @function GetScrollBarSize
+		* @static
 		* @returns number
 		*/
 		public static GetScrollBarSize():number;
@@ -715,18 +793,21 @@ declare namespace Fit
 		* Get scrolling document element. This is the cross browser
 		equivalent of document.scrollingElement.
 		* @function GetScrollDocument
+		* @static
 		* @returns HTMLElement
 		*/
 		public static GetScrollDocument():HTMLElement;
 		/**
 		* Returns object with X and Y properties specifying scroll position.
 		* @function GetScrollPosition
+		* @static
 		* @returns Fit.TypeDefs.Position
 		*/
 		public static GetScrollPosition():Fit.TypeDefs.Position;
 		/**
 		* Returns major version number for known browsers, -1 for unknown browsers.
 		* @function GetVersion
+		* @static
 		* @param {boolean} [returnAppVersion=false] - Set True to have app specific version number returned, rather than version number of browser engine.
 		If version number is used in combination with the result from Fit.Browser.GetBrowser(true), then
 		this argument should be True as well, otherwise False (default).
@@ -736,6 +817,7 @@ declare namespace Fit
 		/**
 		* Returns object with Width and Height properties specifying dimensions of viewport.
 		* @function GetViewPortDimensions
+		* @static
 		* @param {boolean} [includeScrollbars=false] - Include scrollbars if present to get all potential space available if scrollbars are removed.
 		* @returns Fit.TypeDefs.Dimension
 		*/
@@ -743,6 +825,7 @@ declare namespace Fit
 		/**
 		* Returns value indicating whether devices currently being used is a mobile device or not.
 		* @function IsMobile
+		* @static
 		* @param {boolean} [includeTablets=true] - Value indicating whether tablets are considered mobile devices or not.
 		* @returns boolean
 		*/
@@ -750,24 +833,28 @@ declare namespace Fit
 		/**
 		* Returns value indicating whether Session and Local storage is supported or not.
 		* @function IsStorageSupported
+		* @static
 		* @returns boolean
 		*/
 		public static IsStorageSupported():boolean;
 		/**
 		* Log message or object.
 		* @function Log
+		* @static
 		* @param {any} msg - Message or object to log.
 		*/
 		public static Log(msg:any):void;
 		/**
 		* Log message about use of deprecated feature.
 		* @function LogDeprecated
+		* @static
 		* @param {string} msg - Message to log.
 		*/
 		public static LogDeprecated(msg:string):void;
 		/**
 		* Parses well-formed URLs and returns an object containing the various components.
 		* @function ParseUrl
+		* @static
 		* @param {string} url - Well-formed URL to parse.
 		* @returns Fit.BrowserTypeDefs.ParsedUrl
 		*/
@@ -783,6 +870,7 @@ declare namespace Fit
 		/**
 		* Convert HEX color string into RGB color string.
 		* @function HexToRgb
+		* @static
 		* @param {string} hex - HEX color string, e.g. #C0C0C0 (hash symbol is optional).
 		* @returns string
 		*/
@@ -790,6 +878,7 @@ declare namespace Fit
 		/**
 		* Returns True if value is a valid HEX color value, otherwise False.
 		* @function IsHex
+		* @static
 		* @param {string} val - Value to validate.
 		* @returns boolean
 		*/
@@ -797,6 +886,7 @@ declare namespace Fit
 		/**
 		* Returns True if value is a valid RGB(A) color value, otherwise False.
 		* @function IsRgb
+		* @static
 		* @param {string} val - Value to validate.
 		* @returns boolean
 		*/
@@ -804,6 +894,7 @@ declare namespace Fit
 		/**
 		* Convert HEX color string into RGB color object, e.g. { Red: 150, Green: 30, Blue: 185 }.
 		* @function ParseHex
+		* @static
 		* @param {string} hex - HEX color string, e.g. #C0C0C0 (hash symbol is optional).
 		* @returns Fit.ColorTypeDefs.RgbColor
 		*/
@@ -811,6 +902,7 @@ declare namespace Fit
 		/**
 		* Parses RGB(A) string and turns result into a RGB(A) color object, e.g. { Red: 100, Green: 100, Blue: 100, Alpha: 0.3 }.
 		* @function ParseRgb
+		* @static
 		* @param {string} val - RGB(A) color string, e.g. rgba(100, 100, 100, 0.3) or simply 100,100,200,0.3.
 		* @returns Fit.ColorTypeDefs.RgbaColor
 		*/
@@ -818,6 +910,7 @@ declare namespace Fit
 		/**
 		* Convert RGB colors into HEX color string.
 		* @function RgbToHex
+		* @static
 		* @param {number} r - Color index for red.
 		* @param {number} g - Color index for green.
 		* @param {number} b - Color index for blue.
@@ -836,6 +929,7 @@ declare namespace Fit
 		* Check dirty state for all controls - either all controls on page, or within specified scope.
 		Returns True if one or more controls are dirty, otherwise False.
 		* @function DirtyCheckAll
+		* @static
 		* @param {string} [scope=undefined] - If specified, dirty check controls only within this scope.
 		See Fit.Controls.ControlBase.Scope(..)
 		for details on configurering scoped validation.
@@ -845,6 +939,7 @@ declare namespace Fit
 		/**
 		* Get control by unique Control ID - returns Null if not found.
 		* @function Find
+		* @static
 		* @param {string} id - Unique Control ID.
 		* @returns Fit.Controls.Component | null
 		*/
@@ -853,6 +948,7 @@ declare namespace Fit
 		* Get control by unique Control ID - returns Null if not found.
 		* @template ExpectedControlType
 		* @function Find
+		* @static
 		* @param {string} id - Unique Control ID.
 		* @param {ExpectedControlType} expectedType - For development environments supporting JSDoc and generics (e.g. VSCode), make Find(..) return found component
 		as specified type. For instance to return a type as Fit.Controls.DropDown, specify Fit.Controls.DropDown.prototype.
@@ -863,6 +959,7 @@ declare namespace Fit
 		* Validate all controls - either all controls on page, or within specified scope.
 		Returns True if all controls contain valid values, otherwise False.
 		* @function ValidateAll
+		* @static
 		* @param {string} [scope=undefined] - If specified, validate controls only within this scope.
 		See Fit.Controls.ControlBase.Scope(..)
 		for details on configurering scoped validation.
@@ -2258,6 +2355,7 @@ declare namespace Fit
 			/**
 			* Display alert dialog.
 			* @function Alert
+			* @static
 			* @param {string} content - Content to display in alert dialog.
 			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
 			* @returns Fit.Controls.DialogInterface
@@ -2266,6 +2364,7 @@ declare namespace Fit
 			/**
 			* Display confirmation dialog with OK and Cancel buttons.
 			* @function Confirm
+			* @static
 			* @param {string} content - Content to display in confirmation dialog.
 			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
 			True is passed to callback function when OK is clicked, otherwise False.
@@ -2275,6 +2374,7 @@ declare namespace Fit
 			/**
 			* Display prompt dialog that allows for user input.
 			* @function Prompt
+			* @static
 			* @param {string} content - Content to display in prompt dialog.
 			* @param {string} defaultValue - Default value in input field.
 			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
@@ -3640,6 +3740,15 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public CheckSpelling(val?:boolean):boolean;
+			/**
+			* Get/set number of milliseconds used to postpone onchange event.
+			Every new keystroke/change resets the timer. Debouncing can
+			improve performance when working with large amounts of data.
+			* @function DebounceOnChange
+			* @param {number} timeout - If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing.
+			* @returns number
+			*/
+			public DebounceOnChange(timeout:number):number;
 			/**
 			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
 			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
@@ -7943,6 +8052,7 @@ declare namespace Fit
 		/**
 		* Returns cookie value if found, otherwise Null.
 		* @function Get
+		* @static
 		* @param {string} name - Unique cookie name.
 		* @returns string | null
 		*/
@@ -7950,6 +8060,7 @@ declare namespace Fit
 		/**
 		* Remove cookie.
 		* @function Remove
+		* @static
 		* @param {string} name - Unique cookie name.
 		* @param {string} [path=undefined] - Optional cookie path.
 		If cookie was defined on a custom path, the
@@ -7962,12 +8073,14 @@ declare namespace Fit
 		/**
 		* Remove cookie.
 		* @function Remove
+		* @static
 		* @param {Fit.CookiesDefs.CookieIdentity} cookie - Cookie to remove.
 		*/
 		public static Remove(cookie:Fit.CookiesDefs.CookieIdentity):void;
 		/**
 		* Create or update cookie.
 		* @function Set
+		* @static
 		* @param {string} name - Unique cookie name.
 		* @param {string} value - Cookie value (cannot contain semicolon!).
 		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
@@ -8002,6 +8115,7 @@ declare namespace Fit
 		/**
 		* Create or update cookie.
 		* @function Set
+		* @static
 		* @param {Fit.CookiesDefs.Cookie} newCookie - New or updated cookie.
 		*/
 		public static Set(newCookie:Fit.CookiesDefs.Cookie):void;
@@ -8098,10 +8212,23 @@ declare namespace Fit
 		DOM objects and window/frame instances are not supported.
 		* @template ObjectType
 		* @function Clone
+		* @static
 		* @param {ObjectType} obj - JS object to clone.
 		* @returns ObjectType
 		*/
 		public static Clone<ObjectType>(obj:ObjectType):ObjectType;
+		/**
+		* Create a debouncing function that delays execution the specified number of milliseconds.
+		Invoking function multiple times merely postpone execution the specified number of milliseconds.
+		This can greatly increase performance for expensive operations invoked often.
+		* @function CreateDebouncer
+		* @static
+		* @param {Function} func - Reference to function to invoke.
+		* @param {number} timeout - Number of milliseconds to postpone execution.
+		* @param {any} [thisArg=undefined] - The value 'this' resolves to within debounced function.
+		* @returns Fit.CoreTypeDefs.DebounceFunction
+		*/
+		public static CreateDebouncer(func:Function, timeout:number, thisArg?:any):Fit.CoreTypeDefs.DebounceFunction;
 		/**
 		* Create a function override for any given function using the approach below.
 		
@@ -8116,6 +8243,7 @@ declare namespace Fit
 		
 		Notice how base(..) allows us to call the original function.
 		* @function CreateOverride
+		* @static
 		* @param {Function} originalFunction - Reference to function to override.
 		* @param {Function} newFunction - Reference to replacement function.
 		* @returns Function
@@ -8144,6 +8272,7 @@ declare namespace Fit
 		classes implementing functions with identical names, or at least be aware that the last
 		class from which the derivative extends, takes precedence.
 		* @function Extend
+		* @static
 		* @param {any} subInstance - Instance of sub class to extend.
 		* @param {Function} superType - Class (function) to extend from.
 		* @returns any
@@ -8153,6 +8282,7 @@ declare namespace Fit
 		* Returns boolean indicating whether given object is an extension of a given super type - see Fit.Core.Extend(..).
 		Also look into Fit.Core.InstanceOf(..) which may provide the desired behaviour.
 		* @function Extends
+		* @static
 		* @param {any} instance - Object instance.
 		* @param {Function} superType - Reference to super class (function).
 		* @returns boolean
@@ -8162,6 +8292,7 @@ declare namespace Fit
 		* Returns boolean indicating whether given object is an instance or extension of a given class type - see Fit.Core.Extend(..).
 		This is equivalent of: var result = (obj instanceof MyType || Fit.Core.Extends(obj, MyType));.
 		* @function InstanceOf
+		* @static
 		* @param {any} instance - Object instance.
 		* @param {Function} type - Reference to class (function).
 		* @returns boolean
@@ -8177,6 +8308,7 @@ declare namespace Fit
 		will cause an infinite loop, and eventually a stack overflow exception.
 		DOM objects and window/frame instances are not supported.
 		* @function IsEqual
+		* @static
 		* @param {any} jsObj1 - JS object to compare agains second JS object.
 		* @param {any} jsObj2 - JS object to compare agains first JS object.
 		* @returns boolean
@@ -8192,6 +8324,7 @@ declare namespace Fit
 		* @template ObjectTypeA
 		* @template ObjectTypeB
 		* @function Merge
+		* @static
 		* @param {ObjectTypeA} targetObject - Target object.
 		* @param {ObjectTypeB} mergeObject - Merge object.
 		* @returns ObjectTypeA & ObjectTypeB
@@ -8208,6 +8341,7 @@ declare namespace Fit
 		/**
 		* Returns Version 4 compliant GUID.
 		* @function CreateGuid
+		* @static
 		* @param {boolean} [dashFormat=true] - Flag indicating whether to use format with or without dashes.
 		True = With dashes (default): 57df75f2-3d09-48ca-9c94-f64a5986518f (length = 36)
 		False = Without dashes: 57df75f23d0948ca9c94f64a5986518f (length = 32).
@@ -8242,6 +8376,7 @@ declare namespace Fit
 		ss: 2 digits seconds value (e.g. 05)
 		s: 1 digit seconds value if possible (e.g. 5).
 		* @function Format
+		* @static
 		* @param {Date} date - Date to format as string.
 		* @param {string} format - Date format.
 		* @returns string
@@ -8250,6 +8385,7 @@ declare namespace Fit
 		/**
 		* Get ISO 8601 week number from date.
 		* @function GetWeek
+		* @static
 		* @param {Date} date - Date to get week number from.
 		* @returns number
 		*/
@@ -8257,6 +8393,7 @@ declare namespace Fit
 		/**
 		* Parse date as string into an instance of Date - example: 18-09/2016 17:03:21.
 		* @function Parse
+		* @static
 		* @param {string} strDate - Date as string.
 		* @param {string} format - Specify date format used to allow parser to determine which parts of the string
 		is Year, Month, Day, etc. The same variables used for Fit.Date.Format
@@ -8280,6 +8417,7 @@ declare namespace Fit
 		/**
 		* Add element to container.
 		* @function Add
+		* @static
 		* @param {HTMLElement} container - Add element to this container.
 		* @param {Node} elm - Element, Text, or Comment to add to container.
 		*/
@@ -8287,6 +8425,7 @@ declare namespace Fit
 		/**
 		* Add CSS class to element if not already found.
 		* @function AddClass
+		* @static
 		* @param {HTMLElement} elm - Element on which CSS class is to be added.
 		* @param {string} cls - CSS class name.
 		*/
@@ -8294,6 +8433,7 @@ declare namespace Fit
 		/**
 		* Get/set attribute on DOMElement - returns Null if attribute does not exist.
 		* @function Attribute
+		* @static
 		* @param {HTMLElement} elm - DOMElement to which attribute is set and/or returned from.
 		* @param {string} name - Name of attribute to set or retrieve.
 		* @param {string | null} [value=undefined] - If defined, attribute is updated with specified value.
@@ -8304,6 +8444,7 @@ declare namespace Fit
 		/**
 		* Check whether given element is found in given container at any given level in object hierarchy.
 		* @function Contained
+		* @static
 		* @param {HTMLElement} container - Container expected to contain element.
 		* @param {Node} elm - Element expected to be found in container's object hierarchy.
 		* @returns boolean
@@ -8316,6 +8457,7 @@ declare namespace Fit
 		It is possible to construct DOM objects of type Element, Text, and Comment.
 		The container type used to wrap multiple elements can be changed using the containerTagName argument.
 		* @function CreateElement
+		* @static
 		* @param {string} html - HTML element to create DOMElement from.
 		* @param {string} [containerTagName=div] - If defined, and html argument produces multiple element, the result is wrapped in a container of
 		the specified type. If not set, multiple elements will be wrapped in a  &lt;div&gt;  container.
@@ -8325,6 +8467,7 @@ declare namespace Fit
 		/**
 		* Get/set data attribute on DOMElement - returns Null if data attribute does not exist.
 		* @function Data
+		* @static
 		* @param {HTMLElement} elm - DOMElement to which data attribute is set and/or returned from.
 		* @param {string} name - Name of data attribute to set or retrieve.
 		* @param {string | null} [value=undefined] - If defined, data attribute is updated with specified value.
@@ -8342,6 +8485,7 @@ declare namespace Fit
 		approach.
 		Null will be returned if element is not visible.
 		* @function GetBoundingPosition
+		* @static
 		* @param {HTMLElement} elm - Element to get position for.
 		* @returns Fit.TypeDefs.Position | null
 		*/
@@ -8353,6 +8497,7 @@ declare namespace Fit
 		not capable of calculating these - use the fully qualified property name (e.g. border-left-color
 		or padding-left).
 		* @function GetComputedStyle
+		* @static
 		* @param {HTMLElement} elm - Element which contains desired CSS style value.
 		* @param {string} style - CSS style property name.
 		* @returns string | null
@@ -8363,6 +8508,7 @@ declare namespace Fit
 		Element passed will be returned if hidden itself.
 		Returns Null if element is visible, or has not been rooted in DOM yet.
 		* @function GetConcealer
+		* @static
 		* @param {Node} elm - Element to get concealer for.
 		* @returns HTMLElement | null
 		*/
@@ -8372,6 +8518,7 @@ declare namespace Fit
 		HTMLElement is at level 0, HTMLBodyElement is at level 1,
 		first element in HTMLBodyElement is at level 2, and so forth.
 		* @function GetDepth
+		* @static
 		* @param {Node} elm - Element to get depth in DOM for.
 		* @returns number
 		*/
@@ -8380,6 +8527,7 @@ declare namespace Fit
 		* Returns element currently focused. If no element is focused, the document body is returned.
 		Null will be returned if the document has not been loaded yet.
 		* @function GetFocused
+		* @static
 		* @returns HTMLElement | null
 		*/
 		public static GetFocused():HTMLElement | null;
@@ -8387,6 +8535,7 @@ declare namespace Fit
 		* Get element position within parent element.
 		Notice that Text and Comment nodes are ignored.
 		* @function GetIndex
+		* @static
 		* @param {HTMLElement} elm - Element to get index for.
 		* @returns number
 		*/
@@ -8396,6 +8545,7 @@ declare namespace Fit
 		container. Inner dimensions are width and height with padding and borders substracted.
 		Result returned will be as expected no matter the box-sizing model being used.
 		* @function GetInnerDimensions
+		* @static
 		* @param {HTMLElement} elm - Element to get inner dimensions for.
 		* @returns Fit.TypeDefs.Dimension
 		*/
@@ -8419,6 +8569,7 @@ declare namespace Fit
 		parent with overflow set.
 		Returns null if element passed is placed on its own stacking context with position:fixed.
 		* @function GetOverflowingParent
+		* @static
 		* @param {HTMLElement} elm - Element to get overflowing parent for.
 		* @param {boolean} [scrollableOnly=false] - Flag indicating whether to only consider parents with overflow:auto or overflow:scroll.
 		Parents with overflow:hidden will be ignored. As such, only a parent with the ability to
@@ -8429,6 +8580,7 @@ declare namespace Fit
 		/**
 		* Returns first parent of specified type for a given element if found, otherwise Null.
 		* @function GetParentOfType
+		* @static
 		* @param {Node} element - Element to find parent for.
 		* @param {string} parentType - Tagname of parent element to look for.
 		* @returns HTMLElement | null
@@ -8442,6 +8594,7 @@ declare namespace Fit
 		starts, if such is applied.
 		Null will be returned if element is not visible.
 		* @function GetPosition
+		* @static
 		* @param {HTMLElement} elm - Element to get position for.
 		* @param {boolean} [relativeToViewport=false] - Set True to get element position relative to viewport rather than to document which may exceed the viewport.
 		Contrary to Fit.Dom.GetBoundingPosition(elm), the position returned is where the margin edge starts, if such is applied.
@@ -8455,6 +8608,7 @@ declare namespace Fit
 		Object returned contains an X and Y property with the desired integer values (pixels).
 		Notice that Null is returned in case element is not rooted yet (added to DOM) or invisible.
 		* @function GetRelativePosition
+		* @static
 		* @param {HTMLElement} elm - Element to get position for.
 		* @returns Fit.TypeDefs.Position | null
 		*/
@@ -8466,6 +8620,7 @@ declare namespace Fit
 		and the size of the scrollbar. The size remains 0 when scrolling is not enabled.
 		To determine whether the browser's viewport has scrolling enabled, use Fit.Browser.GetScrollBars().
 		* @function GetScrollBars
+		* @static
 		* @param {HTMLElement} elm - Element to get scrollbar information for.
 		* @returns Fit.TypeDefs.ScrollBarsPresent
 		*/
@@ -8474,6 +8629,7 @@ declare namespace Fit
 		* Get scrolling document element. This is the cross browser
 		equivalent of document.scrollingElement.
 		* @function GetScrollDocument
+		* @static
 		* @returns HTMLElement
 		*/
 		public static GetScrollDocument():HTMLElement;
@@ -8487,6 +8643,7 @@ declare namespace Fit
 		positioned, or in turn relatively positioned against the scroll parent.
 		Returns null if element passed is placed on its own stacking context with position:fixed.
 		* @function GetScrollParent
+		* @static
 		* @param {HTMLElement} elm - Element to get scroll parent for.
 		* @returns HTMLElement | null
 		*/
@@ -8497,6 +8654,7 @@ declare namespace Fit
 		for nested scrollable elements.
 		Object returned contains an X and Y property with the desired integer values (pixels).
 		* @function GetScrollPosition
+		* @static
 		* @param {Node} elm - Element to get scroll position for.
 		* @returns Fit.TypeDefs.Position
 		*/
@@ -8504,6 +8662,7 @@ declare namespace Fit
 		/**
 		* Check whether given DOMElement has specified CSS class registered - returns True if found, otherwise False.
 		* @function HasClass
+		* @static
 		* @param {HTMLElement} elm - Element for which CSS class may be registered.
 		* @param {string} cls - CSS class name.
 		* @returns boolean
@@ -8512,6 +8671,7 @@ declare namespace Fit
 		/**
 		* Insert DOMNode after another DOMNode.
 		* @function InsertAfter
+		* @static
 		* @param {Node} target - Element to insert new element after.
 		* @param {Node} newElm - Element to insert after target element.
 		*/
@@ -8521,6 +8681,7 @@ declare namespace Fit
 		Notice that position is relative to contained DOM Elements.
 		Text and Comment nodes are ignored.
 		* @function InsertAt
+		* @static
 		* @param {HTMLElement} container - Container to insert element into.
 		* @param {number} position - Position (index) to insert element at.
 		* @param {Node} newElm - Element to insert.
@@ -8529,6 +8690,7 @@ declare namespace Fit
 		/**
 		* Insert DOMNode before another DOMNode.
 		* @function InsertBefore
+		* @static
 		* @param {Node} target - Element to insert new element before.
 		* @param {Node} newElm - Element to insert before target element.
 		*/
@@ -8536,6 +8698,7 @@ declare namespace Fit
 		/**
 		* Returns True if element is rooted in document (appended to body), otherwise False.
 		* @function IsRooted
+		* @static
 		* @param {Node} elm - Element to check.
 		* @returns boolean
 		*/
@@ -8545,6 +8708,7 @@ declare namespace Fit
 		in DOM and is visible. Returns False if not rooted, or display:none has been set
 		on element or any of its ancestors.
 		* @function IsVisible
+		* @static
 		* @param {Node} elm - Element to check visibility for.
 		* @returns boolean
 		*/
@@ -8552,12 +8716,14 @@ declare namespace Fit
 		/**
 		* Remove DOMNode from its container element.
 		* @function Remove
+		* @static
 		* @param {Node} elm - DOMNode to remove.
 		*/
 		public static Remove(elm:Node):void;
 		/**
 		* Remove CSS class from element if found.
 		* @function RemoveClass
+		* @static
 		* @param {HTMLElement} elm - Element from which CSS class is to be removed.
 		* @param {string} cls - CSS class name.
 		*/
@@ -8565,6 +8731,7 @@ declare namespace Fit
 		/**
 		* Replace element with another one.
 		* @function Replace
+		* @static
 		* @param {Node} oldElm - Element to replace (Element, Text, or Comment).
 		* @param {Node} newElm - Replacement element (Element, Text, or Comment).
 		*/
@@ -8572,6 +8739,7 @@ declare namespace Fit
 		/**
 		* Set caret position for input control.
 		* @function SetCaretPosition
+		* @static
 		* @param {HTMLElement} input - Input element.
 		* @param {number} pos - Integer value specifying caret position in input control.
 		*/
@@ -8579,6 +8747,7 @@ declare namespace Fit
 		/**
 		* Get/set inner text of DOMElement.
 		* @function Text
+		* @static
 		* @param {Node} elm - Node to update and/or get text value from.
 		* @param {string} [value=undefined] - If defined, inner text is updated with specified value.
 		* @returns string
@@ -8587,6 +8756,7 @@ declare namespace Fit
 		/**
 		* Wraps element in container element while preserving position in DOM if rooted.
 		* @function Wrap
+		* @static
 		* @param {Node} elementToWrap - Element to wrap.
 		* @param {HTMLElement} container - Container to wrap element within.
 		*/
@@ -8602,6 +8772,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"keydown" | "keyup" | "keypress"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackKeyboard} eventFunction - JavaScript function to register.
@@ -8611,6 +8782,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackMouse} eventFunction - JavaScript function to register.
@@ -8620,6 +8792,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"popstate"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackPopState} eventFunction - JavaScript function to register.
@@ -8629,6 +8802,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"hashchange"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackHashChange} eventFunction - JavaScript function to register.
@@ -8638,6 +8812,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"focus" | "focusin" | "focusout" | "blur"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackFocus} eventFunction - JavaScript function to register.
@@ -8647,6 +8822,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"beforeunload"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload} eventFunction - JavaScript function to register.
@@ -8656,6 +8832,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"cut" | "copy" | "paste"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackClipboard} eventFunction - JavaScript function to register.
@@ -8665,6 +8842,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"storage"} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackStorage} eventFunction - JavaScript function to register.
@@ -8674,6 +8852,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given DOMElement and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {HTMLElement} element - DOM element on to which event handler is registered.
 		* @param {"#rooted"} event - Event name.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackRooted} eventFunction - JavaScript function to register.
@@ -8683,6 +8862,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {string} event - Event name without the 'on' prefix.
 		* @param {Fit.EventsTypeDefs.EventHandlerCallbackGeneric} eventFunction - JavaScript function to register.
@@ -8692,6 +8872,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"keydown" | "keyup" | "keypress"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8704,6 +8885,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8716,6 +8898,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"popstate"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8728,6 +8911,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"hashchange"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8740,6 +8924,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"focus" | "focusin" | "focusout" | "blur"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8752,6 +8937,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"beforeunload"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8764,6 +8950,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"cut" | "copy" | "paste"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8776,6 +8963,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {"storage"} event - Event name without the 'on' prefix.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8788,6 +8976,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given DOMElement and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {HTMLElement} element - DOM element on to which event handler is registered.
 		* @param {"#rooted"} event - Event name.
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - This argument is ignored for the specialized #rooted event.
@@ -8798,6 +8987,7 @@ declare namespace Fit
 		/**
 		* Registers handler for specified event on given EventTarget and returns Event ID.
 		* @function AddHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
 		* @param {string} event - Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.).
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Set True to capture event before it reaches target, False to catch event when it bubbles out from target.
@@ -8814,6 +9004,7 @@ declare namespace Fit
 		Important: Mutation observers should be removed when no longer needed for better performance!
 		To remove an observer from within the observer function itself, simply call disconnect().
 		* @function AddMutationObserver
+		* @static
 		* @param {HTMLElement} elm - DOMElement to observe.
 		* @param {Fit.EventsTypeDefs.MutationObserverCallback} obs - JavaScript observer function to register - receives reference to DOMElement being observed when updated.
 		* @param {boolean} [deep=false] - Flag indicating whether to check for modifications within element (children and character data) - this could potentially be expensive.
@@ -8823,6 +9014,7 @@ declare namespace Fit
 		/**
 		* Get event argument related to event just fired in a cross browser compatible manner.
 		* @function GetEvent
+		* @static
 		* @param {Event} [e=undefined] - Event argument.
 		* @returns Event
 		*/
@@ -8830,6 +9022,7 @@ declare namespace Fit
 		/**
 		* Get object containing information about modifier keys currently being active.
 		* @function GetModifierKeys
+		* @static
 		* @returns Fit.EventTypeDefs.ModifierKeys
 		*/
 		public static GetModifierKeys():Fit.EventTypeDefs.ModifierKeys;
@@ -8840,6 +9033,7 @@ declare namespace Fit
 		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport
 		Coordinates.Document.X/Y: Mouse coordinates within document which might have been scrolled.
 		* @function GetPointerState
+		* @static
 		* @returns Fit.EventTypeDefs.PointerState
 		*/
 		public static GetPointerState():Fit.EventTypeDefs.PointerState;
@@ -8848,6 +9042,7 @@ declare namespace Fit
 		focus in a focus event handler. Returns Null if there is no related event object, or if
 		not supported by the browser.
 		* @function GetRelatedTarget
+		* @static
 		* @param {Event} [e=undefined] - Event argument.
 		* @returns HTMLElement | null
 		*/
@@ -8855,6 +9050,7 @@ declare namespace Fit
 		/**
 		* Get a reference to the object that is affected by an event.
 		* @function GetTarget
+		* @static
 		* @param {Event} [e=undefined] - Event argument.
 		* @returns HTMLElement
 		*/
@@ -8862,18 +9058,21 @@ declare namespace Fit
 		/**
 		* Registers OnReady handler which gets fired when DOM is ready for manipulation, or if it is already ready.
 		* @function OnDomReady
+		* @static
 		* @param {Function} callback - JavaScript function to register.
 		*/
 		public static OnDomReady(callback:Function):void;
 		/**
 		* Registers OnReady handler which gets fired when document is ready, or if it is already ready.
 		* @function OnReady
+		* @static
 		* @param {Function} callback - JavaScript function to register.
 		*/
 		public static OnReady(callback:Function):void;
 		/**
 		* Prevent default behaviour triggered by given event - returns False.
 		* @function PreventDefault
+		* @static
 		* @param {Event} [e=undefined] - Event argument.
 		* @returns boolean
 		*/
@@ -8881,6 +9080,7 @@ declare namespace Fit
 		/**
 		* Remove event handler given by Event ID returned from Fit.Events.AddHandler(..).
 		* @function RemoveHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed.
 		* @param {number} eventId - Event ID identifying handler to remove.
 		*/
@@ -8888,6 +9088,7 @@ declare namespace Fit
 		/**
 		* Remove event handler for specified event on given EventTarget.
 		* @function RemoveHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed.
 		* @param {string} event - Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.).
 		* @param {Function} eventFunction - JavaScript function to remove.
@@ -8896,6 +9097,7 @@ declare namespace Fit
 		/**
 		* Remove event handler for specified event on given EventTarget.
 		* @function RemoveHandler
+		* @static
 		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) from which event handler is removed.
 		* @param {string} event - Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.).
 		* @param {boolean | { Capture?: boolean, Once?: boolean, Passive?: boolean }} useCaptureOrOptions - Value indicating whether event handler was registered using event capturing (True) or event bubbling (False).
@@ -8906,6 +9108,7 @@ declare namespace Fit
 		/**
 		* Remove mutation observer.
 		* @function RemoveMutationObserver
+		* @static
 		* @param {HTMLElement} elm - DOMElement being observed.
 		* @param {Fit.EventsTypeDefs.MutationObserverCallback} obs - JavaScript observer function to remove.
 		* @param {boolean} [deep=undefined] - If defined, observer must have been registered with the same deep value to be removed.
@@ -8914,6 +9117,7 @@ declare namespace Fit
 		/**
 		* Remove mutation observer by ID.
 		* @function RemoveMutationObserver
+		* @static
 		* @param {number} id - Observer ID returned from AddMutationObserver(..) function.
 		*/
 		public static RemoveMutationObserver(id:number):void;
@@ -8922,6 +9126,7 @@ declare namespace Fit
 		calling both PreventDefault(e) and StopPropagation(e).
 		Returns False.
 		* @function Stop
+		* @static
 		* @param {Event} [e=undefined] - Event argument.
 		* @returns boolean
 		*/
@@ -8929,6 +9134,7 @@ declare namespace Fit
 		/**
 		* Prevent given event from propagating (bubble up) - returns False.
 		* @function StopPropagation
+		* @static
 		* @param {Event} [e=undefined] - Event argument.
 		* @returns boolean
 		*/
@@ -9029,6 +9235,7 @@ declare namespace Fit
 		/**
 		* Register information such as translations related to a specific language and country.
 		* @function AddLocalization
+		* @static
 		* @param {Function} type - Object type associated with localization information - e.g. MyApp.ContactForm.
 		* @param {Object} translations - Object array containing language and country specific information such as translations.
 		The object array must be indexed using locale keys, and "en" must be defined first.
@@ -9045,6 +9252,7 @@ declare namespace Fit
 		/**
 		* Get type specific locale information registered using Fit.Internationalization.AddLocalization(..).
 		* @function GetLocale
+		* @static
 		* @param {any} instance - Instance of type used to register locale information.
 		* @param {string} [locale=undefined] - If defined, information for specified locale such as en, en_GB, or da is returned.
 		If not found, en (en_US) is returned. If omitted, information for current locale is returned.
@@ -9069,6 +9277,7 @@ declare namespace Fit
 		     }
 		}.
 		* @function GetSystemLocale
+		* @static
 		* @param {string} [localeKey=undefined] - If defined, specified locale such as en, en_GB, or da is returned. If not
 		found, en (en_US) is returned. If omitted, current locale is returned.
 		* @returns any
@@ -9078,6 +9287,7 @@ declare namespace Fit
 		* Get/set active locale. Value returned is a lower cased string such as
 		"en", "en_us", "de", etc. Changing locale results in OnLocaleChanged being fired.
 		* @function Locale
+		* @static
 		* @param {string} [locale=undefined] - If defined, locale is updated with specified value (e.g. en, en_GB, da, etc.).
 		* @returns string
 		*/
@@ -9085,12 +9295,14 @@ declare namespace Fit
 		/**
 		* Add event handler which is called if locale is changed.
 		* @function OnLocaleChanged
+		* @static
 		* @param {Function} cb - Event handler which takes no arguments.
 		*/
 		public static OnLocaleChanged(cb:Function):void;
 		/**
 		* Remove event handler to avoid it being called when locale is changed.
 		* @function RemoveOnLocaleChanged
+		* @static
 		* @param {Function} cb - Event handler to remove.
 		*/
 		public static RemoveOnLocaleChanged(cb:Function):void;
@@ -9132,6 +9344,7 @@ declare namespace Fit
 		
 		}, { $: window.jQuery, mode: "advanced", showData: "users" });.
 		* @function ExecuteScript
+		* @static
 		* @param {string} src - Script source (path or URL).
 		* @param {Fit.LoaderTypeDefs.LoadSingleEventHandler} [onSuccess=undefined] - Callback function fired when script has been successfully loaded and executed.
 		The function takes the script source requested as an argument.
@@ -9154,6 +9367,7 @@ declare namespace Fit
 		     alert("JavaScript " + src + " loaded and ready to be used!");
 		});.
 		* @function LoadScript
+		* @static
 		* @param {string} src - Script source (path or URL).
 		* @param {Fit.LoaderTypeDefs.LoadSingleEventHandler} [callback=undefined] - Callback function fired when script loading is complete - takes the script source requested as an argument.
 		Be aware that a load error will also trigger the callback to make sure control is always returned.
@@ -9193,6 +9407,7 @@ declare namespace Fit
 		Consider using feature detection within callback functions for super reliable execution - example:
 		if (expectedObjectOrFunction) { // Successfully loaded, continue..  }.
 		* @function LoadScripts
+		* @static
 		* @param {Fit.LoaderTypeDefs.ResourceConfiguration[]} cfg - Configuration array (see function description for details).
 		* @param {Fit.LoaderTypeDefs.LoadMultiConfigurationsEventHandler} [callback=undefined] - Callback function fired when all scripts have finished loading (see function description for details).
 		*/
@@ -9209,6 +9424,7 @@ declare namespace Fit
 		     alert("CSS file " + src + " loaded!");
 		});.
 		* @function LoadStyleSheet
+		* @static
 		* @param {string} src - CSS file source (path or URL).
 		* @param {Fit.LoaderTypeDefs.LoadSingleEventHandler} [callback=undefined] - Callback function fired when CSS file loading is complete - takes the file source requested as an argument.
 		Be aware that a load error will also trigger the callback to make sure control is always returned.
@@ -9243,6 +9459,7 @@ declare namespace Fit
 		Second argument is the callback function fired when all stylesheets have finished loading - takes configuration array as argument.
 		This too may be invoked even if a load error occured, to make sure control is returned to your code.
 		* @function LoadStyleSheets
+		* @static
 		* @param {Fit.LoaderTypeDefs.ResourceConfiguration[]} cfg - Configuration array (see function description for details).
 		* @param {Fit.LoaderTypeDefs.LoadMultiConfigurationsEventHandler} [callback=undefined] - Callback function fired when all stylesheets have finished loading (see function description for details).
 		*/
@@ -9303,6 +9520,7 @@ declare namespace Fit
 		* Format value to produce a number with the specified number of decimals.
 		Value is properly rounded off to ensure best precision.
 		* @function Format
+		* @static
 		* @param {number} value - Number to format.
 		* @param {number} decimals - Desired number of decimals.
 		* @param {string} [decimalSeparator=undefined] - If defined, the specified decimal separator will be used.
@@ -9312,6 +9530,7 @@ declare namespace Fit
 		/**
 		* Get random integer value.
 		* @function Random
+		* @static
 		* @param {number} [min=undefined] - Minimum value - assumes 0 if not defined.
 		* @param {number} [max=undefined] - Maximum value - assumes Number.MAX_SAFE_INTEGER (9007199254740991) if not defined.
 		* @returns number
@@ -9320,6 +9539,7 @@ declare namespace Fit
 		/**
 		* Round off value to a number with the specified precision.
 		* @function Round
+		* @static
 		* @param {number} value - Number to round off.
 		* @param {number} precision - Desired precision.
 		* @param {Fit.Math.MidpointRounding | "AwayFromZero" | "Down" | "Up"} [midpointRounding=undefined] - Argument specifies how the function processes a number that is midway between
@@ -9360,6 +9580,7 @@ declare namespace Fit
 		/**
 		* Decode special characters represented as HTML entities back into their actual characters.
 		* @function DecodeHtml
+		* @static
 		* @param {string} str - String to decode.
 		* @returns string
 		*/
@@ -9367,6 +9588,7 @@ declare namespace Fit
 		/**
 		* Encode special characters into HTML entities.
 		* @function EncodeHtml
+		* @static
 		* @param {string} str - String to encode.
 		* @returns string
 		*/
@@ -9374,6 +9596,7 @@ declare namespace Fit
 		/**
 		* Get Java compatible Hash Code from string.
 		* @function Hash
+		* @static
 		* @param {string} str - String to get hash code from.
 		* @returns number
 		*/
@@ -9381,6 +9604,7 @@ declare namespace Fit
 		/**
 		* Removes any HTML contained in string, and returns the raw text value.
 		* @function StripHtml
+		* @static
 		* @param {string} str - String to strip HTML from.
 		* @returns string
 		*/
@@ -9388,6 +9612,7 @@ declare namespace Fit
 		/**
 		* Removes any whitespaces in beginning and end of string passed, and returns the new string.
 		* @function Trim
+		* @static
 		* @param {string} str - String to trim.
 		* @returns string
 		*/
@@ -9395,6 +9620,7 @@ declare namespace Fit
 		/**
 		* Returns string with first letter upper cased.
 		* @function UpperCaseFirst
+		* @static
 		* @param {string} str - String to turn first letter into upper case.
 		* @returns string
 		*/
@@ -9686,12 +9912,14 @@ declare namespace Fit
 		/**
 		* Set or get flag indicating whether type checking should take place (DebugMode).
 		* @function Enabled
+		* @static
 		* @param {boolean} val - True enables DebugMode, False disables DebugMode.
 		*/
 		public static Enabled(val:boolean):void;
 		/**
 		* Throws error if passed object is not an instance of Array.
 		* @function ExpectArray
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9699,6 +9927,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not a boolean.
 		* @function ExpectBoolean
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9706,6 +9935,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not a collection that can be iterated.
 		* @function ExpectCollection
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9713,6 +9943,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an instance of Date.
 		* @function ExpectDate
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9720,6 +9951,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an instance of HTMLElement.
 		* @function ExpectElement
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9727,6 +9959,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an instance of Event.
 		* @function ExpectEvent
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9734,6 +9967,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an instance of EventTarget.
 		* @function ExpectEventTarget
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9741,6 +9975,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not a valid function.
 		* @function ExpectFunction
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9748,6 +9983,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an instance of specified type.
 		* @function ExpectInstance
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {any} instanceType - Instance type (constructor, e.g. Fit.Http.Request).
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
@@ -9758,6 +9994,7 @@ declare namespace Fit
 		contaning only instances of specified type. Example:
 		Fit.Validation.ExpectInstanceArray(arr, Fit.Controls.TreeViewNode).
 		* @function ExpectInstanceArray
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {any} instanceType - Instance type (constructor, e.g. Fit.Http.Request).
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
@@ -9766,6 +10003,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an integer.
 		* @function ExpectInteger
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9773,12 +10011,14 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is either Null or Undefined.
 		* @function ExpectIsSet
+		* @static
 		* @param {any} val - Object to validate.
 		*/
 		public static ExpectIsSet(val:any):void;
 		/**
 		* Throws error if passed object is not an instance of Element, Text, or Comment.
 		* @function ExpectNode
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9786,6 +10026,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not a number.
 		* @function ExpectNumber
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9793,6 +10034,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not a valid object such as { Name: 'Jimmy', Age: 34 }.
 		* @function ExpectObject
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9800,6 +10042,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an instance of RegExp.
 		* @function ExpectRegExp
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9807,6 +10050,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not a string.
 		* @function ExpectString
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9814,6 +10058,7 @@ declare namespace Fit
 		/**
 		* Same as Fit.Validation.ExpectString(..), but string must contain an actual value if set (not be empty).
 		* @function ExpectStringValue
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9823,6 +10068,7 @@ declare namespace Fit
 		contaning only objects/values of type given by validation callback.
 		Example: Fit.Validation.ExpectTypeArray(arr, Fit.Validation.ExpectString).
 		* @function ExpectTypeArray
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {Function} typeValCallback - Value validation callback.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
@@ -9831,6 +10077,7 @@ declare namespace Fit
 		/**
 		* Throws error if passed object is not an instance of Window.
 		* @function ExpectWindow
+		* @static
 		* @param {any} val - Object to validate.
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
@@ -9838,15 +10085,58 @@ declare namespace Fit
 		/**
 		* Returns True if specified object is set (not Null or Undefined), otherwise False.
 		* @function IsSet
+		* @static
 		* @param {any} val - Object to validate.
 		*/
 		public static IsSet(val:any):void;
 		/**
 		* Throw error and provide stack trace to browser console.
 		* @function ThrowError
+		* @static
 		* @param {string} msg - Error message.
 		*/
 		public static ThrowError(msg:string):void;
+	}
+	/**
+	* 
+	* @namespace [Fit._internal _internal]
+	*/
+	namespace _internal
+	{
+		/**
+		* 
+		* @namespace [Fit._internal.Controls Controls]
+		*/
+		namespace Controls
+		{
+			/**
+			* Allows for manipulating control (appearance, features, and behaviour).
+			Features are NOT guaranteed to be backward compatible, and incorrect use might break control!.
+			* @class [Fit._internal.Controls.Input Input]
+			*/
+			class Input
+			{
+				// Properties defined by Fit._internal.Controls.Input
+				/**
+				* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+				* @member {'bootstrapck' | 'moono-lisa' | null} DefaultSkin
+				* @static
+				*/
+				static DefaultSkin:'bootstrapck' | 'moono-lisa' | null;
+				/**
+				* Additional plugins used with DesignMode.
+				* @member {('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]} EditorPlugins
+				* @static
+				*/
+				static EditorPlugins:('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[];
+				/**
+				* Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins).
+				* @member {( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]} EditorToolbar
+				* @static
+				*/
+				static EditorToolbar:( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[];
+			}
+		}
 	}
 	/**
 	* 
@@ -10186,6 +10476,30 @@ declare namespace Fit
 	*/
 	namespace CoreTypeDefs
 	{
+		/**
+		* 
+		* @class [Fit.CoreTypeDefs.DebounceFunction DebounceFunction]
+		*/
+		class DebounceFunction
+		{
+			// Properties defined by Fit.CoreTypeDefs.DebounceFunction
+			/**
+			* Schedule or re-schedule execution of function.
+			* @member {Function} Invoke
+			*/
+			Invoke:Function;
+			// Functions defined by Fit.CoreTypeDefs.DebounceFunction
+			/**
+			* Cancel debounced function if scheduled for execution.
+			* @function Cancel
+			*/
+			public Cancel():void;
+			/**
+			* Force execution of debounced function if scheduled for execution.
+			* @function Flush
+			*/
+			public Flush():void;
+		}
 		/**
 		* Version information.
 		* @class [Fit.CoreTypeDefs.VersionInfo VersionInfo]
