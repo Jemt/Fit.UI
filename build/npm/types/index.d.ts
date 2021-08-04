@@ -10112,29 +10112,61 @@ declare namespace Fit
 			/**
 			* Allows for manipulating control (appearance, features, and behaviour).
 			Features are NOT guaranteed to be backward compatible, and incorrect use might break control!.
-			* @class [Fit._internal.Controls.Input Input]
+			* @namespace [Fit._internal.Controls.Input Input]
 			*/
-			class Input
+			namespace Input
 			{
-				// Properties defined by Fit._internal.Controls.Input
 				/**
-				* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
-				* @member {'bootstrapck' | 'moono-lisa' | null} DefaultSkin
-				* @static
+				* Internal settings related to blob storage management in HTML Editor (Design Mode).
+				* @class [Fit._internal.Controls.Input.BlobManager BlobManager]
 				*/
-				static DefaultSkin:'bootstrapck' | 'moono-lisa' | null;
+				class BlobManager
+				{
+					// Properties defined by Fit._internal.Controls.Input.BlobManager
+					/**
+					* Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
+					If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
+					disposing referenced blobs. Failing to do so may cause a memory leak.
+					* @member {'All' | 'UnreferencedOnly'} RevokeBlobUrlsOnDispose
+					* @static
+					*/
+					static RevokeBlobUrlsOnDispose:'All' | 'UnreferencedOnly';
+					/**
+					* Dispose images from blob storage (revoke blob URLs) added through Value(..)
+					function when control is disposed. Basically ownership of these blobs are handed
+					over to the control for the duration of its life time.
+					These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
+					* @member {boolean} RevokeExternalBlobUrlsOnDispose
+					* @static
+					*/
+					static RevokeExternalBlobUrlsOnDispose:boolean;
+				}
 				/**
-				* Additional plugins used with DesignMode.
-				* @member {('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]} EditorPlugins
-				* @static
+				* Internal settings related to HTML Editor (Design Mode).
+				* @class [Fit._internal.Controls.Input.Editor Editor]
 				*/
-				static EditorPlugins:('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[];
-				/**
-				* Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins).
-				* @member {( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]} EditorToolbar
-				* @static
-				*/
-				static EditorToolbar:( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[];
+				class Editor
+				{
+					// Properties defined by Fit._internal.Controls.Input.Editor
+					/**
+					* Additional plugins used with DesignMode.
+					* @member {('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]} Plugins
+					* @static
+					*/
+					static Plugins:('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[];
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
+					/**
+					* Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins).
+					* @member {( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]} Toolbar
+					* @static
+					*/
+					static Toolbar:( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[];
+				}
 			}
 		}
 	}
