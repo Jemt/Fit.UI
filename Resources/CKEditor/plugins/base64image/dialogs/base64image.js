@@ -6,6 +6,18 @@
 /*
  * Improved by Jimmy Thomsen for CKEditor in Fit.UI (https://fitui.org), licensed under LGPL.
  *  * Improvements to UI (positioning, dimensions, and input experience)
+ *  * Store images using blob storage which can greatly improve performance.
+ *    Simply add the following configuration where storage can be either "blob" or "base64" (default):
+ *    base64image: { storage: "blob", onImageAdded: function(args) {
+ *        var type = args.type;		// Possible values: "blob", "base64", or "url"
+ *        var blob = args.blob;		// File blob for type "blob" and "base64", null for type "url"
+ *        var url  = args.url;		// Image url (e.g. http(s):// for type "url", blob: for type "blob", and data: for type "base64")
+ *        var img  = args.image;	// <img> element added to CKEditor
+ *    }}
+ *    Notice that files in blob storage are not removed by plugin once added to CKEditor so make sure to
+ *    revoke blobs when no longer needed, either by reloading page or by calling URL.revokeObjectURL(imageUrl).
+ *    All images of type "blob" provided via onImageAdded(..) must be cleaned up when no longer needed.
+ *  * Memory freed up - no longer keeps an internal reference to last selected file and image data
  *  * No longer applying invalid values to vspace, hspace, width, and height when specifying a unit - these are pixel values only
  *  * Added support for em unit for dimensions (width, height, vspace, hspace, and border)
  *  * Better preservation of aspect ratio with support for decimals (% and em)
@@ -14,9 +26,14 @@
  */
 
 CKEDITOR.dialog.add("base64imageDialog", function(editor){
+	var cfg = {
+		storage: editor.config.base64image && editor.config.base64image.storage || "base64",
+		onImageAdded: editor.config.base64image && editor.config.base64image.onImageAdded || null
+	};
 
 	var t = null,
 		selectedImg = null,
+		newImageBlob = null, // { url: string, blob: Blob | null, type: "blob" | "base64" | "url", preserve?: boolean }
 		orgWidth = null, orgHeight = null, // Dimensions parsed from <img> tag - only used to initially set dimensions in dialog and to calculate imgScal
 		prevValidWidth = null, prevValidHeight = null, // Dimensions parsed from <img> tag, or actual image dimensions if not defined in styles. Updated every time dimensions are changed to new valid values. Used to restore dimensions if user enters garbage.
 		imgPreview = null, urlCB = null, urlI = null, fileCB = null, imgScal = 1, lock = true;
@@ -98,7 +115,12 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 		/* Remove preview */
 		imgPreview.getElement().setHtml("");
 
-		if(src == "base64") {
+		// Make sure to clean up blobs in case user selects an image more than once
+		if (newImageBlob !== null && newImageBlob.type === "blob") {
+			URL.revokeObjectURL(newImageBlob.url);
+		}
+
+		if(src == "base64" || src == "blob") {
 
 			/* Disable Checkboxes */
 			if(urlCB) urlCB.setValue(false, true);
@@ -111,7 +133,10 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			if(fileCB) fileCB.setValue(false, true);
 
 			/* Load preview image */
-			if(urlI) imagePreviewLoad(urlI.getValue());
+			if(urlI) {
+				newImageBlob = { url: urlI.getValue(), blob: null, type: "url" };
+				imagePreviewLoad(urlI.getValue());
+			}
 
 		} else if(fsupport) {
 
@@ -127,14 +152,22 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 				if("type" in n.files[0] && !n.files[0].type.match("image.*")) return;
 				if(!FileReader) return;
 				imgPreview.getElement().setHtml("Loading...");
-				var fr = new FileReader();
-				fr.onload = (function(f) { return function(e) {
-					imgPreview.getElement().setHtml("");
-					imagePreviewLoad(e.target.result);
-				}; })(n.files[0]);
-				fr.onerror = function(){ imgPreview.getElement().setHtml(""); };
-				fr.onabort = function(){ imgPreview.getElement().setHtml(""); };
-				fr.readAsDataURL(n.files[0]);
+				var file = n.files[0];
+				if (URL.createObjectURL && cfg.storage === "blob") { // Browsers supporting blob storage
+					var imageUrl = URL.createObjectURL(file); // WARNING: Images remain in blob storage until page is reloaded, closed, or until URL.revokeObjectURL(imageUrl) is invoked! Use onImageAdded callback to keep track of image blobs so they can be disposed when no longer needed!
+					imagePreviewLoad(imageUrl);
+					newImageBlob = { url: imageUrl, blob: file, type: "blob" };
+				} else {
+					var fr = new FileReader();
+					fr.onload = (function(f) { return function(e) {
+						imgPreview.getElement().setHtml("");
+						imagePreviewLoad(e.target.result);
+						newImageBlob = { url: e.target.result, blob: file, type: "base64" };
+					}; })(file);
+					fr.onerror = function(){ imgPreview.getElement().setHtml(""); };
+					fr.onabort = function(){ imgPreview.getElement().setHtml(""); };
+					fr.readAsDataURL(file);
+				}
 			}
 		}
 	};
@@ -384,7 +417,7 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			/* Remove preview */
 			imgPreview.getElement().setHtml("");
 
-			t = this, orgWidth = null, orgHeight = null, imgScal = 1, lock = true;
+			t = this, newImageBlob = null, orgWidth = null, orgHeight = null, prevValidWidth = null, prevValidHeight = null, imgScal = 1, lock = true;
 
 			/* selected image or null */
 			selectedImg = editor.getSelection();
@@ -422,6 +455,9 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 					if(selectedImg.getAttribute("src").indexOf("data:") === 0) {
 						imagePreview("base64");
 						imagePreviewLoad(selectedImg.getAttribute("src"));
+					} else if(selectedImg.getAttribute("src").indexOf("blob:") === 0) {
+						imagePreview("blob");
+						imagePreviewLoad(selectedImg.getAttribute("src"));
 					} else {
 						t.setValueOf("tab-source", "url", selectedImg.getAttribute("src"));
 					}
@@ -453,6 +489,21 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			}
 
 		},
+		onHide: function(evArg) {
+			if (newImageBlob !== null && newImageBlob.type === "blob" && newImageBlob.preserve !== true) {
+				// Remove image from blob storage when dialog is canceled or dismissed to free up memory.
+				// Initiator of CKEditor is responsible for cleaning up memory for images added to the CKEditor instance.
+				// Use the onImageAdded event to receive references to images added.
+				URL.revokeObjectURL(newImageBlob.url);
+			}
+
+			// Dialog lives on when closed - free up memory by making sure potentially large files are no longer referenced,
+			// as recommended: https://chromium.googlesource.com/chromium/src/+/refs/heads/main/storage/browser/blob/README.md
+			selectedImg = null;
+			newImageBlob = null;
+			t.getContentElement("tab-source", "file").getInputElement().$.value = ""; // File picker
+			imgPreview.getElement().setHtml(""); // Image preview
+		},
 		onOk : function(evArg){
 
 			// NOTICE: IE11 on BrowserStack seems to trigger OnOk twice when pressing ENTER, but this
@@ -466,112 +517,139 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 
 			/* selected image or new image */
 			if(selectedImg) var newImg = selectedImg; else var newImg = editor.document.createElement("img");
+
+			newImg.$.onload = function() // base64 images load immediately, but images from blob storage does not - we need to wait for it so we can determine the image's offsetWidth and offsetHeight further down
+			{
+				/* Set attributes */
+				newImg.setAttribute("alt", t.getValueOf("tab-properties", "alt").replace(/^\s+/, "").replace(/\s+$/, ""));
+				var attr = {
+					"width" : ["width", "width:#;", "integer", 1],
+					"height" : ["height", "height:#;", "integer", 1],
+					"vmargin" : ["vspace", "margin-top:#;margin-bottom:#;", "integer", 0],
+					"hmargin" : ["hspace", "margin-left:#;margin-right:#;", "integer", 0],
+					"align" : ["align", ""],
+					"border" : ["border", "border:# solid black;", "integer", 0]
+				}, css = [], value, cssvalue, attrvalue, k;
+				for(k in attr) {
+
+					value = t.getValueOf("tab-properties", k);
+					attrvalue = value;
+					cssvalue = value;
+					unit = "px";
+
+					if(k == "align") {
+						switch(value) {
+							case "top":
+							case "bottom":
+								attr[k][1] = "vertical-align:#;";
+								break;
+							case "left":
+							case "right":
+								attr[k][1] = "float:#;";
+								break;
+							default:
+								value = null;
+								break;
+						}
+					}
+
+					if(attr[k][2] == "integer") {
+						if(value.indexOf("%") >= 0) unit = "%";
+						else if(value.indexOf("em") >= 0) unit = "em";
+						if (unit === "px") {
+							value = parseInt(value, 10); // No need to validate - valid values are enforced in the dialog
+						} else { // em or %
+							value = parseFloat(value); // No need to validate - valid values are enforced in the dialog
+						}
+						if(value != null) {
+							if(unit == "%") {
+								attrvalue = ""; // The width and height attributes are pixel values - specifying a unit does not comply with the spec
+								cssvalue = value+"%";
+							} else if(unit == "em") {
+								attrvalue = ""; // The width and height attributes are pixel values - specifying a unit does not comply with the spec
+								cssvalue = value+"em";
+							} else {
+								attrvalue = value;
+								cssvalue = value+"px";
+							}
+						}
+					}
+
+					if(value != null) {
+						attrvalue && newImg.setAttribute(attr[k][0], attrvalue);
+						css.push(attr[k][1].replace(/#/g, cssvalue));
+					}
+
+				}
+				if(css.length > 0) newImg.setAttribute("style", css.join(""));
+
+				/* Insert new image */
+				if(!selectedImg) editor.insertElement(newImg);
+
+				/* Resize image (https://github.com/nmmf/imageresize) */
+				if(editor.plugins.imageresize) editor.plugins.imageresize.resize(editor, newImg, 800, 800);
+
+				/* Make sure image cannot become hidden or inaccessible with very small width or height */
+				var minWidth = 10, minHeight = 10; // Do not go below 10px! Too much precision is lost if we do, making it impossible to calculate an aspect ratio close to the original!
+				if (newImg.$.offsetWidth < minWidth || newImg.$.offsetHeight < minHeight) { // Notice: .width and .height returns the image size while .offsetWidth and .offsetHeight includes the border applied
+
+					var newMinWidth = minWidth;
+					var newMinHeight = minHeight;
+
+					if (newImg.$.width > newImg.$.height) { // landscape
+						newMinHeight = minHeight;
+						newMinWidth = newMinHeight * imgScal;
+					} else { // portrait or square
+						newMinWidth = minWidth;
+						newMinHeight = newMinWidth / imgScal;
+					}
+
+					newMinWidth = Math.round(newMinWidth);
+					newMinHeight = Math.round(newMinHeight);
+
+					var newCss = [];
+					for (var i = 0 ; i < css.length ; i++) {
+						if (/^width|height/.test(css[i]) === false) {
+							newCss.push(css[i]);
+						}
+					}
+
+					newCss.push("width:" + newMinWidth + "px;");
+					newCss.push("height:" + newMinHeight + "px;");
+
+					newImg.setAttribute("width", newMinWidth.toString());
+					newImg.setAttribute("height", newMinHeight.toString());
+					newImg.setAttribute("style", newCss.join(""));
+
+					//evArg.data.hide = false; // Prevent dialog from closing
+				}
+
+				// Let component using CKEditor know about images added so it can clean up
+				// image blobs when no longer needed. While we could revoke an image
+				// blob associated with 'selectedImg', it would not be sufficient. Images
+				// can be removed directly from the editor, not just when replaced by this plugin.
+				// So rather than doing partial cleanup, we leave it all to the component using
+				// CKEditor and this plugin.
+				// The component using CKEditor can use the onImageAdded event to track images
+				// added, and remove blobs when no longer needed.
+
+				if (!selectedImg && cfg.onImageAdded) {
+					cfg.onImageAdded({
+						type: newImageBlob.type,	// "blob" | "base64" | "url" - component must revoke all URLs of type "blob" when no longer needed!
+						image: newImg.$,			// <img> element
+						url: newImageBlob.url,		// Image URL (http(s)://, data:, or blob:)
+						blob: newImageBlob.blob		// File blob when a file is selected from computer, null when image is provided as a URL
+					});
+					newImageBlob.preserve = true;
+				}
+
+				evArg.sender.hide(); // Close dialog
+			}
+
 			newImg.setAttribute("src", src);
 			src = null;
 
-			/* Set attributes */
-			newImg.setAttribute("alt", t.getValueOf("tab-properties", "alt").replace(/^\s+/, "").replace(/\s+$/, ""));
-			var attr = {
-				"width" : ["width", "width:#;", "integer", 1],
-				"height" : ["height", "height:#;", "integer", 1],
-				"vmargin" : ["vspace", "margin-top:#;margin-bottom:#;", "integer", 0],
-				"hmargin" : ["hspace", "margin-left:#;margin-right:#;", "integer", 0],
-				"align" : ["align", ""],
-				"border" : ["border", "border:# solid black;", "integer", 0]
-			}, css = [], value, cssvalue, attrvalue, k;
-			for(k in attr) {
-
-				value = t.getValueOf("tab-properties", k);
-				attrvalue = value;
-				cssvalue = value;
-				unit = "px";
-
-				if(k == "align") {
-					switch(value) {
-						case "top":
-						case "bottom":
-							attr[k][1] = "vertical-align:#;";
-							break;
-						case "left":
-						case "right":
-							attr[k][1] = "float:#;";
-							break;
-						default:
-							value = null;
-							break;
-					}
-				}
-
-				if(attr[k][2] == "integer") {
-					if(value.indexOf("%") >= 0) unit = "%";
-					else if(value.indexOf("em") >= 0) unit = "em";
-					if (unit === "px") {
-						value = parseInt(value, 10); // No need to validate - valid values are enforced in the dialog
-					} else { // em or %
-						value = parseFloat(value); // No need to validate - valid values are enforced in the dialog
-					}
-					if(value != null) {
-						if(unit == "%") {
-							attrvalue = ""; // The width and height attributes are pixel values - specifying a unit does not comply with the spec
-							cssvalue = value+"%";
-						} else if(unit == "em") {
-							attrvalue = ""; // The width and height attributes are pixel values - specifying a unit does not comply with the spec
-							cssvalue = value+"em";
-						} else {
-							attrvalue = value;
-							cssvalue = value+"px";
-						}
-					}
-				}
-
-				if(value != null) {
-					attrvalue && newImg.setAttribute(attr[k][0], attrvalue);
-					css.push(attr[k][1].replace(/#/g, cssvalue));
-				}
-
-			}
-			if(css.length > 0) newImg.setAttribute("style", css.join(""));
-
-			/* Insert new image */
-			if(!selectedImg) editor.insertElement(newImg);
-
-			/* Resize image (https://github.com/nmmf/imageresize) */
-			if(editor.plugins.imageresize) editor.plugins.imageresize.resize(editor, newImg, 800, 800);
-
-			/* Make sure image cannot become hidden or inaccessible with very small width or height */
-			var minWidth = 10, minHeight = 10; // Do not go below 10px! Too much precision is lost if we do, making it impossible to calculate an aspect ratio close to the original!
-			if (newImg.$.offsetWidth < minWidth || newImg.$.offsetHeight < minHeight) { // Notice: .width and .height returns the image size while .offsetWidth and .offsetHeight includes the border applied
-
-				var newMinWidth = minWidth;
-				var newMinHeight = minHeight;
-
-				if (newImg.$.width > newImg.$.height) { // landscape
-					newMinHeight = minHeight;
-					newMinWidth = newMinHeight * imgScal;
-				} else { // portrait or square
-					newMinWidth = minWidth;
-					newMinHeight = newMinWidth / imgScal;
-				}
-
-				newMinWidth = Math.round(newMinWidth);
-				newMinHeight = Math.round(newMinHeight);
-
-				var newCss = [];
-				for (var i = 0 ; i < css.length ; i++) {
-					if (/^width|height/.test(css[i]) === false) {
-						newCss.push(css[i]);
-					}
-				}
-
-				newCss.push("width:" + newMinWidth + "px;");
-				newCss.push("height:" + newMinHeight + "px;");
-
-				newImg.setAttribute("width", newMinWidth.toString());
-				newImg.setAttribute("height", newMinHeight.toString());
-				newImg.setAttribute("style", newCss.join(""));
-
-				//evArg.data.hide = false; // Prevent dialog from closing
-			}
+			evArg.data.hide = false; // Prevent dialog from closing - closed in image's onload handler above
 		},
 
 		/* Dialog form */

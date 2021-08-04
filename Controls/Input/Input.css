@@ -82,15 +82,26 @@ table.cke_dialog_contents label:empty
 	display: none;
 }
 
+/* Override: Do not hide content overflow when a dialog is open - it remove scrollbars on page
+   which affects available space and positioning slightly, which might trigger OnScroll, and might
+   result in re-rendering. One downside of this change is that the user can now scroll the content
+   behind the dialog, which is probably why overflow:hidden was applied. */
+.cke_dialog_open /* Class is added to <body> when a dialog is open */
+{
+	overflow: auto !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
+}
+
+/* CKEditor - bootstrapck skin overrides */
+
 /* Override: The bootstrapck skin define margins for content
    areas in dialogs which makes the vertical scrollbar appear. */
 div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_vbox
 {
-	margin-top: 0px !important; /* Using !mportant since dialog CSS loads late when dialog is opened */
+	margin-top: 0px !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
 div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_body label
 {
-	margin-bottom: 0px !important; /* Using !mportant since dialog CSS loads late when dialog is opened */
+	margin-bottom: 0px !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
 
 /* Override: The bootstrapck skin does not align checkboxes and labels properly */
@@ -99,5 +110,5 @@ div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_checkbox .cke_d
 div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input,
 div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input+label
 {
-	vertical-align: top !important; /* Using !mportant since dialog CSS loads late when dialog is opened */
+	vertical-align: top !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }

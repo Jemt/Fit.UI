@@ -29,6 +29,7 @@ Fit.Controls.Input = function(ctlId)
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 	var debounceOnChangeTimeout = -1;
 	var debouncedOnChange = null;
+	var imageBlobUrls = [];
 
 	// ============================================
 	// Init
@@ -337,7 +338,12 @@ Fit.Controls.Input = function(ctlId)
 			debouncedOnChange.Cancel();
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = null;
+		Fit.Array.ForEach(imageBlobUrls, function(imageUrl)
+		{
+			URL.revokeObjectURL(imageUrl);
+		});
+
+		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -1102,6 +1108,42 @@ Fit.Controls.Input = function(ctlId)
 			me.GetDomElement().focus(); // Outer container is focusable - tabIndex set above
 		}
 
+		var onImageAdded = function(args)
+		{
+			if (args.type === "blob")
+			{
+				// For a list of blobs in Chrome see: chrome://blob-internals/
+				// Be aware that garbage is NOT being collected unless needed, so
+				// don't expect the list to update immediately. Garbage collection
+				// can be triggered in Dev Tools > Memory: click the trash can icon.
+				// Make sure to garbage collect from the tab/window running Fit.UI,
+				// NOT from the tab/window listing blobs!
+				// Use https://jsfiddle.net/ute87p1m/6/ to test garbage collection.
+
+				imageBlobUrls.push(args.url);
+			}
+
+			/*// Image data can be retrieved from a blob like this:
+			if (img.src.indexOf("blob:") === 0)
+			{
+				var r = new Fit.Http.Request(img.src); // E.g. "blob:http://localhost:8080/0c5aa2ae-f2ea-414a-af42-53047959ad1b"
+				r.RequestProperties({ responseType: "blob" });
+				r.OnSuccess(function(sender)
+				{
+					var blob = sender.GetResponse();
+
+					var reader = new FileReader();
+					reader.onload = function(ev)
+					{
+						var base64 = ev.target.result;
+						console.log(base64);
+					};
+					reader.readAsDataURL(blob);
+				});
+				r.Start();
+			}*/
+		};
+
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
@@ -1112,6 +1154,16 @@ Fit.Controls.Input = function(ctlId)
 			title: "",
 			startupFocus: focused === true ? "end" : false,
 			extraPlugins: Fit._internal.Controls.Input.EditorPlugins.join(","), // "justify,pastefromword,base64image,base64imagepaste,dragresize",
+			base64image: // Custom property used by base64image plugin if loaded
+			{
+				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
+				onImageAdded: onImageAdded
+			},
+			base64imagepaste: // Custom property used by base64imagepaste plugin if loaded - notice that IE has native support for image pasting as base64 so plugin is not triggered in IE
+			{
+				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
+				onImageAdded: onImageAdded
+			},
 			toolbar: Fit._internal.Controls.Input.EditorToolbar,
 			/*[
 				{
