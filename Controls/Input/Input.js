@@ -245,6 +245,26 @@ Fit.Controls.Input = function(ctlId)
 			else
 				input.value = val;
 
+			if (Fit._internal.Controls.Input.BlobManager.RevokeExternalBlobUrlsOnDispose === true)
+			{
+				// Keep track of image blobs added via Value(..) so we can dispose them automatically.
+				// When RevokeExternalBlobUrlsOnDispose is True it basically means that the Input control
+				// is allowed (and expected) to take control over memory management for these blobs
+				// based on the rule set in RevokeBlobUrlsOnDispose.
+
+				const blobImages = val.match(/<img .*?src=(["'])blob:.+?\1.*?>/gi) || [];
+
+				Fit.Array.ForEach(blobImages, function(img)
+				{
+					const blobUrl = img.match(/src=(["'])(blob:.*?)\1/i)[2];
+
+					if (Fit.Array.Contains(blobImages, blobUrl) === false)
+					{
+						Fit.Array.Add(imageBlobUrls, blobUrl);
+					}
+				});
+			}
+
 			if (fireOnChange === true)
 				me._internal.FireOnChange();
 		}
@@ -271,6 +291,8 @@ Fit.Controls.Input = function(ctlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		// This will destroy control - it will no longer work!
+
+		var curVal = Fit._internal.Controls.Input.BlobManager.RevokeBlobUrlsOnDispose === "UnreferencedOnly" ? me.Value() : null;
 
 		if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
 		{
@@ -338,10 +360,23 @@ Fit.Controls.Input = function(ctlId)
 			debouncedOnChange.Cancel();
 		}
 
-		Fit.Array.ForEach(imageBlobUrls, function(imageUrl)
+		if (Fit._internal.Controls.Input.BlobManager.RevokeBlobUrlsOnDispose === "All")
 		{
-			URL.revokeObjectURL(imageUrl);
-		});
+			Fit.Array.ForEach(imageBlobUrls, function(imageUrl)
+			{
+				URL.revokeObjectURL(imageUrl);
+			});
+		}
+		else // UnreferencedOnly
+		{
+			Fit.Array.ForEach(imageBlobUrls, function(imageUrl)
+			{
+				if (curVal.match(new RegExp("img.*src=([\"'])" + imageUrl + "\\1", "i")) === null)
+				{
+					URL.revokeObjectURL(imageUrl);
+				}
+			});
+		}
 
 		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
@@ -740,9 +775,9 @@ Fit.Controls.Input = function(ctlId)
 						// WARNING: Control could potentially have been disposed at this point, but
 						// we still need to finalize the configuration of CKEditor which is global.
 
-						if (Fit.Validation.IsSet(Fit._internal.Controls.Input.DefaultSkin) === true)
+						if (Fit.Validation.IsSet(Fit._internal.Controls.Input.Editor.Skin) === true)
 						{
-							CKEDITOR.config.skin = Fit._internal.Controls.Input.DefaultSkin;
+							CKEDITOR.config.skin = Fit._internal.Controls.Input.Editor.Skin;
 						}
 
 						// Register OnShow and OnHide event handlers when a dialog is opened for the first time.
@@ -1153,7 +1188,7 @@ Fit.Controls.Input = function(ctlId)
 			tabIndex: me.Enabled() === false ? -1 : 0,
 			title: "",
 			startupFocus: focused === true ? "end" : false,
-			extraPlugins: Fit._internal.Controls.Input.EditorPlugins.join(","), // "justify,pastefromword,base64image,base64imagepaste,dragresize",
+			extraPlugins: Fit._internal.Controls.Input.Editor.Plugins.join(","), // "justify,pastefromword,base64image,base64imagepaste,dragresize",
 			base64image: // Custom property used by base64image plugin if loaded
 			{
 				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
@@ -1164,7 +1199,7 @@ Fit.Controls.Input = function(ctlId)
 				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
 				onImageAdded: onImageAdded
 			},
-			toolbar: Fit._internal.Controls.Input.EditorToolbar,
+			toolbar: Fit._internal.Controls.Input.Editor.Toolbar,
 			/*[
 				{
 					name: "BasicFormatting",
@@ -1448,39 +1483,70 @@ Fit.Controls.Input.Type = Fit.Controls.InputType; // Backward compatibility
 /// </container>
 Fit._internal.Controls.Input = {};
 
-/// <member container="Fit._internal.Controls.Input" name="DefaultSkin" access="public" static="true" type="'bootstrapck' | 'moono-lisa' | null">
-/// 	<description> Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control </description>
-/// </member>
-Fit._internal.Controls.Input.DefaultSkin = null; // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created
+/// <container name="Fit._internal.Controls.Input.Editor">
+/// 	Internal settings related to HTML Editor (Design Mode)
+/// </container>
+Fit._internal.Controls.Input.Editor =
+{
+	/// <member container="Fit._internal.Controls.Input.Editor" name="Skin" access="public" static="true" type="'bootstrapck' | 'moono-lisa' | null">
+	/// 	<description> Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control </description>
+	/// </member>
+	Skin: null, // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created
 
-/// <member container="Fit._internal.Controls.Input" name="EditorPlugins" access="public" static="true" type="('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
-/// 	<description> Additional plugins used with DesignMode </description>
-/// </member>
-Fit._internal.Controls.Input.EditorPlugins = ["justify", "pastefromword", /*"base64image", "base64imagepaste", "dragresize"*/]; // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
+	/// <member container="Fit._internal.Controls.Input.Editor" name="Plugins" access="public" static="true" type="('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
+	/// 	<description> Additional plugins used with DesignMode </description>
+	/// </member>
+	Plugins: ["justify", "pastefromword", /*"base64image", "base64imagepaste", "dragresize"*/], // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
 
-/// <member container="Fit._internal.Controls.Input" name="EditorToolbar" access="public" static="true" type="( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]">
-/// 	<description> Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins) </description>
-/// </member>
-Fit._internal.Controls.Input.EditorToolbar =
-[
-	{
-		name: "BasicFormatting",
-		items: [ "Bold", "Italic", "Underline" ]
-	},
-	{
-		name: "Justify",
-		items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
-	},
-	{
-		name: "Lists",
-		items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
-	},
-	{
-		name: "Links",
-		items: [ "Link", "Unlink" ]
-	}/*,
-	{
-		name: "Insert",
-		items: [ "base64image" ]
-	}*/
-];
+	/// <member container="Fit._internal.Controls.Input.Editor" name="Toolbar" access="public" static="true" type="( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]">
+	/// 	<description> Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins) </description>
+	/// </member>
+	Toolbar:
+	[
+		{
+			name: "BasicFormatting",
+			items: [ "Bold", "Italic", "Underline" ]
+		},
+		{
+			name: "Justify",
+			items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
+		},
+		{
+			name: "Lists",
+			items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
+		},
+		{
+			name: "Links",
+			items: [ "Link", "Unlink" ]
+		}/*,
+		{
+			name: "Insert",
+			items: [ "base64image" ]
+		}*/
+	]
+};
+
+/// <container name="Fit._internal.Controls.Input.BlobManager">
+/// 	Internal settings related to blob storage management in HTML Editor (Design Mode)
+/// </container>
+Fit._internal.Controls.Input.BlobManager =
+{
+	/// <member container="Fit._internal.Controls.Input.BlobManager" name="RevokeBlobUrlsOnDispose" access="public" static="true" type="'All' | 'UnreferencedOnly'">
+	/// 	<description>
+	/// 		Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
+	/// 		If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
+	/// 		disposing referenced blobs. Failing to do so may cause a memory leak.
+	/// 	</description>
+	/// </member>
+	RevokeBlobUrlsOnDispose: "All", // "All" | "UnreferencedOnly"
+
+	/// <member container="Fit._internal.Controls.Input.BlobManager" name="RevokeExternalBlobUrlsOnDispose" access="public" static="true" type="boolean">
+	/// 	<description>
+	/// 		Dispose images from blob storage (revoke blob URLs) added through Value(..)
+	/// 		function when control is disposed. Basically ownership of these blobs are handed
+	/// 		over to the control for the duration of its life time.
+	/// 		These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
+	/// 	</description>
+	/// </member>
+	RevokeExternalBlobUrlsOnDispose: false
+}
