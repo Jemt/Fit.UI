@@ -1,4 +1,3 @@
-// @ts-nocheck
 /*
  * Base64Image Plugin for CKEditor (http://github.com/nmmf/base64image)
  * Created by ALL-INKL.COM - Neue Medien M�nnich - 04. Feb 2014
