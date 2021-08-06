@@ -1295,7 +1295,7 @@ Fit.Controls.Input = function(ctlId)
 						{
 							// Control not focused - make sure OnFocus fires when a button is clicked,
 							// and make sure ControlBase internally considers itself focused, so there is
-							// no risk of OnFocus being fire twice without OnBlur firing in between,
+							// no risk of OnFocus being fired twice without OnBlur firing in between,
 							// when focus state is unlocked, and focus is perhaps re-assigned to another
 							// DOM element within the control, which will be the case if the design editor
 							// is switched back to an ordinary input field (e.g. using DesignMode(false)).

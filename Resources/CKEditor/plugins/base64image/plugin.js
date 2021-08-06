@@ -1,3 +1,4 @@
+// @ts-nocheck
 /*
  * Base64Image Plugin for CKEditor (http://github.com/nmmf/base64image)
  * Created by ALL-INKL.COM - Neue Medien M�nnich - 04. Feb 2014
@@ -10,17 +11,17 @@ CKEDITOR.plugins.add("base64image", {
 	hidpi	:	true,
     init	: 	function(editor){
 					var pluginName = 'base64imageDialog';
-					
+
 					editor.ui.addButton("base64image", {
 						label: editor.lang.common.image,
 						command: pluginName,
 						toolbar: "insert"
 					});
 					CKEDITOR.dialog.add(pluginName, this.path+"dialogs/base64image.js");
-					
+
 					var allowed = 'img[alt,!src]{border-style,border-width,float,height,margin,margin-bottom,margin-left,margin-right,margin-top,width}',
 						required = 'img[alt,src]';
-					
+
 					editor.addCommand( pluginName, new CKEDITOR.dialogCommand( pluginName, {
 						allowedContent: allowed,
 						requiredContent: required,
@@ -29,12 +30,13 @@ CKEDITOR.plugins.add("base64image", {
 							[ 'img{float}: alignmentToStyle', 'img[align]: alignmentToAttribute' ]
 						]
 					} ) );
-					editor.on("doubleclick", function(evt){
-						if(evt.data.element && !evt.data.element.isReadOnly() && evt.data.element.getName() === "img") {
-							evt.data.dialog = pluginName;
-							editor.getSelection().selectElement(evt.data.element);
-						}
-					});
+					// DISABLED as it does not work properly with Fit.UI's implementation of CKEditor - see https://github.com/Jemt/Fit.UI/issues/131
+					// editor.on("doubleclick", function(evt){
+					// 	if(evt.data.element && !evt.data.element.isReadOnly() && evt.data.element.getName() === "img") {
+					// 		evt.data.dialog = pluginName; // Tells CKEditor to open this plugin's dialog
+					// 		editor.getSelection().selectElement(evt.data.element);
+					// 	}
+					// });
 					if(editor.addMenuItem) {
 						editor.addMenuGroup("base64imageGroup");
 						editor.addMenuItem("base64imageItem", {
