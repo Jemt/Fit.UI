@@ -252,11 +252,11 @@ Fit.Controls.Input = function(ctlId)
 				// is allowed (and expected) to take control over memory management for these blobs
 				// based on the rule set in RevokeBlobUrlsOnDispose.
 
-				const blobImages = val.match(/<img .*?src=(["'])blob:.+?\1.*?>/gi) || [];
+				var blobImages = val.match(/<img .*?src=(["'])blob:.+?\1.*?>/gi) || [];
 
 				Fit.Array.ForEach(blobImages, function(img)
 				{
-					const blobUrl = img.match(/src=(["'])(blob:.*?)\1/i)[2];
+					var blobUrl = img.match(/src=(["'])(blob:.*?)\1/i)[2];
 
 					if (Fit.Array.Contains(blobImages, blobUrl) === false)
 					{
