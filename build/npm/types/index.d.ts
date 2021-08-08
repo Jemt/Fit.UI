@@ -9368,13 +9368,32 @@ declare namespace Fit
 		});.
 		* @function LoadScript
 		* @static
-		* @param {string} src - Script source (path or URL).
-		* @param {Fit.LoaderTypeDefs.LoadSingleEventHandler} [callback=undefined] - Callback function fired when script loading is complete - takes the script source requested as an argument.
+		* @param {string} source - Script source (path or URL).
+		* @param {Fit.LoaderTypeDefs.LoadSingleEventHandler} [cb=undefined] - Callback function fired when script loading is complete - takes the script source requested as an argument.
 		Be aware that a load error will also trigger the callback to make sure control is always returned.
-		Consider using feature detection within callback function for super reliable execution - example:
+		Consider using feature detection within callback function for most reliable execution - example:
 		if (expectedObjectOrFunction) { // Successfully loaded, continue..  }.
 		*/
-		public static LoadScript(src:string, callback?:Fit.LoaderTypeDefs.LoadSingleEventHandler):void;
+		public static LoadScript(source:string, cb?:Fit.LoaderTypeDefs.LoadSingleEventHandler):void;
+		/**
+		* Load client script on demand in a non-blocking manner.
+		
+		// Example of loading a JavaScript file
+		
+		Fit.Loader.LoadScript("extensions/test/test.js", { id: "my-script", charset: "UTF-8" }, function(src)
+		{
+		     alert("JavaScript " + src + " loaded and ready to be used!");
+		});.
+		* @function LoadScript
+		* @static
+		* @param {string} source - Script source (path or URL).
+		* @param {Object.<string, string>} attributes - Attributes registered with script block.
+		* @param {Fit.LoaderTypeDefs.LoadSingleEventHandler} [cb=undefined] - Callback function fired when script loading is complete - takes the script source requested as an argument.
+		Be aware that a load error will also trigger the callback to make sure control is always returned.
+		Consider using feature detection within callback function for most reliable execution - example:
+		if (expectedObjectOrFunction) { // Successfully loaded, continue..  }.
+		*/
+		public static LoadScript(source:string, attributes:{[key:string]: string}, cb?:Fit.LoaderTypeDefs.LoadSingleEventHandler):void;
 		/**
 		* Chain load multiple client scripts on demand in a non-blocking manner.
 		
@@ -9384,10 +9403,12 @@ declare namespace Fit
 		[
 		     {
 		          source: "extensions/test/menu.js",
+		          attributes: { id: "my-script" },
 		          loaded: function(cfg) { alert("JavaScript " + cfg.source + " loaded"); }
 		     },
 		     {
 		          source: "http://cdn.domain.com/chat.js",
+		          attributes: { id: "another-script" },
 		          loaded: function(cfg) { alert("JavaScript " + cfg.source + " loaded"); }
 		     }
 		],
@@ -9497,6 +9518,11 @@ declare namespace Fit
 		class ResourceConfiguration
 		{
 			// Properties defined by Fit.LoaderTypeDefs.ResourceConfiguration
+			/**
+			* Attributes registered with script block.
+			* @member {Object.<string, string>} [attributes=undefined]
+			*/
+			attributes?:{[key:string]: string};
 			/**
 			* Callback invoked when resource is loaded.
 			* @member {Fit.LoaderTypeDefs.LoadSingleConfigurationEventHandler} [loaded=undefined]
@@ -9948,6 +9974,17 @@ declare namespace Fit
 		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
 		*/
 		public static ExpectDate(val:any, allowNotSet?:boolean):void;
+		/**
+		* Throws error if passed object is not a dictionary (associative array / object array),
+		contaning only objects/values of type given by validation callback.
+		Example: Fit.Validation.ExpectDictionary(dict, Fit.Validation.ExpectString).
+		* @function ExpectDictionary
+		* @static
+		* @param {any} val - Dictionary to validate.
+		* @param {Function} typeValCallback - Value validation callback.
+		* @param {boolean} [allowNotSet=false] - Set True to allow object to be Null or Undefined.
+		*/
+		public static ExpectDictionary(val:any, typeValCallback:Function, allowNotSet?:boolean):void;
 		/**
 		* Throws error if passed object is not an instance of HTMLElement.
 		* @function ExpectElement
