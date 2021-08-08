@@ -65,6 +65,7 @@ Fit.Controls.DropDown = function(ctlId)
 		me._internal.Data("multiselect", "false");
 		me._internal.Data("selectionmode", "visual");
 		me._internal.Data("selectionmodetoggle", "false");
+		me._internal.Data("open", "false");
 
 		if (Fit.Browser.GetInfo().IsMobile === true)
 			isMobile = true;
@@ -1415,6 +1416,8 @@ Fit.Controls.DropDown = function(ctlId)
 		dropDownMenu.style.minWidth = me.GetDomElement().offsetWidth + "px"; // In case DropDownMaxWidth(..) is set - update every time drop down is opened in case viewport is resized and has changed control width
 		dropDownMenu.style.display = "block";
 
+		me._internal.Data("open", "true");
+
 		//optimizeDropDownPosition();
 
 		Fit._internal.DropDown.Current = me;
@@ -1444,6 +1447,8 @@ Fit.Controls.DropDown = function(ctlId)
 
 		dropDownMenu.style.display = "none";
 		resetDropDownPosition();
+
+		me._internal.Data("open", "false");
 
 		Fit._internal.DropDown.Current = null;
 

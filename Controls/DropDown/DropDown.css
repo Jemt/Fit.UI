@@ -309,6 +309,16 @@ div.FitUiControlDropDownPicker /* Picker container (drop down) */
 	z-index: 1000;
 }
 
+/* Add shadows behind DropDown control when open */
+div.FitUiControlDropDown[data-open="true"]
+{
+	box-shadow: 0em 0em 0.25em silver;
+}
+div.FitUiControlDropDown[data-open="true"] div.FitUiControlDropDownPicker
+{
+	box-shadow: 0em 0.1em 0.25em silver;
+}
+
 /* Error indication */
 div.FitUiControlDropDown[data-enabled="true"][data-valid="false"]
 {
