@@ -207,6 +207,31 @@ Fit.Validation.ExpectInstanceArray = function(val, instanceType, allowNotSet)
 	});
 }
 
+/// <function container="Fit.Validation" name="ExpectDictionary" access="public" static="true">
+/// 	<description>
+/// 		Throws error if passed object is not a dictionary (associative array / object array),
+/// 		contaning only objects/values of type given by validation callback.
+/// 		Example: Fit.Validation.ExpectDictionary(dict, Fit.Validation.ExpectString)
+/// 	</description>
+/// 	<param name="val" type="object"> Dictionary to validate </param>
+/// 	<param name="typeValCallback" type="function"> Value validation callback </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow object to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectDictionary = function(val, typeValCallback, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	Fit.Validation.ExpectObject(val);
+	Fit.Validation.ExpectFunction(typeValCallback);
+
+	Fit.Array.ForEach(val, function(key)
+	{
+		Fit.Validation.ExpectStringValue(key);
+		typeValCallback(val[key]);
+	});
+}
+
 /// <function container="Fit.Validation" name="ExpectCollection" access="public" static="true">
 /// 	<description> Throws error if passed object is not a collection that can be iterated </description>
 /// 	<param name="val" type="object"> Object to validate </param>

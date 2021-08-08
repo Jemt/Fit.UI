@@ -155,24 +155,61 @@ Fit.Loader.ExecuteScript = function(src, onSuccess, onFailure, context)
 /// 			&#160;&#160;&#160;&#160; alert(&quot;JavaScript &quot; + src + &quot; loaded and ready to be used!&quot;);
 /// 		});
 /// 	</description>
-/// 	<param name="src" type="string"> Script source (path or URL) </param>
-/// 	<param name="callback" type="Fit.LoaderTypeDefs.LoadSingleEventHandler" default="undefined">
+/// 	<param name="source" type="string"> Script source (path or URL) </param>
+/// 	<param name="cb" type="Fit.LoaderTypeDefs.LoadSingleEventHandler" default="undefined">
 /// 		Callback function fired when script loading is complete - takes the script source requested as an argument.
 /// 		Be aware that a load error will also trigger the callback to make sure control is always returned.
-/// 		Consider using feature detection within callback function for super reliable execution - example:
+/// 		Consider using feature detection within callback function for most reliable execution - example:
 /// 		if (expectedObjectOrFunction) { /* Successfully loaded, continue.. */ }
 /// 	</param>
 /// </function>
-Fit.Loader.LoadScript = function(src, callback)
+/// <function container="Fit.Loader" name="LoadScript" access="public" static="true">
+/// 	<description>
+/// 		Load client script on demand in a non-blocking manner.
+///
+/// 		// Example of loading a JavaScript file
+///
+/// 		Fit.Loader.LoadScript(&quot;extensions/test/test.js&quot;, { id: &quot;my-script&quot;, charset: &quot;UTF-8&quot; }, function(src)
+/// 		{
+/// 			&#160;&#160;&#160;&#160; alert(&quot;JavaScript &quot; + src + &quot; loaded and ready to be used!&quot;);
+/// 		});
+/// 	</description>
+/// 	<param name="source" type="string"> Script source (path or URL) </param>
+/// 	<param name="attributes" type="{[key:string]: string}"> Attributes registered with script block </param>
+/// 	<param name="cb" type="Fit.LoaderTypeDefs.LoadSingleEventHandler" default="undefined">
+/// 		Callback function fired when script loading is complete - takes the script source requested as an argument.
+/// 		Be aware that a load error will also trigger the callback to make sure control is always returned.
+/// 		Consider using feature detection within callback function for most reliable execution - example:
+/// 		if (expectedObjectOrFunction) { /* Successfully loaded, continue.. */ }
+/// 	</param>
+/// </function>
+Fit.Loader.LoadScript = function(source, cb)
 {
+	var src = null;
+	var attributes = null;
+	var callback = null;
+
+	if (arguments.length === 1 || (arguments.length === 2 && typeof(arguments[1]) === "function"))
+	{
+		src = arguments[0];
+		callback = arguments[1] || null;
+	}
+	else if (arguments.length >= 2)
+	{
+		src = arguments[0];
+		attributes = arguments[1] || null;
+		callback = arguments[2] || null;
+	}
+
 	Fit.Validation.ExpectStringValue(src);
+	Fit.Validation.ExpectDictionary(attributes, Fit.Validation.ExpectString, true);
 	Fit.Validation.ExpectFunction(callback, true);
 
-	if (arguments.length > 2)
-	{
-		// One could easily confuse LoadScript with ExecuteScript - help the developer to choose the right function
-		Fit.Validation.ThrowError("Argument(s) do not match function signature - did you intend to use Fit.Loader.ExecuteScript instead ?");
-	}
+	// if (arguments.length > 2)
+	// {
+	// 	// One could easily confuse LoadScript with ExecuteScript - help the developer to choose the right function
+	// 	Fit.Validation.ThrowError("Argument(s) do not match function signature - did you intend to use Fit.Loader.ExecuteScript instead ?");
+	// }
 
 	// Scripts injected always load as if they had the async attribute
 	// set, so we will not cause the parser to stall using this approach.
@@ -183,7 +220,15 @@ Fit.Loader.LoadScript = function(src, callback)
 	script.type = "text/javascript";
 	script.charset = "UTF-8";
 
-	if (Fit.Validation.IsSet(callback) === true && (Fit.Browser.GetBrowser() !== "MSIE" || (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() >= 9)))
+	if (attributes !== null)
+	{
+		Fit.Array.ForEach(attributes, function(key)
+		{
+			script.setAttribute(key, attributes[key]);
+		});
+	}
+
+	if (callback !== null && (Fit.Browser.GetBrowser() !== "MSIE" || (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() >= 9)))
 	{
 		script.onload = function() { callback(src); };
 
@@ -192,7 +237,7 @@ Fit.Loader.LoadScript = function(src, callback)
 		// doesn't halt execution on 404 or syntax errors.
 		script.onerror = function() { callback(src); };
 	}
-	else if (Fit.Validation.IsSet(callback) === true && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() <= 8)
+	else if (callback !== null && Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() <= 8)
 	{
 		script.onreadystatechange = function()
 		{
@@ -214,6 +259,7 @@ Fit.Loader.LoadScript = function(src, callback)
 /// <container name="Fit.LoaderTypeDefs.ResourceConfiguration">
 /// 	<description> Resource configuration </description>
 /// 	<member name="source" type="string"> Path to resource </member>
+/// 	<member name="attributes" type="{[key:string]: string}" default="undefined"> Attributes registered with script block </member>
 /// 	<member name="loaded" type="Fit.LoaderTypeDefs.LoadSingleConfigurationEventHandler" default="undefined">
 /// 		Callback invoked when resource is loaded
 /// 	</member>
@@ -239,10 +285,12 @@ Fit.Loader.LoadScript = function(src, callback)
 /// 		[
 /// 			&#160;&#160;&#160;&#160; {
 /// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; source: &quot;extensions/test/menu.js&quot;,
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; attributes: { id: &quot;my-script&quot; },
 /// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; loaded: function(cfg) { alert(&quot;JavaScript &quot; + cfg.source + &quot; loaded&quot;); }
 /// 			&#160;&#160;&#160;&#160; },
 /// 			&#160;&#160;&#160;&#160; {
 /// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; source: &quot;http://cdn.domain.com/chat.js&quot;,
+/// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; attributes: { id: &quot;another-script&quot; },
 /// 			&#160;&#160;&#160;&#160; &#160;&#160;&#160;&#160; loaded: function(cfg) { alert(&quot;JavaScript &quot; + cfg.source + &quot; loaded&quot;); }
 /// 			&#160;&#160;&#160;&#160; }
 /// 		],
@@ -280,6 +328,7 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 		for (var i = 0 ; i < cfg.length ; i++)
 		{
 			Fit.Validation.ExpectStringValue(cfg[i].source);
+			Fit.Validation.ExpectDictionary(cfg[i].attributes, Fit.Validation.ExpectString, true);
 			Fit.Validation.ExpectFunction(cfg[i].loaded, true);
 		}
 	}
@@ -311,7 +360,7 @@ Fit.Loader.LoadScripts = function(cfg, callback, skipValidation)
 
 	toLoad.handled = true;
 
-	Fit.Loader.LoadScript(toLoad.source, function()
+	Fit.Loader.LoadScript(toLoad.source, toLoad.attributes || {}, function()
 	{
 		if (Fit.Validation.IsSet(toLoad.loaded) === true)
 		{
