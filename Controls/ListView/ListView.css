@@ -12,13 +12,13 @@ div.FitUiControlListView > div /* List item */
 
 div.FitUiControlListView > div:hover
 {
-	background-color: #C3D9E0;
+	background-color: #DADADA; /*#C3D9E0*/
 	cursor: pointer;
 }
 
 div.FitUiControlListView > div[data-active="true"]
 {
-	background-color: #A9D8E8;
+	background-color: #EAEAEA; /*#A9D8E8*/
 }
 
 div.FitUiControlListView:focus
