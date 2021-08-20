@@ -860,13 +860,16 @@ Fit.Controls.Input = function(ctlId)
 								// DISABLED: It breaks file picker controls in dialogs which are hosted in iframes.
 								// When an iframe is re-rooted in DOM it reloads, and any dynamically created content is lost.
 								// We will have to increase the z-index to make sure dialogs open on top of modal layers.
+								// EDIT 2021-08-20: Enabled again. The base64image plugin has now been altered so it no longer
+								// uses CKEditor's built-in file picker which is wrapped in an iFrame. Therefore the dialog can
+								// once again be mounted next to the Input control.
 
-								/*var ckeDialogElement = this.getElement().$;
+								var ckeDialogElement = this.getElement().$;
 								Fit.Dom.InsertAfter(Fit._internal.Controls.Input.ActiveEditorForDialog.GetDomElement(), ckeDialogElement);
 
 								// 2nd+ time dialog is opened it remains invisible - make it appear and position it
 								ckeDialogElement.style.display = !CKEDITOR.env.ie || CKEDITOR.env.edge ? "flex" : ""; // https://github.com/ckeditor/ckeditor4/blob/8b208d05d1338d046cdc8f971c9faf21604dd75d/plugins/dialog/plugin.js#L152
-								this.layout(); // 'this' is the dialog instance - layout() positions dialog*/
+								this.layout(); // 'this' is the dialog instance - layout() positions dialog
 							});
 
 							dialog.on("hide", function(ev) // Fires when user closes dialog, or when hide() is called on dialog, or if destroy() is called on editor instance from Dispose() or DesignMode(false)

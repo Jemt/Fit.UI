@@ -8,12 +8,12 @@
  */
 (function() {
 	"use strict";
-  
+
 	var PLUGIN_NAME = 'dragresize';
 	var IMAGE_SNAP_TO_SIZE = 7;
-  
+
 	var isWebkit = ('WebkitAppearance' in document.documentElement.style);
-  
+
 	/**
 	 * Initializes the plugin
 	 */
@@ -35,19 +35,19 @@
 		});
 	  }
 	});
-  
+
 	function init(editor) {
 	  var window = editor.window.$, document = editor.document.$;
 	  var snapToSize = (typeof IMAGE_SNAP_TO_SIZE === 'undefined') ? null : IMAGE_SNAP_TO_SIZE;
-  
+
 	  var resizer = new Resizer(editor, {snapToSize: snapToSize});
-  
+
 	  document.addEventListener('mousedown', function(e) {
 		if (resizer.isHandle(e.target)) {
 		  resizer.initDrag(e);
 		}
 	  }, false);
-  
+
 	  function selectionChange() {
 		var selection = editor.getSelection();
 		if (!selection) return;
@@ -61,36 +61,43 @@
 		  resizer.hide();
 		}
 	  }
-  
+
 	  editor.on('selectionChange', selectionChange);
-  
+
 	  editor.on('getData', function(e) {
 		var html = e.data.dataValue || '';
 		html = html.replace(/<div id="ckimgrsz"([\s\S]*?)<\/div>/i, '');
 		html = html.replace(/\b(ckimgrsz)\b/g, '');
 		e.data.dataValue = html;
 	  });
-  
+
 	  editor.on('beforeUndoImage', function() {
 		// Remove the handles before undo images are saved
 		resizer.hide();
 	  });
-  
+
 	  editor.on('afterUndoImage', function() {
 		// Restore the handles after undo images are saved
 		selectionChange();
 	  });
-  
+
 	  editor.on('blur', function() {
 		// Remove the handles when editor loses focus
 		resizer.hide();
 	  });
-  
+
+	  // Added by Jimmy Thomsen for Fit.UI (https://fitui.org)
+	  // See bug report: https://github.com/sstur/ck-dragresize/issues/27
+	  editor.on('beforeDestroy', function() {
+		// Remove the handles before editor is destroyed
+		resizer.hide();
+	  });
+
 	  editor.on('beforeModeUnload', function self() {
 		editor.removeListener('beforeModeUnload', self);
 		resizer.hide();
 	  });
-  
+
 	  // Update the selection when the browser window is resized
 	  var resizeTimeout;
 	  editor.window.on('resize', function() {
@@ -100,7 +107,7 @@
 		resizeTimeout = setTimeout(selectionChange, 50);
 	  });
 	}
-  
+
 	function Resizer(editor, cfg) {
 	  this.editor = editor;
 	  this.window = editor.window.$;
@@ -108,7 +115,7 @@
 	  this.cfg = cfg || {};
 	  this.init();
 	}
-  
+
 	Resizer.prototype = {
 	  init: function() {
 		var container = this.container = this.document.createElement('div');
@@ -288,7 +295,7 @@
 		resizeElement(this.el, this.result.width, this.result.height);
 	  }
 	};
-  
+
 	function DragEvent(window, document) {
 	  this.window = window;
 	  this.document = document;
@@ -298,7 +305,7 @@
 		mouseup: bind(this.mouseup, this)
 	  };
 	}
-  
+
 	DragEvent.prototype = {
 	  start: function(e) {
 		e.preventDefault();
@@ -347,7 +354,7 @@
 		this.onRelease && this.onRelease();
 	  }
 	};
-  
+
 	//helper functions
 	function toArray(obj) {
 	  var len = obj.length, arr = new Array(len);
@@ -356,7 +363,7 @@
 	  }
 	  return arr;
 	}
-  
+
 	function bind(fn, ctx) {
 	  if (fn.bind) {
 		return fn.bind(ctx);
@@ -365,17 +372,17 @@
 		fn.apply(ctx, arguments);
 	  };
 	}
-  
+
 	function positionElement(el, left, top) {
 	  el.style.left = String(left) + 'px';
 	  el.style.top = String(top) + 'px';
 	}
-  
+
 	function resizeElement(el, width, height) {
 	  el.style.width = String(width) + 'px';
 	  el.style.height = String(height) + 'px';
 	}
-  
+
 	function getBoundingBox(window, el) {
 	  var rect = el.getBoundingClientRect();
 	  return {

@@ -145,9 +145,10 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			if(fileCB) fileCB.setValue(true, true);
 
 			/* Read file and load preview */
-			var fileI = t.getContentElement("tab-source", "file");
-			var n = null;
-			try { n = fileI.getInputElement().$; } catch(e) { n = null; }
+			// var fileI = t.getContentElement("tab-source", "file");
+			// var n = null;
+			// try { n = fileI.getInputElement().$; } catch(e) { n = null; }
+			var n = document.querySelector("#" + editor.id + "_imagefilepicker"); // Returns null if file picker is not supported
 			if(n && "files" in n && n.files && n.files.length > 0 && n.files[0]) {
 				if("type" in n.files[0] && !n.files[0].type.match("image.*")) return;
 				if(!FileReader) return;
@@ -334,11 +335,13 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 						label: editor.lang.common.upload+":"
 					},
 					{
-						type: "file",
+						//type: "file", // WARNING: Avoid using type:"file" as it wraps the file picker in an iframe which breaks if dialog is moved in DOM, because iframes reload in this case, resulting in dynamically created content being lost
+						type: "html",
+						html: "<input type='file' id='" + editor.id + "_imagefilepicker'>", // OnChange handler attached in onShow handler
 						id: "file",
 						label: "",
 						style: "margin-top: -5px",
-						onChange: function(){ imagePreview("file"); }
+						//onChange: function(){ imagePreview("file"); } // Does not work with type:"html" - OnChange handler attached in onShow handler instead
 					}
 				]
 			},
@@ -406,13 +409,20 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			this.getContentElement("tab-properties", "border").getInputElement().on("blur", function(){ setNumberValue(this); }, this.getContentElement("tab-properties", "border"));
 
 		},
-		onShow: function(){
+		onShow: function(args){
 
 			// NOTICE: IE11 on Win7+IE11 VM seems to be crashing a lot when opening the dialog to edit the properties
 			// of an existing image. It seems to mainly happen when working with relative units (% and em),
 			// and especially if assigning a border to the image. The original plugin had the same problem with %.
 			// The problem can not be reproduced with Win7+IE10 though, nor when testing with IE11 on BrowserStack,
 			// so this might be a problem with the VM or the specific build of IE11 being used.
+
+			// Add OnChange handler to file picker
+			var fp = args.sender.getElement().$.querySelector("#" + editor.id + "_imagefilepicker");
+			if (fp) // Null if file picker is not supported
+			{
+				fp.onchange = function() { imagePreview("file"); };
+			}
 
 			/* Remove preview */
 			imgPreview.getElement().setHtml("");
@@ -501,7 +511,8 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			// as recommended: https://chromium.googlesource.com/chromium/src/+/refs/heads/main/storage/browser/blob/README.md
 			selectedImg = null;
 			newImageBlob = null;
-			t.getContentElement("tab-source", "file").getInputElement().$.value = ""; // File picker
+			//t.getContentElement("tab-source", "file").getInputElement().$.value = ""; // File picker
+			(evArg.sender.getElement().$.querySelector("#" + editor.id + "_imagefilepicker") || {}).value = ""; // File picker (null if not supported)
 			imgPreview.getElement().setHtml(""); // Image preview
 		},
 		onOk : function(evArg){
