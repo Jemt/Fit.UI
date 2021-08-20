@@ -231,6 +231,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationRules = [];
 	var validationRuleError = null;
 	var lazyValidation = false;
+	var lazyValidationDisabled = false;
 	var hasValidated = false;
 	var blockAutoPostBack = false; // Used by AutoPostBack mechanism to prevent multiple postbacks, e.g on double click
 	var onChangeHandlers = [];
@@ -312,8 +313,11 @@ Fit.Controls.ControlBase = function(controlId)
 
 		me.OnBlur(function(sender)
 		{
-			if (lazyValidation === true)
-				me._internal.Validate(true);
+			if (lazyValidation === true && lazyValidationDisabled === false)
+			{
+				lazyValidationDisabled = true;
+				me._internal.Validate();
+			}
 		});
 
 		Fit.Internationalization.OnLocaleChanged(localize);
@@ -354,7 +358,7 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = lazyValidationDisabled = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
 		base();
 	});
 
@@ -915,6 +919,7 @@ Fit.Controls.ControlBase = function(controlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			lazyValidation = val;
+			lazyValidationDisabled = false;
 
 			if (lazyValidation === true)
 			{
@@ -1302,8 +1307,13 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		Fit.Validation.ExpectBoolean(force, true);
 
-		// For LazyValidation the UI is only updated if control has focus, unless force is true
-		if (lazyValidation === true && me.Focused() === false && force !== true)
+		if (force === true)
+		{
+			lazyValidationDisabled = true;
+		}
+
+		// For LazyValidation the UI is only updated if control has focus, unless force is true (see above)
+		if (lazyValidation === true && lazyValidationDisabled === false && me.Focused() === false)
 			return;
 
 		var valid = me.IsValid();
