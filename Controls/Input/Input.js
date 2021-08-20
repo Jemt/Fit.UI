@@ -214,12 +214,11 @@ Fit.Controls.Input = function(ctlId)
 
 		if (designEditor !== null)
 		{
-			// Considered focused if a dialog is opened.
-			// DISABLED:
-			// Only one element on a page can be focused, and with this approach, two individual
-			// controls could both return True from Focused() which does not seem appropriate.
-			/*if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
-				return true;*/
+			// If a dialog is open and it belongs to this control instance, and focus is found within dialog, then control is considered having focus.
+			// However, if <body> is focused while dialog is open, control is also considered to have focus, since dialog temporarily assigns focus to
+			// <body> when tabbing between elements within the dialog. This seems safe as no other control can be considered focused if <body> has focus.
+			if (Fit._internal.Controls.Input.ActiveEditorForDialog === me && (Fit.Dom.Contained(Fit._internal.Controls.Input.ActiveDialogForEditor.getElement().$, Fit.Dom.GetFocused()) === true || Fit.Dom.GetFocused() === document.body))
+				return true;
 
 			return Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused());
 		}
