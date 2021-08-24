@@ -23,6 +23,7 @@
  *  * Better preservation of aspect ratio with support for decimals (% and em)
  *  * Dimensions are now restored if user enters an invalid value, rather than changing them to 0px x 0px
  *  * Made sure image retains a minimum width and height of 10px so the images cannot accidentally become invisible or inaccessible
+ *  * Made OnChange fire when image attributes are changed
  */
 
 CKEDITOR.dialog.add("base64imageDialog", function(editor){
@@ -521,6 +522,8 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			// does not happen when testing locally on a Win7+IE11 VM. The problem might be related
 			// to how BrowserStack map keystrokes from Mac to their in-browser remote Windows session.
 
+			var imgHtml = selectedImg ? selectedImg.$.outerHTML : "";
+
 			/* Get image source */
 			var src = "";
 			try { src = CKEDITOR.document.getById(editor.id+"previewimage").$.src; } catch(e) { src = ""; }
@@ -655,6 +658,10 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 				}
 
 				evArg.sender.hide(); // Close dialog
+
+				if (imgHtml !== newImg.$.outerHTML) {
+					editor.fire("change");
+				}
 			}
 
 			newImg.setAttribute("src", src);
