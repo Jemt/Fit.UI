@@ -19,6 +19,7 @@ Fit.Controls.Input = function(ctlId)
 	var input = null;
 	var cmdResize = null;
 	var designEditor = null;
+	var htmlWrappedInParagraph = false;
 	var wasMultiLineBefore = false;
 	var minimizeHeight = -1;
 	var maximizeHeight = -1;
@@ -43,26 +44,15 @@ Fit.Controls.Input = function(ctlId)
 		input.spellcheck = true;
 		input.onkeyup = function()
 		{
-			var proceed = function()
-			{
-				var newVal = me.Value();
-
-				if (newVal !== preVal)
-				{
-					preVal = newVal;
-					me._internal.FireOnChange();
-				}
-			};
-
 			if (debounceOnChangeTimeout === -1)
 			{
-				proceed();
+				fireOnChange();
 			}
 			else
 			{
 				if (debouncedOnChange === null)
 				{
-					debouncedOnChange = Fit.Core.CreateDebouncer(proceed, debounceOnChangeTimeout);
+					debouncedOnChange = Fit.Core.CreateDebouncer(fireOnChange, debounceOnChangeTimeout);
 				}
 
 				debouncedOnChange.Invoke();
@@ -93,10 +83,17 @@ Fit.Controls.Input = function(ctlId)
 
 		me.OnBlur(function(sender)
 		{
+			// Due to CKEditor and plugins allowing for inconsistency between what is being
+			// pushed via OnChange and the editor's actual value, we ensure that the latest
+			// and actual value is pushed via Input.OnChange when the control lose focus.
+			// See related bug report for CKEditor here: https://github.com/ckeditor/ckeditor4/issues/4856
+
 			if (debouncedOnChange !== null)
 			{
-				debouncedOnChange.Flush();
+				debouncedOnChange.Cancel(); // Do not trigger fireOnChange twice (below) if currently scheduled for execution
 			}
+
+			fireOnChange(); // Only fires OnChange if value has actually changed
 		});
 	}
 
@@ -239,6 +236,9 @@ Fit.Controls.Input = function(ctlId)
 			orgVal = (preserveDirtyState !== true ? val : orgVal);
 			preVal = val;
 
+			if (val.indexOf("<p>") === 0)
+				htmlWrappedInParagraph = true; // Indicates that val is comparable with value from CKEditor which wraps content in paragraphs
+
 			if (designEditor !== null)
 				CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(val);
 			else
@@ -377,7 +377,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -1374,6 +1374,35 @@ Fit.Controls.Input = function(ctlId)
 					}
 				});
 			}
+		}
+	}
+
+	function fireOnChange()
+	{
+		var newVal = me.Value();
+
+		if (newVal !== preVal)
+		{
+			if (designEditor !== null && htmlWrappedInParagraph === false) // A value not wrapped in paragraph(s) was assigned to HTML editor
+			{
+				// Do not trigger OnChange if the only difference is that CKEditor
+				// wrapped the value initially assigned to control in a paragraph.
+				// Only changes made programmatically through the Input control's API
+				// or by the user should be pushed.
+				// This approach is not perfect unfortunately. For instance CKEditor
+				// trims the value, so assigning " hello world" or " <p>Hello world</p>"
+				// to the control will result in OnChange firing if fireOnChange() is called.
+
+				var newValWithoutParagraph = newVal.replace(/^<p>/, "").replace(/<\/p>$/, ""); // Remove <p> and </p> at the beginning and end
+
+				if (newValWithoutParagraph === preVal)
+				{
+					return; // Do not fire OnChange
+				}
+			}
+
+			preVal = newVal;
+			me._internal.FireOnChange();
 		}
 	}
 
