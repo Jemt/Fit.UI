@@ -384,7 +384,7 @@ Fit.Controls.TreeView = function(ctlId)
 					var parent = me.GetDomElement();
 					while ((parent = parent.parentElement) !== null)
 					{
-						if (parent.tabIndex >= 0)
+						if (parent.tabIndex >= -1)
 						{
 							reclaimFocus = true;
 							break;
