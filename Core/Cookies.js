@@ -291,6 +291,10 @@ Fit.Cookies.Set = function()
 	{
 		newCookie += "; path=" + path + ((path[path.length-1] !== "/") ? "/" : "");
 	}
+	else
+	{
+		newCookie += "; path=/";
+	}
 
 	if (Fit.Validation.IsSet(domain) === true)
 	{
