@@ -1619,7 +1619,7 @@ Fit._internal.Controls.Input.Editor =
 	/// </member>
 	Skin: null, // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created
 
-	/// <member container="Fit._internal.Controls.Input.Editor" name="Plugins" access="public" static="true" type="('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
+	/// <member container="Fit._internal.Controls.Input.Editor" name="Plugins" access="public" static="true" type="('justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
 	/// 	<description> Additional plugins used with DesignMode </description>
 	/// </member>
 	Plugins: ["justify", "pastefromword", "resize" /*"base64image", "base64imagepaste", "dragresize"*/], // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
