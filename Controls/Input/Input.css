@@ -1,14 +1,18 @@
 div.FitUiControlInput
 {
-	height: 2em; /* Equal height for all controls */
-	height: auto\9; /* Undo equal height for all controls in IE9 and below - assume height of content in legacy IE which does not render properly when input height is set to 100% of container */
+	width: auto; /* Undo width set by Styles.css - contrary to other controls, width and hight is set on input/textarea element for Input control, not on the outer container */
+}
+
+div.FitUiControlInput:not(#LegacyIE) input:first-child, /* :not() not supported by IE8 and below */
+div.FitUiControlInput:not(#LegacyIE) textarea:first-child
+{
+	height: 2em; /* Equal height for all controls - not applied to IE8 as text does not center vertically */
 }
 
 div.FitUiControlInput input:first-child,
 div.FitUiControlInput textarea:first-child
 {
-	width: 100%;
-	height: 100%;
+	width: 200px; /* Same default value as defined for all controls in Styles.css */
 	padding: 0.2em;
 	padding-left: 0.3em;
 	padding-right: 0.3em;
@@ -47,17 +51,25 @@ div.FitUiControlInput[data-enabled="true"][data-valid="false"] textarea:first-ch
 div.FitUiControlInput > span.fa
 {
 	position: absolute;
-	top: 0px;
-	right: -1.5em;
+	bottom: -0.65em;
+	left: 50%;
+	margin-left: -0.67em; /* transform: translateX(-50%); */
 	cursor: pointer;
+	background-color: white;
+	border: 0.065em solid #BBBBBB;
+	border-width: 1px\9;
+	border-radius: 1em;
+	padding: 0.1em;
+	font-size: 0.8em;
+	color: #BBBBBB;
 }
 div.FitUiControlInput > span.fa:focus
 {
 	outline: none;
 }
-div.FitUiControlInput[data-maximizable="true"]
+div.FitUiControlInput[data-maximizable="true"] textarea:first-child
 {
-	margin-right: 2em;
+	padding-bottom: 0.65em; /* Add spacing at the bottom to prevent text from colliding with the maximize button */
 }
 
 /* Remove outline when input has focus */
@@ -68,10 +80,22 @@ div.FitUiControlInput[data-designmode="true"]:focus /* Prevent outline if toolba
 	outline: none;
 }
 
-/* Disable textarea resizing */
+/* Textarea resizing */
 div.FitUiControlInput textarea:first-child
 {
 	resize: none;
+}
+div.FitUiControlInput[data-resizable="enabled"] textarea:first-child
+{
+	resize: both;
+}
+div.FitUiControlInput[data-resizable="vertical"] textarea:first-child
+{
+	resize: vertical;
+}
+div.FitUiControlInput[data-resizable="horizontal"] textarea:first-child
+{
+	resize: horizontal;
 }
 
 /* CKEditor */
@@ -112,3 +136,36 @@ div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dial
 {
 	vertical-align: top !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
+
+/* Override: The bootstrapck skin has too little spacing in the bottom part of its chrome when the bottom panel (with the resize handle) is not present */
+div.FitUiControlInput[data-resizable="disabled"] .cke_chrome[data-skin="bootstrapck"] /* cke_chrome is a <div> on modern browsers, a <span> in IE */
+{
+	padding: 0px 3px 3px 3px;
+}
+
+/* Optimize how resize handler looks in modern browsers */
+@supports not (-ms-high-contrast: none)
+{
+	div.cke span.cke_bottom
+	{
+		overflow: visible; /* Allow positioning of cke_resizer outside of bottom container */
+	}
+	div.cke span.cke_resizer
+	{
+		border: none; /* Use arrow character instead of border arrow */
+		font-size: 0.8em;
+		width: 1em;
+		height: 1em;
+		margin: 0;
+		position: absolute;
+		top: 0;
+		right: -1px;
+		color: gray;
+	}
+	div.cke[data-skin="bootstrapck"] span.cke_resizer
+	{
+		top: -5px;
+		right: -4px;
+	}
+}
+

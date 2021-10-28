@@ -14,6 +14,8 @@ Fit.Controls.Input = function(ctlId)
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
+	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
+	var height = { Value: -1, Unit: "px" };
 	var orgVal = "";
 	var preVal = "";
 	var input = null;
@@ -24,6 +26,7 @@ Fit.Controls.Input = function(ctlId)
 	var minimizeHeight = -1;
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
+	var resizable = Fit.Controls.InputResizing.Disabled;
 	var mutationObserverId = -1;
 	var rootedEventId = -1;
 	var createWhenReadyIntervalId = -1;
@@ -57,6 +60,20 @@ Fit.Controls.Input = function(ctlId)
 
 				debouncedOnChange.Invoke();
 			}
+
+			if (me.Maximizable() === true)
+			{
+				// Scroll to bottom if nearby, to make sure text does not collide with maximize button.
+				// Extra padding-bottom is added inside control to allow for spacing between text and maximize button.
+
+				var scrollContainer = designEditor !== null ? designEditor.container.$.querySelector("div.cke_editable") : input;
+				var autoScrollToBottom = scrollContainer.scrollTop + scrollContainer.clientHeight > scrollContainer.scrollHeight - 15; // True when at bottom or very close (15px buffer)
+
+				if (autoScrollToBottom === true)
+				{
+					scrollContainer.scrollTop += 99;
+				}
+			}
 		}
 		input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
 		{
@@ -77,6 +94,7 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("multiline", "false");
 		me._internal.Data("maximizable", "false");
 		me._internal.Data("maximized", "false");
+		me._internal.Data("resizable", resizable.toLowerCase());
 		me._internal.Data("designmode", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
@@ -383,22 +401,35 @@ Fit.Controls.Input = function(ctlId)
 	});
 
 	// See documentation on ControlBase
-	this.Width = Fit.Core.CreateOverride(this.Width, function(val, unit)
+	this.Width = function(val, unit)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			base(val, unit);
+			// Contrary to other controls, width is not applied to the control's container,
+			// but directly on the input element, as this allows for textarea resizing.
+
+			if (val > -1)
+			{
+				width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
+				input.style.width = width.Value + width.Unit;
+			}
+			else
+			{
+				width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to line declaring the width variable !
+				input.style.width = "";
+			}
+
 			updateDesignEditorSize();
 		}
 
-		return base();
-	});
+		return width;
+	}
 
 	// See documentation on ControlBase
-	this.Height = Fit.Core.CreateOverride(this.Height, function(val, unit, suppressMinMax)
+	this.Height = function(val, unit, suppressMinMax)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
@@ -406,21 +437,30 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			var h = base(val, unit);
+			// Contrary to other controls, height is not applied to the control's container,
+			// but directly on the input element, as this allows for textarea resizing.
+
+			height = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true && val !== -1) ? unit : "px") };
+
+			if (height.Value > -1)
+				input.style.height = height.Value + height.Unit;
+			else
+				input.style.height = "";
+
 			updateDesignEditorSize(); // Throws error if in DesignMode and unit is not px
 
 			if (me.Maximizable() === true && suppressMinMax !== true)
 			{
-				minimizeHeight = h.Value;
-				maximizeHeight = ((maximizeHeight > h.Value && h.Unit === minMaxUnit) ? maximizeHeight : h.Value * 2)
-				minMaxUnit = h.Unit;
+				minimizeHeight = height.Value;
+				maximizeHeight = ((maximizeHeight > height.Value && height.Unit === minMaxUnit) ? maximizeHeight : height.Value * 2)
+				minMaxUnit = height.Unit;
 
 				me.Maximized(false);
 			}
 		}
 
-		return base();
-	});
+		return height;
+	}
 
 	// ============================================
 	// Public
@@ -621,8 +661,47 @@ Fit.Controls.Input = function(ctlId)
 		return (input.tagName === "TEXTAREA" && designEditor === null);
 	}
 
+	/// <function container="Fit.Controls.Input" name="Resizable" access="public" returns="Fit.Controls.InputResizing">
+	/// 	<description>
+	/// 		Get/set value indicating whether control is resizable on supported
+	/// 		(modern) browsers. Making control resizable will disable Maximizable.
+	/// 	</description>
+	/// 	<param name="val" type="Fit.Controls.InputResizing" default="undefined">
+	/// 		If defined, determines whether control resizes, and in what direction(s).
+	/// 	</param>
+	/// </function>
+	this.Resizable = function(val)
+	{
+		Fit.Validation.ExpectStringValue(val, true);
+
+		if (val === Fit.Controls.InputResizing.Enabled || val === Fit.Controls.InputResizing.Disabled || val === Fit.Controls.InputResizing.Horizontal || val === Fit.Controls.InputResizing.Vertical)
+		{
+			if (val !== resizable)
+			{
+				resizable = val;
+				me._internal.Data("resizable", val.toLowerCase());
+
+				if (val !== Fit.Controls.InputResizing.Disabled && me.Maximizable() === true)
+				{
+					me.Maximizable(false);
+					//Fit.Browser.Log("Maximizable disabled as Resizable was enabled!");
+				}
+
+				if (me.DesignMode() === true)
+				{
+					reloadEditor();
+				}
+			}
+		}
+
+		return resizable;
+	}
+
 	/// <function container="Fit.Controls.Input" name="Maximizable" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether control is maximizable </description>
+	/// 	<description>
+	/// 		Get/set value indicating whether control is maximizable.
+	/// 		Making control maximizable will disable Resizable.
+	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables maximize button, False disables it </param>
 	/// 	<param name="heightMax" type="number" default="undefined">
 	/// 		If defined, this becomes the height of the input control when maximized.
@@ -674,6 +753,16 @@ Fit.Controls.Input = function(ctlId)
 				Fit.Dom.AddClass(cmdResize, "fa");
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
 				me._internal.AddDomElement(cmdResize);
+
+				// Disable Resizable
+
+				if (me.Resizable() !== Fit.Controls.InputResizing.Disabled)
+				{
+					me.Resizable(Fit.Controls.InputResizing.Disabled);
+					//Fit.Browser.Log("Resizable disabled as Maximizable was enabled!");
+				}
+
+				// Update UI
 
 				me._internal.Data("maximizable", "true");
 				repaint();
@@ -1201,6 +1290,8 @@ Fit.Controls.Input = function(ctlId)
 				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
 				onImageAdded: onImageAdded
 			},
+			resize_enabled: resizable !== Fit.Controls.InputResizing.Disabled,
+			resize_dir: resizable === Fit.Controls.InputResizing.Enabled ? "both" : resizable === Fit.Controls.InputResizing.Vertical ? "vertical" : resizable === Fit.Controls.InputResizing.Horizontal ? "horizontal" : "none", // Specific to resize plugin (horizontal | vertical | both - https://ckeditor.com/docs/ckeditor4/latest/features/resize.html)
 			toolbar: Fit._internal.Controls.Input.Editor.Toolbar,
 			/*[
 				{
@@ -1261,6 +1352,10 @@ Fit.Controls.Input = function(ctlId)
 				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
 					input.onkeyup();
+				},
+				resize: function()
+				{
+					repaint();
 				},
 				beforeCommandExec: function(ev)
 				{
@@ -1527,7 +1622,7 @@ Fit._internal.Controls.Input.Editor =
 	/// <member container="Fit._internal.Controls.Input.Editor" name="Plugins" access="public" static="true" type="('justify' | 'pastefromword' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
 	/// 	<description> Additional plugins used with DesignMode </description>
 	/// </member>
-	Plugins: ["justify", "pastefromword", /*"base64image", "base64imagepaste", "dragresize"*/], // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
+	Plugins: ["justify", "pastefromword", "resize" /*"base64image", "base64imagepaste", "dragresize"*/], // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
 
 	/// <member container="Fit._internal.Controls.Input.Editor" name="Toolbar" access="public" static="true" type="( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]">
 	/// 	<description> Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins) </description>
@@ -1581,3 +1676,18 @@ Fit._internal.Controls.Input.BlobManager =
 	/// </member>
 	RevokeExternalBlobUrlsOnDispose: false
 }
+
+/// <container name="Fit.Controls.InputResizing">
+/// 	<description> Resizing options </description>
+/// 	<member name="Enabled" access="public" static="true" type="string" default="Enabled"> Allow for resizing both vertically and horizontally </member>
+/// 	<member name="Disabled" access="public" static="true" type="string" default="Disabled"> Do not allow resizing </member>
+/// 	<member name="Horizontal" access="public" static="true" type="string" default="Horizontal"> Allow for horizontal resizing </member>
+/// 	<member name="Vertical" access="public" static="true" type="string" default="Vertical"> Allow for vertical resizing </member>
+/// </container>
+Fit.Controls.InputResizing = // Enums must exist runtime
+{
+	Enabled: "Enabled",
+	Disabled: "Disabled",
+	Horizontal: "Horizontal",
+	Vertical: "Vertical"
+};

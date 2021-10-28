@@ -3765,6 +3765,7 @@ declare namespace Fit
 			constructor(ctlId?:string);
 			/**
 			* Get/set value indicating whether control is maximizable.
+			Making control maximizable will disable Resizable.
 			* @function Maximizable
 			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it.
 			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
@@ -3794,6 +3795,14 @@ declare namespace Fit
 			* @returns string
 			*/
 			public Placeholder(val?:string):string;
+			/**
+			* Get/set value indicating whether control is resizable on supported
+			(modern) browsers. Making control resizable will disable Maximizable.
+			* @function Resizable
+			* @param {Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical"} [val=undefined] - If defined, determines whether control resizes, and in what direction(s).
+			* @returns Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical"
+			*/
+			public Resizable(val?:Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical"):Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical";
 			/**
 			* Get/set input type (e.g. Text, Password, Email, etc.).
 			* @function Type
@@ -7992,6 +8001,21 @@ declare namespace Fit
 			Success = "Success",
 			/** Orange unless styled differently. */
 			Warning = "Warning"
+		}
+		/**
+		* Resizing options.
+		* @enum {string}
+		*/
+		enum InputResizing
+		{
+			/** Do not allow resizing. */
+			Disabled = "Disabled",
+			/** Allow for resizing both vertically and horizontally. */
+			Enabled = "Enabled",
+			/** Allow for horizontal resizing. */
+			Horizontal = "Horizontal",
+			/** Allow for vertical resizing. */
+			Vertical = "Vertical"
 		}
 		/**
 		* Enum values determining input type.

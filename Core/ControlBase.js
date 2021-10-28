@@ -251,7 +251,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 	function init()
 	{
-		container.style.width = width.Value + width.Unit;
+		//container.style.width = width.Value + width.Unit;
 		Fit.Dom.AddClass(container, "FitUiControl");
 
 		me._internal.Data("focused", "false");

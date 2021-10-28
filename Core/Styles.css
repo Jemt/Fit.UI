@@ -7,8 +7,11 @@ Stacking context, Z-index:
  - Dialog					: 1200
 	- Modal BG layer		: 1200
  - Context menu				: 1300 (mounted in <body>)
- - Calendar					: 1300 (mounted in <body>)
+ - Calendar					: 1300 (mounted in <body>, re-mounted next to control)
  - Dragging					: 99999
+ - CKEditor
+    - Dialogs				: 10010 (mounted in <body>, re-mounted next to control)
+	- Image resize handlers	: 10001 (mounted in <body>)
 
 */
 
@@ -26,7 +29,7 @@ Stacking context, Z-index:
 .FitUiControl
 {
 	display: inline-block;
-	width: 200px; /* Important: Update default width for Input control in DesignMode if this is changed! */
+	width: 200px; /* Important: Update default width for Input control (Input.css + Input.js) if this is changed! */
 	vertical-align: middle;
 
 	position: relative; /* Allow absolute positioning of children, relative to control container rather than document */
