@@ -601,6 +601,7 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.RemoveDomElement(oldInput);
 
 				input = document.createElement("textarea");
+				input.style.width = oldInput.style.width;
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
@@ -636,6 +637,7 @@ Fit.Controls.Input = function(ctlId)
 				}
 
 				input = document.createElement("input");
+				input.style.width = oldInput.style.width;
 				input.autocomplete = "off";
 				input.type = "text";
 				input.value = oldInput.value;
