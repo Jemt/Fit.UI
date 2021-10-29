@@ -1073,6 +1073,24 @@ Fit.Controls.DropDown = function(ctlId)
 		return null;
 	}
 
+	/// <function container="Fit.Controls.DropDown" name="GetHighlighted" access="public" returns="Fit.Controls.DropDownTypeDefs.DropDownItem | null">
+	/// 	<description>
+	/// 		Get item currently highlighted in picker control.
+	/// 		Returns an object with Title (string), Value (string),
+	/// 		and Valid (boolean) properties if found, otherwise Null.
+	/// 	</description>
+	/// </function>
+	this.GetHighlighted = function()
+	{
+		if (picker !== null)
+		{
+			var hl = picker.GetHighlighted();
+			return (hl !== null ? { Title: hl.Title, Value: hl.Value, Valid: true } : null);
+		}
+
+		return null;
+	}
+
 	/// <function container="Fit.Controls.DropDown" name="RenameSelection" access="public">
 	/// 	<description> Rename title of selected item by its value </description>
 	/// 	<param name="val" type="string"> Value of selected item to rename </param>

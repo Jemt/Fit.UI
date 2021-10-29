@@ -333,6 +333,20 @@ Fit.Controls.PickerBase = function()
 		Fit.Validation.ExpectEvent(e, true);
 	}
 
+	/// <function container="Fit.Controls.PickerBase" name="GetHighlighted" access="public" returns="Fit.Controls.PickerBaseTypeDefs.Item | null">
+	/// 	<description>
+	/// 		Overridden by control developers (optional).
+	/// 		Host control or external code may invoke this function to obtain the currently
+	/// 		highlighted item in the picker control.
+	/// 		Function returns Null when not implemented or when no item is highlighted. If found,
+	/// 		an object with the following signature is returned: { Title: string, Value: string }.
+	/// 	</description>
+	/// </function>
+	this.GetHighlighted = function()
+	{
+		return null;
+	}
+
 	/// <function container="Fit.Controls.PickerBase" name="Destroy" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (required).

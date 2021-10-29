@@ -2705,6 +2705,14 @@ declare namespace Fit
 			*/
 			public DropDownMaxWidth(value?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
 			/**
+			* Get item currently highlighted in picker control.
+			Returns an object with Title (string), Value (string),
+			and Valid (boolean) properties if found, otherwise Null.
+			* @function GetHighlighted
+			* @returns Fit.Controls.DropDownTypeDefs.DropDownItem | null
+			*/
+			public GetHighlighted():Fit.Controls.DropDownTypeDefs.DropDownItem | null;
+			/**
 			* Get input value.
 			* @function GetInputValue
 			* @returns string
@@ -4127,6 +4135,16 @@ declare namespace Fit
 			public GetDomElement():HTMLElement;
 			/**
 			* Overridden by control developers (optional).
+			Host control or external code may invoke this function to obtain the currently
+			highlighted item in the picker control.
+			Function returns Null when not implemented or when no item is highlighted. If found,
+			an object with the following signature is returned: { Title: string, Value: string }.
+			* @function GetHighlighted
+			* @returns Fit.Controls.PickerBaseTypeDefs.Item | null
+			*/
+			public GetHighlighted():Fit.Controls.PickerBaseTypeDefs.Item | null;
+			/**
+			* Overridden by control developers (optional).
 			Host control may invoke this function, for instance to update the title of selected items,
 			to make sure these properly reflect the state of data displayed in the picker.
 			Function returns Null when not implemented or when an item is not found. If found, an object
@@ -4324,6 +4342,16 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
+			/**
+			* Overridden by control developers (optional).
+			Host control or external code may invoke this function to obtain the currently
+			highlighted item in the picker control.
+			Function returns Null when not implemented or when no item is highlighted. If found,
+			an object with the following signature is returned: { Title: string, Value: string }.
+			* @function GetHighlighted
+			* @returns Fit.Controls.PickerBaseTypeDefs.Item | null
+			*/
+			public GetHighlighted():Fit.Controls.PickerBaseTypeDefs.Item | null;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function, for instance to update the title of selected items,
@@ -4972,6 +5000,16 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
+			/**
+			* Overridden by control developers (optional).
+			Host control or external code may invoke this function to obtain the currently
+			highlighted item in the picker control.
+			Function returns Null when not implemented or when no item is highlighted. If found,
+			an object with the following signature is returned: { Title: string, Value: string }.
+			* @function GetHighlighted
+			* @returns Fit.Controls.PickerBaseTypeDefs.Item | null
+			*/
+			public GetHighlighted():Fit.Controls.PickerBaseTypeDefs.Item | null;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function, for instance to update the title of selected items,
@@ -6021,6 +6059,14 @@ declare namespace Fit
 			*/
 			public DropDownMaxWidth(value?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
 			/**
+			* Get item currently highlighted in picker control.
+			Returns an object with Title (string), Value (string),
+			and Valid (boolean) properties if found, otherwise Null.
+			* @function GetHighlighted
+			* @returns Fit.Controls.DropDownTypeDefs.DropDownItem | null
+			*/
+			public GetHighlighted():Fit.Controls.DropDownTypeDefs.DropDownItem | null;
+			/**
 			* Get input value.
 			* @function GetInputValue
 			* @returns string
@@ -6739,6 +6785,16 @@ declare namespace Fit
 			public GetDomElement():HTMLElement;
 			/**
 			* Overridden by control developers (optional).
+			Host control or external code may invoke this function to obtain the currently
+			highlighted item in the picker control.
+			Function returns Null when not implemented or when no item is highlighted. If found,
+			an object with the following signature is returned: { Title: string, Value: string }.
+			* @function GetHighlighted
+			* @returns Fit.Controls.PickerBaseTypeDefs.Item | null
+			*/
+			public GetHighlighted():Fit.Controls.PickerBaseTypeDefs.Item | null;
+			/**
+			* Overridden by control developers (optional).
 			Host control may invoke this function, for instance to update the title of selected items,
 			to make sure these properly reflect the state of data displayed in the picker.
 			Function returns Null when not implemented or when an item is not found. If found, an object
@@ -7413,6 +7469,16 @@ declare namespace Fit
 			* @returns HTMLElement
 			*/
 			public GetDomElement():HTMLElement;
+			/**
+			* Overridden by control developers (optional).
+			Host control or external code may invoke this function to obtain the currently
+			highlighted item in the picker control.
+			Function returns Null when not implemented or when no item is highlighted. If found,
+			an object with the following signature is returned: { Title: string, Value: string }.
+			* @function GetHighlighted
+			* @returns Fit.Controls.PickerBaseTypeDefs.Item | null
+			*/
+			public GetHighlighted():Fit.Controls.PickerBaseTypeDefs.Item | null;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function, for instance to update the title of selected items,

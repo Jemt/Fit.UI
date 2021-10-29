@@ -271,6 +271,16 @@ Fit.Controls.ListView = function(controlId)
 		}
 	}
 
+	this.GetHighlighted = function()
+	{
+		if (active !== null)
+		{
+			return convertItemElementToObject(active);
+		}
+
+		return null;
+	}
+
 	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
 	{
 		Fit.Validation.ExpectBoolean(calledInternally, true);
@@ -324,7 +334,7 @@ Fit.Controls.ListView = function(controlId)
 	function convertItemElementToObject(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm);
-		return { Title: Fit.Dom.Text(elm), Value: Fit.Dom.Data(elm, "value") }; // Using Text(..) to get rid of HTML formatting
+		return { Title: Fit.Dom.Text(elm), Value: decode(Fit.Dom.Data(elm, "value")) }; // Using Text(..) to get rid of HTML formatting
 	}
 
 	function setActive(elm, suppressScrollIntoView)

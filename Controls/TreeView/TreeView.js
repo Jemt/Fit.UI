@@ -1347,6 +1347,16 @@ Fit.Controls.TreeView = function(ctlId)
 		}
 	}
 
+	this.GetHighlighted = function()
+	{
+		if (isNodeSet(activeNode) === true)
+		{
+			return { Title: activeNode.Title(), Value: activeNode.Value() };
+		}
+
+		return null;
+	}
+
 	this.UpdateItemSelection = function(itemValue, selected, programmaticallyChanged)
 	{
 		Fit.Validation.ExpectString(itemValue);
