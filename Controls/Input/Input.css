@@ -152,19 +152,16 @@ div.FitUiControlInput[data-resizable="disabled"] .cke_chrome[data-skin="bootstra
 	}
 	div.cke span.cke_resizer
 	{
-		border: none; /* Use arrow character instead of border arrow */
-		font-size: 0.8em;
-		width: 1em;
-		height: 1em;
+		border-color: transparent #A0A0A0 transparent transparent;
 		margin: 0;
 		position: absolute;
-		top: 0;
+		top: -1px;
 		right: -1px;
 		color: gray;
 	}
 	div.cke[data-skin="bootstrapck"] span.cke_resizer
 	{
-		top: -5px;
+		top: -6px;
 		right: -4px;
 	}
 }
