@@ -22,7 +22,7 @@ Fit.Controls.Input = function(ctlId)
 	var cmdResize = null;
 	var designEditor = null;
 	var htmlWrappedInParagraph = false;
-	var wasMultiLineBefore = false;
+	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
@@ -395,7 +395,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -593,6 +593,11 @@ Fit.Controls.Input = function(ctlId)
 			if (me.DesignMode() === true)
 				me.DesignMode(false);
 
+			if (val === true && wasAutoChangedToMultiLineMode === true)
+			{
+				wasAutoChangedToMultiLineMode = false;
+			}
+
 			if (val === true && input.tagName === "INPUT")
 			{
 				var focused = me.Focused();
@@ -602,6 +607,7 @@ Fit.Controls.Input = function(ctlId)
 
 				input = document.createElement("textarea");
 				input.style.width = oldInput.style.width;
+				input.style.height = oldInput.style.height;
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
@@ -635,9 +641,15 @@ Fit.Controls.Input = function(ctlId)
 					me._internal.Data("maximizable", "false");
 					repaint();
 				}
+				else if (resizable !== Fit.Controls.InputResizing.Disabled)
+				{
+					resizable = Fit.Controls.InputResizing.Disabled;
+					me._internal.Data("resizable", resizable.toLowerCase());
+				}
 
 				input = document.createElement("input");
 				input.style.width = oldInput.style.width;
+				input.style.height = oldInput.style.height;
 				input.autocomplete = "off";
 				input.type = "text";
 				input.value = oldInput.value;
@@ -648,12 +660,17 @@ Fit.Controls.Input = function(ctlId)
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
 
+				// Reset width in case it was changed using resize handles
+				var w = me.Width();
+				me.Width(w.Value, w.Unit);
+
+				// Assume normal height for single line input
 				me.Height(-1);
 
 				if (focused === true)
 					input.focus();
 
-				wasMultiLineBefore = false;
+				wasAutoChangedToMultiLineMode = false;
 
 				me._internal.Data("multiline", "false");
 				repaint();
@@ -680,14 +697,35 @@ Fit.Controls.Input = function(ctlId)
 		{
 			if (val !== resizable)
 			{
+				if (val !== Fit.Controls.InputResizing.Disabled) // Resizing enabled
+				{
+					if (me.Maximizable() === true)
+					{
+						me.Maximizable(false);
+						//Fit.Browser.Log("Maximizable disabled as Resizable was enabled!");
+					}
+
+					if (me.MultiLine() === false && designEditor === null)
+					{
+						me.MultiLine(true);
+						wasAutoChangedToMultiLineMode = true;
+					}
+				}
+				else // Resizing disabled
+				{
+					// Reset custom width/height set by user
+
+					var w = me.Width();
+					me.Width(w.Value, w.Unit);
+
+					var h = me.Height();
+					me.Height(h.Value, h.Unit);
+				}
+
 				resizable = val;
 				me._internal.Data("resizable", val.toLowerCase());
 
-				if (val !== Fit.Controls.InputResizing.Disabled && me.Maximizable() === true)
-				{
-					me.Maximizable(false);
-					//Fit.Browser.Log("Maximizable disabled as Resizable was enabled!");
-				}
+				revertToSingleLineIfNecessary();
 
 				if (me.DesignMode() === true)
 				{
@@ -720,11 +758,17 @@ Fit.Controls.Input = function(ctlId)
 		{
 			if (val === true && cmdResize === null)
 			{
-				if (me.MultiLine() === true)
-					wasMultiLineBefore = true;
+				if (me.Resizable() !== Fit.Controls.InputResizing.Disabled)
+				{
+					me.Resizable(Fit.Controls.InputResizing.Disabled);
+					//Fit.Browser.Log("Resizable disabled as Maximizable was enabled!");
+				}
 
 				if (me.MultiLine() === false && designEditor === null)
+				{
 					me.MultiLine(true);
+					wasAutoChangedToMultiLineMode = true;
+				}
 
 				// Determine height to use when maximizing and minimizing
 
@@ -756,14 +800,6 @@ Fit.Controls.Input = function(ctlId)
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
 				me._internal.AddDomElement(cmdResize);
 
-				// Disable Resizable
-
-				if (me.Resizable() !== Fit.Controls.InputResizing.Disabled)
-				{
-					me.Resizable(Fit.Controls.InputResizing.Disabled);
-					//Fit.Browser.Log("Resizable disabled as Maximizable was enabled!");
-				}
-
 				// Update UI
 
 				me._internal.Data("maximizable", "true");
@@ -774,12 +810,15 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.RemoveDomElement(cmdResize);
 				cmdResize = null;
 
-				if (wasMultiLineBefore === true)
-					me.Height(minimizeHeight, minMaxUnit);
-				else
-					me.MultiLine(false);
+				me.Height(minimizeHeight, minMaxUnit);
+				minimizeHeight = -1;
+				maximizeHeight = -1;
+				minMaxUnit = null;
 
 				me._internal.Data("maximizable", "false"); // Also set in MultiLine(..)
+
+				revertToSingleLineIfNecessary();
+
 				repaint();
 			}
 		}
@@ -849,10 +888,11 @@ Fit.Controls.Input = function(ctlId)
 					return;
 				}
 
-				if (me.MultiLine() === true)
-					wasMultiLineBefore = true;
-				else
+				if (me.MultiLine() === false)
+				{
 					me.MultiLine(true);
+					wasAutoChangedToMultiLineMode = true;
+				}
 
 				input.id = me.GetId() + "_DesignMode";
 
@@ -1098,8 +1138,7 @@ Fit.Controls.Input = function(ctlId)
 
 				me._internal.Data("designmode", "false");
 
-				if (wasMultiLineBefore === false)
-					me.MultiLine(false);
+				revertToSingleLineIfNecessary();
 
 				// Remove tabindex used to prevent control from losing focus when clicking toolbar buttons
 				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
@@ -1342,7 +1381,20 @@ Fit.Controls.Input = function(ctlId)
 					}
 
 					var h = me.Height();
-					me.Height(((h.Value >= 150 && h.Unit === "px") ? h.Value : 150));
+					var useConfiguredHeight = h.Value >= 150 && h.Unit === "px"; // Only pixels are supported in DesignMode, and a minimum height of 150px must be applied for editor to be usable
+
+					if (useConfiguredHeight === false)
+					{
+						var defaultHeight = 150;
+						me.Height(defaultHeight);
+
+						if (me.Maximizable() === true)
+						{
+							minimizeHeight = defaultHeight;
+							maximizeHeight = defaultHeight * 2;
+							minMaxUnit = "px";
+						}
+					}
 
 					if (maximized === true)
 					{
@@ -1350,6 +1402,13 @@ Fit.Controls.Input = function(ctlId)
 					}
 
 					designEditor._isReadyForInteraction = true;
+
+					// Make editor assume configured width and height.
+					// Notice that using config.width and config.height
+					// (https://ckeditor.com/docs/ckeditor4/latest/features/size.html)
+					// results in editor becoming too high since the toolbar height is not
+					// substracted. This problem does not occur when using updateDesignEditorSize().
+					updateDesignEditorSize(); // Important: Make sure designEditor._isReadyForInteraction is set first (see above)
 				},
 				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
@@ -1443,7 +1502,7 @@ Fit.Controls.Input = function(ctlId)
 			if (w.Unit !== "px" || h.Unit !== "px")
 				throw new Error("DesignMode does not support resizing in units different from px");
 
-			// Default control width is 200px (defined in Styles.css).
+			// Default control width is 200px (defined in stylesheet).
 			// NOTICE: resize does not work reliably when editor is hidden, e.g. behind a tab with display:none.
 			// The height set will not have the height of the toolbar substracted since the height can not be
 			// determined for hidden objects, so the editor will become larger than the value set (height specified + toolbar height).
@@ -1471,6 +1530,14 @@ Fit.Controls.Input = function(ctlId)
 					}
 				});
 			}
+		}
+	}
+
+	function revertToSingleLineIfNecessary()
+	{
+		if (wasAutoChangedToMultiLineMode === true && me.Maximizable() === false && me.Resizable() === Fit.Controls.InputResizing.Disabled && me.DesignMode() === false)
+		{
+			me.MultiLine(false); // Changes wasAutoChangedToMultiLineMode to false
 		}
 	}
 
@@ -1506,12 +1573,18 @@ Fit.Controls.Input = function(ctlId)
 	function reloadEditor()
 	{
 		// Disabling DesignMode brings it back to input or textarea mode.
-		// If reverting to input mode, the Height is reset, so we need to preserve that.
+		// If reverting to input mode, Height is reset, so we need to preserve that.
+
+		// NOTICE: Custom width/height set using resize handle is lost when editor is reloaded
 
 		var height = me.Height();
+		var currentWasAutoChangedToMultiLineMode = wasAutoChangedToMultiLineMode; // DesignMode(false) will result in wasAutoChangedToMultiLineMode being set to false if DesignMode(true) changed the control to MultiLine mode
+
 		me.DesignMode(false);
-		me.Height(height.Value, height.Unit);
 		me.DesignMode(true);
+
+		me.Height(height.Value, height.Unit);
+		wasAutoChangedToMultiLineMode = currentWasAutoChangedToMultiLineMode;
 	}
 
 	function localize()
