@@ -27,6 +27,7 @@ Fit.Controls.Input = function(ctlId)
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
 	var resizable = Fit.Controls.InputResizing.Disabled;
+	var nativeResizableAvailable = false; // Updated in init()
 	var mutationObserverId = -1;
 	var rootedEventId = -1;
 	var createWhenReadyIntervalId = -1;
@@ -95,6 +96,7 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("maximizable", "false");
 		me._internal.Data("maximized", "false");
 		me._internal.Data("resizable", resizable.toLowerCase());
+		me._internal.Data("resized", "false");
 		me._internal.Data("designmode", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
@@ -113,6 +115,14 @@ Fit.Controls.Input = function(ctlId)
 
 			fireOnChange(); // Only fires OnChange if value has actually changed
 		});
+
+		try
+		{
+			// We rely on the .buttons property to optimization resizing for textarea (MultiLine mode).
+			// The MouseEvent class might not be available on older browsers or might throw an exception when constructing.
+			nativeResizableAvailable = window.MouseEvent && new MouseEvent("mousemove", {}).buttons !== undefined || false;
+		}
+		catch (err) {}
 	}
 
 	// ============================================
@@ -401,35 +411,22 @@ Fit.Controls.Input = function(ctlId)
 	});
 
 	// See documentation on ControlBase
-	this.Width = function(val, unit)
+	this.Width = Fit.Core.CreateOverride(this.Width, function(val, unit)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			// Contrary to other controls, width is not applied to the control's container,
-			// but directly on the input element, as this allows for textarea resizing.
-
-			if (val > -1)
-			{
-				width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
-				input.style.width = width.Value + width.Unit;
-			}
-			else
-			{
-				width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to line declaring the width variable !
-				input.style.width = "";
-			}
-
+			base(val, unit);
 			updateDesignEditorSize();
 		}
 
-		return width;
-	}
+		return base();
+	});
 
 	// See documentation on ControlBase
-	this.Height = function(val, unit, suppressMinMax)
+	this.Height = Fit.Core.CreateOverride(this.Height, function(val, unit, suppressMinMax)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
@@ -437,30 +434,20 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			// Contrary to other controls, height is not applied to the control's container,
-			// but directly on the input element, as this allows for textarea resizing.
-
-			height = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true && val !== -1) ? unit : "px") };
-
-			if (height.Value > -1)
-				input.style.height = height.Value + height.Unit;
-			else
-				input.style.height = "";
-
+			var h = base(val, unit);
 			updateDesignEditorSize(); // Throws error if in DesignMode and unit is not px
 
 			if (me.Maximizable() === true && suppressMinMax !== true)
 			{
-				minimizeHeight = height.Value;
-				maximizeHeight = ((maximizeHeight > height.Value && height.Unit === minMaxUnit) ? maximizeHeight : height.Value * 2)
-				minMaxUnit = height.Unit;
-
+				minimizeHeight = h.Value;
+				maximizeHeight = ((maximizeHeight > h.Value && h.Unit === minMaxUnit) ? maximizeHeight : h.Value * 2)
+				minMaxUnit = h.Unit;
 				me.Maximized(false);
 			}
 		}
 
-		return height;
-	}
+		return base();
+	});
 
 	// ============================================
 	// Public
@@ -606,8 +593,6 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.RemoveDomElement(oldInput);
 
 				input = document.createElement("textarea");
-				input.style.width = oldInput.style.width;
-				input.style.height = oldInput.style.height;
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
@@ -615,6 +600,24 @@ Fit.Controls.Input = function(ctlId)
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
+
+				if (nativeResizableAvailable === true)
+				{
+					Fit.Events.AddHandler(input, "mousemove", function(e)
+					{
+						var ev = Fit.Events.GetEvent(e);
+
+						if (ev.buttons !== 1) // The .buttons property does not exist in older browsers (see nativeResizableAvailable)
+						{
+							return; // Skip - primary button not held down - not resizing
+						}
+
+						if (me.Resizable() !== Fit.Controls.InputResizing.Disabled && (input.style.width !== "" || input.style.height !== "")) // Textarea was resized
+						{
+							me._internal.Data("resized", "true");
+						}
+					});
+				}
 
 				if (me.Height().Value === -1)
 					me.Height(150);
@@ -645,11 +648,10 @@ Fit.Controls.Input = function(ctlId)
 				{
 					resizable = Fit.Controls.InputResizing.Disabled;
 					me._internal.Data("resizable", resizable.toLowerCase());
+					me._internal.Data("resized", "false");
 				}
 
 				input = document.createElement("input");
-				input.style.width = oldInput.style.width;
-				input.style.height = oldInput.style.height;
 				input.autocomplete = "off";
 				input.type = "text";
 				input.value = oldInput.value;
@@ -724,6 +726,15 @@ Fit.Controls.Input = function(ctlId)
 
 				resizable = val;
 				me._internal.Data("resizable", val.toLowerCase());
+
+				if (val === Fit.Controls.InputResizing.Disabled)
+				{
+					me._internal.Data("resized", "false");
+
+					input.style.width = "";
+					input.style.height = "";
+					input.style.margin = ""; // Chrome adds some odd margin when textarea is resized
+				}
 
 				revertToSingleLineIfNecessary();
 
@@ -1089,6 +1100,15 @@ Fit.Controls.Input = function(ctlId)
 					createEditor();
 				}
 
+				if (val !== Fit.Controls.InputResizing.Disabled)
+				{
+					Fit.Dom.Data(me.GetDomElement(), "resized", "false");
+
+					input.style.width = "";
+					input.style.height = "";
+					input.style.margin = ""; // Chrome adds some odd margin when textarea is resized
+				}
+
 				me._internal.Data("designmode", "true");
 				repaint();
 			}
@@ -1137,6 +1157,7 @@ Fit.Controls.Input = function(ctlId)
 				}
 
 				me._internal.Data("designmode", "false");
+				Fit.Dom.Data(me.GetDomElement(), "resized", "false");
 
 				revertToSingleLineIfNecessary();
 
@@ -1414,8 +1435,9 @@ Fit.Controls.Input = function(ctlId)
 				{
 					input.onkeyup();
 				},
-				resize: function()
+				resize: function() // Fires when size is changed, not just when resized using resize handle in lower right cornor
 				{
+					me._internal.Data("resized", "true");
 					repaint();
 				},
 				beforeCommandExec: function(ev)

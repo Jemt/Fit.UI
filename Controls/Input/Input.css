@@ -1,18 +1,14 @@
 div.FitUiControlInput
 {
-	width: auto; /* Undo width set by Styles.css - contrary to other controls, width and hight is set on input/textarea element for Input control, not on the outer container */
-}
-
-div.FitUiControlInput:not(#LegacyIE) input:first-child, /* :not() not supported by IE8 and below */
-div.FitUiControlInput:not(#LegacyIE) textarea:first-child
-{
-	height: 2em; /* Equal height for all controls - not applied to IE8 as text does not center vertically */
+	height: 2em; /* Equal height for all controls */
+	height: auto\9; /* Undo equal height for all controls in IE9 and below - assume height of content in legacy IE which does not render properly when input height is set to 100% of container */
 }
 
 div.FitUiControlInput input:first-child,
 div.FitUiControlInput textarea:first-child
 {
-	width: 200px; /* Same default value as defined for all controls in Styles.css */
+	width: 100%;
+	height: 100%;
 	padding: 0.2em;
 	padding-left: 0.3em;
 	padding-right: 0.3em;
@@ -28,6 +24,17 @@ div.FitUiControlInput textarea:first-child
 	-moz-appearance: none;
 	-webkit-appearance: none;
 	appearance: none;
+}
+
+/* Make control container adjust to textarea or HTML editor when it has been resized */
+div.FitUiControlInput[data-resized="true"]
+{
+	width: auto !important;		/* Using !important since dimensions are set as inline styles */
+	height: auto !important;	/* Using !important since dimensions are set as inline styles */
+}
+div.FitUiControlInput[data-resized="true"] textarea:first-child
+{
+	margin: 0px !important; /* Remove odd margin (inline style) added by Chrome when resizing */
 }
 
 /* Hide clear button within input fields in IE */
