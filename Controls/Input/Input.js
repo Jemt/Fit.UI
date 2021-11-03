@@ -14,8 +14,6 @@ Fit.Controls.Input = function(ctlId)
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
-	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
-	var height = { Value: -1, Unit: "px" };
 	var orgVal = "";
 	var preVal = "";
 	var input = null;
@@ -405,7 +403,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -442,6 +440,7 @@ Fit.Controls.Input = function(ctlId)
 				minimizeHeight = h.Value;
 				maximizeHeight = ((maximizeHeight > h.Value && h.Unit === minMaxUnit) ? maximizeHeight : h.Value * 2)
 				minMaxUnit = h.Unit;
+
 				me.Maximized(false);
 			}
 		}
@@ -662,11 +661,6 @@ Fit.Controls.Input = function(ctlId)
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
 
-				// Reset width in case it was changed using resize handles
-				var w = me.Width();
-				me.Width(w.Value, w.Unit);
-
-				// Assume normal height for single line input
 				me.Height(-1);
 
 				if (focused === true)
@@ -1524,7 +1518,7 @@ Fit.Controls.Input = function(ctlId)
 			if (w.Unit !== "px" || h.Unit !== "px")
 				throw new Error("DesignMode does not support resizing in units different from px");
 
-			// Default control width is 200px (defined in stylesheet).
+			// Default control width is 200px (defined in Styles.css).
 			// NOTICE: resize does not work reliably when editor is hidden, e.g. behind a tab with display:none.
 			// The height set will not have the height of the toolbar substracted since the height can not be
 			// determined for hidden objects, so the editor will become larger than the value set (height specified + toolbar height).
@@ -1597,7 +1591,7 @@ Fit.Controls.Input = function(ctlId)
 		// Disabling DesignMode brings it back to input or textarea mode.
 		// If reverting to input mode, Height is reset, so we need to preserve that.
 
-		// NOTICE: Custom width/height set using resize handle is lost when editor is reloaded
+		// NOTICE: Custom width/height set using resize handle is not preserved when editor is reloaded
 
 		var height = me.Height();
 		var currentWasAutoChangedToMultiLineMode = wasAutoChangedToMultiLineMode; // DesignMode(false) will result in wasAutoChangedToMultiLineMode being set to false if DesignMode(true) changed the control to MultiLine mode
