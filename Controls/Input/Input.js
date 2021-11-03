@@ -14,19 +14,18 @@ Fit.Controls.Input = function(ctlId)
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
-	var width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to Width(..)
-	var height = { Value: -1, Unit: "px" };
 	var orgVal = "";
 	var preVal = "";
 	var input = null;
 	var cmdResize = null;
 	var designEditor = null;
 	var htmlWrappedInParagraph = false;
-	var wasMultiLineBefore = false;
+	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
 	var resizable = Fit.Controls.InputResizing.Disabled;
+	var nativeResizableAvailable = false; // Updated in init()
 	var mutationObserverId = -1;
 	var rootedEventId = -1;
 	var createWhenReadyIntervalId = -1;
@@ -95,6 +94,7 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("maximizable", "false");
 		me._internal.Data("maximized", "false");
 		me._internal.Data("resizable", resizable.toLowerCase());
+		me._internal.Data("resized", "false");
 		me._internal.Data("designmode", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
@@ -113,6 +113,14 @@ Fit.Controls.Input = function(ctlId)
 
 			fireOnChange(); // Only fires OnChange if value has actually changed
 		});
+
+		try
+		{
+			// We rely on the .buttons property to optimization resizing for textarea (MultiLine mode).
+			// The MouseEvent class might not be available on older browsers or might throw an exception when constructing.
+			nativeResizableAvailable = window.MouseEvent && new MouseEvent("mousemove", {}).buttons !== undefined || false;
+		}
+		catch (err) {}
 	}
 
 	// ============================================
@@ -395,41 +403,28 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasMultiLineBefore = minimizeHeight = maximizeHeight = minMaxUnit = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
 
 	// See documentation on ControlBase
-	this.Width = function(val, unit)
+	this.Width = Fit.Core.CreateOverride(this.Width, function(val, unit)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			// Contrary to other controls, width is not applied to the control's container,
-			// but directly on the input element, as this allows for textarea resizing.
-
-			if (val > -1)
-			{
-				width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
-				input.style.width = width.Value + width.Unit;
-			}
-			else
-			{
-				width = { Value: 200, Unit: "px" }; // Any changes to this line must be dublicated to line declaring the width variable !
-				input.style.width = "";
-			}
-
+			base(val, unit);
 			updateDesignEditorSize();
 		}
 
-		return width;
-	}
+		return base();
+	});
 
 	// See documentation on ControlBase
-	this.Height = function(val, unit, suppressMinMax)
+	this.Height = Fit.Core.CreateOverride(this.Height, function(val, unit, suppressMinMax)
 	{
 		Fit.Validation.ExpectNumber(val, true);
 		Fit.Validation.ExpectStringValue(unit, true);
@@ -437,30 +432,21 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			// Contrary to other controls, height is not applied to the control's container,
-			// but directly on the input element, as this allows for textarea resizing.
-
-			height = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true && val !== -1) ? unit : "px") };
-
-			if (height.Value > -1)
-				input.style.height = height.Value + height.Unit;
-			else
-				input.style.height = "";
-
+			var h = base(val, unit);
 			updateDesignEditorSize(); // Throws error if in DesignMode and unit is not px
 
 			if (me.Maximizable() === true && suppressMinMax !== true)
 			{
-				minimizeHeight = height.Value;
-				maximizeHeight = ((maximizeHeight > height.Value && height.Unit === minMaxUnit) ? maximizeHeight : height.Value * 2)
-				minMaxUnit = height.Unit;
+				minimizeHeight = h.Value;
+				maximizeHeight = ((maximizeHeight > h.Value && h.Unit === minMaxUnit) ? maximizeHeight : h.Value * 2)
+				minMaxUnit = h.Unit;
 
 				me.Maximized(false);
 			}
 		}
 
-		return height;
-	}
+		return base();
+	});
 
 	// ============================================
 	// Public
@@ -593,6 +579,11 @@ Fit.Controls.Input = function(ctlId)
 			if (me.DesignMode() === true)
 				me.DesignMode(false);
 
+			if (val === true && wasAutoChangedToMultiLineMode === true)
+			{
+				wasAutoChangedToMultiLineMode = false;
+			}
+
 			if (val === true && input.tagName === "INPUT")
 			{
 				var focused = me.Focused();
@@ -601,7 +592,6 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.RemoveDomElement(oldInput);
 
 				input = document.createElement("textarea");
-				input.style.width = oldInput.style.width;
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
@@ -609,6 +599,24 @@ Fit.Controls.Input = function(ctlId)
 				input.onkeyup = oldInput.onkeyup;
 				input.onchange = oldInput.onchange;
 				me._internal.AddDomElement(input);
+
+				if (nativeResizableAvailable === true)
+				{
+					Fit.Events.AddHandler(input, "mousemove", function(e)
+					{
+						var ev = Fit.Events.GetEvent(e);
+
+						if (ev.buttons !== 1) // The .buttons property does not exist in older browsers (see nativeResizableAvailable)
+						{
+							return; // Skip - primary button not held down - not resizing
+						}
+
+						if (me.Resizable() !== Fit.Controls.InputResizing.Disabled && (input.style.width !== "" || input.style.height !== "")) // Textarea was resized
+						{
+							me._internal.Data("resized", "true");
+						}
+					});
+				}
 
 				if (me.Height().Value === -1)
 					me.Height(150);
@@ -635,9 +643,14 @@ Fit.Controls.Input = function(ctlId)
 					me._internal.Data("maximizable", "false");
 					repaint();
 				}
+				else if (resizable !== Fit.Controls.InputResizing.Disabled)
+				{
+					resizable = Fit.Controls.InputResizing.Disabled;
+					me._internal.Data("resizable", resizable.toLowerCase());
+					me._internal.Data("resized", "false");
+				}
 
 				input = document.createElement("input");
-				input.style.width = oldInput.style.width;
 				input.autocomplete = "off";
 				input.type = "text";
 				input.value = oldInput.value;
@@ -653,7 +666,7 @@ Fit.Controls.Input = function(ctlId)
 				if (focused === true)
 					input.focus();
 
-				wasMultiLineBefore = false;
+				wasAutoChangedToMultiLineMode = false;
 
 				me._internal.Data("multiline", "false");
 				repaint();
@@ -680,14 +693,44 @@ Fit.Controls.Input = function(ctlId)
 		{
 			if (val !== resizable)
 			{
+				if (val !== Fit.Controls.InputResizing.Disabled) // Resizing enabled
+				{
+					if (me.Maximizable() === true)
+					{
+						me.Maximizable(false);
+						//Fit.Browser.Log("Maximizable disabled as Resizable was enabled!");
+					}
+
+					if (me.MultiLine() === false && designEditor === null)
+					{
+						me.MultiLine(true);
+						wasAutoChangedToMultiLineMode = true;
+					}
+				}
+				else // Resizing disabled
+				{
+					// Reset custom width/height set by user
+
+					var w = me.Width();
+					me.Width(w.Value, w.Unit);
+
+					var h = me.Height();
+					me.Height(h.Value, h.Unit);
+				}
+
 				resizable = val;
 				me._internal.Data("resizable", val.toLowerCase());
 
-				if (val !== Fit.Controls.InputResizing.Disabled && me.Maximizable() === true)
+				if (val === Fit.Controls.InputResizing.Disabled)
 				{
-					me.Maximizable(false);
-					//Fit.Browser.Log("Maximizable disabled as Resizable was enabled!");
+					me._internal.Data("resized", "false");
+
+					input.style.width = "";
+					input.style.height = "";
+					input.style.margin = ""; // Chrome adds some odd margin when textarea is resized
 				}
+
+				revertToSingleLineIfNecessary();
 
 				if (me.DesignMode() === true)
 				{
@@ -720,11 +763,17 @@ Fit.Controls.Input = function(ctlId)
 		{
 			if (val === true && cmdResize === null)
 			{
-				if (me.MultiLine() === true)
-					wasMultiLineBefore = true;
+				if (me.Resizable() !== Fit.Controls.InputResizing.Disabled)
+				{
+					me.Resizable(Fit.Controls.InputResizing.Disabled);
+					//Fit.Browser.Log("Resizable disabled as Maximizable was enabled!");
+				}
 
 				if (me.MultiLine() === false && designEditor === null)
+				{
 					me.MultiLine(true);
+					wasAutoChangedToMultiLineMode = true;
+				}
 
 				// Determine height to use when maximizing and minimizing
 
@@ -756,14 +805,6 @@ Fit.Controls.Input = function(ctlId)
 				Fit.Dom.AddClass(cmdResize, "fa-chevron-down");
 				me._internal.AddDomElement(cmdResize);
 
-				// Disable Resizable
-
-				if (me.Resizable() !== Fit.Controls.InputResizing.Disabled)
-				{
-					me.Resizable(Fit.Controls.InputResizing.Disabled);
-					//Fit.Browser.Log("Resizable disabled as Maximizable was enabled!");
-				}
-
 				// Update UI
 
 				me._internal.Data("maximizable", "true");
@@ -774,12 +815,15 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.RemoveDomElement(cmdResize);
 				cmdResize = null;
 
-				if (wasMultiLineBefore === true)
-					me.Height(minimizeHeight, minMaxUnit);
-				else
-					me.MultiLine(false);
+				me.Height(minimizeHeight, minMaxUnit);
+				minimizeHeight = -1;
+				maximizeHeight = -1;
+				minMaxUnit = null;
 
 				me._internal.Data("maximizable", "false"); // Also set in MultiLine(..)
+
+				revertToSingleLineIfNecessary();
+
 				repaint();
 			}
 		}
@@ -849,10 +893,11 @@ Fit.Controls.Input = function(ctlId)
 					return;
 				}
 
-				if (me.MultiLine() === true)
-					wasMultiLineBefore = true;
-				else
+				if (me.MultiLine() === false)
+				{
 					me.MultiLine(true);
+					wasAutoChangedToMultiLineMode = true;
+				}
 
 				input.id = me.GetId() + "_DesignMode";
 
@@ -1049,6 +1094,15 @@ Fit.Controls.Input = function(ctlId)
 					createEditor();
 				}
 
+				if (val !== Fit.Controls.InputResizing.Disabled)
+				{
+					Fit.Dom.Data(me.GetDomElement(), "resized", "false");
+
+					input.style.width = "";
+					input.style.height = "";
+					input.style.margin = ""; // Chrome adds some odd margin when textarea is resized
+				}
+
 				me._internal.Data("designmode", "true");
 				repaint();
 			}
@@ -1097,9 +1151,9 @@ Fit.Controls.Input = function(ctlId)
 				}
 
 				me._internal.Data("designmode", "false");
+				Fit.Dom.Data(me.GetDomElement(), "resized", "false");
 
-				if (wasMultiLineBefore === false)
-					me.MultiLine(false);
+				revertToSingleLineIfNecessary();
 
 				// Remove tabindex used to prevent control from losing focus when clicking toolbar buttons
 				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
@@ -1342,7 +1396,20 @@ Fit.Controls.Input = function(ctlId)
 					}
 
 					var h = me.Height();
-					me.Height(((h.Value >= 150 && h.Unit === "px") ? h.Value : 150));
+					var useConfiguredHeight = h.Value >= 150 && h.Unit === "px"; // Only pixels are supported in DesignMode, and a minimum height of 150px must be applied for editor to be usable
+
+					if (useConfiguredHeight === false)
+					{
+						var defaultHeight = 150;
+						me.Height(defaultHeight);
+
+						if (me.Maximizable() === true)
+						{
+							minimizeHeight = defaultHeight;
+							maximizeHeight = defaultHeight * 2;
+							minMaxUnit = "px";
+						}
+					}
 
 					if (maximized === true)
 					{
@@ -1350,13 +1417,21 @@ Fit.Controls.Input = function(ctlId)
 					}
 
 					designEditor._isReadyForInteraction = true;
+
+					// Make editor assume configured width and height.
+					// Notice that using config.width and config.height
+					// (https://ckeditor.com/docs/ckeditor4/latest/features/size.html)
+					// results in editor becoming too high since the toolbar height is not
+					// substracted. This problem does not occur when using updateDesignEditorSize().
+					updateDesignEditorSize(); // Important: Make sure designEditor._isReadyForInteraction is set first (see above)
 				},
 				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
 					input.onkeyup();
 				},
-				resize: function()
+				resize: function() // Fires when size is changed, not just when resized using resize handle in lower right cornor
 				{
+					me._internal.Data("resized", "true");
 					repaint();
 				},
 				beforeCommandExec: function(ev)
@@ -1474,6 +1549,14 @@ Fit.Controls.Input = function(ctlId)
 		}
 	}
 
+	function revertToSingleLineIfNecessary()
+	{
+		if (wasAutoChangedToMultiLineMode === true && me.Maximizable() === false && me.Resizable() === Fit.Controls.InputResizing.Disabled && me.DesignMode() === false)
+		{
+			me.MultiLine(false); // Changes wasAutoChangedToMultiLineMode to false
+		}
+	}
+
 	function fireOnChange()
 	{
 		var newVal = me.Value();
@@ -1506,12 +1589,18 @@ Fit.Controls.Input = function(ctlId)
 	function reloadEditor()
 	{
 		// Disabling DesignMode brings it back to input or textarea mode.
-		// If reverting to input mode, the Height is reset, so we need to preserve that.
+		// If reverting to input mode, Height is reset, so we need to preserve that.
+
+		// NOTICE: Custom width/height set using resize handle is not preserved when editor is reloaded
 
 		var height = me.Height();
+		var currentWasAutoChangedToMultiLineMode = wasAutoChangedToMultiLineMode; // DesignMode(false) will result in wasAutoChangedToMultiLineMode being set to false if DesignMode(true) changed the control to MultiLine mode
+
 		me.DesignMode(false);
-		me.Height(height.Value, height.Unit);
 		me.DesignMode(true);
+
+		me.Height(height.Value, height.Unit);
+		wasAutoChangedToMultiLineMode = currentWasAutoChangedToMultiLineMode;
 	}
 
 	function localize()
