@@ -2739,6 +2739,13 @@ declare namespace Fit
 			*/
 			public GetSelections(includeInvalid?:boolean):Fit.Controls.DropDownTypeDefs.DropDownItem[];
 			/**
+			* Make DropDown highlight first selectable item when opened.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether input is enabled.
 			* @function InputEnabled
 			* @param {boolean} [val=undefined] - If defined, True enables input, False disables it.
@@ -2801,6 +2808,13 @@ declare namespace Fit
 			* @function OpenDropDown
 			*/
 			public OpenDropDown():void;
+			/**
+			* Make DropDown restore scroll position and previously highlighted item when reopened.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
 			/**
 			* Get/set value used as a placeholder on supported browsers, to indicate expected value or action.
 			* @function Placeholder
@@ -4165,6 +4179,14 @@ declare namespace Fit
 			*/
 			public HandleEvent(e?:Event):void;
 			/**
+			* Overridden by control developers (optional).
+			This function can be used to make the picker control automatically highlight the first item.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
 			* Get/set max height of control - returns object with Value (number) and Unit (string) properties.
 			* @function MaxHeight
 			* @param {number} [value=undefined] - If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content.
@@ -4223,6 +4245,16 @@ declare namespace Fit
 			* @param {Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>} cb - Event handler function.
 			*/
 			public OnShow(cb:Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>):void;
+			/**
+			* Overridden by control developers (optional).
+			This function can be used to tell the picker control to persist (remember) its current state between interactions.
+			For instance a TreeView control would remembers its scroll position and highlighted node, while a calendar would
+			remember the previously selected year and month.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function to reveal a selected item in
@@ -4374,6 +4406,14 @@ declare namespace Fit
 			*/
 			public HandleEvent(e?:Event):void;
 			/**
+			* Overridden by control developers (optional).
+			This function can be used to make the picker control automatically highlight the first item.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
 			* Get/set max height of control - returns object with Value (number) and Unit (string) properties.
 			* @function MaxHeight
 			* @param {number} [value=undefined] - If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content.
@@ -4432,6 +4472,16 @@ declare namespace Fit
 			* @param {Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>} cb - Event handler function.
 			*/
 			public OnShow(cb:Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>):void;
+			/**
+			* Overridden by control developers (optional).
+			This function can be used to tell the picker control to persist (remember) its current state between interactions.
+			For instance a TreeView control would remembers its scroll position and highlighted node, while a calendar would
+			remember the previously selected year and month.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function to reveal a selected item in
@@ -5032,6 +5082,14 @@ declare namespace Fit
 			*/
 			public HandleEvent(e?:Event):void;
 			/**
+			* Overridden by control developers (optional).
+			This function can be used to make the picker control automatically highlight the first item.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
 			* Get/set max height of control - returns object with Value (number) and Unit (string) properties.
 			* @function MaxHeight
 			* @param {number} [value=undefined] - If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content.
@@ -5090,6 +5148,16 @@ declare namespace Fit
 			* @param {Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>} cb - Event handler function.
 			*/
 			public OnShow(cb:Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>):void;
+			/**
+			* Overridden by control developers (optional).
+			This function can be used to tell the picker control to persist (remember) its current state between interactions.
+			For instance a TreeView control would remembers its scroll position and highlighted node, while a calendar would
+			remember the previously selected year and month.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function to reveal a selected item in
@@ -6093,6 +6161,13 @@ declare namespace Fit
 			*/
 			public GetSelections(includeInvalid?:boolean):Fit.Controls.DropDownTypeDefs.DropDownItem[];
 			/**
+			* Make DropDown highlight first selectable item when opened.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether input is enabled.
 			* @function InputEnabled
 			* @param {boolean} [val=undefined] - If defined, True enables input, False disables it.
@@ -6155,6 +6230,13 @@ declare namespace Fit
 			* @function OpenDropDown
 			*/
 			public OpenDropDown():void;
+			/**
+			* Make DropDown restore scroll position and previously highlighted item when reopened.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
 			/**
 			* Get/set value used as a placeholder on supported browsers, to indicate expected value or action.
 			* @function Placeholder
@@ -6815,6 +6897,14 @@ declare namespace Fit
 			*/
 			public HandleEvent(e?:Event):void;
 			/**
+			* Overridden by control developers (optional).
+			This function can be used to make the picker control automatically highlight the first item.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
 			* Get/set max height of control - returns object with Value (number) and Unit (string) properties.
 			* @function MaxHeight
 			* @param {number} [value=undefined] - If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content.
@@ -6873,6 +6963,16 @@ declare namespace Fit
 			* @param {Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>} cb - Event handler function.
 			*/
 			public OnShow(cb:Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>):void;
+			/**
+			* Overridden by control developers (optional).
+			This function can be used to tell the picker control to persist (remember) its current state between interactions.
+			For instance a TreeView control would remembers its scroll position and highlighted node, while a calendar would
+			remember the previously selected year and month.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function to reveal a selected item in
@@ -7501,6 +7601,14 @@ declare namespace Fit
 			*/
 			public HandleEvent(e?:Event):void;
 			/**
+			* Overridden by control developers (optional).
+			This function can be used to make the picker control automatically highlight the first item.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
 			* Get/set max height of control - returns object with Value (number) and Unit (string) properties.
 			* @function MaxHeight
 			* @param {number} [value=undefined] - If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content.
@@ -7559,6 +7667,16 @@ declare namespace Fit
 			* @param {Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>} cb - Event handler function.
 			*/
 			public OnShow(cb:Fit.Controls.PickerBaseTypeDefs.BaseEventHandler<this>):void;
+			/**
+			* Overridden by control developers (optional).
+			This function can be used to tell the picker control to persist (remember) its current state between interactions.
+			For instance a TreeView control would remembers its scroll position and highlighted node, while a calendar would
+			remember the previously selected year and month.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
 			/**
 			* Overridden by control developers (optional).
 			Host control may invoke this function to reveal a selected item in
