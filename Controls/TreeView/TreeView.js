@@ -51,6 +51,10 @@ Fit.Controls.TreeView = function(ctlId)
 	var showSelectAll = false; // TBD: Never implemented - can be achieved using ContextMenu. Remove or implement?
 	var allowDeselect = true;
 	var revealExpandedNodes = false;
+	var persistView = false;
+	var scrollPosition = { X: 0, Y: 0 };
+	var highlightFirst = false;
+	var firstWasHighlighted = false;
 
 	var selected = createInternalCollection();
 	var selectedOrg = [];
@@ -450,6 +454,13 @@ Fit.Controls.TreeView = function(ctlId)
 				clearTimeout(touchTimeout);
 				touchTimeout = -1;
 			}
+		});
+
+		Fit.Events.AddHandler(me.GetDomElement(), "scroll", function(e)
+		{
+			// Preserve scroll position which is lost if picker control is removed from DOM
+			scrollPosition.X = me.GetDomElement().scrollLeft;
+			scrollPosition.Y = me.GetDomElement().scrollTop;
 		});
 	}
 
@@ -1049,7 +1060,7 @@ Fit.Controls.TreeView = function(ctlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 
-		me = rootContainer = rootNode = focusInEventId = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
+		me = rootContainer = rootNode = focusInEventId = keyNavigationEnabled = selectable = multiSelect = showSelectAll = allowDeselect = revealExpandedNodes = persistView = scrollPosition = highlightFirst = firstWasHighlighted = selected = selectedOrg = ctx = onSelectHandlers = onSelectedHandlers = onToggleHandlers = onToggledHandlers = onSelectAllHandlers = onSelectAllCompleteHandlers = onContextMenuHandlers = forceClear = isIe8 = isPicker = activeNode = hostFocused = null;
 	});
 
 	// ============================================
@@ -1225,10 +1236,31 @@ Fit.Controls.TreeView = function(ctlId)
 
 	this.OnShow(function(sender)
 	{
-		// Reset selection and scroll
-		unsetActiveNode();
-		me.GetDomElement().scrollTop = 0;
-		me.GetDomElement().scrollLeft = 0;
+		if (persistView === false) // Reset selection and scroll position
+		{
+			if (highlightFirst === true)
+			{
+				focusFirstNode();
+			}
+			else
+			{
+				unsetActiveNode();
+			}
+
+			me.GetDomElement().scrollTop = 0;
+			me.GetDomElement().scrollLeft = 0;
+		}
+		else // View persisted
+		{
+			if (highlightFirst === true && firstWasHighlighted === false)
+			{
+				firstWasHighlighted = true;
+				focusFirstNode();
+			}
+
+			me.GetDomElement().scrollTop = scrollPosition.Y;
+			me.GetDomElement().scrollLeft = scrollPosition.X;
+		}
 	});
 
 	this.OnSelect(function(sender, node)
@@ -1357,6 +1389,33 @@ Fit.Controls.TreeView = function(ctlId)
 		return null;
 	}
 
+	this.PersistView = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== persistView)
+		{
+			persistView = val;
+			scrollPosition.X = 0;
+			scrollPosition.Y = 0;
+		}
+
+		return persistView;
+	}
+
+	this.HighlightFirst = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) && val !== highlightFirst)
+		{
+			highlightFirst = val;
+			firstWasHighlighted = false;
+		}
+
+		return highlightFirst;
+	}
+
 	this.UpdateItemSelection = function(itemValue, selected, programmaticallyChanged)
 	{
 		Fit.Validation.ExpectString(itemValue);
@@ -1405,6 +1464,17 @@ Fit.Controls.TreeView = function(ctlId)
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode, true);
 
 		fireEventHandlers(onSelectAllCompleteHandlers, { Selected: selected, Node: node || null });
+	}
+
+	this._internal.FocusFirstNode = function() // Similar implementation in Fit.Controls.ListView._internal.FocusFirstItem()
+	{
+		// If picker is still visible (it might have been hidden if user closed
+		// host control while data was being loaded/populated async.) then focus first node.
+		if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
+		{
+			focusFirstNode();
+			firstWasHighlighted = true;
+		}
 	}
 
     this.HandleEvent = function(e)

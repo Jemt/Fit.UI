@@ -1213,6 +1213,29 @@ Fit.Controls.WSTreeView = function(ctlId)
 				delete request._loadingIndicator;
 			}
 
+			// Highlight first node
+
+			if (node === null) // Only do this for root nodes
+			{
+				if (me.PersistView() === true)
+				{
+					// Reset PersistView to make sure it does not reuse state
+					// for newly loaded nodes, in case node list is changed.
+					me.PersistView(false);
+					me.PersistView(true);
+				}
+
+				if (me.HighlightFirst() === true)
+				{
+					// Reset HighlightFirst to make sure it takes effect again
+					// for newly loaded nodes, in case node list is changed.
+					me.HighlightFirst(false);
+					me.HighlightFirst(true);
+
+					me._internal.FocusFirstNode();
+				}
+			}
+
 			// Select nodes found in preselections
 
 			var hasBeenDisposedOrDetached = node !== null && nodeDisposedOrDetached(node);

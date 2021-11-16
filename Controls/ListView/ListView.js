@@ -16,6 +16,10 @@ Fit.Controls.ListView = function(controlId)
 	var me = this;
 	var list = me.GetDomElement();
 	var active = null;
+	var persistView = false;
+	var scrollPositionTop = 0;
+	var highlightFirst = false;
+	var firstWasHighlighted = false;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	function init()
@@ -25,9 +29,36 @@ Fit.Controls.ListView = function(controlId)
 
 		me.OnShow(function()
 		{
-			list.scrollTop = 0;
-			setActive(null);
+			if (persistView === false) // Reset selection and scroll position
+			{
+				if (highlightFirst === true)
+				{
+					focusFirstItem();
+				}
+				else
+				{
+					setActive(null);
+				}
+
+				list.scrollTop = 0;
+			}
+			else // View persisted
+			{
+				if (highlightFirst === true && firstWasHighlighted === false)
+				{
+					firstWasHighlighted = true;
+					focusFirstItem();
+				}
+
+				list.scrollTop = scrollPositionTop;
+			}
 		});
+
+		list.onscroll = function(e)
+		{
+			// Preserve scroll position which is lost if picker control is removed from DOM
+			scrollPositionTop = list.scrollTop;
+		};
 
 		list.onclick = function(e)
 		{
@@ -281,6 +312,32 @@ Fit.Controls.ListView = function(controlId)
 		return null;
 	}
 
+	this.PersistView = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== persistView)
+		{
+			persistView = val;
+			scrollPositionTop = 0;
+		}
+
+		return persistView;
+	}
+
+	this.HighlightFirst = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) && val !== highlightFirst)
+		{
+			highlightFirst = val;
+			firstWasHighlighted = false;
+		}
+
+		return highlightFirst;
+	}
+
 	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
 	{
 		Fit.Validation.ExpectBoolean(calledInternally, true);
@@ -306,8 +363,25 @@ Fit.Controls.ListView = function(controlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 
-		me = list = active = isIe8 = null;
+		me = list = active = persistView = scrollPositionTop = highlightFirst = firstWasHighlighted = isIe8 = null;
 	});
+
+	// ============================================
+	// Protected
+	// ============================================
+
+	this._internal = (this._internal ? this._internal : {});
+
+	this._internal.FocusFirstItem = function() // Similar implementation in Fit.Controls.TreeView._internal.FocusFirstNode()
+	{
+		// If picker is still visible (it might have been hidden if user closed
+		// host control while data was being loaded/populated async.) then focus first item.
+		if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
+		{
+			focusFirstItem();
+			firstWasHighlighted = true;
+		}
+	}
 
 	// ============================================
 	// Private
@@ -356,6 +430,14 @@ Fit.Controls.ListView = function(controlId)
 				list.scrollTop = active.offsetHeight * Fit.Dom.GetIndex(active); // Alternative to active.scrollIntoView(true) which unfortunately also scrolls main view
 				repaint();
 			}
+		}
+	}
+
+	function focusFirstItem()
+	{
+		if (list.children.length > 0)
+		{
+			setActive(list.children[0]);
 		}
 	}
 

@@ -347,6 +347,32 @@ Fit.Controls.PickerBase = function()
 		return null;
 	}
 
+	/// <function container="Fit.Controls.PickerBase" name="PersistView" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Overridden by control developers (optional).
+	/// 		This function can be used to tell the picker control to persist (remember) its current state between interactions.
+	/// 		For instance a TreeView control would remembers its scroll position and highlighted node, while a calendar would
+	/// 		remember the previously selected year and month.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If set, True enables feature, False disables it (default) </param>
+	/// </function>
+	this.PersistView = function(val)
+	{
+		return false;
+	}
+
+	/// <function container="Fit.Controls.PickerBase" name="HighlightFirst" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Overridden by control developers (optional).
+	/// 		This function can be used to make the picker control automatically highlight the first item.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If set, True enables feature, False disables it (default) </param>
+	/// </function>
+	this.HighlightFirst = function()
+	{
+		return false;
+	}
+
 	/// <function container="Fit.Controls.PickerBase" name="Destroy" access="public">
 	/// 	<description>
 	/// 		Overridden by control developers (required).

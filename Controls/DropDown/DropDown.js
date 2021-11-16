@@ -39,6 +39,8 @@ Fit.Controls.DropDown = function(ctlId)
 	var focusInputOnMobile = true;				// Flag indicating whether control should focus input fields (and potentially bring up a virtual keyboard) based on configuration, platform (computer vs touch) and where user initially clicked/touched DropDown to activate it
 	var detectBoundaries = false;				// Flag indicating whether drop down menu should detect viewport collision and open upwards when needed
 	var detectBoundariesRelToViewPort = false;	// Flag indicating whether drop down menu should be positioned relative to viewport (true) or scroll parent (false)
+	var persistView = false;					// Flag indicating whether picker controls should remember and restore its scroll position and highlighted item when reopened
+	var highlightFirst = false;					// Flag indicating whether picker controls should focus its first node automatically when opened
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -502,7 +504,7 @@ Fit.Controls.DropDown = function(ctlId)
 			itemDropZones[key].Dispose();
 		});
 
-		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
+		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
@@ -713,6 +715,11 @@ Fit.Controls.DropDown = function(ctlId)
 
 		picker.MaxHeight(maxHeight.Value, maxHeight.Unit);
 		optimizeDropDownPosition(); // In case dropdown is already open and SetPicker was called async, e.g. initiated from OnOpen event. Function may change MaxHeight on Picker.
+
+		// Persist view and initial focus
+
+		picker.PersistView(persistView);
+		picker.HighlightFirst(highlightFirst);
 
 		// Make sure OnItemSelectionChanged is only registered once
 
@@ -1089,6 +1096,48 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		return null;
+	}
+
+	/// <function container="Fit.Controls.DropDown" name="PersistView" access="public" returns="boolean">
+	/// 	<description> Make DropDown restore scroll position and previously highlighted item when reopened </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If set, True enables feature, False disables it (default) </param>
+	/// </function>
+	this.PersistView = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== persistView)
+		{
+			persistView = val;
+
+			if (me.GetPicker() !== null)
+			{
+				me.GetPicker().PersistView(val);
+			}
+		}
+
+		return persistView;
+	}
+
+	/// <function container="Fit.Controls.DropDown" name="HighlightFirst" access="public" returns="boolean">
+	/// 	<description> Make DropDown highlight first selectable item when opened </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If set, True enables feature, False disables it (default) </param>
+	/// </function>
+	this.HighlightFirst = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== highlightFirst)
+		{
+			highlightFirst = val;
+
+			if (me.GetPicker() !== null)
+			{
+				me.GetPicker().HighlightFirst(val);
+			}
+		}
+
+		return highlightFirst;
 	}
 
 	/// <function container="Fit.Controls.DropDown" name="RenameSelection" access="public">

@@ -311,6 +311,26 @@ Fit.Controls.WSListView = function(ctlId)
 				populate(item);
 			});
 
+			// Highlight first item
+
+			if (me.PersistView() === true)
+			{
+				// Reset PersistView to make sure it does not reuse state
+				// for newly loaded items, in case item list is changed.
+				me.PersistView(false);
+				me.PersistView(true);
+			}
+
+			if (me.HighlightFirst() === true)
+			{
+				// Reset HighlightFirst to make sure it takes effect again
+				// for newly loaded items, in case item list is changed.
+				me.HighlightFirst(false);
+				me.HighlightFirst(true);
+
+				me._internal.FocusFirstItem();
+			}
+
 			// Invoke callback
 
 			if (Fit.Validation.IsSet(cb) === true)
