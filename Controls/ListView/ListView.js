@@ -46,8 +46,8 @@ Fit.Controls.ListView = function(controlId)
 			{
 				if (highlightFirst === true && firstWasHighlighted === false)
 				{
-					firstWasHighlighted = true;
 					focusFirstItem();
+					firstWasHighlighted = true;
 				}
 
 				list.scrollTop = scrollPositionTop;
@@ -329,10 +329,22 @@ Fit.Controls.ListView = function(controlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(val) && val !== highlightFirst)
+		if (Fit.Validation.IsSet(val) === true)
 		{
-			highlightFirst = val;
-			firstWasHighlighted = false;
+			if (val !== highlightFirst)
+			{
+				highlightFirst = val;
+				firstWasHighlighted = false;
+			}
+
+			// Allow external code to force focus first item if picker is visible.
+			// Usually first item is automatically highlighted when the host control
+			// is opened (see OnShow handler in init()).
+			if (val === true && Fit.Dom.IsVisible(me.GetDomElement()) === true)
+			{
+				focusFirstItem();
+				firstWasHighlighted = true;
+			}
 		}
 
 		return highlightFirst;

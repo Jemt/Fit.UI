@@ -1127,7 +1127,7 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(val) === true && val !== highlightFirst)
+		if (Fit.Validation.IsSet(val) === true)
 		{
 			highlightFirst = val;
 
