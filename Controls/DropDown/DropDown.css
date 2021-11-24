@@ -409,7 +409,7 @@ div.FitUiControlDropDown[data-selectionmodetoggle="true"]
 
 /* WSDropDown: Action Menu (ListView) */
 
-div.FitUiControlDropDown span.FitUiControlDropDownActionMenuItemDelete
+div.FitUiControlDropDown span.FitUiControlDropDownActionMenuItemIconDelete
 {
 	color: #DB1E1E;
 }

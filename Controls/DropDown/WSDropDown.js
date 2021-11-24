@@ -862,9 +862,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 			return;
 		}
 
-		var searchIcon = "<span class='FitUiControlDropDownActionMenuItem FitUiControlDropDownActionMenuItemSearch fa fa-search'></span> ";
-		var showAllIcon = "<span class='FitUiControlDropDownActionMenuItem FitUiControlDropDownActionMenuItemShowAll fa fa-sitemap'></span> ";
-		var delIcon = "<span class='FitUiControlDropDownActionMenuItem FitUiControlDropDownActionMenuItemDelete fa fa-times'></span> ";
+		var searchIcon = "<span class='FitUiControlDropDownActionMenuItemIcon FitUiControlDropDownActionMenuItemIconSearch fa fa-search'></span> ";
+		var showAllIcon = "<span class='FitUiControlDropDownActionMenuItemIcon FitUiControlDropDownActionMenuItemIconShowAll fa fa-sitemap'></span> ";
+		var delIcon = "<span class='FitUiControlDropDownActionMenuItemIcon FitUiControlDropDownActionMenuItemIconDelete fa fa-times'></span> ";
 
 		var selectedItems = me.GetSelections();
 		var addRemoveAll = selectedItems.length > 1;
