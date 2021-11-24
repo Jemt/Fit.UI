@@ -170,8 +170,15 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				var target = Fit.Events.GetTarget(e);
 
+				if (target !== document.documentElement && target !== document.body && Fit.Dom.IsRooted(target) === false)
+				{
+					return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
+				}
+
 				if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+				{
 					me.CloseDropDown();
+				}
 			});
 			Fit.Array.Add(closeHandlers, eventId);
 		}
@@ -187,6 +194,11 @@ Fit.Controls.DropDown = function(ctlId)
 				var target = Fit.Events.GetTarget(e);
 
 				coords = null;
+
+				if (target !== document.documentElement && target !== document.body && Fit.Dom.IsRooted(target) === false)
+				{
+					return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
+				}
 
 				if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
 				{
@@ -777,6 +789,19 @@ Fit.Controls.DropDown = function(ctlId)
 				// it will now have been removed.
 				if (txt.parentElement.parentElement === null)
 					txt = txtPrimary;
+			}
+			else
+			{
+				// User selected an item which is already selected
+
+				if (me.TextSelectionMode() === true)
+				{
+					updateTextSelection(); // Make sure any search value is removed and text selection is restored
+				}
+				else
+				{
+					me.ClearInput(); // Make sure any search value is removed
+				}
 			}
 
 			// DISABLED: Now handled using picker.OnFocus(..) handler further down - see https://github.com/Jemt/Fit.UI/issues/86 for details
@@ -1650,6 +1675,34 @@ Fit.Controls.DropDown = function(ctlId)
 	}
 
 	// ============================================
+	// Protected
+	// ============================================
+
+	this._internal = (this._internal ? this._internal : {});
+
+	// Clear input field without firing OnInputChanged, and make placeholder appear
+	this._internal.ClearInputAndShowPlaceholder = function(forceFocusInput)
+	{
+		Fit.Validation.ExpectBoolean(forceFocusInput, true);
+
+		txtPrimary.value = "";
+		updatePlaceholder(true);
+
+		if (forceFocusInput)
+		{
+			// By default focus is never assigned to input on mobile if user opened the
+			// DropDown by clicking the arrow icon. ForceFocusInput allows us to ignore this
+			// aspect. On desktop the input field always remains focused  as it automatically
+			// steals back focus immediately after interacting with a picker control. See
+			// picker.OnFocusIn handler registered in SetPicker(..)
+			var orgFocusInputOnMobile = focusInputOnMobile;
+			focusInputOnMobile = true;
+			focusInput(txtActive);
+			focusInputOnMobile = orgFocusInputOnMobile;
+		}
+	}
+
+	// ============================================
 	// Private
 	// ============================================
 
@@ -2428,7 +2481,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (placeholder !== "" || force === true)
 		{
-			var setPlaceholder = placeholder !== "" && itemCollectionOrdered.length === 0 && me.GetInputValue() === "" && willAssumeInputValue !== true;
+			var setPlaceholder = placeholder !== "" && (me.TextSelectionMode() === true || itemCollectionOrdered.length === 0) && me.GetInputValue() === "" && willAssumeInputValue !== true;
 
 			Fit.Dom.Data(itemContainer, "placeholder", setPlaceholder === true ? placeholder : null);
 			Fit.Dom.Data(itemContainer, "placeholder-autoclear", setPlaceholder === true ? Fit.Browser.GetBrowser() === "MSIE" ? "true" : "false" : null);
@@ -2641,6 +2694,12 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			Fit.Dom.SetCaretPosition(txtPrimary, 0);
 		}
+
+		// Remove placeholder in case it was added using this._internal.ClearInputAndShowPlaceholder()
+
+		updatePlaceholder(true);
+
+		// Have TextSelection removed when input is changed
 
 		clearTextSelectionOnInputChange = true;
 	}

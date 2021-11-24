@@ -16,6 +16,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var me = this;
 	var list = null;
 	var tree = null;
+	var actionMenu = null;
 
 	var search = "";
 	var forceNewSearch = false;
@@ -29,6 +30,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var currentRequest = null;
 	var classes = null;
 	var autoUpdatedSelections = null; // Cached result from AutoUpdateSelected: [{ Title:string, Value:string, Exists:boolean }, ...]
+	var useActionMenu = false;
+	var useActionMenuForced = false;
+	var translations = null;
 
 	var onRequestHandlers = [];
 	var onResponseHandlers = [];
@@ -144,6 +148,22 @@ Fit.Controls.WSDropDown = function(ctlId)
 				{
 					fireOnDataLoaded();
 				}
+
+				// If no data is returned and DropDown is in TextSelectionMode, the user will
+				// not have an easy way to remove objects from the DropDown, unless SelectionModeToggle
+				// is true. Therefore we allow for items to be removed using an action menu.
+				// EDIT: Now displays action menu in both Visual and Text Selection Mode for consistency.
+
+				if (useActionMenuForced === false)
+				{
+					useActionMenu = eventArgs.Children.length === 0;
+				}
+
+				if (/*me.TextSelectionMode() === true &&*/ useActionMenu === true)
+				{
+					updateActionMenu();
+					me.SetPicker(actionMenu);
+				}
 			}
 		});
 		tree.OnAbort(function(sender, eventArgs)
@@ -234,6 +254,104 @@ Fit.Controls.WSDropDown = function(ctlId)
 				me.SetPicker(tree);
 		});
 
+		// Create action menu
+
+		var skipUpdateActionMenuOnChange = false;
+
+		actionMenu = new Fit.Controls.ListView(ctlId + "__ActionsListView");
+		actionMenu.OnSelect(function(sender, item) // Using OnSelect instead of OnItemSelectionChanging since DropDown fires OnItemSelectionChanging when selection is changed, which would result in OnItemSelectionChanging being executed multiple times
+		{
+			if (item.Value === "SearchMore")
+			{
+				me._internal.ClearInputAndShowPlaceholder(true); // NOTICE: TextSelectionMode only - Visual Selection Mode cannot be temporarily cleared to display the place holder
+			}
+			else if (item.Value === "ShowAll")
+			{
+				me.SetPicker(tree);
+			}
+			else if (item.Value === "RemoveAll")
+			{
+				skipUpdateActionMenuOnChange = true;
+				me.ClearSelections(); // Fires OnChange
+				skipUpdateActionMenuOnChange = false;
+
+				updateActionMenu(); // Update action menu (remove all "Remove: xyz" options)
+			}
+			else if (item.Value.indexOf("Remove:") === 0)
+			{
+				var dataValue = item.Value.replace("Remove:", "");
+
+				// Find item below if using keyboard to remove item
+
+				var above = null;
+				var below = null;
+
+				if (Fit.Browser.GetInfo().IsMobile === false && Fit.Events.GetPointerState().Buttons.Primary === false) // Do not find and highlight item below on touch devices, or if using the mouse
+				{
+					var items = actionMenu.GetItems();
+					var stopNext = false;
+
+					for (var i = 0 ; i < items.length ; i++)
+					{
+						if (items[i].Value.indexOf("Remove:") !== 0)
+						{
+							continue; // Skip items that do not remove individual selections
+						}
+
+						if (items[i].Value.replace("Remove:", "") === dataValue)
+						{
+							stopNext = true;
+							continue;
+						}
+
+						if (stopNext === false)
+						{
+							above = items[i].Value;
+						}
+						else
+						{
+							below = items[i].Value;
+							break;
+						}
+					}
+				}
+
+				// Remove item
+
+				skipUpdateActionMenuOnChange = true;
+				me.RemoveSelection(dataValue); // Fires OnChange
+				skipUpdateActionMenuOnChange = false;
+
+				// Update list of removable items
+
+				actionMenu.RemoveItem(item.Value);
+
+				if (me.GetSelections().length === 1)
+				{
+					updateActionMenu(); // Update action menu to get rid of "Remove all" item when only one item is left
+				}
+
+				// Highlight item below (or above) the item that was just removed
+
+				if (above !== null || below !== null)
+				{
+					actionMenu.RevealItemInView(below !== null ? below : above);
+				}
+			}
+
+			return false; // Prevent selection of behavioural item
+		});
+
+		me.OnChange(function(sender)
+		{
+			if (skipUpdateActionMenuOnChange === false)
+			{
+				updateActionMenu();
+			}
+		});
+
+		// Misc
+
 		me.OnOpen(function()
 		{
 			if (suppressTreeOnOpen === true)
@@ -242,9 +360,19 @@ Fit.Controls.WSDropDown = function(ctlId)
 				return;
 			}
 
-			me.SetPicker(tree);
-			ensureTreeViewData();
+			if (useActionMenu === true)
+			{
+				me.SetPicker(actionMenu);
+			}
+			else
+			{
+				me.SetPicker(tree);
+				ensureTreeViewData();
+			}
 		});
+
+		Fit.Internationalization.OnLocaleChanged(localize);
+		localize();
 	}
 
 	// ============================================
@@ -469,7 +597,6 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return base(val);
 	});
 
-
 	/// <function container="Fit.Controls.WSDropDown" name="GetListView" access="public" returns="Fit.Controls.WSListView">
 	/// 	<description> Get WSListView control used to display data in a flat list view </description>
 	/// </function>
@@ -486,6 +613,44 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return tree;
 	}
 
+	/// <function container="Fit.Controls.WSDropDown" name="UseActionMenu" access="public">
+	/// 	<description> Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables the action menu, False disables it </param>
+	/// </function>
+	this.UseActionMenu = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			useActionMenuForced = true;
+
+			if (val !== useActionMenu)
+			{
+				useActionMenu = val;
+
+				if (val === true)
+				{
+					updateActionMenu();
+
+					if (me.IsDropDownOpen() === true)
+					{
+						me.SetPicker(actionMenu);
+					}
+				}
+				else
+				{
+					if (me.GetPicker() === actionMenu)
+					{
+						me.SetPicker(tree.GetChildren().length > 0 ? tree : list);
+					}
+				}
+			}
+		}
+
+		return useActionMenu;
+	}
+
 	// See documentation on ControlBase
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
@@ -493,10 +658,13 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		list.Destroy();
 		tree.Destroy();
+		actionMenu.Destroy();
 
 		cancelSearch();
 
-		me = list = tree = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = onRequestHandlers = onResponseHandlers = null;
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
+		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = translations = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -685,6 +853,48 @@ Fit.Controls.WSDropDown = function(ctlId)
 			clearTimeout(timeOut);
 			timeOut = null;
 		}
+	}
+
+	function updateActionMenu()
+	{
+		if (useActionMenu === false)
+		{
+			return;
+		}
+
+		var searchIcon = "<span class='FitUiControlDropDownActionMenuItem FitUiControlDropDownActionMenuItemSearch fa fa-search'></span> ";
+		var showAllIcon = "<span class='FitUiControlDropDownActionMenuItem FitUiControlDropDownActionMenuItemShowAll fa fa-sitemap'></span> ";
+		var delIcon = "<span class='FitUiControlDropDownActionMenuItem FitUiControlDropDownActionMenuItemDelete fa fa-times'></span> ";
+
+		var selectedItems = me.GetSelections();
+		var addRemoveAll = selectedItems.length > 1;
+
+		actionMenu.RemoveItems();
+
+		actionMenu.AddItem(searchIcon + translations.SearchMore, "SearchMore");
+
+		if (dataRequested === false || tree.GetChildren().length > 0)
+		{
+			actionMenu.AddItem(showAllIcon + translations.ShowAllOptions, "ShowAll");
+		}
+
+		if (addRemoveAll === true)
+		{
+			actionMenu.AddItem(delIcon + translations.RemoveAll, "RemoveAll");
+		}
+
+		Fit.Array.ForEach(selectedItems, function(item)
+		{
+			actionMenu.AddItem((addRemoveAll === true ? " &nbsp; &nbsp; &nbsp; " : "") + delIcon + translations.Remove + " " + item.Title, "Remove:" + item.Value);
+		});
+	}
+
+	function localize()
+	{
+		var locale = Fit.Internationalization.GetLocale(me);
+		translations = locale.Translations;
+
+		updateActionMenu();
 	}
 
 	function onDataLoaded(cb)

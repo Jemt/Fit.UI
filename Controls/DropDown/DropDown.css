@@ -406,3 +406,10 @@ div.FitUiControlDropDown[data-selectionmodetoggle="true"]
 {
 	margin-right: 2em;
 }
+
+/* WSDropDown: Action Menu (ListView) */
+
+div.FitUiControlDropDown span.FitUiControlDropDownActionMenuItemDelete
+{
+	color: #DB1E1E;
+}

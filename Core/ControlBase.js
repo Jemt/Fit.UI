@@ -29,6 +29,8 @@ Fit.Controls.Component = function(controlId)
 		container = document.createElement("div");
 		container.id = id;
 		container._internal = { Instance: me };
+
+		Fit.Dom.Data(container, "device", ((Fit.Browser.GetInfo().IsMobile === false) ? "Desktop" : (Fit.Browser.GetInfo().IsPhone === true) ? "Phone" : "Tablet"));
 	}
 
 	/// <function container="Fit.Controls.Component" name="GetId" access="public" returns="string">
@@ -258,8 +260,6 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Data("valid", "true");
 		me._internal.Data("dirty", "false");
 		me._internal.Data("enabled", "true");
-
-		me._internal.Data("device", ((Fit.Browser.GetInfo().IsMobile === false) ? "Desktop" : (Fit.Browser.GetInfo().IsPhone === true) ? "Phone" : "Tablet"));
 
 		// Add hidden inputs which are automatically populated with
 		// control value and state information when control is updated.

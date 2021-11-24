@@ -10,7 +10,7 @@ div.FitUiControlListView > div /* List item */
 	white-space: nowrap;
 }
 
-div.FitUiControlListView > div:hover
+div.FitUiControlListView[data-device="Desktop"] > div:hover
 {
 	background-color: #DADADA; /*#C3D9E0*/
 	cursor: pointer;

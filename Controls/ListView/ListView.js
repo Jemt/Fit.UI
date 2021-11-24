@@ -22,6 +22,9 @@ Fit.Controls.ListView = function(controlId)
 	var firstWasHighlighted = false;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
+	var onSelectHandlers = [];
+	var onSelectedHandlers = [];
+
 	function init()
 	{
 		list.tabIndex = "0";
@@ -75,12 +78,17 @@ Fit.Controls.ListView = function(controlId)
 
 			// Fire OnChanging and OnChange events
 
+			var item = convertItemElementToObject(elm);
+			var selectionCanceled = fireOnSelectHandlers(item) === false;
+
 			// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
 			// not keep track of selection state. In theory item could very well already be selected in host control.
 			// Event handlers should not trust boolean to reveal selection in host control, only in picker.
-			if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), false, false) === true)
+			if (selectionCanceled === false && me._internal.FireOnItemSelectionChanging(item.Title, item.Value, false, false) === true)
 			{
-				me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(elm), decode(Fit.Dom.Data(elm, "value")), true, false);
+				fireOnSelectedHandlers(item);
+
+				me._internal.FireOnItemSelectionChanged(item.Title, item.Value, true, false);
 				me._internal.FireOnItemSelectionComplete();
 			}
 		}
@@ -200,6 +208,21 @@ Fit.Controls.ListView = function(controlId)
 		return null;
 	}
 
+	/// <function container="Fit.Controls.ListView" name="GetItems" access="public" returns="Fit.Controls.ListViewTypeDefs.ListViewItem[]">
+	/// 	<description> Get all items - returns array containing objects with Title (string) and Value (string) properties </description>
+	/// </function>
+	this.GetItems = function()
+	{
+		var items = [];
+
+		Fit.Array.ForEach(list.children, function(child)
+		{
+			Fit.Array.Add(items, convertItemElementToObject(child));
+		});
+
+		return items;
+	}
+
 	/// <function container="Fit.Controls.ListView" name="HasItem" access="public" returns="boolean">
 	/// 	<description> Returns value indicating whether control contains item with specified value </description>
 	/// 	<param name="value" type="string"> Value of item to check for </param>
@@ -223,6 +246,11 @@ Fit.Controls.ListView = function(controlId)
 		if (item !== null)
 		{
 			Fit.Dom.Remove(item);
+
+			if (item === active)
+			{
+				active = null;
+			}
 		}
 	}
 
@@ -286,12 +314,17 @@ Fit.Controls.ListView = function(controlId)
 
 				if (active !== null)
 				{
+					var item = convertItemElementToObject(active);
+					var selectionCanceled = fireOnSelectHandlers(item) === false;
+
 					// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
 					// not keep track of selection state. In theory item could very well already be selected in host control.
 					// Event handlers should not trust boolean to reveal selection in host control, only in picker.
-					if (me._internal.FireOnItemSelectionChanging(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), false, false) === true)
+					if (selectionCanceled === false && me._internal.FireOnItemSelectionChanging(item.Title, item.Value, false, false) === true)
 					{
-						me._internal.FireOnItemSelectionChanged(Fit.Dom.Text(active), decode(Fit.Dom.Data(active, "value")), true, false);
+						fireOnSelectedHandlers(item);
+
+						me._internal.FireOnItemSelectionChanged(item.Title, item.Value, true, false);
 						me._internal.FireOnItemSelectionComplete();
 					}
 				}
@@ -350,6 +383,47 @@ Fit.Controls.ListView = function(controlId)
 		return highlightFirst;
 	}
 
+	/// <function container="Fit.Controls.ListViewTypeDefs" name="OnSelectEventHandler" returns="boolean | void">
+	/// 	<description> OnSelect event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="item" type="{ Title: string, Value: string }"> Selected item </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.ListView" name="OnSelect" access="public">
+	/// 	<description>
+	/// 		Register event handler fired when item is being selected.
+	/// 		Selection can be canceled by returning False.
+	/// 		The following arguments are passed to event handler function:
+	/// 		Sender (ListView) and Item (with Title (string) and Value (string) properties).
+	/// 	</description>
+	/// 	<param name="cb" type="Fit.Controls.ListViewTypeDefs.OnSelectEventHandler"> Event handler function </param>
+	/// </function>
+	this.OnSelect = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onSelectHandlers, cb);
+	}
+
+	/// <function container="Fit.Controls.ListViewTypeDefs" name="OnSelectedEventHandler">
+	/// 	<description> OnSelected event handler </description>
+	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
+	/// 	<param name="item" type="{ Title: string, Value: string }"> Selected item </param>
+	/// </function>
+
+	/// <function container="Fit.Controls.ListView" name="OnSelected" access="public">
+	/// 	<description>
+	/// 		Register event handler fired when item is selected.
+	/// 		The following arguments are passed to event handler function:
+	/// 		Sender (ListView) and Item (with Title (string) and Value (string) properties).
+	/// 	</description>
+	/// 	<param name="cb" type="Fit.Controls.ListViewTypeDefs.OnSelectedEventHandler"> Event handler function </param>
+	/// </function>
+	this.OnSelected = function(cb)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Array.Add(onSelectedHandlers, cb);
+	}
+
 	this.Destroy = Fit.Core.CreateOverride(this.Destroy, function(calledInternally)
 	{
 		Fit.Validation.ExpectBoolean(calledInternally, true);
@@ -375,7 +449,7 @@ Fit.Controls.ListView = function(controlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 
-		me = list = active = persistView = scrollPositionTop = highlightFirst = firstWasHighlighted = isIe8 = null;
+		me = list = active = persistView = scrollPositionTop = highlightFirst = firstWasHighlighted = isIe8 = onSelectHandlers = onSelectedHandlers = null;
 	});
 
 	// ============================================
@@ -485,6 +559,37 @@ Fit.Controls.ListView = function(controlId)
 		{
 			setActive(active.nextSibling);
 		}
+	}
+
+	function fireOnSelectHandlers(item)
+	{
+		Fit.Validation.ExpectObject(item);
+		Fit.Validation.ExpectString(item.Title);
+		Fit.Validation.ExpectString(item.Value);
+
+		var selectionCanceled = false;
+
+		Fit.Array.ForEach(onSelectHandlers, function(handler)
+		{
+			if (handler(me, item) === false)
+			{
+				selectionCanceled = true;
+			}
+		});
+
+		return selectionCanceled === true ? false : true; // Return False if canceled
+	}
+
+	function fireOnSelectedHandlers(item)
+	{
+		Fit.Validation.ExpectObject(item);
+		Fit.Validation.ExpectString(item.Title);
+		Fit.Validation.ExpectString(item.Value);
+
+		Fit.Array.ForEach(onSelectedHandlers, function(handler)
+		{
+			handler(me, item);
+		});
 	}
 
 	function repaint()
