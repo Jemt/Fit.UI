@@ -4104,6 +4104,12 @@ declare namespace Fit
 			*/
 			public GetItem(value:string):Fit.Controls.ListViewTypeDefs.ListViewItem | null;
 			/**
+			* Get all items - returns array containing objects with Title (string) and Value (string) properties.
+			* @function GetItems
+			* @returns Fit.Controls.ListViewTypeDefs.ListViewItem[]
+			*/
+			public GetItems():Fit.Controls.ListViewTypeDefs.ListViewItem[];
+			/**
 			* Returns value indicating whether control contains item with specified value.
 			* @function HasItem
 			* @param {string} value - Value of item to check for.
@@ -4116,6 +4122,23 @@ declare namespace Fit
 			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
 			*/
 			constructor(controlId?:string);
+			/**
+			* Register event handler fired when item is being selected.
+			Selection can be canceled by returning False.
+			The following arguments are passed to event handler function:
+			Sender (ListView) and Item (with Title (string) and Value (string) properties).
+			* @function OnSelect
+			* @param {Fit.Controls.ListViewTypeDefs.OnSelectEventHandler<this>} cb - Event handler function.
+			*/
+			public OnSelect(cb:Fit.Controls.ListViewTypeDefs.OnSelectEventHandler<this>):void;
+			/**
+			* Register event handler fired when item is selected.
+			The following arguments are passed to event handler function:
+			Sender (ListView) and Item (with Title (string) and Value (string) properties).
+			* @function OnSelected
+			* @param {Fit.Controls.ListViewTypeDefs.OnSelectedEventHandler<this>} cb - Event handler function.
+			*/
+			public OnSelected(cb:Fit.Controls.ListViewTypeDefs.OnSelectedEventHandler<this>):void;
 			/**
 			* Remove item from ListView.
 			* @function RemoveItem
@@ -4329,6 +4352,49 @@ declare namespace Fit
 			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element.
 			*/
 			public Render(toElement?:HTMLElement):void;
+		}
+		/**
+		* 
+		* @namespace [Fit.Controls.ListViewTypeDefs ListViewTypeDefs]
+		*/
+		namespace ListViewTypeDefs
+		{
+			// Functions defined by Fit.Controls.ListViewTypeDefs
+			/**
+			* OnSelected event handler.
+			* @template TypeOfThis
+			* @callback OnSelectedEventHandler
+			* @param {TypeOfThis} sender - Instance of control.
+			* @param {{ Title: string, Value: string }} item - Selected item.
+			*/
+			type OnSelectedEventHandler<TypeOfThis> = (sender:TypeOfThis, item:{ Title: string, Value: string }) => void;
+			/**
+			* OnSelect event handler.
+			* @template TypeOfThis
+			* @callback OnSelectEventHandler
+			* @param {TypeOfThis} sender - Instance of control.
+			* @param {{ Title: string, Value: string }} item - Selected item.
+			* @returns boolean | void
+			*/
+			type OnSelectEventHandler<TypeOfThis> = (sender:TypeOfThis, item:{ Title: string, Value: string }) => boolean | void;
+			/**
+			* ListView item.
+			* @class [Fit.Controls.ListViewTypeDefs.ListViewItem ListViewItem]
+			*/
+			class ListViewItem
+			{
+				// Properties defined by Fit.Controls.ListViewTypeDefs.ListViewItem
+				/**
+				* Item title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
+				* Unique item value.
+				* @member {string} Value
+				*/
+				Value:string;
+			}
 		}
 		/**
 		* Class from which all Picker Controls extend.
@@ -6061,6 +6127,12 @@ declare namespace Fit
 			*/
 			public Url(wsUrl?:string):string;
 			/**
+			* Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items.
+			* @function UseActionMenu
+			* @param {boolean} [val=undefined] - If defined, True enables the action menu, False disables it.
+			*/
+			public UseActionMenu(val?:boolean):void;
+			/**
 			* Create instance of WSDropDown control.
 			* @function WSDropDown
 			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
@@ -6828,12 +6900,35 @@ declare namespace Fit
 			*/
 			public GetItem(value:string):Fit.Controls.ListViewTypeDefs.ListViewItem | null;
 			/**
+			* Get all items - returns array containing objects with Title (string) and Value (string) properties.
+			* @function GetItems
+			* @returns Fit.Controls.ListViewTypeDefs.ListViewItem[]
+			*/
+			public GetItems():Fit.Controls.ListViewTypeDefs.ListViewItem[];
+			/**
 			* Returns value indicating whether control contains item with specified value.
 			* @function HasItem
 			* @param {string} value - Value of item to check for.
 			* @returns boolean
 			*/
 			public HasItem(value:string):boolean;
+			/**
+			* Register event handler fired when item is being selected.
+			Selection can be canceled by returning False.
+			The following arguments are passed to event handler function:
+			Sender (ListView) and Item (with Title (string) and Value (string) properties).
+			* @function OnSelect
+			* @param {Fit.Controls.ListViewTypeDefs.OnSelectEventHandler<this>} cb - Event handler function.
+			*/
+			public OnSelect(cb:Fit.Controls.ListViewTypeDefs.OnSelectEventHandler<this>):void;
+			/**
+			* Register event handler fired when item is selected.
+			The following arguments are passed to event handler function:
+			Sender (ListView) and Item (with Title (string) and Value (string) properties).
+			* @function OnSelected
+			* @param {Fit.Controls.ListViewTypeDefs.OnSelectedEventHandler<this>} cb - Event handler function.
+			*/
+			public OnSelected(cb:Fit.Controls.ListViewTypeDefs.OnSelectedEventHandler<this>):void;
 			/**
 			* Remove item from ListView.
 			* @function RemoveItem
@@ -8137,31 +8232,6 @@ declare namespace Fit
 				Title?:string;
 				/**
 				* Unique value.
-				* @member {string} Value
-				*/
-				Value:string;
-			}
-		}
-		/**
-		* 
-		* @namespace [Fit.Controls.ListViewTypeDefs ListViewTypeDefs]
-		*/
-		namespace ListViewTypeDefs
-		{
-			/**
-			* ListView item.
-			* @class [Fit.Controls.ListViewTypeDefs.ListViewItem ListViewItem]
-			*/
-			class ListViewItem
-			{
-				// Properties defined by Fit.Controls.ListViewTypeDefs.ListViewItem
-				/**
-				* Item title.
-				* @member {string} Title
-				*/
-				Title:string;
-				/**
-				* Unique item value.
 				* @member {string} Value
 				*/
 				Value:string;
