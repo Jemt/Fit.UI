@@ -16,7 +16,8 @@
 				SearchMore				: "Search for more options",
 				ShowAllOptions			: "Show all available options",
 				RemoveAll				: "Remove all selected",
-				Remove					: "Remove"
+				Remove					: "Remove",
+				NoneAvailable			: "None available"
 			}
 		},
 		"da":
@@ -28,7 +29,8 @@
 				SearchMore				: "Søg efter flere valgmuligheder",
 				ShowAllOptions			: "Vis alle tilgængelige valgmuligheder",
 				RemoveAll				: "Fjern alle valgte",
-				Remove					: "Fjern"
+				Remove					: "Fjern",
+				NoneAvailable			: "Ingen tilgængelige"
 			}
 		},
 		"de":
@@ -40,7 +42,8 @@
 				SearchMore				: "Nach weiteren Optionen suchen",
 				ShowAllOptions			: "Alle verfügbaren Optionen anzeigen",
 				RemoveAll				: "Alle ausgewählten entfernen",
-				Remove					: "Entfernen"
+				Remove					: "Entfernen",
+				NoneAvailable			: "Keine verfügbar"
 			}
 		}
 	}

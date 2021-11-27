@@ -1423,9 +1423,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		inp.value = "";
 
-		Fit.Dom.Data(inp.parentElement, "editing", null);
-		Fit.Dom.Data(inp, "editing", null);
-		me._internal.Repaint();
+		setInputEditing(inp, false);
 
 		if (inp === txtActive)
 			prevValue = "";
@@ -1445,22 +1443,31 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		Fit.Validation.ExpectString(val);
 
-		if (txtActive.value === val)
-			return;
+		var txt = txtActive;
+		var fireOnChange = txt.value !== val;
 
-		txtActive.value = "";
+		if (focusAssigned === false && txt !== txtPrimary)
+		{
+			// DropDown does not have focus, and the currently active input field
+			// is not the primary one. Change it to the primary input field instead.
 
-		Fit.Dom.Data(txtActive.parentElement, "editing", val !== "" ? "true" : null);
-		Fit.Dom.Data(txtActive, "editing", val !== "" ? "true" : null);
-		me._internal.Repaint();
+			// Clear active input field in case it has a value
+			txtActive.value = "";
+			setInputEditing(txtActive, false);
 
-		var txt = ((focusAssigned === true) ? txtActive : txtPrimary);
+			txt = txtPrimary;
+			txtActive = txtPrimary;
+		}
+
+		setInputEditing(txt, val !== "");
 
 		txt.value = val;
 		prevValue = val;
-		txtActive = txt;
 
-		fireOnInputChanged(txt.value);
+		if (fireOnChange === true)
+		{
+			fireOnInputChanged(txt.value);
+		}
 	}
 
 	/// <function container="Fit.Controls.DropDown" name="GetInputValue" access="public" returns="string">
@@ -1499,6 +1506,11 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (Fit._internal.DropDown.Current !== null && Fit._internal.DropDown.Current !== me)
 			Fit._internal.DropDown.Current.CloseDropDown();
+
+		if (txtActive === txtPrimary && me.GetInputValue() === "")
+		{
+			me._internal.UndoClearInputForSearch();
+		}
 
 		// Do this before displaying drop down to prevent dropdown with position:absolute
 		// from changing height of document which may cause page to temporarily scroll, hence
@@ -1680,25 +1692,44 @@ Fit.Controls.DropDown = function(ctlId)
 
 	this._internal = (this._internal ? this._internal : {});
 
-	// Clear input field without firing OnInputChanged, and make placeholder appear
-	this._internal.ClearInputAndShowPlaceholder = function(forceFocusInput)
+	this._internal.ClearInputForSearch = function()
 	{
-		Fit.Validation.ExpectBoolean(forceFocusInput, true);
-
-		txtPrimary.value = "";
-		updatePlaceholder(true);
-
-		if (forceFocusInput)
+		if (me.TextSelectionMode() === true)
 		{
-			// By default focus is never assigned to input on mobile if user opened the
-			// DropDown by clicking the arrow icon. ForceFocusInput allows us to ignore this
-			// aspect. On desktop the input field always remains focused  as it automatically
-			// steals back focus immediately after interacting with a picker control. See
-			// picker.OnFocusIn handler registered in SetPicker(..)
-			var orgFocusInputOnMobile = focusInputOnMobile;
-			focusInputOnMobile = true;
-			focusInput(txtActive);
-			focusInputOnMobile = orgFocusInputOnMobile;
+			forceFocusInput(txtPrimary);
+			txtPrimary.value = "";
+			updatePlaceholder(true);
+		}
+		else
+		{
+			forceFocusInput(txtPrimary);
+			me.ClearInput();
+			setInputEditing(txtPrimary, true);
+		}
+
+		// If DropDown is in Visual Selection Mode, the search field is now displayed
+		// on a separate "line" (see code above where setInputEditing(..) is called).
+		// When that input field lose focus, it will immediately return to its normal
+		// state. This results in the control's height changing which in turn results
+		// in the pulldown menu moving up. So if a user clicks an item in the pulldown
+		// menu, the input lose focus, the position of the pulldown menu changes, and
+		// nothing happens from the click because the picker uses a traditional onclick
+		// event to register interactions, which doesn't fire unless the mouse button is released
+		// on the same object it was pressed down on. We avoid this by closing the control.
+		// We close it in both Text Selection Mode and Visual Selection Mode for consistency.
+		me.CloseDropDown();
+	}
+
+	this._internal.UndoClearInputForSearch = function()
+	{
+		if (me.TextSelectionMode() === true)
+		{
+			updateTextSelection(); // Also removes placeholder by calling updatePlaceholder(true)
+		}
+		else
+		{
+			me.ClearInput();
+			setInputEditing(txtPrimary, false);
 		}
 	}
 
@@ -1738,9 +1769,7 @@ Fit.Controls.DropDown = function(ctlId)
 				prevValue = txt.value;
 				var pastedValue = txt.value;
 
-				Fit.Dom.Data(txt.parentElement, "editing", "true");
-				Fit.Dom.Data(txt, "editing", "true");
-				me._internal.Repaint();
+				setInputEditing(txt, true);
 
 				if (fireOnPaste(txt.value) === true)
 				{
@@ -1820,9 +1849,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			if (txt.value === "")
 			{
-				Fit.Dom.Data(txt.parentElement, "editing", null);
-				Fit.Dom.Data(txt, "editing", null);
-				me._internal.Repaint();
+				setInputEditing(txt, false);
 			}
 		}
 
@@ -1953,6 +1980,11 @@ Fit.Controls.DropDown = function(ctlId)
 
 				if (txt.value.length === 0)
 				{
+					if (txt === txtPrimary)
+					{
+						me._internal.UndoClearInputForSearch();
+					}
+
 					if (Fit.Browser.GetInfo().Name === "MSIE")
 						Fit.Events.PreventDefault(ev); // Do not navigate back on IE when backspace is pressed within input being removed
 
@@ -2022,9 +2054,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			updatePlaceholder(true, true); // Make sure placeholder is removed immediately on keystroke
 
-			Fit.Dom.Data(txt.parentElement, "editing", "true");
-			Fit.Dom.Data(txt, "editing", "true");
-			me._internal.Repaint();
+			setInputEditing(txt, true);
 		}
 
 		txt.onkeyup = function(e) // Fires only once when a key is released (unless suppressed in OnKeyDown)
@@ -2141,6 +2171,44 @@ Fit.Controls.DropDown = function(ctlId)
 			txtActive.focus(); // Notice: Input field's onfocus handler will move focus to txtPrimary if this is the last selection's right side input field - on mobile it might redirect focus to the arrow icon to avoid bringing up the virtual keyboard
 	}
 
+	function forceFocusInput(input)
+	{
+		Fit.Validation.ExpectInstance(input, HTMLInputElement);
+
+		// By default focus is never assigned to input on mobile if user opened the
+		// DropDown by clicking the arrow icon. ForceFocusInput allows us to ignore this
+		// aspect. On desktop the input field always remains focused  as it automatically
+		// steals back focus immediately after interacting with a picker control. See
+		// picker.OnFocusIn handler registered in SetPicker(..)
+		var orgFocusInputOnMobile = focusInputOnMobile;
+		focusInputOnMobile = true;
+		focusInput(input);
+		focusInputOnMobile = orgFocusInputOnMobile;
+	}
+
+	function setInputEditing(input, val, keepStateOnParent)
+	{
+		Fit.Validation.ExpectInstance(input, HTMLInputElement);
+		Fit.Validation.ExpectBoolean(val);
+		Fit.Validation.ExpectBoolean(keepStateOnParent, true);
+
+		if (keepStateOnParent !== true)
+		{
+			Fit.Dom.Data(input.parentElement, "editing", val === true ? "true" : null);
+		}
+
+		Fit.Dom.Data(input, "editing", val === true ? "true" : null);
+
+		if (input === txtPrimary)
+		{
+			// DropDown's placeholder is only displayed when no items are selected.
+			// Therefore, use native placeholder for input if items are selected.
+			txtPrimary.placeholder = val === true && me.GetSelections().length > 0 ? me.Placeholder() : "";
+		}
+
+		me._internal.Repaint();
+	}
+
 	function clearAllInputsButActive()
 	{
 		var inputs = itemContainer.getElementsByTagName("input");
@@ -2150,9 +2218,16 @@ Fit.Controls.DropDown = function(ctlId)
 			if (input === txtActive)
 				return;
 
-			if ((txtActive.parentElement === itemContainer && input === txtPrimary) || (txtActive.parentElement !== itemContainer && Fit.Dom.Contained(txtActive.parentElement, input) === false))
-				Fit.Dom.Data(input.parentElement, "editing", null);
-			Fit.Dom.Data(input, "editing", null);
+			if (txtActive.parentElement === input.parentElement)
+			{
+				// Input is contained in a selected object whose other input is txtActive.
+				// Do not remove editing state from parent element in this case - keep it!
+				setInputEditing(input, false, true);
+			}
+			else
+			{
+				setInputEditing(input, false);
+			}
 
 			me.ClearInput(input);
 		});
@@ -2695,7 +2770,7 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Dom.SetCaretPosition(txtPrimary, 0);
 		}
 
-		// Remove placeholder in case it was added using this._internal.ClearInputAndShowPlaceholder()
+		// Remove placeholder in case it was added using this._internal.ClearInputForSearch()
 
 		updatePlaceholder(true);
 

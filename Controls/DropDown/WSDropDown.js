@@ -23,6 +23,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var hideLinesForFlatData = true;
 	var dataRequested = false;		// Flag indicating whether TreeView data has been requested or not - determines whether a call to ensureTreeViewData() actually loads data or not
 	var dataLoading = false;		// Flag indicating whether TreeView data is currently being loaded by WSDropDown internals (awaiting response) - will not be True when user expand nodes to load children, or when invoking e.g. dd.GetTreeView.Reload()
+	var nodesPopulated = false;		// Flag indicating whether TreeView root nodes have been populated - contrary to dataLoading this flag is set when a potentially partial portion of the data has been loaded
 	var requestCount = 0;			// Counter to keep track of nodes for which data is currently being loaded, no matter how it was being loaded (via WSDropDown internals, programmatically on WSTreeView from external code, or by user expanding nodes)
 	var onDataLoadedCallback = [];
 	var suppressTreeOnOpen = false;
@@ -32,6 +33,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var autoUpdatedSelections = null; // Cached result from AutoUpdateSelected: [{ Title:string, Value:string, Exists:boolean }, ...]
 	var useActionMenu = false;
 	var useActionMenuForced = false;
+	var useActionMenuAfterLoad = true;
 	var translations = null;
 
 	var onRequestHandlers = [];
@@ -148,22 +150,6 @@ Fit.Controls.WSDropDown = function(ctlId)
 				{
 					fireOnDataLoaded();
 				}
-
-				// If no data is returned and DropDown is in TextSelectionMode, the user will
-				// not have an easy way to remove objects from the DropDown, unless SelectionModeToggle
-				// is true. Therefore we allow for items to be removed using an action menu.
-				// EDIT: Now displays action menu in both Visual and Text Selection Mode for consistency.
-
-				if (useActionMenuForced === false)
-				{
-					useActionMenu = eventArgs.Children.length === 0;
-				}
-
-				if (/*me.TextSelectionMode() === true &&*/ useActionMenu === true)
-				{
-					updateActionMenu();
-					me.SetPicker(actionMenu);
-				}
 			}
 		});
 		tree.OnAbort(function(sender, eventArgs)
@@ -184,6 +170,30 @@ Fit.Controls.WSDropDown = function(ctlId)
 		});
 		tree.OnPopulated(function(sender, eventArgs)
 		{
+			nodesPopulated = true;
+
+			// If no data is returned and DropDown is in TextSelectionMode, the user will
+			// not be able to remove objects from the DropDown, unless SelectionModeToggle
+			// is true. Therefore we allow for items to be removed using an action menu.
+			// EDIT: Now displays action menu in both Visual and Text Selection Mode for consistency.
+
+			if (useActionMenuForced === false)
+			{
+				useActionMenu = tree.GetChildren().length === 0;
+			}
+
+			if (/*me.TextSelectionMode() === true &&*/ useActionMenu === true)
+			{
+				updateActionMenu();
+
+				if (useActionMenuAfterLoad === true || tree.GetChildren().length === 0)
+				{
+					me.SetPicker(actionMenu);
+				}
+			}
+
+			// Helper lines
+
 			if (hideLinesForFlatData === true && tree.Lines() === true) // Lines are off by default but might have been enabled like so: dd.GetTreeView().Lines(true)
 			{
 				// Disable helper lines if no children are contained
@@ -263,11 +273,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 		{
 			if (item.Value === "SearchMore")
 			{
-				me._internal.ClearInputAndShowPlaceholder(true); // NOTICE: TextSelectionMode only - Visual Selection Mode cannot be temporarily cleared to display the place holder
+				me._internal.ClearInputForSearch();
 			}
 			else if (item.Value === "ShowAll")
 			{
+				me._internal.UndoClearInputForSearch(); // In case user first picked SearchMore, changed their mind, and then selected ShowAll
+
+				useActionMenuAfterLoad = false;
+
 				me.SetPicker(tree);
+				ensureTreeViewData();
 			}
 			else if (item.Value === "RemoveAll")
 			{
@@ -360,12 +375,22 @@ Fit.Controls.WSDropDown = function(ctlId)
 				return;
 			}
 
-			if (useActionMenu === true)
+			// Do not show action menu if the only option available is ShowAll.
+			// In this case the user will not be able to select SeachMore, and
+			// there is no selected items that can be removed from the control.
+			var onlyShowAllOptionDisplayedInActionMenu = actionMenu.GetItems().length === 1 && actionMenu.HasItem("ShowAll") === true;
+
+			if (useActionMenu === true && onlyShowAllOptionDisplayedInActionMenu === false)
 			{
 				me.SetPicker(actionMenu);
 			}
 			else
 			{
+				if (onlyShowAllOptionDisplayedInActionMenu === true)
+				{
+					useActionMenuAfterLoad = false;
+				}
+
 				me.SetPicker(tree);
 				ensureTreeViewData();
 			}
@@ -436,6 +461,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 
 		dataLoading = true;
+		nodesPopulated = false;
 
 		var ensure = function()
 		{
@@ -581,10 +607,6 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 	}
 
-	/// <function container="Fit.Controls.WSDropDown" name="MultiSelectionMode" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether control allows for multiple selections simultaneously </description>
-	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables support for multiple selections, False disables it </param>
-	/// </function>
 	this.MultiSelectionMode = Fit.Core.CreateOverride(this.MultiSelectionMode, function(val)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
@@ -595,6 +617,19 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 
 		return base(val);
+	});
+
+	this.InputEnabled = Fit.Core.CreateOverride(this.InputEnabled, function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && base() !== val)
+		{
+			base(val);
+			updateActionMenu(); // Update action menu to have SearchMore action added/removed depending on whether input is allowed or not
+		}
+
+		return base();
 	});
 
 	/// <function container="Fit.Controls.WSDropDown" name="GetListView" access="public" returns="Fit.Controls.WSListView">
@@ -664,7 +699,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = translations = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = nodesPopulated = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = translations = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -791,6 +826,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		if (dataRequested === false)
 		{
 			dataLoading = true;
+			nodesPopulated = false;
 
 			tree.Reload(true, function(sender)
 			{
@@ -871,11 +907,18 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		actionMenu.RemoveItems();
 
-		actionMenu.AddItem(searchIcon + translations.SearchMore, "SearchMore");
+		if (me.InputEnabled() === true)
+		{
+			actionMenu.AddItem(searchIcon + translations.SearchMore, "SearchMore");
+		}
 
-		if (dataRequested === false || tree.GetChildren().length > 0)
+		if (nodesPopulated === false || tree.GetChildren().length > 0)
 		{
 			actionMenu.AddItem(showAllIcon + translations.ShowAllOptions, "ShowAll");
+		}
+		else //if (nodesPopulated === true && tree.GetChildren().length === 0)
+		{
+			actionMenu.AddItem(showAllIcon + "<i>" + translations.NoneAvailable + ": " + translations.ShowAllOptions + "</i>", "ShowAllNoneFound");
 		}
 
 		if (addRemoveAll === true)
