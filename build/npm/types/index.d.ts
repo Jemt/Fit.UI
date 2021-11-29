@@ -6059,13 +6059,6 @@ declare namespace Fit
 			*/
 			public JsonpCallback(val?:string | null):string | null;
 			/**
-			* Get/set value indicating whether control allows for multiple selections simultaneously.
-			* @function MultiSelectionMode
-			* @param {boolean} [val=undefined] - If defined, True enables support for multiple selections, False disables it.
-			* @returns boolean
-			*/
-			public MultiSelectionMode(val?:boolean):boolean;
-			/**
 			* Add event handler fired if data request is canceled.
 			Function receives two arguments:
 			Sender (Fit.Controls.WSDropDown) and EventArgs object.
