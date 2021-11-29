@@ -58,7 +58,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		// Create ListView
 
-		list = new Fit.Controls.WSListView(ctlId + "__WSListView");
+		list = new Fit.Controls.WSListView(me.GetId() + "__WSListView");
 		list.OnRequest(function(sender, eventArgs)
 		{
 			if (fireEventHandlers(onRequestHandlers, list, eventArgs) === false)
@@ -110,7 +110,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		// Create TreeView
 
-		tree = new Fit.Controls.WSTreeView(ctlId + "__WSTreeView");
+		tree = new Fit.Controls.WSTreeView(me.GetId() + "__WSTreeView");
 		tree.Selectable(true); // Make nodes selectable by default when added
 		tree.Width(100, "%");
 		//tree.Lines(true); // DISABLED - lines do not scale with font size
@@ -268,7 +268,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		var skipUpdateActionMenuOnChange = false;
 
-		actionMenu = new Fit.Controls.ListView(ctlId + "__ActionsListView");
+		actionMenu = new Fit.Controls.ListView(me.GetId() + "__ActionsListView");
 		actionMenu.OnSelect(function(sender, item) // Using OnSelect instead of OnItemSelectionChanging since DropDown fires OnItemSelectionChanging when selection is changed, which would result in OnItemSelectionChanging being executed multiple times
 		{
 			if (item.Value === "SearchMore")
