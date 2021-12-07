@@ -13,11 +13,13 @@
 			{
 				InvalidSelection		: "Invalid selection",
 
-				SearchMore				: "Search for more options",
-				ShowAllOptions			: "Show all available options",
+				// WSDropDown
+				Search					: "Search..",
+				SearchMore				: "Search for options",
+				ShowAllOptions			: "Show available options",
 				RemoveAll				: "Remove all selected",
 				Remove					: "Remove",
-				NoneAvailable			: "None available"
+				NoneAvailable			: "The list is empty"
 			}
 		},
 		"da":
@@ -26,11 +28,13 @@
 			{
 				InvalidSelection		: "Ugyldigt valg",
 
-				SearchMore				: "Søg efter flere valgmuligheder",
-				ShowAllOptions			: "Vis alle tilgængelige valgmuligheder",
+				// WSDropDown
+				Search					: "Søg..",
+				SearchMore				: "Søg efter valgmuligheder",
+				ShowAllOptions			: "Vis tilgængelige valgmuligheder",
 				RemoveAll				: "Fjern alle valgte",
 				Remove					: "Fjern",
-				NoneAvailable			: "Ingen tilgængelige"
+				NoneAvailable			: "Listen er tom"
 			}
 		},
 		"de":
@@ -39,11 +43,13 @@
 			{
 				InvalidSelection		: "Ungültige Auswahl",
 
-				SearchMore				: "Nach weiteren Optionen suchen",
-				ShowAllOptions			: "Alle verfügbaren Optionen anzeigen",
+				// WSDropDown
+				Search					: "Suchen..",
+				SearchMore				: "Nach Optionen suchen",
+				ShowAllOptions			: "Verfügbare Optionen anzeigen",
 				RemoveAll				: "Alle ausgewählten entfernen",
 				Remove					: "Entfernen",
-				NoneAvailable			: "Keine verfügbar"
+				NoneAvailable			: "Die Liste ist leer"
 			}
 		}
 	}

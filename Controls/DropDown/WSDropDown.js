@@ -34,6 +34,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var useActionMenu = false;
 	var useActionMenuForced = false;
 	var useActionMenuAfterLoad = true;
+	var treeViewEnabled = true;
+	var orgPlaceholder = this.Placeholder;
+	var customPlaceholderSet = false;
 	var translations = null;
 
 	var onRequestHandlers = [];
@@ -378,21 +381,29 @@ Fit.Controls.WSDropDown = function(ctlId)
 			// Do not show action menu if the only option available is ShowAll.
 			// In this case the user will not be able to select SeachMore, and
 			// there is no selected items that can be removed from the control.
-			var onlyShowAllOptionDisplayedInActionMenu = actionMenu.GetItems().length === 1 && actionMenu.HasItem("ShowAll") === true;
+			// In this case we ignore useActionMenu === true, even when useActionMenuForced is true.
+			var onlyTheShowAllOptionIsDisplayedInActionMenu = actionMenu.GetItems().length === 1 && actionMenu.HasItem("ShowAll") === true;
 
-			if (useActionMenu === true && onlyShowAllOptionDisplayedInActionMenu === false)
+			if (useActionMenu === true && onlyTheShowAllOptionIsDisplayedInActionMenu === false)
 			{
 				me.SetPicker(actionMenu);
 			}
 			else
 			{
-				if (onlyShowAllOptionDisplayedInActionMenu === true)
+				if (onlyTheShowAllOptionIsDisplayedInActionMenu === true)
 				{
 					useActionMenuAfterLoad = false;
 				}
 
-				me.SetPicker(tree);
-				ensureTreeViewData();
+				if (treeViewEnabled === true)
+				{
+					me.SetPicker(tree);
+					ensureTreeViewData();
+				}
+				else
+				{
+					list.RemoveItems(); // Do not show previous search results again
+				}
 			}
 		});
 
@@ -626,10 +637,96 @@ Fit.Controls.WSDropDown = function(ctlId)
 		if (Fit.Validation.IsSet(val) === true && base() !== val)
 		{
 			base(val);
-			updateActionMenu(); // Update action menu to have SearchMore action added/removed depending on whether input is allowed or not
+			localize(); // Add/remove placeholder depending on whether input is enabled or not - also calls updateActionMenu() which will make sure SearchMore action is added/removed depending on whether input is enabled or not
+
+			if (val === false && me.GetPicker() === list)
+			{
+				me.SetPicker(null); // Which picker to use is decided in the OnOpen handler
+			}
 		}
 
 		return base();
+	});
+
+	/// <function container="Fit.Controls.WSDropDown" name="TreeViewEnabled" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether TreeView control is enabled or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables TreeView (default), False disables it </param>
+	/// </function>
+	this.TreeViewEnabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== treeViewEnabled)
+		{
+			treeViewEnabled = val;
+
+			if (useActionMenuForced === false)
+			{
+				// Use action menu if there is no data to display
+
+				if (val === true)
+				{
+					useActionMenu = nodesPopulated === false || tree.GetChildren().length === 0;
+				}
+				else
+				{
+					useActionMenu = true; // User must search to retrieve available options
+				}
+			}
+
+			if (val === false && me.GetPicker() === tree)
+			{
+				me.SetPicker(null); // Which picker to use is decided in the OnOpen handler
+			}
+
+			updateActionMenu(); // Update action menu to have ShowAll action added/removed depending on whether TreeView is enabled or not
+		}
+
+		return treeViewEnabled;
+	}
+
+	/// <function container="Fit.Controls.WSDropDown" name="ListViewEnabled" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set flag indicating whether searchable ListView is enabled or not.
+	/// 		The value provided also determines the value for InputEnabled and vice versa.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables ListView and search capability (default), False disables it </param>
+	/// </function>
+	this.ListViewEnabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+		return me.InputEnabled(val);
+	}
+
+	this.Placeholder = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+
+		customPlaceholderSet = true;
+		return orgPlaceholder(val);
+	}
+
+	this.OpenDropDown = Fit.Core.CreateOverride(this.OpenDropDown, function()
+	{
+		if (me.InputEnabled() === true && me.GetInputValue() === "" && me.GetSelections().length === 0 && treeViewEnabled === false)
+		{
+			// Do not open DropDown - it will only contain "Search for more options"
+			// when no items are currently selected and TreeView is disabled, and no
+			// search value has been entered yet.
+			// The control will display "Search.." (or a custom placeholder), making it
+			// obvious what the user need to do to get data - no need to display the action menu.
+
+			if (Fit.Browser.GetInfo().IsMobile === true)
+			{
+				// Focus input on mobile, even if DropDown was opened using
+				// the arrow icon - this will bring up the virtual keyboard.
+				this._internal.ForceFocusMobile();
+			}
+
+			return;
+		}
+
+		base();
 	});
 
 	/// <function container="Fit.Controls.WSDropDown" name="GetListView" access="public" returns="Fit.Controls.WSListView">
@@ -649,7 +746,21 @@ Fit.Controls.WSDropDown = function(ctlId)
 	}
 
 	/// <function container="Fit.Controls.WSDropDown" name="UseActionMenu" access="public">
-	/// 	<description> Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items </description>
+	/// 	<description>
+	/// 		Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items.
+	/// 		If this property is not explicitly set, it will automatically be changed by the control depending on data and other settings.
+	/// 		The action menu will be enabled if TreeViewEnabled is set to False, as it would otherwise not show anything unless the user
+	/// 		enters a search value. If TreeViewEnabled is True but no data is provided to the TreeView control upon request, the action menu
+	/// 		is also enabled.
+	/// 		If the control does not have any selections, InputEnabled (or its alias ListViewEnabled) is True, and TreeViewEnabled is False,
+	/// 		no picker will be displayed since the action menu would only display the &quot;Search for options&quot; item - but it should already
+	/// 		be obvious to the user that searching is required due to the placeholder displaying &quot;Search..&quot; by default.
+	/// 		Likewise, if TreeViewEnabled is True and InputEnabled (or its alias ListViewEnabled) is False, and no selections are made,
+	/// 		the action menu would only display &quot;Show available options&quot;. In this case the TreeView will be displayed instead,
+	/// 		even if UseActionMenu has explicitely been set to True.
+	/// 		The behaviour described is in place to make sure the action menu is only displayed when it makes sense, since it introduces
+	/// 		and extra step (click) required by the user to access data.
+	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables the action menu, False disables it </param>
 	/// </function>
 	this.UseActionMenu = function(val)
@@ -699,7 +810,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = nodesPopulated = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = translations = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = nodesPopulated = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -912,13 +1023,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 			actionMenu.AddItem(searchIcon + translations.SearchMore, "SearchMore");
 		}
 
-		if (nodesPopulated === false || tree.GetChildren().length > 0)
+		if (treeViewEnabled === true)
 		{
-			actionMenu.AddItem(showAllIcon + translations.ShowAllOptions, "ShowAll");
-		}
-		else //if (nodesPopulated === true && tree.GetChildren().length === 0)
-		{
-			actionMenu.AddItem(showAllIcon + "<i>" + translations.NoneAvailable + ": " + translations.ShowAllOptions + "</i>", "ShowAllNoneFound");
+			if (nodesPopulated === false || tree.GetChildren().length > 0)
+			{
+				actionMenu.AddItem(showAllIcon + translations.ShowAllOptions, "ShowAll");
+			}
+			else //if (nodesPopulated === true && tree.GetChildren().length === 0)
+			{
+				actionMenu.AddItem(showAllIcon + "<i>" + translations.NoneAvailable + ": " + translations.ShowAllOptions + "</i>", "ShowAllNoneFound");
+			}
 		}
 
 		if (addRemoveAll === true)
@@ -938,6 +1052,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 		translations = locale.Translations;
 
 		updateActionMenu();
+
+		if (customPlaceholderSet === false)
+		{
+			orgPlaceholder(me.InputEnabled() === true ? translations.Search : "");
+		}
 	}
 
 	function onDataLoaded(cb)

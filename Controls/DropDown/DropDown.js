@@ -1733,6 +1733,13 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 	}
 
+	// Focus input field on mobile and keep it focused, even if DropDown was opened using arrow icon
+	this._internal.ForceFocusMobile = function()
+	{
+		focusInputOnMobile = true;
+		focusInput(txtPrimary);
+	}
+
 	// ============================================
 	// Private
 	// ============================================
