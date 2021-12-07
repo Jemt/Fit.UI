@@ -6059,6 +6059,14 @@ declare namespace Fit
 			*/
 			public JsonpCallback(val?:string | null):string | null;
 			/**
+			* Get/set flag indicating whether searchable ListView is enabled or not.
+			The value provided also determines the value for InputEnabled and vice versa.
+			* @function ListViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables ListView and search capability (default), False disables it.
+			* @returns boolean
+			*/
+			public ListViewEnabled(val?:boolean):boolean;
+			/**
 			* Add event handler fired if data request is canceled.
 			Function receives two arguments:
 			Sender (Fit.Controls.WSDropDown) and EventArgs object.
@@ -6105,6 +6113,13 @@ declare namespace Fit
 			*/
 			public OnResponse(cb:Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>):void;
 			/**
+			* Get/set value indicating whether TreeView control is enabled or not.
+			* @function TreeViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables TreeView (default), False disables it.
+			* @returns boolean
+			*/
+			public TreeViewEnabled(val?:boolean):boolean;
+			/**
 			* Get/set URL to WebService responsible for providing data to drop down.
 			WebService must deliver data in the following JSON format:
 			[
@@ -6121,6 +6136,18 @@ declare namespace Fit
 			public Url(wsUrl?:string):string;
 			/**
 			* Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items.
+			If this property is not explicitly set, it will automatically be changed by the control depending on data and other settings.
+			The action menu will be enabled if TreeViewEnabled is set to False, as it would otherwise not show anything unless the user
+			enters a search value. If TreeViewEnabled is True but no data is provided to the TreeView control upon request, the action menu
+			is also enabled.
+			If the control does not have any selections, InputEnabled (or its alias ListViewEnabled) is True, and TreeViewEnabled is False,
+			no picker will be displayed since the action menu would only display the "Search for options" item - but it should already
+			be obvious to the user that searching is required due to the placeholder displaying "Search.." by default.
+			Likewise, if TreeViewEnabled is True and InputEnabled (or its alias ListViewEnabled) is False, and no selections are made,
+			the action menu would only display "Show available options". In this case the TreeView will be displayed instead,
+			even if UseActionMenu has explicitely been set to True.
+			The behaviour described is in place to make sure the action menu is only displayed when it makes sense, since it introduces
+			and extra step (click) required by the user to access data.
 			* @function UseActionMenu
 			* @param {boolean} [val=undefined] - If defined, True enables the action menu, False disables it.
 			*/
