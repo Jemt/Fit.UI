@@ -297,7 +297,17 @@ Fit.Controls.Input = function(ctlId)
 		if (designEditor !== null)
 		{
 			var val = CKEDITOR.instances[me.GetId() + "_DesignMode"].getData();
-			val = val.replace(/<\/p>\n$/, "</p>"); // Remove extra line break added by htmlwriter plugin at the end: <p>Hello world</p>\n
+
+			// Remove extra line break added by htmlwriter plugin at the end: <p>Hello world</p>\n
+			val = val.replace(/<\/p>\n$/, "</p>");
+
+			// Remove empty class attribute on <img> tags which may be temporarily set when selecting
+			// an image using the dragresize plugin. This plugin adds a CSS class (ckimgrsz) to the image
+			// tag while being selected, although the class name is removed when calling getData() above.
+			// However, the empty class attribute is useless, so we remove it. It also results in IsDirty()
+			// returning True while the image is selected if we keep it. Actually the class attribute should
+			// never have been returned since the allowedContent option does not allow it - might be a minor bug.
+			val = val.replace(/(<img.*?) class=""(.*?>)/, "$1$2"); // Not using /g switch as only one image can be selected
 
 			return val;
 		}
