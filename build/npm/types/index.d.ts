@@ -10485,10 +10485,10 @@ declare namespace Fit
 					// Properties defined by Fit._internal.Controls.Input.Editor
 					/**
 					* Additional plugins used with DesignMode.
-					* @member {('justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[]} Plugins
+					* @member {('htmlwriter' | 'justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[]} Plugins
 					* @static
 					*/
-					static Plugins:('justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[];
+					static Plugins:('htmlwriter' | 'justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[];
 					/**
 					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
 					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
