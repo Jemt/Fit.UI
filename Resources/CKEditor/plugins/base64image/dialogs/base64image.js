@@ -237,45 +237,50 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 	}
 
 	/* Set image dimensions */
-	function imageDimensions(src) {
+	function imageDimensions(src, forceUpdate) {
 		var o = getImageDimensions();
 		if (o.err) { // User entered an invalid value - restore to latest valid values applied
 			t.getContentElement("tab-properties", "width").setValue(prevValidWidth);
 			t.getContentElement("tab-properties", "height").setValue(prevValidHeight);
 			return;
 		}
-		var u = "px";
-		if(src == "width") {
-			if (prevValidWidth === o.w + (o.uw !== "px" ? o.uw : "")) return; // User did not change value - avoid decimal adjustment on tab navigation
-			if(o.uw == "%") u = "%";
-			else if(o.uw == "em") u = "em";
-			if (u === "px") {
-				o.h = Math.round(o.w / imgScal);
-			} else { // em or % where values might be small so we need better precision to avoid stretching image (e.g. 2em x 0.5em)
-				o.h = roundWithDecimals(o.w / imgScal, 2);
+		if (lock) {
+			var u = "px";
+			if(src == "width") {
+				if (forceUpdate !== true && prevValidWidth === o.w + (o.uw !== "px" ? o.uw : "")) return; // User did not change value - avoid decimal adjustment on tab navigation
+				if(o.uw == "%") u = "%";
+				else if(o.uw == "em") u = "em";
+				if (u === "px") {
+					o.h = Math.round(o.w / imgScal);
+				} else { // em or % where values might be small so we need better precision to avoid stretching image (e.g. 2em x 0.5em)
+					o.h = roundWithDecimals(o.w / imgScal, 2);
+				}
+			} else {
+				if (forceUpdate !== true && prevValidHeight === o.h + (o.uh !== "px" ? o.uh : "")) return; // User did not change value - avoid decimal adjustment on tab navigation
+				if(o.uh == "%") u = "%";
+				else if(o.uh == "em") u = "em";
+				if (u === "px") {
+					o.w = Math.round(o.h * imgScal);
+				} else { // em or % where values might be small so we need better precision to avoid stretching image (e.g. 2em x 0.5em)
+					o.w = roundWithDecimals(o.h * imgScal, 2);
+				}
 			}
+			if(u == "%") {
+				o.w += "%";
+				o.h += "%";
+			}
+			else if(u == "em") {
+				o.w += "em";
+				o.h += "em";
+			}
+			t.getContentElement("tab-properties", "width").setValue(o.w.toString());
+			t.getContentElement("tab-properties", "height").setValue(o.h.toString());
+			prevValidWidth = o.w.toString();
+			prevValidHeight = o.h.toString();
 		} else {
-			if (prevValidHeight === o.h + (o.uh !== "px" ? o.uh : "")) return; // User did not change value - avoid decimal adjustment on tab navigation
-			if(o.uh == "%") u = "%";
-			else if(o.uh == "em") u = "em";
-			if (u === "px") {
-				o.w = Math.round(o.h * imgScal);
-			} else { // em or % where values might be small so we need better precision to avoid stretching image (e.g. 2em x 0.5em)
-				o.w = roundWithDecimals(o.h * imgScal, 2);
-			}
+			prevValidWidth = o.w + (o.uw !== "px" ? o.uw : "");
+			prevValidHeight = o.h + (o.uh !== "px" ? o.uh : "");
 		}
-		if(u == "%") {
-			o.w += "%";
-			o.h += "%";
-		}
-		else if(u == "em") {
-			o.w += "em";
-			o.h += "em";
-		}
-		t.getContentElement("tab-properties", "width").setValue(o.w.toString());
-		t.getContentElement("tab-properties", "height").setValue(o.h.toString());
-		prevValidWidth = o.w.toString();
-		prevValidHeight = o.h.toString();
 	}
 
 	/* Set number value */
@@ -399,12 +404,12 @@ CKEDITOR.dialog.add("base64imageDialog", function(editor){
 			/* Constrain proportions or not */
 			this.getContentElement("tab-properties", "lock").getInputElement().on("click", function(){
 				if(this.getValue()) lock = true; else lock = false;
-				if(lock) imageDimensions("width");
+				imageDimensions("width", true);
 			}, this.getContentElement("tab-properties", "lock"));
 
 			/* Change Attributes Events  */
-			this.getContentElement("tab-properties", "width").getInputElement().on("blur", function(){ if(lock) imageDimensions("width"); });
-			this.getContentElement("tab-properties", "height").getInputElement().on("blur", function(){ if(lock) imageDimensions("height"); });
+			this.getContentElement("tab-properties", "width").getInputElement().on("blur", function(){ imageDimensions("width"); });
+			this.getContentElement("tab-properties", "height").getInputElement().on("blur", function(){ imageDimensions("height"); });
 			this.getContentElement("tab-properties", "vmargin").getInputElement().on("blur", function(){ setNumberValue(this); }, this.getContentElement("tab-properties", "vmargin"));
 			this.getContentElement("tab-properties", "hmargin").getInputElement().on("blur", function(){ setNumberValue(this); }, this.getContentElement("tab-properties", "hmargin"));
 			this.getContentElement("tab-properties", "border").getInputElement().on("blur", function(){ setNumberValue(this); }, this.getContentElement("tab-properties", "border"));
