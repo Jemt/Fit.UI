@@ -1336,6 +1336,7 @@ Fit.Controls.Input = function(ctlId)
 			title: "",
 			startupFocus: focused === true ? "end" : false,
 			extraPlugins: Fit._internal.Controls.Input.Editor.Plugins.join(","), // "justify,pastefromword,base64image,base64imagepaste,dragresize",
+			clipboard_handleImages: false, // Disable native support for image pasting - allow base64imagepaste plugin to handle image data if loaded
 			base64image: // Custom property used by base64image plugin if loaded
 			{
 				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
