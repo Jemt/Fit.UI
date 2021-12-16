@@ -295,7 +295,12 @@ Fit.Controls.Input = function(ctlId)
 		}
 
 		if (designEditor !== null)
-			return CKEDITOR.instances[me.GetId() + "_DesignMode"].getData();
+		{
+			var val = CKEDITOR.instances[me.GetId() + "_DesignMode"].getData();
+			val = val.replace(/<\/p>\n$/, "</p>"); // Remove extra line break added by htmlwriter plugin at the end: <p>Hello world</p>\n
+
+			return val;
+		}
 
 		return input.value;
 	}
@@ -914,6 +919,16 @@ Fit.Controls.Input = function(ctlId)
 						{
 							CKEDITOR.config.skin = Fit._internal.Controls.Input.Editor.Skin;
 						}
+
+						CKEDITOR.on("instanceReady", function(ev)
+						{
+							// Do not produce XHTML self-closing tags such as <br /> and <img src="img.jpg" />
+							// https://ckeditor.com/docs/ckeditor4/latest/features/output_format.html
+							// NOTICE: The htmlwriter plugin is required for this to work!
+							// Output produced is now both HTML4 and HTML5 compatible, but is not valid
+							// XHTML anymore! Self-closing tags are allowed in HTML5 but not valid in HTML4.
+							ev.editor.dataProcessor.writer.selfClosingEnd = ">"; // Defaults to ' />'
+						});
 
 						// Register OnShow and OnHide event handlers when a dialog is opened for the first time.
 						// IMPORTANT: These event handlers are shared by all input control instances in Design Mode,
@@ -1711,10 +1726,10 @@ Fit._internal.Controls.Input.Editor =
 	/// </member>
 	Skin: null, // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created
 
-	/// <member container="Fit._internal.Controls.Input.Editor" name="Plugins" access="public" static="true" type="('justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
+	/// <member container="Fit._internal.Controls.Input.Editor" name="Plugins" access="public" static="true" type="('htmlwriter' | 'justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
 	/// 	<description> Additional plugins used with DesignMode </description>
 	/// </member>
-	Plugins: ["justify", "pastefromword", "resize" /*"base64image", "base64imagepaste", "dragresize"*/], // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
+	Plugins: ["htmlwriter", "justify", "pastefromword", "resize" /*"base64image", "base64imagepaste", "dragresize"*/], // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
 
 	/// <member container="Fit._internal.Controls.Input.Editor" name="Toolbar" access="public" static="true" type="( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]">
 	/// 	<description> Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins) </description>
