@@ -280,7 +280,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			}
 			else if (item.Value === "ShowAll")
 			{
-				me._internal.UndoClearInputForSearch(); // In case user first picked SearchMore, changed their mind, and then selected ShowAll
+				me._internal.UndoClearInputForSearch(); // In case user first picked SearchMore, entered a search value, changed their mind, and then selected ShowAll
 
 				useActionMenuAfterLoad = false;
 
@@ -698,6 +698,19 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return me.InputEnabled(val);
 	}
 
+	this.SearchModeOnFocus = Fit.Core.CreateOverride(this.SearchModeOnFocus, function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== base())
+		{
+			base(val);
+			updateActionMenu(); // Add/remove search option depending on whether SearchModeOnFocus is enabled or not
+		}
+
+		return base();
+	});
+
 	this.Placeholder = function(val)
 	{
 		Fit.Validation.ExpectString(val, true);
@@ -1018,7 +1031,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		actionMenu.RemoveItems();
 
-		if (me.InputEnabled() === true)
+		if (me.InputEnabled() === true && me.SearchModeOnFocus() === false)
 		{
 			actionMenu.AddItem(searchIcon + translations.SearchMore, "SearchMore");
 		}
@@ -1031,7 +1044,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			}
 			else //if (nodesPopulated === true && tree.GetChildren().length === 0)
 			{
-				actionMenu.AddItem(showAllIcon + "<i>" + translations.NoneAvailable + ": " + translations.ShowAllOptions + "</i>", "ShowAllNoneFound");
+				actionMenu.AddItem(showAllIcon + "<i>" + translations.NoneAvailable + "</i>", "ShowAllNoneFound");
 			}
 		}
 

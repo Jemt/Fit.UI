@@ -19,7 +19,7 @@
 				ShowAllOptions			: "Show available options",
 				RemoveAll				: "Remove all selected",
 				Remove					: "Remove",
-				NoneAvailable			: "The list is empty"
+				NoneAvailable			: "List with options is empty"
 			}
 		},
 		"da":
@@ -34,7 +34,7 @@
 				ShowAllOptions			: "Vis tilgængelige valgmuligheder",
 				RemoveAll				: "Fjern alle valgte",
 				Remove					: "Fjern",
-				NoneAvailable			: "Listen er tom"
+				NoneAvailable			: "Liste med valgmuligheder er tom"
 			}
 		},
 		"de":
@@ -49,7 +49,7 @@
 				ShowAllOptions			: "Verfügbare Optionen anzeigen",
 				RemoveAll				: "Alle ausgewählten entfernen",
 				Remove					: "Entfernen",
-				NoneAvailable			: "Die Liste ist leer"
+				NoneAvailable			: "Liste der Optionen ist leer"
 			}
 		}
 	}

@@ -41,6 +41,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var detectBoundariesRelToViewPort = false;	// Flag indicating whether drop down menu should be positioned relative to viewport (true) or scroll parent (false)
 	var persistView = false;					// Flag indicating whether picker controls should remember and restore its scroll position and highlighted item when reopened
 	var highlightFirst = false;					// Flag indicating whether picker controls should focus its first node automatically when opened
+	var searchModeOnFocus = false;				// Flag indicating whether control goes into search mode when it is focused (search mode clears input field and displays "search.." placeholder)
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -286,6 +287,53 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		});
 
+		// Support for SearchModeOnFocus
+
+		me.OnFocus(function(sender)
+		{
+			if (searchModeOnFocus === true)
+			{
+				searchModeOnFocus = false; // Temporarily disable searchModeOnFocus to allow setInputEditing(..) (which is called by ClearInputForSearch(..)) to change editing state for txtPrimary
+				me._internal.ClearInputForSearch(true); // True = keep DropDown open - do not auto close it
+				searchModeOnFocus = true;
+			}
+		});
+
+		me.OnBlur(function()
+		{
+			if (searchModeOnFocus === true)
+			{
+				searchModeOnFocus = false; // Temporarily disable searchModeOnFocus to allow setInputEditing(..) to change editing state for txtPrimary
+				me._internal.UndoClearInputForSearch();
+				searchModeOnFocus = true;
+			}
+		});
+
+		me.OnChange(function()
+		{
+			// Determine whether value was changed by user or programmatically,
+			// so placeholder is not set when value is assigned programmatically.
+			// Control might not be focused on mobile if opened using arrow icon.
+			// In this case we simply use the DropDown's opened state instead.
+			var controlIsActive = me.Focused() === true || me.IsDropDownOpen() === true;
+
+			if (searchModeOnFocus === true && controlIsActive === true)
+			{
+				if (me.GetSelections().length === 0)
+				{
+					// DropDown has a synthetic placeholder which is displayed
+					// when no items are selected. Remove placeholder from input
+					// field so we do not get two placeholders on top of each other.
+					txtPrimary.placeholder = "";
+				}
+				else
+				{
+					// Display placeholder in input field when items are selected
+					txtPrimary.placeholder = me.Placeholder();
+				}
+			}
+		});
+
 		// PickerBase - make picker aware of focused state of host control
 
 		me.OnFocus(function()
@@ -516,7 +564,7 @@ Fit.Controls.DropDown = function(ctlId)
 			itemDropZones[key].Dispose();
 		});
 
-		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
+		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = searchModeOnFocus = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
@@ -1507,9 +1555,30 @@ Fit.Controls.DropDown = function(ctlId)
 		if (Fit._internal.DropDown.Current !== null && Fit._internal.DropDown.Current !== me)
 			Fit._internal.DropDown.Current.CloseDropDown();
 
-		if (txtActive === txtPrimary && me.GetInputValue() === "")
+		if (searchModeOnFocus === false && me.TextSelectionMode() === false && txtActive === txtPrimary && me.GetInputValue() === "")
 		{
-			me._internal.UndoClearInputForSearch();
+			// Visual Selection Mode with SearchModeOnFocus (which keeps txtPrimary locked in place) disabled:
+
+			// When placing the control in search mode temporarily (not "locked" by
+			// SearchModeOnFocus) via me._internal.ClearInputForSearch() or by entering a value
+			// in txtPrimary, the input control "word wraps" to a new line. When it lose focus,
+			// it returns to its normal position if it is empty.
+			// In Visual Selection Mode with SearchModeOnFocus disabled this poses a problem
+			// since interacting with the picker control results in the input control losing
+			// focus.
+			// So, if the user clicks on an item in the picker control while the control
+			// is temporarily in search mode (remember, SearchModeOnFocus is not enabled),
+			// txtPrimary lose focus, the control's height is changed because the input
+			// control returns to its normal position (it no longer "word wraps"), the picker
+			// control moves up, and the mouse button is released on another element than the
+			// one the user initially clicked on.
+			// OnClick does not fire unless the mouse button is clicked and released
+			// on the same element. So in this situation the picker control would not cause
+			// the given item to be selected. The user would have to try again.
+			// To avoid this, we exit search mode to force txtPrimary back into place when
+			// re-opening the DropDown control.
+
+			me._internal.UndoClearInputForSearch(); // Undo/exit search mode to return txtPrimary to its normal position
 		}
 
 		// Do this before displaying drop down to prevent dropdown with position:absolute
@@ -1692,8 +1761,10 @@ Fit.Controls.DropDown = function(ctlId)
 
 	this._internal = (this._internal ? this._internal : {});
 
-	this._internal.ClearInputForSearch = function()
+	this._internal.ClearInputForSearch = function(keepDropDownOpen) // Put input in search mode
 	{
+		Fit.Validation.ExpectBoolean(keepDropDownOpen, true);
+
 		if (me.TextSelectionMode() === true)
 		{
 			forceFocusInput(txtPrimary);
@@ -1717,10 +1788,13 @@ Fit.Controls.DropDown = function(ctlId)
 		// event to register interactions, which doesn't fire unless the mouse button is released
 		// on the same object it was pressed down on. We avoid this by closing the control.
 		// We close it in both Text Selection Mode and Visual Selection Mode for consistency.
-		me.CloseDropDown();
+		if (keepDropDownOpen !== true)
+		{
+			me.CloseDropDown();
+		}
 	}
 
-	this._internal.UndoClearInputForSearch = function()
+	this._internal.UndoClearInputForSearch = function() // Undo/exit search mode for input field
 	{
 		if (me.TextSelectionMode() === true)
 		{
@@ -2193,11 +2267,44 @@ Fit.Controls.DropDown = function(ctlId)
 		focusInputOnMobile = orgFocusInputOnMobile;
 	}
 
-	function setInputEditing(input, val, keepStateOnParent)
+	/// <function container="Fit.Controls.DropDown" name="SearchModeOnFocus" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Clear input and display "Search.." placeholder when control receives focus.
+	/// 		If SearchModeOnFocus is enabled, InputEnabled will also be enabled. Disabling
+	/// 		SearchModeOnFocus does not disable InputEnabled.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables search mode on focus, False disables it </param>
+	/// </function>
+	this.SearchModeOnFocus = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			searchModeOnFocus = val;
+
+			if (me.InputEnabled() === false && val === true)
+			{
+				me.InputEnabled(true);
+			}
+		}
+
+		return searchModeOnFocus;
+	}
+
+	function setInputEditing(input, val, keepStateOnParent) // Input being edited "word wraps" to separate line
 	{
 		Fit.Validation.ExpectInstance(input, HTMLInputElement);
 		Fit.Validation.ExpectBoolean(val);
 		Fit.Validation.ExpectBoolean(keepStateOnParent, true);
+
+		// Do not change editing state for txtPrimary when SearchModeOnFocus is enabled.
+		// In this case txtPrimary remains locked in editing mode so it remains visible,
+		// even when changing focus within the control and when adding or removing items.
+		if (searchModeOnFocus === true && input === txtPrimary)
+		{
+			return;
+		}
 
 		if (keepStateOnParent !== true)
 		{
