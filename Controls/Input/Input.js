@@ -14,12 +14,14 @@ Fit.Controls.Input = function(ctlId)
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
-	var orgVal = "";
-	var preVal = "";
+	var orgVal = "";	// Holds initial value used to determine IsDirty state
+	var preVal = "";	// Holds latest change made by user - used to determine whether OnChange needs to be fired
 	var input = null;
 	var cmdResize = null;
 	var designEditor = null;
-	var htmlWrappedInParagraph = false;
+	var designEditorDirty = false;
+	var designEditorDirtyPending = false;
+	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
 	var maximizeHeight = -1;
@@ -257,18 +259,32 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			var fireOnChange = (designEditor === null && me.Value() !== val); // DesignEditor invokes input.onchange() if value is changed
+			var fireOnChange = (me.Value() !== val);
 
 			orgVal = (preserveDirtyState !== true ? val : orgVal);
 			preVal = val;
+			designEditorDirty = designEditorDirtyPending === true ? true : false;
+			designEditorDirtyPending = false;
 
-			if (val.indexOf("<p>") === 0)
-				htmlWrappedInParagraph = true; // Indicates that val is comparable with value from CKEditor which wraps content in paragraphs
+			/*if (val.indexOf("<p>") === 0)
+				htmlWrappedInParagraph = true; // Indicates that val is comparable with value from CKEditor which wraps content in paragraphs*/
 
 			if (designEditor !== null)
-				CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(val);
+			{
+				// NOTICE: Invalid HTML is removed, so an all invalid HTML string will be discarded
+				// by the editor, resulting in the editor's getData() function returning an empty string.
+
+				// Calling setData(..) fires CKEditor's onchange event which in turn fires
+				// Input's OnChange event. Suppress OnChange which is fired further down.
+				me._internal.ExecuteWithNoOnChange(function()
+				{
+					CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(val);
+				});
+			}
 			else
+			{
 				input.value = val;
+			}
 
 			if (Fit._internal.Controls.Input.BlobManager.RevokeExternalBlobUrlsOnDispose === true)
 			{
@@ -296,10 +312,19 @@ Fit.Controls.Input = function(ctlId)
 
 		if (designEditor !== null)
 		{
-			var val = CKEDITOR.instances[me.GetId() + "_DesignMode"].getData();
+			// If user has not changed value, then return the value initially set.
+			// CKEditor may change (optimize) HTML when applied, but we always want
+			// the value initially set when no changes have been made by the user.
+			// See additional comments regarding this in the IsDirty() implementation.
+			if (designEditorDirty === false)
+			{
+				return orgVal;
+			}
+
+			var curVal = CKEDITOR.instances[me.GetId() + "_DesignMode"].getData();
 
 			// Remove extra line break added by htmlwriter plugin at the end: <p>Hello world</p>\n
-			val = val.replace(/<\/p>\n$/, "</p>");
+			curVal = curVal.replace(/<\/p>\n$/, "</p>");
 
 			// Remove empty class attribute on <img> tags which may be temporarily set when selecting
 			// an image using the dragresize plugin. This plugin adds a CSS class (ckimgrsz) to the image
@@ -307,17 +332,48 @@ Fit.Controls.Input = function(ctlId)
 			// However, the empty class attribute is useless, so we remove it. It also results in IsDirty()
 			// returning True while the image is selected if we keep it. Actually the class attribute should
 			// never have been returned since the allowedContent option does not allow it - might be a minor bug.
-			val = val.replace(/(<img.*?) class=""(.*?>)/, "$1$2"); // Not using /g switch as only one image can be selected
+			curVal = curVal.replace(/(<img.*?) class=""(.*?>)/, "$1$2"); // Not using /g switch as only one image can be selected
 
-			return val;
+			return curVal;
 		}
 
 		return input.value;
 	}
 
 	// See documentation on ControlBase
+	this.UserValue = Fit.Core.CreateOverride(this.UserValue, function(val)
+	{
+		if (Fit.Validation.IsSet(val) === true && designEditor !== null)
+		{
+			designEditorDirtyPending = true;
+		}
+
+		return base(val);
+	});
+
+	// See documentation on ControlBase
 	this.IsDirty = function()
 	{
+		if (designEditor !== null)
+		{
+			// Never do value comparison in DesignMode.
+			// A value such as "Hello world" could have been provided,
+			// which by CKEditor would be returned as "<p>Hello world</p>".
+			// A value such as '<p style="text-align: center;">Hello</p>' could
+			// also have been set, which by CKEditor would be optimized to
+			// '<p style="text-align:center">Hello</p>' via ACF (Advanced Content Filter):
+			// https://ckeditor.com/docs/ckeditor4/latest/guide/dev_advanced_content_filter.html
+			// Furthermore invalid HTML is removed while valid HTML is kept.
+			// All this makes it very difficult to reliably determine dirty state
+			// by comparing values. Therefore, if the user changed anything by interacting
+			// with the editor, or UserValue(..) was called, always consider the value dirty.
+
+			// Another positive of avoiding value comparison to determine dirty state
+			// is that retrieving the value from CKEditor is fairly expensive.
+
+			return designEditorDirty;
+		}
+
 		return (orgVal !== me.Value());
 	}
 
@@ -418,7 +474,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = htmlWrappedInParagraph = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDirty = designEditorDirtyPending /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -1453,6 +1509,21 @@ Fit.Controls.Input = function(ctlId)
 				},
 				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
+					if (me._internal.FireOnChangeSuppressed === true)
+					{
+						// Do not process event - it has been fired by CKEditor when HTML
+						// value was initially assigned in Value(..) which happend through
+						// me._internal.ExecuteWithNoOnChange(function() { .. }).
+						// See Value(..) implementation for details.
+						return;
+					}
+
+					// Assume value was changed by user if control has focus
+					if (designEditorDirty === false && me.Focused() === true)
+					{
+						designEditorDirty = true;
+					}
+
 					input.onkeyup();
 				},
 				resize: function() // Fires when size is changed, not just when resized using resize handle in lower right cornor
@@ -1589,7 +1660,9 @@ Fit.Controls.Input = function(ctlId)
 
 		if (newVal !== preVal)
 		{
-			if (designEditor !== null && htmlWrappedInParagraph === false) // A value not wrapped in paragraph(s) was assigned to HTML editor
+			// DISABLED: No longer necessary with the introduction of designEditorDirty which ensures
+			// that we get the initial value set from Value(), unless changed by the user using the editor.
+			/*if (designEditor !== null && htmlWrappedInParagraph === false) // A value not wrapped in paragraph(s) was assigned to HTML editor
 			{
 				// Do not trigger OnChange if the only difference is that CKEditor
 				// wrapped the value initially assigned to control in a paragraph.
@@ -1605,7 +1678,7 @@ Fit.Controls.Input = function(ctlId)
 				{
 					return; // Do not fire OnChange
 				}
-			}
+			}*/
 
 			preVal = newVal;
 			me._internal.FireOnChange();

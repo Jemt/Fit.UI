@@ -1262,6 +1262,7 @@ Fit.Controls.ControlBase = function(controlId)
 
 		var onChangeHandler = me._internal.FireOnChange;
 		me._internal.FireOnChange = function() {};
+		me._internal.FireOnChangeSuppressed = true; // Allow specialized controls to detect when OnChange event will be suppressed for performance optimizations
 
 		var error = null;
 
@@ -1275,10 +1276,12 @@ Fit.Controls.ControlBase = function(controlId)
 		}
 
 		me._internal.FireOnChange = onChangeHandler;
+		me._internal.FireOnChangeSuppressed = false;
 
 		if (error !== null)
 			Fit.Validation.ThrowError(error);
 	}
+	this._internal.FireOnChangeSuppressed = false;
 
 	this._internal.Data = function(key, val)
 	{
