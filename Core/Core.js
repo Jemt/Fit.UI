@@ -578,7 +578,7 @@ Fit._internal =
 {
 	Core:
 	{
-		VersionInfo: { Major: 2, Minor: 5, Patch: 5 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
+		VersionInfo: { Major: 2, Minor: 5, Patch: 6 } // Do NOT modify format - version numbers are programmatically changed when releasing new versions - MUST be on a separate line!
 	}
 };
 
