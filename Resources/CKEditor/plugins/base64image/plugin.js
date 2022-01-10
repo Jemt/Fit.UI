@@ -18,7 +18,7 @@ CKEDITOR.plugins.add("base64image", {
 					});
 					CKEDITOR.dialog.add(pluginName, this.path+"dialogs/base64image.js");
 
-					var allowed = 'img[alt,!src]{border-style,border-width,float,height,margin,margin-bottom,margin-left,margin-right,margin-top,width}',
+					var allowed = 'img[alt,!src]{border,float,height,margin,margin-bottom,margin-left,margin-right,margin-top,width}',
 						required = 'img[alt,src]';
 
 					editor.addCommand( pluginName, new CKEDITOR.dialogCommand( pluginName, {
