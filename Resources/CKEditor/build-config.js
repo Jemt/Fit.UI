@@ -1,5 +1,5 @@
 ﻿/**
- * @license Copyright (c) 2003-2021, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2022, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/license
  */
 
@@ -13,10 +13,10 @@
  * (1) https://ckeditor.com/cke4/builder
  *     Visit online builder to build CKEditor from scratch.
  *
- * (2) https://ckeditor.com/cke4/builder/bbc1d63088ba8737a1c0056e409130d1
+ * (2) https://ckeditor.com/cke4/builder/f02b7ebe8d997651ecdcf148e8fe1a3c
  *     Visit online builder to build CKEditor, starting with the same setup as before.
  *
- * (3) https://ckeditor.com/cke4/builder/download/bbc1d63088ba8737a1c0056e409130d1
+ * (3) https://ckeditor.com/cke4/builder/download/f02b7ebe8d997651ecdcf148e8fe1a3c
  *     Straight download link to the latest version of CKEditor (Optimized) with the same setup as before.
  *
  * NOTE:
@@ -57,13 +57,17 @@ var CKBUILDER_CONFIG = {
 		'basicstyles' : 1,
 		'clipboard' : 1,
 		'divarea' : 1,
+		'emoji' : 1,
 		'enterkey' : 1,
 		'floatingspace' : 1,
+		'htmlwriter' : 1,
 		'indentlist' : 1,
 		'justify' : 1,
 		'link' : 1,
 		'list' : 1,
+		'mentions' : 1,
 		'pastefromword' : 1,
+		'resize' : 1,
 		'toolbar' : 1,
 		'undo' : 1
 	},
