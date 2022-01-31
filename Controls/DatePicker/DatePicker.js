@@ -1143,6 +1143,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 	function moveCalenderWidgetLocally()
 	{
+		if (Fit._internal.ControlBase.ReduceDocumentRootPollution !== true)
+		{
+			return;
+		}
+
 		// We want the benefits of a connected calendar control (connected to input control),
 		// but do not want it rendered in the root of the document. It pollutes the global scope,
 		// and it doesn't work with dialogs with light dismiss, since interacting with the calendar
@@ -1218,6 +1223,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 	function moveCalenderWidgetGlobally() // Undo everything done in moveCalenderWidgetLocally()
 	{
+		if (Fit._internal.ControlBase.ReduceDocumentRootPollution !== true)
+		{
+			return;
+		}
+
 		var calendarWidget = document.getElementById("fitui-datepicker-div");
 		Fit.Dom.Add(document.body, calendarWidget);
 

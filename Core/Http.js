@@ -820,6 +820,7 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 	var timeout = 30000;
 	var timer = -1;
 	var response = null;
+	var aborted = false;
 
 	var onRequestHandlers = [];
 	var onSuccessHandlers = [];
@@ -877,6 +878,14 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 		return timeout;
 	}
 
+	/// <function container="Fit.Http.JsonpRequest" name="Abort" access="public">
+	/// 	<description> Abort request </description>
+	/// </function>
+	this.Abort = function()
+	{
+		aborted = true;
+	}
+
 	/// <function container="Fit.Http.JsonpRequest" name="SetParameter" access="public">
 	/// 	<description> Set URL parameter </description>
 	/// 	<param name="key" type="string"> URL parameter key </param>
@@ -926,6 +935,8 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 	/// </function>
 	this.Start = function()
 	{
+		aborted = false;
+
 		// Fire OnRequest handlers
 
 		if (fireEvent(onRequestHandlers) === false)
@@ -959,7 +970,10 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 			response = resp;
 			delete Fit._internal.Http.JsonpRequest.Callbacks[cbId];
 
-			fireEvent(onSuccessHandlers);
+			if (aborted === false)
+			{
+				fireEvent(onSuccessHandlers);
+			}
 		}
 
 		// Configure timeout
@@ -972,7 +986,10 @@ Fit.Http.JsonpRequest = function(uri, jsonpCallbackName)
 			// NOTICE: Do not remove callback - it would cause a JavaScript error if the situation described above occures.
 			Fit._internal.Http.JsonpRequest.Callbacks[cbId] = function(response) { };
 
-			fireEvent(onTimeoutHandlers);
+			if (aborted === false)
+			{
+				fireEvent(onTimeoutHandlers);
+			}
 		}, timeout);
 
 		// Construct request URL

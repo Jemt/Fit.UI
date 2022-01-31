@@ -7,12 +7,14 @@ Stacking context, Z-index:
  - Dialog					: 1200
 	- Modal BG layer		: 1200
  - Context menu				: 1300 (mounted in <body>)
- - Calendar					: 1300 (mounted in <body>, re-mounted next to control)
- - Dragging					: 99999
+ - Calendar					: 1300 (mounted in <body>, might be re-mounted next to control) - changed to 2000000 in DatePicker.css if html[data-fitui-companion="fluent-ui"]
+ - Dragging					: 10000 (incremented by 1 every time draggable is being dragged)
  - CKEditor
-    - Dialogs				: 10010 (mounted in <body>, re-mounted next to control)
-	- Image resize handlers	: 10001 (mounted in <body>)
-
+    - Tags context menu		: 9997 (mounted in <body>, might be re-mounted next to control) - changed to 2000000 in Input.css if html[data-fitui-companion="fluent-ui"]
+	- Image resize handlers	: 9999 (mounted in <body>) - changed to 2000000 in Input.css if html[data-fitui-companion="fluent-ui"]
+	- Emoji panel			: 10001 (mounted in <body>) - changed to 2000000 in Input.css if html[data-fitui-companion="fluent-ui"]
+    - Dialogs				: 10010 (mounted in <body>, might be re-mounted next to control) - changed to 2000020 in Input.css (+10 compared to modal BG layer) if html[data-fitui-companion="fluent-ui"]
+	   - Modal BG layer		: 10000 (mounted in <body>) - changed to 2000010 in Input.css (+10 compared to image resize handlers) if html[data-fitui-companion="fluent-ui"]
 */
 
 .FitUiStyleCheck
