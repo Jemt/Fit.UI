@@ -1453,3 +1453,12 @@ Fit.Controls.DirtyCheckAll = function(scope)
 
 	return result;
 }
+
+// <container name="Fit._internal.ControlBase">
+// 	<member name="ReduceDocumentRootPollution" static="true" type="boolean">
+// 		Reduce use of document root to host elements such as
+// 		context menus, dialogs, widgets, etc., which are temporarily
+// 		visible when interacting with controls on the screen.
+// 	</member>
+// </container>
+Fit._internal.ControlBase.ReduceDocumentRootPollution = true;
