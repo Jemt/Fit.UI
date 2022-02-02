@@ -1751,7 +1751,7 @@ Fit.Controls.Input = function(ctlId)
 
 							resolve(items);
 
-							if (Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
+							if (items.length > 0 && Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
 							{
 								// Calling resolve(..) above immediately opens the context menu from which
 								// a tag can be selected. However, it is placed in the root of the document
@@ -1763,6 +1763,7 @@ Fit.Controls.Input = function(ctlId)
 								// such menu open at any time. Each editor can declare multiple autocomplete
 								// context menus since each tag marker is associated with its own context menu.
 								var ctm = document.querySelector("ul.cke_autocomplete_opened");
+								ctm.style.position = "fixed"; // Has position:absolute by default, but this may be affected by a positioned container (offsetParent) - downside: it no longer sticks to the editor when scrolling
 								Fit.Dom.InsertAfter(me.GetDomElement(), ctm);
 							}
 						};
