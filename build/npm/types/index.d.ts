@@ -2353,6 +2353,36 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.Dialog
 			/**
+			* Display alert dialog.
+			* @function Alert
+			* @static
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @static
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @static
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
+			/**
 			* Add button to dialog.
 			* @function AddButton
 			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button.
@@ -2520,36 +2550,6 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
-			/**
-			* Display alert dialog.
-			* @function Alert
-			* @static
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @static
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @static
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -3785,9 +3785,10 @@ declare namespace Fit
 			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
 			* @function DesignMode
 			* @param {boolean} [val=undefined] - If defined, True enables Design Mode, False disables it.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeConfig} [editorConfig=undefined] - If provided and DesignMode is enabled, configuration is applied when editor is created.
 			* @returns boolean
 			*/
-			public DesignMode(val?:boolean):boolean;
+			public DesignMode(val?:boolean, editorConfig?:Fit.Controls.InputTypeDefs.DesignModeConfig):boolean;
 			/**
 			* Create instance of Input control.
 			* @function Input
@@ -4089,6 +4090,398 @@ declare namespace Fit
 			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element.
 			*/
 			public Render(toElement?:HTMLElement):void;
+		}
+		/**
+		* 
+		* @namespace [Fit.Controls.InputTypeDefs InputTypeDefs]
+		*/
+		namespace InputTypeDefs
+		{
+			// Functions defined by Fit.Controls.InputTypeDefs
+			/**
+			* Cancelable request event handler.
+			* @callback DesignModeTagsOnRequest
+			* @param {Fit.Controls.Input} sender - Instance of control.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs} eventArgs - Event arguments.
+			* @returns boolean | void
+			*/
+			type DesignModeTagsOnRequest = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs) => boolean | void;
+			/**
+			* Response event handler.
+			* @callback DesignModeTagsOnResponse
+			* @param {Fit.Controls.Input} sender - Instance of control.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs} eventArgs - Event arguments.
+			*/
+			type DesignModeTagsOnResponse = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs) => void;
+			/**
+			* Function producing JSON object representing tag to be inserted into editor.
+			Returning nothing or Null results in default tag being inserted into editor.
+			* @callback DesignModeTagsTagCreator
+			* @param {Fit.Controls.Input} sender - Instance of control.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs} eventArgs - Event arguments.
+			* @returns Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType | null | void
+			*/
+			type DesignModeTagsTagCreator = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs) => Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType | null | void;
+			/**
+			* Configuration for DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfig DesignModeConfig]
+			*/
+			class DesignModeConfig
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfig
+				/**
+				* Information panel configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel} [InfoPanel=undefined]
+				*/
+				InfoPanel?:Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel;
+				/**
+				* Plugins configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPlugins} [Plugins=undefined]
+				*/
+				Plugins?:Fit.Controls.InputTypeDefs.DesignModeConfigPlugins;
+				/**
+				* Tags configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigTags} [Tags=undefined]
+				*/
+				Tags?:Fit.Controls.InputTypeDefs.DesignModeConfigTags;
+				/**
+				* Toolbar configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigToolbar} [Toolbar=undefined]
+				*/
+				Toolbar?:Fit.Controls.InputTypeDefs.DesignModeConfigToolbar;
+			}
+			/**
+			* Information panel at the bottom of the editor.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel DesignModeConfigInfoPanel]
+			*/
+			class DesignModeConfigInfoPanel
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel
+				/**
+				* Text alignment - defaults to Center.
+				* @member {'Left' | 'Center' | 'Right'} [Alignment=undefined]
+				*/
+				Alignment?:'Left' | 'Center' | 'Right';
+				/**
+				* Text to display.
+				* @member {string} [Text=undefined]
+				*/
+				Text?:string;
+			}
+			/**
+			* Additional plugins enabled in DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigPlugins DesignModeConfigPlugins]
+			*/
+			class DesignModeConfigPlugins
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigPlugins
+				/**
+				* Plugin(s) related to emoji support (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Plugin(s) related to support for images (defaults to False).
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig} [Images=undefined]
+				*/
+				Images?:Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig;
+			}
+			/**
+			* Configuration for image plugins.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig DesignModeConfigPluginsImagesConfig]
+			*/
+			class DesignModeConfigPluginsImagesConfig
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig
+				/**
+				* How to store and embed images. Base64 is persistent while blob (default) is temporary
+				and must be extracted from memory and uploaded/stored to be permanantly persisted.
+				References to blobs can be parsed from the HTML value produced by the editor.
+				* @member {'base64' | 'blob'} [EmbedType=undefined]
+				*/
+				EmbedType?:'base64' | 'blob';
+				/**
+				* Flag indicating whether to enable image plugins or not (defaults to False).
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
+				If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
+				disposing referenced blobs. Failing to do so may cause a memory leak. Defaults to All.
+				* @member {'All' | 'UnreferencedOnly'} [RevokeBlobUrlsOnDispose=undefined]
+				*/
+				RevokeBlobUrlsOnDispose?:'All' | 'UnreferencedOnly';
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added through Value(..)
+				function when control is disposed. Basically ownership of these blobs are handed
+				over to the control for the duration of its life time.
+				These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
+				Defaults to False.
+				* @member {boolean} [RevokeExternalBlobUrlsOnDispose=undefined]
+				*/
+				RevokeExternalBlobUrlsOnDispose?:boolean;
+			}
+			/**
+			* Configuration for tags in DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigTags DesignModeConfigTags]
+			*/
+			class DesignModeConfigTags
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigTags
+				/**
+				* Name of URL parameter receiving name of JSONP callback function (only for JSONP services).
+				* @member {string} [JsonpCallback=undefined]
+				*/
+				JsonpCallback?:string;
+				/**
+				* Number of milliseconds to allow JSONP request to wait for a response before aborting (only for JSONP services).
+				* @member {number} [JsonpTimeout=undefined]
+				*/
+				JsonpTimeout?:number;
+				/**
+				* Event handler invoked when tags are requested. Request may be canceled by returning False.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest} [OnRequest=undefined]
+				*/
+				OnRequest?:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest;
+				/**
+				* Event handler invoked when tags data is received, allowing for data transformation.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property
+				- Tags: JSON tags array received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse} [OnResponse=undefined]
+				*/
+				OnResponse?:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse;
+				/**
+				* URL to request data from. Endpoint receives the following payload:
+				{ Marker: "@", Query: "search" }
+				
+				Data is expected to be returned in the following format:
+				[
+				{ Value: "t-1", Title: "Tag 1", Icon: "images/img1.jpeg", Url: "show/1", Data: "..." },
+				{ Value: "t-2", Title: "Tag 2", Icon: "images/img2.jpeg", Url: "show/2", Data: "..." }, ...
+				]
+				
+				The Value and Title properties are required. The Icon property is optional and must specify the path to an image.
+				The Url property is optional and must specify a path to a related page/resource.
+				The Data property is optional and allows for additional data to be associated with the tag.
+				To hold multiple values, consider using a base64 encoded JSON object:
+				btoa(JSON.stringify({ creationDate: new Date(), active: true }))
+				
+				The data eventuelly results in a tag being added to the editor with the following format:
+				Tag name 1
+				The data-tag-data attribute is only declared if the corresponding Data property is defined in data.
+				* @member {string} QueryUrl
+				*/
+				QueryUrl:string;
+				/**
+				* Callback invoked when a tag is being inserted into editor, allowing
+				for customization to the title and attributes associated with the tag.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- QueryMarker: String containing query marker
+				- Tag: JSON tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator} [TagCreator=undefined]
+				*/
+				TagCreator?:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator;
+				/**
+				* Markers triggering tags request and context menu.
+				* @member {{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[]} Triggers
+				*/
+				Triggers:{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[];
+			}
+			/**
+			* Toolbar buttons enabled in DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigToolbar DesignModeConfigToolbar]
+			*/
+			class DesignModeConfigToolbar
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigToolbar
+				/**
+				* Enable emoji button (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Enable text formatting (bold, italic, underline) (defaults to True).
+				* @member {boolean} [Formatting=undefined]
+				*/
+				Formatting?:boolean;
+				/**
+				* Enable image button (defaults to false).
+				* @member {boolean} [Images=undefined]
+				*/
+				Images?:boolean;
+				/**
+				* Enable text alignment (defaults to True).
+				* @member {boolean} [Justify=undefined]
+				*/
+				Justify?:boolean;
+				/**
+				* Enable links (defaults to True).
+				* @member {boolean} [Links=undefined]
+				*/
+				Links?:boolean;
+				/**
+				* Enable ordered and unordered lists with indentation (defaults to True).
+				* @member {boolean} [Lists=undefined]
+				*/
+				Lists?:boolean;
+			}
+			/**
+			* Request handler event arguments.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs DesignModeTagsOnRequestEventHandlerArgs]
+			*/
+			class DesignModeTagsOnRequestEventHandlerArgs
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs
+				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+			}
+			/**
+			* Response handler event arguments.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs DesignModeTagsOnResponseEventHandlerArgs]
+			*/
+			class DesignModeTagsOnResponseEventHandlerArgs
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs
+				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Tags received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[]} Tags
+				*/
+				Tags:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[];
+			}
+			/**
+			* JSON object representing tag.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag DesignModeTagsOnResponseJsonTag]
+			*/
+			class DesignModeTagsOnResponseJsonTag
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag
+				/**
+				* Optional data to associate with tag.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Optional URL to icon/image.
+				* @member {string} [Icon=undefined]
+				*/
+				Icon?:string;
+				/**
+				* Title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
+				* Optional URL to associate with tag.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Unique value.
+				* @member {string} Value
+				*/
+				Value:string;
+			}
+			/**
+			* TagCreator event arguments.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs DesignModeTagsTagCreatorCallbackArgs]
+			*/
+			class DesignModeTagsTagCreatorCallbackArgs
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs
+				/**
+				* Query marker.
+				* @member {string} QueryMarker
+				*/
+				QueryMarker:string;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag} Tag
+				*/
+				Tag:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag;
+			}
+			/**
+			* JSON object representing tag to be inserted into editor.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType DesignModeTagsTagCreatorReturnType]
+			*/
+			class DesignModeTagsTagCreatorReturnType
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType
+				/**
+				* Optional tag data.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Tag title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
+				* Tag type (marker).
+				* @member {string} Type
+				*/
+				Type:string;
+				/**
+				* Optional tag URL.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Tag value (ID).
+				* @member {string} Value
+				*/
+				Value:string;
+			}
 		}
 		/**
 		* Picker control which allows for entries
@@ -8366,74 +8759,6 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Cookies
 		/**
-		* Create instance of cookie container isolated to either current path (default)
-		or a custom path, and optionally an alternative part of the domain (by default
-		cookies are available only on the current domain, while defining a domain makes
-		cookies available to that particular domain and subdomains).
-		* @function Cookies
-		*/
-		constructor();
-		/**
-		* Get/set portion of domain to which cookies are isolated.
-		* @function Domain
-		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
-		Null to unset it to make cookies available to current domain only (excluding subdomains).
-		* @returns string | null
-		*/
-		public Domain(val?:string | null):string | null;
-		/**
-		* Returns cookie value if found, otherwise Null.
-		* @function Get
-		* @param {string} name - Unique cookie name.
-		* @returns string | null
-		*/
-		public Get(name:string):string | null;
-		/**
-		* Get/set path to which cookies are isolated.
-		* @function Path
-		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
-		* @returns string
-		*/
-		public Path(val?:string):string;
-		/**
-		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
-		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
-		is completely transparent.
-		* @function Prefix
-		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
-		* @returns string | null
-		*/
-		public Prefix(val?:string):string | null;
-		/**
-		* Remove cookie.
-		* @function Remove
-		* @param {string} name - Unique cookie name.
-		*/
-		public Remove(name:string):void;
-		/**
-		* Get/set SameSite policy.
-		* @function SameSite
-		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
-		* @returns string | null
-		*/
-		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
-		/**
-		* Get/set Secure flag.
-		* @function Secure
-		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
-		* @returns boolean
-		*/
-		public Secure(val?:boolean):boolean;
-		/**
-		* Create or update cookie.
-		* @function Set
-		* @param {string} name - Unique cookie name.
-		* @param {string} value - Cookie value (cannot contain semicolon!).
-		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
-		no expiration time will cause it to expire when session ends.
-		*/
-		public Set(name:string, value:string, seconds?:number):void;
-		/**
 		* Returns cookie value if found, otherwise Null.
 		* @function Get
 		* @static
@@ -8503,6 +8828,74 @@ declare namespace Fit
 		* @param {Fit.CookiesDefs.Cookie} newCookie - New or updated cookie.
 		*/
 		public static Set(newCookie:Fit.CookiesDefs.Cookie):void;
+		/**
+		* Create instance of cookie container isolated to either current path (default)
+		or a custom path, and optionally an alternative part of the domain (by default
+		cookies are available only on the current domain, while defining a domain makes
+		cookies available to that particular domain and subdomains).
+		* @function Cookies
+		*/
+		constructor();
+		/**
+		* Get/set portion of domain to which cookies are isolated.
+		* @function Domain
+		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
+		Null to unset it to make cookies available to current domain only (excluding subdomains).
+		* @returns string | null
+		*/
+		public Domain(val?:string | null):string | null;
+		/**
+		* Returns cookie value if found, otherwise Null.
+		* @function Get
+		* @param {string} name - Unique cookie name.
+		* @returns string | null
+		*/
+		public Get(name:string):string | null;
+		/**
+		* Get/set path to which cookies are isolated.
+		* @function Path
+		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
+		* @returns string
+		*/
+		public Path(val?:string):string;
+		/**
+		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
+		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
+		is completely transparent.
+		* @function Prefix
+		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
+		* @returns string | null
+		*/
+		public Prefix(val?:string):string | null;
+		/**
+		* Remove cookie.
+		* @function Remove
+		* @param {string} name - Unique cookie name.
+		*/
+		public Remove(name:string):void;
+		/**
+		* Get/set SameSite policy.
+		* @function SameSite
+		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
+		* @returns string | null
+		*/
+		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
+		/**
+		* Get/set Secure flag.
+		* @function Secure
+		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
+		* @returns boolean
+		*/
+		public Secure(val?:boolean):boolean;
+		/**
+		* Create or update cookie.
+		* @function Set
+		* @param {string} name - Unique cookie name.
+		* @param {string} value - Cookie value (cannot contain semicolon!).
+		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
+		no expiration time will cause it to expire when session ends.
+		*/
+		public Set(name:string, value:string, seconds?:number):void;
 	}
 	/**
 	* Core features extending the capabilities of native JS.
@@ -10470,31 +10863,6 @@ declare namespace Fit
 			namespace Input
 			{
 				/**
-				* Internal settings related to blob storage management in HTML Editor (Design Mode).
-				* @class [Fit._internal.Controls.Input.BlobManager BlobManager]
-				*/
-				class BlobManager
-				{
-					// Properties defined by Fit._internal.Controls.Input.BlobManager
-					/**
-					* Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
-					If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
-					disposing referenced blobs. Failing to do so may cause a memory leak.
-					* @member {'All' | 'UnreferencedOnly'} RevokeBlobUrlsOnDispose
-					* @static
-					*/
-					static RevokeBlobUrlsOnDispose:'All' | 'UnreferencedOnly';
-					/**
-					* Dispose images from blob storage (revoke blob URLs) added through Value(..)
-					function when control is disposed. Basically ownership of these blobs are handed
-					over to the control for the duration of its life time.
-					These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
-					* @member {boolean} RevokeExternalBlobUrlsOnDispose
-					* @static
-					*/
-					static RevokeExternalBlobUrlsOnDispose:boolean;
-				}
-				/**
 				* Internal settings related to HTML Editor (Design Mode).
 				* @class [Fit._internal.Controls.Input.Editor Editor]
 				*/
@@ -10502,23 +10870,11 @@ declare namespace Fit
 				{
 					// Properties defined by Fit._internal.Controls.Input.Editor
 					/**
-					* Additional plugins used with DesignMode.
-					* @member {('htmlwriter' | 'justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[]} Plugins
-					* @static
-					*/
-					static Plugins:('htmlwriter' | 'justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[];
-					/**
 					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
 					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
 					* @static
 					*/
 					static Skin:'bootstrapck' | 'moono-lisa' | null;
-					/**
-					* Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins).
-					* @member {( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]} Toolbar
-					* @static
-					*/
-					static Toolbar:( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[];
 				}
 			}
 		}
@@ -11147,6 +11503,11 @@ declare namespace Fit
 		class JsonpRequest
 		{
 			// Functions defined by Fit.Http.JsonpRequest
+			/**
+			* Abort request.
+			* @function Abort
+			*/
+			public Abort():void;
 			/**
 			* Get/set name of URL parameter receiving the name of the JSONP callback function.
 			* @function Callback
