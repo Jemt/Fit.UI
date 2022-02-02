@@ -130,7 +130,7 @@ Fit.Controls.Input = function(ctlId)
 		{
 			if (designEditor !== null && designEditorSuppressPaste === true)
 			{
-				Fit.Events.StopPropagation(e);
+				Fit.Events.Stop(e);
 			}
 		});
 
@@ -1738,6 +1738,8 @@ Fit.Controls.Input = function(ctlId)
 							{
 								var eventArgs = Fit.Core.Merge(createEventArgs(args.marker, args.query, req), { Tags: items });
 								config.Tags.OnResponse(me, eventArgs);
+
+								items = eventArgs.Tags; // In case OnResponse event handler assigned new collection
 							}
 
 							Fit.Array.ForEach(items, function(item)
@@ -1770,7 +1772,9 @@ Fit.Controls.Input = function(ctlId)
 							req.OnSuccess(function(sender)
 							{
 								var response = req.GetResponse();
-								processDataAndResolve(response);
+								var items = ((response instanceof Array) ? response : []);
+
+								processDataAndResolve(items);
 							});
 
 							req.OnTimeout(function(sender)
@@ -1784,7 +1788,9 @@ Fit.Controls.Input = function(ctlId)
 							req.OnSuccess(function(sender)
 							{
 								var response = req.GetResponseJson();
-								processDataAndResolve(response);
+								var items = ((response instanceof Array) ? response : []);
+
+								processDataAndResolve(items);
 							});
 
 							req.OnFailure(function(sender)
