@@ -21,6 +21,9 @@ Fit.Controls.Input = function(ctlId)
 	var designEditor = null;
 	var designEditorDirty = false;
 	var designEditorDirtyPending = false;
+	var designEditorConfig = null;
+	var designEditorRestoreButtonState = null;
+	var designEditorSuppressPaste = false;
 	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
@@ -114,6 +117,21 @@ Fit.Controls.Input = function(ctlId)
 			}
 
 			fireOnChange(); // Only fires OnChange if value has actually changed
+
+			// Restore editor's toolbar buttons in case they were temporarily disabled
+
+			if (designEditor !== null)
+			{
+				restoreDesignEditorButtons();
+			}
+		});
+
+		Fit.Events.AddHandler(me.GetDomElement(), "paste", true, function(e)
+		{
+			if (designEditor !== null && designEditorSuppressPaste === true)
+			{
+				Fit.Events.Stop(e);
+			}
 		});
 
 		try
@@ -286,7 +304,7 @@ Fit.Controls.Input = function(ctlId)
 				input.value = val;
 			}
 
-			if (Fit._internal.Controls.Input.BlobManager.RevokeExternalBlobUrlsOnDispose === true)
+			if (designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.RevokeExternalBlobUrlsOnDispose === true)
 			{
 				// Keep track of image blobs added via Value(..) so we can dispose them automatically.
 				// When RevokeExternalBlobUrlsOnDispose is True it basically means that the Input control
@@ -388,7 +406,7 @@ Fit.Controls.Input = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
-		var curVal = Fit._internal.Controls.Input.BlobManager.RevokeBlobUrlsOnDispose === "UnreferencedOnly" ? me.Value() : null;
+		var curVal = designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.RevokeBlobUrlsOnDispose === "UnreferencedOnly" ? me.Value() : null;
 
 		if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
 		{
@@ -456,7 +474,7 @@ Fit.Controls.Input = function(ctlId)
 			debouncedOnChange.Cancel();
 		}
 
-		if (Fit._internal.Controls.Input.BlobManager.RevokeBlobUrlsOnDispose === "All")
+		if (designEditorConfig === null || !designEditorConfig.Plugins || !designEditorConfig.Plugins.Images || !designEditorConfig.Plugins.Images.RevokeBlobUrlsOnDispose || designEditorConfig.Plugins.Images.RevokeBlobUrlsOnDispose === "All")
 		{
 			Fit.Array.ForEach(imageBlobUrls, function(imageUrl)
 			{
@@ -474,7 +492,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDirty = designEditorDirtyPending /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorRestoreButtonState = designEditorSuppressPaste /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -935,16 +953,220 @@ Fit.Controls.Input = function(ctlId)
 		return (cmdResize !== null && Fit.Dom.HasClass(cmdResize, "fa-chevron-up") === true);
 	}
 
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig">
+	/// 	<description> Configuration for image plugins </description>
+	/// 	<member name="Enabled" type="boolean"> Flag indicating whether to enable image plugins or not (defaults to False) </member>
+	/// 	<member name="EmbedType" type="'base64' | 'blob'" default="undefined">
+	/// 		How to store and embed images. Base64 is persistent while blob (default) is temporary
+	/// 		and must be extracted from memory and uploaded/stored to be permanantly persisted.
+	/// 		References to blobs can be parsed from the HTML value produced by the editor.
+	/// 	</member>
+	/// 	<member name="RevokeBlobUrlsOnDispose" type="'All' | 'UnreferencedOnly'" default="undefined">
+	/// 		This option is in effect when EmbedType is blob.
+	/// 		Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
+	/// 		If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
+	/// 		disposing referenced blobs. Failing to do so may cause a memory leak. Defaults to All.
+	/// 	</member>
+	/// 	<member name="RevokeExternalBlobUrlsOnDispose" type="boolean" default="undefined">
+	/// 		This option is in effect when EmbedType is blob.
+	/// 		Dispose images from blob storage (revoke blob URLs) added through Value(..)
+	/// 		function when control is disposed. Basically ownership of these blobs are handed
+	/// 		over to the control for the duration of its life time.
+	/// 		These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
+	/// 		Defaults to False.
+	/// 	</member>
+	/// </container>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigPlugins">
+	/// 	<description> Additional plugins enabled in DesignMode </description>
+	/// 	<member name="Emojis" type="boolean" default="undefined"> Plugin(s) related to emoji support (defaults to False) </member>
+	/// 	<member name="Images" type="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig" default="undefined"> Plugin(s) related to support for images (defaults to False) </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigToolbar">
+	/// 	<description> Toolbar buttons enabled in DesignMode </description>
+	/// 	<member name="Formatting" type="boolean" default="undefined"> Enable text formatting (bold, italic, underline) (defaults to True) </member>
+	/// 	<member name="Justify" type="boolean" default="undefined"> Enable text alignment (defaults to True) </member>
+	/// 	<member name="Lists" type="boolean" default="undefined"> Enable ordered and unordered lists with indentation (defaults to True) </member>
+	/// 	<member name="Links" type="boolean" default="undefined"> Enable links (defaults to True) </member>
+	/// 	<member name="Emojis" type="boolean" default="undefined"> Enable emoji button (defaults to False) </member>
+	/// 	<member name="Images" type="boolean" default="undefined"> Enable image button (defaults to false) </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel">
+	/// 	<description> Information panel at the bottom of the editor </description>
+	/// 	<member name="Text" type="string" default="undefined"> Text to display </member>
+	/// 	<member name="Alignment" type="'Left' | 'Center' | 'Right'" default="undefined"> Text alignment - defaults to Center </member>
+	/// </container>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs">
+	/// 	<description> Request handler event arguments </description>
+	/// 	<member name="Sender" type="Fit.Controls.Input"> Instance of control </member>
+	/// 	<member name="Request" type="Fit.Http.JsonRequest | Fit.Http.JsonpRequest"> Instance of JsonRequest or JsonpRequest </member>
+	/// 	<member name="Query" type="{ Marker: string, Query: string }"> Query information </member>
+	/// </container>
+	/// <function container="Fit.Controls.InputTypeDefs" name="DesignModeTagsOnRequest" returns="boolean | void">
+	/// 	<description> Cancelable request event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.Input"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs"> Event arguments </param>
+	/// </function>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag">
+	/// 	<description> JSON object representing tag </description>
+	/// 	<member name="Value" type="string"> Unique value </member>
+	/// 	<member name="Title" type="string"> Title </member>
+	/// 	<member name="Icon" type="string" default="undefined"> Optional URL to icon/image </member>
+	/// 	<member name="Url" type="string" default="undefined"> Optional URL to associate with tag </member>
+	/// 	<member name="Data" type="string" default="undefined"> Optional data to associate with tag </member>
+	/// </container>
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs">
+	/// 	<description> Response handler event arguments </description>
+	/// 	<member name="Sender" type="Fit.Controls.Input"> Instance of control </member>
+	/// 	<member name="Request" type="Fit.Http.JsonRequest | Fit.Http.JsonpRequest"> Instance of JsonRequest or JsonpRequest </member>
+	/// 	<member name="Query" type="{ Marker: string, Query: string }"> Query information </member>
+	/// 	<member name="Tags" type="Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[]"> Tags received from WebService </member>
+	/// </container>
+	/// <function container="Fit.Controls.InputTypeDefs" name="DesignModeTagsOnResponse">
+	/// 	<description> Response event handler </description>
+	/// 	<param name="sender" type="Fit.Controls.Input"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs"> Event arguments </param>
+	/// </function>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType">
+	/// 	<description> JSON object representing tag to be inserted into editor </description>
+	/// 	<member name="Title" type="string"> Tag title </member>
+	/// 	<member name="Value" type="string"> Tag value (ID) </member>
+	/// 	<member name="Type" type="string"> Tag type (marker) </member>
+	/// 	<member name="Url" type="string" default="undefined"> Optional tag URL </member>
+	/// 	<member name="Data" type="string" default="undefined"> Optional tag data </member>
+	/// </container>
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs">
+	/// 	<description> TagCreator event arguments </description>
+	/// 	<member name="Sender" type="Fit.Controls.Input"> Instance of control </member>
+	/// 	<member name="QueryMarker" type="string"> Query marker </member>
+	/// 	<member name="Tag" type="Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag"> Tag received from WebService </member>
+	/// </container>
+	/// <function container="Fit.Controls.InputTypeDefs" name="DesignModeTagsTagCreator" returns="Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType | null | void">
+	/// 	<description>
+	/// 		Function producing JSON object representing tag to be inserted into editor.
+	/// 		Returning nothing or Null results in default tag being inserted into editor.
+	/// 	</description>
+	/// 	<param name="sender" type="Fit.Controls.Input"> Instance of control </param>
+	/// 	<param name="eventArgs" type="Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs"> Event arguments </param>
+	/// </function>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigTags">
+	/// 	<description> Configuration for tags in DesignMode </description>
+	/// 	<member name="Triggers" type="{ Marker: string, MinimumCharacters?: integer, DebounceQuery?: integer }[]"> Markers triggering tags request and context menu </member>
+	/// 	<member name="QueryUrl" type="string">
+	/// 		URL to request data from. Endpoint receives the following payload:
+	/// 		{ Marker: "@", Query: "search" }
+	///
+	/// 		Data is expected to be returned in the following format:
+	/// 		[
+	/// 		    { Value: "t-1", Title: "Tag 1", Icon: "images/img1.jpeg", Url: "show/1", Data: "..." },
+	/// 		    { Value: "t-2", Title: "Tag 2", Icon: "images/img2.jpeg", Url: "show/2", Data: "..." }, ...
+	/// 		]
+	///
+	/// 		The Value and Title properties are required. The Icon property is optional and must specify the path to an image.
+	/// 		The Url property is optional and must specify a path to a related page/resource.
+	/// 		The Data property is optional and allows for additional data to be associated with the tag.
+	/// 		To hold multiple values, consider using a base64 encoded JSON object:
+	/// 		btoa(JSON.stringify({ creationDate: new Date(), active: true }))
+	///
+	/// 		The data eventuelly results in a tag being added to the editor with the following format:
+	/// 		<a data-tag-type="@" data-tag-id="unique id 1" data-tag-data="..." href="show/1">Tag name 1</a>
+	/// 		The data-tag-data attribute is only declared if the corresponding Data property is defined in data.
+	/// 	</member>
+	/// 	<member name="JsonpCallback" type="string" default="undefined"> Name of URL parameter receiving name of JSONP callback function (only for JSONP services) </member>
+	/// 	<member name="JsonpTimeout" type="integer" default="undefined"> Number of milliseconds to allow JSONP request to wait for a response before aborting (only for JSONP services) </member>
+	/// 	<member name="OnRequest" type="Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest" default="undefined">
+	/// 		Event handler invoked when tags are requested. Request may be canceled by returning False.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.Input) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Sender: Fit.Controls.Input instance
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+	/// 		 - Query: Contains query information in its Marker and Query property
+	/// 	</member>
+	/// 	<member name="OnResponse" type="Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse" default="undefined">
+	/// 		Event handler invoked when tags data is received, allowing for data transformation.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.Input) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Sender: Fit.Controls.Input instance
+	/// 		 - Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+	/// 		 - Query: Contains query information in its Marker and Query property
+	/// 		 - Tags: JSON tags array received from WebService
+	/// 	</member>
+	/// 	<member name="TagCreator" type="Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator" default="undefined">
+	/// 		Callback invoked when a tag is being inserted into editor, allowing
+	/// 		for customization to the title and attributes associated with the tag.
+	/// 		Function receives two arguments:
+	/// 		Sender (Fit.Controls.Input) and EventArgs object.
+	/// 		EventArgs object contains the following properties:
+	/// 		 - Sender: Fit.Controls.Input instance
+	/// 		 - QueryMarker: String containing query marker
+	/// 		 - Tag: JSON tag received from WebService
+	/// 	</member>
+	/// </container>
+
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfig">
+	/// 	<description> Configuration for DesignMode </description>
+	/// 	<member name="Plugins" type="Fit.Controls.InputTypeDefs.DesignModeConfigPlugins" default="undefined"> Plugins configuration </member>
+	/// 	<member name="Toolbar" type="Fit.Controls.InputTypeDefs.DesignModeConfigToolbar" default="undefined"> Toolbar configuration </member>
+	/// 	<member name="InfoPanel" type="Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel" default="undefined"> Information panel configuration </member>
+	/// 	<member name="Tags" type="Fit.Controls.InputTypeDefs.DesignModeConfigTags" default="undefined"> Tags configuration </member>
+	/// </container>
+
 	/// <function container="Fit.Controls.Input" name="DesignMode" access="public" returns="boolean">
 	/// 	<description>
 	/// 		Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
 	/// 		Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
 	/// 	</description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables Design Mode, False disables it </param>
+	/// 	<param name="editorConfig" type="Fit.Controls.InputTypeDefs.DesignModeConfig" default="undefined">
+	/// 		If provided and DesignMode is enabled, configuration is applied when editor is created.
+	/// 	</param>
 	/// </function>
-	this.DesignMode = function(val)
+	this.DesignMode = function(val, editorConfig)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
+		Fit.Validation.ExpectObject(editorConfig, true);
+		Fit.Validation.ExpectObject((editorConfig || {}).Plugins, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Plugins || {}).Emojis, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).Plugins || {}).Images, true);
+		Fit.Validation.ExpectBoolean((((editorConfig || {}).Plugins || {}).Images || {}).Enabled, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Plugins || {}).Images || {}).EmbedType, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Plugins || {}).Images || {}).RevokeBlobUrlsOnDispose, true);
+		Fit.Validation.ExpectBoolean((((editorConfig || {}).Plugins || {}).Images || {}).RevokeExternalBlobUrlsOnDispose, true);
+		Fit.Validation.ExpectObject((editorConfig || {}).Toolbar, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Formatting, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Justify, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Lists, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Links, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Emojis, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Images, true);
+		Fit.Validation.ExpectObject((editorConfig || {}).InfoPanel, true);
+		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Text, true);
+		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Alignment, true);
+		Fit.Validation.ExpectObject((editorConfig || {}).Tags, true);
+
+		if (editorConfig && editorConfig.Tags)
+		{
+			Fit.Validation.ExpectTypeArray(editorConfig.Tags.Triggers, function(trigger)
+			{
+				Fit.Validation.ExpectStringValue(trigger.Marker);
+				Fit.Validation.ExpectInteger(trigger.MinimumCharacters, true);
+				Fit.Validation.ExpectInteger(trigger.DebounceQuery, true);
+			});
+			Fit.Validation.ExpectStringValue(editorConfig.Tags.QueryUrl);
+			Fit.Validation.ExpectStringValue(editorConfig.Tags.JsonpCallback, true);
+			Fit.Validation.ExpectInteger(editorConfig.Tags.JsonpTimeout, true);
+			Fit.Validation.ExpectFunction(editorConfig.Tags.OnRequest, true);
+			Fit.Validation.ExpectFunction(editorConfig.Tags.OnResponse, true);
+			Fit.Validation.ExpectFunction(editorConfig.Tags.TagCreator, true);
+		}
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -955,6 +1177,11 @@ Fit.Controls.Input = function(ctlId)
 
 			if (val === true && designMode === false)
 			{
+				if (Fit.Validation.IsSet(editorConfig) === true)
+				{
+					designEditorConfig = editorConfig;
+				}
+
 				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
 				{
 					// Control is actually already in Design Mode, but waiting
@@ -1069,23 +1296,26 @@ Fit.Controls.Input = function(ctlId)
 									return;
 								}
 
-								// Move dialog to control - otherwise placed in the root of the document where it pollutes,
-								// and makes it impossible to interact with the dialog in light dismissable panels and callouts.
-								// Dialog is placed alongside control and not within the control's container, to prevent Fit.UI
-								// styling from affecting the dialog.
-								// DISABLED: It breaks file picker controls in dialogs which are hosted in iframes.
-								// When an iframe is re-rooted in DOM it reloads, and any dynamically created content is lost.
-								// We will have to increase the z-index to make sure dialogs open on top of modal layers.
-								// EDIT 2021-08-20: Enabled again. The base64image plugin has now been altered so it no longer
-								// uses CKEditor's built-in file picker which is wrapped in an iFrame. Therefore the dialog can
-								// once again be mounted next to the Input control.
+								if (Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
+								{
+									// Move dialog to control - otherwise placed in the root of the document where it pollutes,
+									// and makes it impossible to interact with the dialog in light dismissable panels and callouts.
+									// Dialog is placed alongside control and not within the control's container, to prevent Fit.UI
+									// styling from affecting the dialog.
+									// DISABLED: It breaks file picker controls in dialogs which are hosted in iframes.
+									// When an iframe is re-rooted in DOM it reloads, and any dynamically created content is lost.
+									// We will have to increase the z-index to make sure dialogs open on top of modal layers.
+									// EDIT 2021-08-20: Enabled again. The base64image plugin has now been altered so it no longer
+									// uses CKEditor's built-in file picker which is wrapped in an iFrame. Therefore the dialog can
+									// once again be mounted next to the Input control.
 
-								var ckeDialogElement = this.getElement().$;
-								Fit.Dom.InsertAfter(Fit._internal.Controls.Input.ActiveEditorForDialog.GetDomElement(), ckeDialogElement);
+									var ckeDialogElement = this.getElement().$;
+									Fit.Dom.InsertAfter(Fit._internal.Controls.Input.ActiveEditorForDialog.GetDomElement(), ckeDialogElement);
 
-								// 2nd+ time dialog is opened it remains invisible - make it appear and position it
-								ckeDialogElement.style.display = !CKEDITOR.env.ie || CKEDITOR.env.edge ? "flex" : ""; // https://github.com/ckeditor/ckeditor4/blob/8b208d05d1338d046cdc8f971c9faf21604dd75d/plugins/dialog/plugin.js#L152
-								this.layout(); // 'this' is the dialog instance - layout() positions dialog
+									// 2nd+ time dialog is opened it remains invisible - make it appear and position it
+									ckeDialogElement.style.display = !CKEDITOR.env.ie || CKEDITOR.env.edge ? "flex" : ""; // https://github.com/ckeditor/ckeditor4/blob/8b208d05d1338d046cdc8f971c9faf21604dd75d/plugins/dialog/plugin.js#L152
+									this.layout(); // 'this' is the dialog instance - layout() positions dialog
+								}
 							});
 
 							dialog.on("hide", function(ev) // Fires when user closes dialog, or when hide() is called on dialog, or if destroy() is called on editor instance from Dispose() or DesignMode(false)
@@ -1357,6 +1587,277 @@ Fit.Controls.Input = function(ctlId)
 		var langSupport = ["da", "de", "en"];
 		var locale = Fit.Internationalization.Locale().length === 2 ? Fit.Internationalization.Locale() : Fit.Internationalization.Locale().substring(0, 2);
 		var lang = Fit.Array.Contains(langSupport, locale) === true ? locale : "en";
+		var plugins = [];
+		var toolbar = [];
+		var mentions = [];
+
+		var config = designEditorConfig || {};
+
+		// Enable additional plugins not compiled into CKEditor by default
+
+		if ((config.Plugins && config.Plugins.Emojis === true) || (config.Toolbar && config.Toolbar.Emojis === true))
+		{
+			Fit.Array.Add(plugins, "emoji");
+		}
+
+		if ((config.Plugins && config.Plugins.Images && config.Plugins.Images.Enabled === true) || (config.Toolbar && config.Toolbar.Images === true))
+		{
+			if (config.Toolbar && config.Toolbar.Images === true)
+			{
+				Fit.Array.Add(plugins, "base64image");
+			}
+
+			plugins = Fit.Array.Merge(plugins, ["base64imagepaste", "dragresize"]);
+		}
+
+		// Add toolbar buttons
+
+		if (!config.Toolbar || config.Toolbar.Formatting !== false)
+		{
+			Fit.Array.Add(toolbar,
+			{
+				name: "BasicFormatting",
+				items: [ "Bold", "Italic", "Underline" ]
+			});
+		}
+
+		if (!config.Toolbar || config.Toolbar.Justify !== false)
+		{
+			Fit.Array.Add(toolbar,
+			{
+				name: "Justify",
+				items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
+			});
+		}
+
+		if (!config.Toolbar || config.Toolbar.Lists !== false)
+		{
+			Fit.Array.Add(toolbar,
+			{
+				name: "Lists",
+				items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
+			});
+		}
+
+		if (!config.Toolbar || config.Toolbar.Links !== false)
+		{
+			Fit.Array.Add(toolbar,
+			{
+				name: "Links",
+				items: [ "Link", "Unlink" ]
+			});
+		}
+
+		if (config.Toolbar)
+		{
+			var insert = [];
+
+			if (config.Toolbar.Emojis === true)
+			{
+				Fit.Array.Add(insert, "EmojiPanel");
+			}
+
+			if (config.Toolbar.Images === true)
+			{
+				Fit.Array.Add(insert, "base64image");
+			}
+
+			if (insert.length > 0)
+			{
+				Fit.Array.Add(toolbar,
+				{
+					name: "Insert",
+					items: insert
+				});
+			}
+		}
+
+		// Configure tags/mentions plugin
+
+		if (config.Tags)
+		{
+			var requestAwaiting = null;
+
+			var createEventArgs = function(marker, query, request) // EventsArgs for OnRequest and OnResponse
+			{
+				return { Sender: me, Query: { Marker: marker, Query: query }, Request: request };
+			};
+
+			Fit.Array.ForEach(config.Tags.Triggers, function(trigger)
+			{
+				var mention =
+				{
+					marker: trigger.Marker,
+					minChars: trigger.MinimumCharacters || 0,
+					throttle: 0, // Throttling is not debouncing - it merely ensures that no more than 1 request is made every X milliseconds when value is changed (defaults to 200ms) - real debouncing implemented further down, which reduce and cancel network calls as user types - also a work around for https://github.com/ckeditor/ckeditor4/issues/5036
+					feed: function(args, resolve)
+					{
+						// WebService is expected to return tag items in an array like so:
+						// [ { Title: string, Value: string, Icon?: string, Url?: string, Data?: string }, { ... }, ... ]
+
+						var req = null;
+
+						if (config.Tags.JsonpCallback)
+						{
+							req = new Fit.Http.JsonpRequest(config.Tags.QueryUrl, config.Tags.JsonpCallback);
+							config.Tags.JsonpTimeout && req.Timeout(config.Tags.JsonpTimeout);
+							req.SetParameter("Marker", args.marker);
+							req.SetParameter("Query", args.query);
+						}
+						else
+						{
+							req = new Fit.Http.JsonRequest(config.Tags.QueryUrl);
+							req.SetData({ Marker: args.marker, Query: args.query });
+						}
+
+						if (config.Tags.OnRequest)
+						{
+							var eventArgs = createEventArgs(args.marker, args.query, req);
+
+							if (config.Tags.OnRequest(me, eventArgs) === false)
+							{
+								resolve([]);
+								return;
+							}
+
+							if (eventArgs.Request !== req)
+							{
+								// Support for changing request instans to
+								// take control over webservice communication.
+
+								// Restrict to support for Fit.Http.Request or classes derived from this
+								Fit.Validation.ExpectInstance(eventArgs.Request, Fit.Http.Request);
+
+								req = eventArgs.Request;
+							}
+						}
+
+						var processDataAndResolve = function(items)
+						{
+							if (config.Tags.OnResponse) // OnResponse is allowed to manipulate tags
+							{
+								var eventArgs = Fit.Core.Merge(createEventArgs(args.marker, args.query, req), { Tags: items });
+								config.Tags.OnResponse(me, eventArgs);
+
+								items = eventArgs.Tags; // In case OnResponse event handler assigned new collection
+							}
+
+							Fit.Array.ForEach(items, function(item)
+							{
+								// Set properties required by mentions plugin
+								item.id = item.Value;
+								item.name = item.Title;
+							});
+
+							resolve(items);
+
+							if (Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
+							{
+								// Calling resolve(..) above immediately opens the context menu from which
+								// a tag can be selected. However, it is placed in the root of the document
+								// where it pollutes the global scope. Move it next to the Fit.UI control.
+								// We do not mount it within the Fit.UI control as it could cause Fit.UI styles
+								// to take effect on the context menu.
+
+								// Get the autocomplete context menu currently open. There can be only one
+								// such menu open at any time. Each editor can declare multiple autocomplete
+								// context menus since each tag marker is associated with its own context menu.
+								var ctm = document.querySelector("ul.cke_autocomplete_opened");
+								Fit.Dom.InsertAfter(me.GetDomElement(), ctm);
+							}
+						};
+
+						if (Fit.Core.InstanceOf(req, Fit.Http.JsonpRequest) === true)
+						{
+							req.OnSuccess(function(sender)
+							{
+								var response = req.GetResponse();
+								var items = ((response instanceof Array) ? response : []);
+
+								processDataAndResolve(items);
+							});
+
+							req.OnTimeout(function(sender)
+							{
+								resolve([]);
+								Fit.Validation.ThrowError("Unable to get tags - request did not return data in time (JSONP timeout reached)");
+							});
+						}
+						else
+						{
+							req.OnSuccess(function(sender)
+							{
+								var response = req.GetResponseJson();
+								var items = ((response instanceof Array) ? response : []);
+
+								processDataAndResolve(items);
+							});
+
+							req.OnFailure(function(sender)
+							{
+								resolve([]);
+								Fit.Validation.ThrowError("Unable to get tags - request failed with HTTP Status code " + req.GetHttpStatus());
+							});
+						}
+
+						if (requestAwaiting !== null)
+						{
+							requestAwaiting.Abort();
+						}
+
+						requestAwaiting = req;
+						req.Start();
+					},
+					itemTemplate: function(item) // Item must define "name" and "id" properties - the {name} placeholder is replaced by "@" + the value of the "name" property - to get rid of "@" simply use an alternative property such as nameWithoutTag:"Some username"
+					{
+						if (item.Icon)
+						{
+							return '<li data-id="' + item.Value + '"><img src="' + item.Icon + '" style="width: 24px; height: 24px; border-radius: 24px; vertical-align: middle" alt=""><span style="display: inline-block; width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; margin-left: 5px">' + item.Title + '</span></li>';
+						}
+						else
+						{
+							return '<li data-id="' + item.Value + '">' + item.Title + '</li>';
+						}
+					},
+					outputTemplate: function(item)
+					{
+						// IMPORTANT: Output produced must respect ACF (Advanced Content Filter).
+						// So the tag produced must be allowed, and any attributes contained must be allowed.
+
+						var alternativeItem = null;
+
+						if (config.Tags.TagCreator)
+						{
+							var callbackArgs = { Sender: me, QueryMarker: trigger.Marker, Tag: Fit.Core.Clone(item) };
+							alternativeItem = config.Tags.TagCreator(me, callbackArgs) || null;
+						}
+
+						// Function should return a link for tags to "just work". Returning a <span> requires the span to be whitelisted in
+						// extraAllowedContent configuration, but even then the editor will continue writing text within the <span> element,
+						// rather than next to it. So one would expect something like: We will assign <span data-tag-type="@" ..>@James Bond</span> to this mission.
+						// But what we get instead is something like: We will assign <span data-tag-type="@" ..>@James Bond to this mission</span>.
+						// The same happens to link tags if the href attribute is removed, which is why we always add it, even when no URL is defined.
+
+						if (alternativeItem !== null)
+						{
+							return '<a data-tag-type="' + (alternativeItem.Type || trigger.Marker) + '" data-tag-id="' + (alternativeItem.Value || item.Value) + '"' + (alternativeItem.Data || item.Data ? ' data-tag-data="' + (alternativeItem.Data || item.Data) + '"' : '') + (alternativeItem.Url || item.Url ? ' href="' + (alternativeItem.Url || item.Url) + '"' : 'href=""') + '>' + (alternativeItem.Title || (trigger.Marker + item.Title)) + '</a>';
+						}
+						else
+						{
+							return '<a data-tag-type="' + trigger.Marker + '" data-tag-id="' + item.Value + '"' + (item.Data ? ' data-tag-data="' + item.Data + '"' : '') + (item.Url ? ' href="' + item.Url + '"' : 'href=""') + '>' + trigger.Marker + item.Title + '</a>';
+						}
+					}
+				};
+
+				if (trigger.DebounceQuery !== 0) // A value of 0 (zero) disables debouncing
+				{
+					// Wrap feed handler in debounce function so that every time it gets invoked, it cancels the previous invocation
+					mention.feed = Fit.Core.CreateDebouncer(mention.feed, trigger.DebounceQuery || 300).Invoke;
+				}
+
+				Fit.Array.Add(mentions, mention)
+			});
+		}
 
 		// Prevent control from losing focus when HTML editor is initialized,
 		// e.g. if Design Mode is enabled when ordinary input control gains focus.
@@ -1410,50 +1911,30 @@ Fit.Controls.Input = function(ctlId)
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
+			extraAllowedContent: "a[data-tag-type,data-tag-id,data-tag-data]", // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-extraAllowedContent
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
 			readOnly: me.Enabled() === false,
 			tabIndex: me.Enabled() === false ? -1 : 0,
 			title: "",
 			startupFocus: focused === true ? "end" : false,
-			extraPlugins: Fit._internal.Controls.Input.Editor.Plugins.join(","), // "justify,pastefromword,base64image,base64imagepaste,dragresize",
+			extraPlugins: plugins.join(","),
 			clipboard_handleImages: false, // Disable native support for image pasting - allow base64imagepaste plugin to handle image data if loaded
 			base64image: // Custom property used by base64image plugin if loaded
 			{
-				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
+				storage: designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.EmbedType === "blob" ? "blob" : "base64", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
 				onImageAdded: onImageAdded
 			},
 			base64imagepaste: // Custom property used by base64imagepaste plugin if loaded - notice that IE has native support for image pasting as base64 so plugin is not triggered in IE
 			{
-				storage: "blob", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
+				storage: designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.EmbedType === "blob" ? "blob" : "base64", // "base64" (default) or "blob" - base64 will always be provided by browsers not supporting blob storage
 				onImageAdded: onImageAdded
 			},
 			resize_enabled: resizable !== Fit.Controls.InputResizing.Disabled,
 			resize_dir: resizable === Fit.Controls.InputResizing.Enabled ? "both" : resizable === Fit.Controls.InputResizing.Vertical ? "vertical" : resizable === Fit.Controls.InputResizing.Horizontal ? "horizontal" : "none", // Specific to resize plugin (horizontal | vertical | both - https://ckeditor.com/docs/ckeditor4/latest/features/resize.html)
-			toolbar: Fit._internal.Controls.Input.Editor.Toolbar,
-			/*[
-				{
-					name: "BasicFormatting",
-					items: [ "Bold", "Italic", "Underline" ]
-				},
-				{
-					name: "Justify",
-					items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
-				},
-				{
-					name: "Lists",
-					items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
-				},
-				{
-					name: "Links",
-					items: [ "Link", "Unlink" ]
-				},
-				{
-					name: "Insert",
-					items: [ "base64image" ]
-				}
-			],*/
+			toolbar: toolbar,
 			removeButtons: "", // Set to empty string to prevent CKEditor from removing buttons such as Underline
+			mentions: mentions,
 			on:
 			{
 				instanceReady: function()
@@ -1498,6 +1979,60 @@ Fit.Controls.Input = function(ctlId)
 						me.Maximized(true);
 					}
 
+					if (config.InfoPanel && config.InfoPanel.Text)
+					{
+						var infoPanel = document.createElement("div");
+						infoPanel.className = "FitUiControlInputInfoPanel";
+						infoPanel.innerHTML = config.InfoPanel.Text;
+						infoPanel.style.cssText = "text-align: " + (config.InfoPanel.Alignment ? config.InfoPanel.Alignment.toLowerCase() : "center");
+
+						var ckEditorInner = designEditor.container.$.querySelector(".cke_inner"); // Div in modern browsers, span in legacy IE
+						var ckEditorBottom = designEditor.container.$.querySelector(".cke_inner span.cke_bottom"); // Only present if resize handle is enable
+
+						if (ckEditorInner !== null)
+						{
+							if (ckEditorBottom !== null)
+							{
+								Fit.Dom.InsertBefore(ckEditorBottom, infoPanel);
+							}
+							else
+							{
+								Fit.Dom.Add(ckEditorInner, infoPanel);
+							}
+						}
+					}
+
+					// DISABLED: Doesn't work! Emoji panel contains an iFrame. When it is re-mounted
+					// in DOM, the iframe reloads, and dynamically added content is lost. Also, this makes
+					// CKEditor throw errors and the dialog never appears.
+					/*if (Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
+					{
+						// Move emoji dialog to control - otherwise placed in the root of the document where it pollutes,
+						// and makes it impossible to interact with the dialog in light dismissable panels and callouts.
+						// Dialog is placed alongside control and not within the control's container, to prevent Fit.UI
+						// styling from affecting the dialog.
+						if (config.Toolbar && config.Toolbar.Emojis === true)
+						{
+							var emojiButton = designEditor.container.$.querySelector("a.cke_button__emojipanel");
+
+							if (emojiButton !== null)
+							{
+								Fit.Events.AddHandler(emojiButton, "click", function(e)
+								{
+									setTimeout(function() // Postpone - made visible after click event
+									{
+										var emojiPanel = document.querySelector("div.cke_emoji-panel:not([style*='display: none'])");
+
+										if (emojiPanel !== null)
+										{
+											Fit.Dom.InsertAfter(me.GetDomElement(), emojiPanel);
+										}
+									}, 0);
+								});
+							}
+						}
+					}*/
+
 					designEditor._isReadyForInteraction = true;
 
 					// Make editor assume configured width and height.
@@ -1531,8 +2066,73 @@ Fit.Controls.Input = function(ctlId)
 					me._internal.Data("resized", "true");
 					repaint();
 				},
+				selectionChange: function(ev)
+				{
+					// Disable/enable toolbar buttons, depending on whether a tag/mention is selected
+
+					var elm = ev.data.selection.getStartElement().$;
+
+					if (elm.tagName === "A" && Fit.Dom.Data(elm, "tag-id") !== null)
+					{
+						designEditorSuppressPaste = true;
+						setTimeout(function() // Postpone - otherwise we won't be able to temporarily disable some of the buttons (https://jsfiddle.net/ymv56znq/14/)
+						{
+							disableDesignEditorButtons();
+						}, 0);
+					}
+					else
+					{
+						designEditorSuppressPaste = false;
+						restoreDesignEditorButtons();
+					}
+				},
+				doubleclick: function(ev)
+				{
+					// Suppress link dialog for tags (similar code found in beforeCommandExec handler below)
+					if (Fit.Dom.Data(ev.data.element.$, "tag-id") !== null)
+					{
+						ev.cancel();
+						return;
+					}
+				},
+				paste: function(ev)
+				{
+					// Prevent pasting (especially images) into tags.
+					// OnPaste is suppressed using an OnPaste handler in capture phase, which will prevent the operation entirely
+					// on supported browsers. On legacy browsers we handle this by invoking undo on the editor instance instead.
+					//var path = ev.editor.elementPath(); // Null if dialog button is triggered without placing text cursor in editor first
+					//if (Fit.Dom.Data(path.lastElement.$, "tag-id") !== null)
+					if (designEditorSuppressPaste === true) // Also handled in a native OnPaste event handler (capture phase) for supported browsers, which suppresses the event entirely
+					{
+						setTimeout(function() // Postpone - allow editor to create snapshot
+						{
+							ev.editor.execCommand("undo"); // Undo change - paste event cannot be canceled, as it has already happened
+						}, 0);
+						return;
+					}
+				},
 				beforeCommandExec: function(ev)
 				{
+					// Suppress any command (formatting, link dialog etc.) for tags (similar code found in doubleclick handler above).
+					// Commmands can be triggered in multiple ways, e.g. using toolbar buttons, using keyboard shortcuts, and programmatically.
+					var path = ev.editor.elementPath(); // Null if dialog button is triggered without placing text cursor in editor first
+					if (path === null && ev.editor.getData().indexOf("<p><a data-tag-id=") === 0)
+					{
+						// Text cursor has not been placed in editor, but a command such as Bold or "insert image"
+						// has been triggered, and editor content starts with a tag. This results in command being
+						// applied to the tag, which we do not want. Usually this is prevented by the toolbar being
+						// disabled when a tag is selected (see selectionChange event handler further up), but that
+						// is not the case when the user has not yet placed the cursor in the editor.
+						ev.cancel();
+						return;
+					}
+					else if (path !== null && Fit.Dom.Data(path.lastElement.$, "tag-id") !== null && ev.data.name !== "undo") // Allow undo within tag, in case user typed something by mistake
+					{
+						// Cursor is currently placed in a tag - do not allow formatting
+						ev.cancel();
+						return;
+					}
+
 					if (ev && ev.data && ev.data.command && ev.data.command.dialogName)
 					{
 						// Command triggered was a dialog
@@ -1588,6 +2188,68 @@ Fit.Controls.Input = function(ctlId)
 			}
 		});
 	}
+
+	function disableDesignEditorButtons() // Might be called multiple times, e.g. if navigating from one tag/mention to another - buttons must be disabled every time since CKEditor itself re-enable buttons when navigating elements in editor
+	{
+		var preserveButtonState = designEditorRestoreButtonState === null;
+
+		if (preserveButtonState === true)
+		{
+			designEditorRestoreButtonState = {};
+		}
+
+		Fit.Array.ForEach(designEditor.toolbar, function(toolbarGroup)
+		{
+			var items = toolbarGroup.items;
+
+			Fit.Array.ForEach(toolbarGroup.items, function(item)
+			{
+				if (item.command) // Buttons have a command identifier which can be used to resolve the actual command instance
+				{
+					var cmd = designEditor.getCommand(item.command);
+
+					if (preserveButtonState === true && cmd.state !== CKEDITOR.TRISTATE_DISABLED) // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_command.html#property-state
+					{
+						designEditorRestoreButtonState[item.command] = true;
+					}
+
+					cmd.disable();
+				}
+				else if (item.setState) // MenuButtons allow for direct manipulation of enabled/disabled state
+				{
+					if (preserveButtonState === true && item.getState() !== CKEDITOR.TRISTATE_DISABLED) // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_command.html#property-state
+					{
+						designEditorRestoreButtonState[item.name] = item;
+					}
+
+					item.setState(CKEDITOR.TRISTATE_DISABLED);
+				}
+			});
+		});
+	}
+
+	function restoreDesignEditorButtons()
+	{
+		console.log("RESTORING toolbar buttons");
+
+		if (designEditorRestoreButtonState !== null)
+		{
+			Fit.Array.ForEach(designEditorRestoreButtonState, function(commandKey)
+			{
+				if (designEditorRestoreButtonState[commandKey] === true) // Command button
+				{
+					var cmd = designEditor.getCommand(commandKey);
+					cmd.enable();
+				}
+				else // MenuButton
+				{
+					designEditorRestoreButtonState[commandKey].setState(CKEDITOR.TRISTATE_OFF); // Enabled but not highlighted/activated like e.g. a bold button would be when selecting bold text
+				}
+			});
+
+			designEditorRestoreButtonState = null;
+		}
+	};
 
 	function updateDesignEditorSize()
 	{
@@ -1807,65 +2469,8 @@ Fit._internal.Controls.Input.Editor =
 	/// <member container="Fit._internal.Controls.Input.Editor" name="Skin" access="public" static="true" type="'bootstrapck' | 'moono-lisa' | null">
 	/// 	<description> Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control </description>
 	/// </member>
-	Skin: null, // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created
-
-	/// <member container="Fit._internal.Controls.Input.Editor" name="Plugins" access="public" static="true" type="('htmlwriter' | 'justify' | 'pastefromword' | 'resize' | 'base64image' | 'base64imagepaste' | 'dragresize')[]">
-	/// 	<description> Additional plugins used with DesignMode </description>
-	/// </member>
-	Plugins: ["htmlwriter", "justify", "pastefromword", "resize" /*"base64image", "base64imagepaste", "dragresize"*/], // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
-
-	/// <member container="Fit._internal.Controls.Input.Editor" name="Toolbar" access="public" static="true" type="( { name: 'BasicFormatting', items: ('Bold' | 'Italic' | 'Underline')[] } | { name: 'Justify', items: ('JustifyLeft' | 'JustifyCenter' | 'JustifyRight')[] } | { name: 'Lists', items: ('NumberedList' | 'BulletedList' | 'Indent' | 'Outdent')[] } | { name: 'Links', items: ('Link' | 'Unlink')[] } | { name: 'Insert', items: ('base64image')[] } )[]">
-	/// 	<description> Toolbar buttons used with DesignMode - make sure necessary plugins are loaded (see Fit._internal.Controls.Input.EditorPlugins) </description>
-	/// </member>
-	Toolbar:
-	[
-		{
-			name: "BasicFormatting",
-			items: [ "Bold", "Italic", "Underline" ]
-		},
-		{
-			name: "Justify",
-			items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
-		},
-		{
-			name: "Lists",
-			items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
-		},
-		{
-			name: "Links",
-			items: [ "Link", "Unlink" ]
-		}/*,
-		{
-			name: "Insert",
-			items: [ "base64image" ]
-		}*/
-	]
+	Skin: null // Notice: CKEditor does not support multiple different skins on the same page - do not change value once an editor has been created
 };
-
-/// <container name="Fit._internal.Controls.Input.BlobManager">
-/// 	Internal settings related to blob storage management in HTML Editor (Design Mode)
-/// </container>
-Fit._internal.Controls.Input.BlobManager =
-{
-	/// <member container="Fit._internal.Controls.Input.BlobManager" name="RevokeBlobUrlsOnDispose" access="public" static="true" type="'All' | 'UnreferencedOnly'">
-	/// 	<description>
-	/// 		Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
-	/// 		If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
-	/// 		disposing referenced blobs. Failing to do so may cause a memory leak.
-	/// 	</description>
-	/// </member>
-	RevokeBlobUrlsOnDispose: "All", // "All" | "UnreferencedOnly"
-
-	/// <member container="Fit._internal.Controls.Input.BlobManager" name="RevokeExternalBlobUrlsOnDispose" access="public" static="true" type="boolean">
-	/// 	<description>
-	/// 		Dispose images from blob storage (revoke blob URLs) added through Value(..)
-	/// 		function when control is disposed. Basically ownership of these blobs are handed
-	/// 		over to the control for the duration of its life time.
-	/// 		These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
-	/// 	</description>
-	/// </member>
-	RevokeExternalBlobUrlsOnDispose: false
-}
 
 /// <container name="Fit.Controls.InputResizing">
 /// 	<description> Resizing options </description>

@@ -122,6 +122,12 @@ table.cke_dialog_contents label:empty
 	overflow: auto !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
 
+/* Reduce z-index for image resize handlers to allow modal image dialog background layer to stay on top */
+div#ckimgrsz
+{
+	z-index: 9999; /* Defaults to 10001 but modal dialog background layer has z-index 10000 */
+}
+
 /* CKEditor - bootstrapck skin overrides */
 
 /* Override: The bootstrapck skin define margins for content
@@ -150,8 +156,10 @@ div.FitUiControlInput[data-resizable="disabled"] .cke_chrome[data-skin="bootstra
 	padding: 0px 3px 3px 3px;
 }
 
+/* CKEditor - bottom panel, resize handler, and information panel */
+
 /* Optimize how resize handler looks in modern browsers */
-@supports not (-ms-high-contrast: none)
+@supports (font-kerning: normal) /* Exclude legacy browsers (IE, Edge 12-18, etc.) by detecting support for modern feature */
 {
 	div.cke span.cke_bottom
 	{
@@ -173,3 +181,82 @@ div.FitUiControlInput[data-resizable="disabled"] .cke_chrome[data-skin="bootstra
 	}
 }
 
+/* Editor information panel at the bottom of editor (moono-lisa skin) */
+div.cke[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel
+{
+	background-color: #F8F8F8;
+	border-top: 1px solid #D1D1D1;
+	font-size: 0.8em;
+	padding-top: 0.2em;
+	padding-bottom: 0.2em;
+	color: #585858;
+}
+/* Visually merge bottom panel with information panel (moono-lisa skin) */
+@supports (font-kerning: normal) /* Exclude legacy browsers (IE, Edge 12-18, etc.) by detecting support for modern feature */
+{
+	div.cke[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel + span.cke_bottom
+	{
+		padding: 0px;
+		border: none;
+	}
+
+	div.cke[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel + span.cke_bottom > span.cke_resizer
+	{
+		top: -9px;
+	}
+}
+
+/* Editor information panel at the bottom of editor (bootstrapck skin) */
+div.cke[data-skin="bootstrapck"] div.FitUiControlInputInfoPanel
+{
+	background-color: #EEEEEE;
+	font-size: 0.8em;
+	padding-top: 0.2em;
+	color: #585858;
+}
+
+/* CKEditor - tags/mentions support */
+
+div.cke a[data-tag-id]
+{
+	background-color: #F5FbFF;
+	border: 0.065em solid #C6dAE1;
+	border-radius: 0.2em;
+	text-decoration: none;
+	font-size: 0.95em;
+	color: blue;
+	cursor: default;
+}
+
+/* Fluent UI compatibility */
+
+/* The following elements are mounted in document root - make sure they stay on
+   top of everything else in Fluent UI which use very aggressive z-index values. */
+
+/* Image resize handlers */
+html[data-fitui-companion="fluent-ui"] div#ckimgrsz
+{
+	z-index: 2000000;
+}
+
+/* Tags/mentions/autocomplete context menu */
+html[data-fitui-companion="fluent-ui"] ul.cke_autocomplete_panel
+{
+	z-index: 2000000 !important; /* Using !important to override inline style */
+}
+
+/* Panels such as the toolbar's emoji panel/callout  */
+html[data-fitui-companion="fluent-ui"] div.cke_panel
+{
+	z-index: 2000000 !important; /* Using !important to override inline style */
+}
+
+/* Dialogs (e.g. link and image dialogs) */
+html[data-fitui-companion="fluent-ui"] div.cke_dialog_background_cover
+{
+	z-index: 2000010 !important; /* Using !important to override inline style */
+}
+html[data-fitui-companion="fluent-ui"] div.cke_dialog_container
+{
+	z-index: 2000020 !important; /* Using !important to override inline style */
+}

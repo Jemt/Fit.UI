@@ -79,6 +79,14 @@ div.fitui-datepicker
 	z-index: 1300 !important; /* Using !important to override inline style */
 }
 
+/* Fluent UI compatibility */
+html[data-fitui-companion="fluent-ui"] div.fitui-datepicker
+{
+	/* Calendar widget is mounted in document root - make sure it stays on top
+	   of everything else in Fluent UI which use very aggressive z-index values. */
+	z-index: 2000000 !important; /* Using !important to override inline style */
+}
+
 td.fitui-datepicker-week-col
 {
 	font-weight: bold;
