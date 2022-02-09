@@ -1457,21 +1457,22 @@ Fit.Controls.Input = function(ctlId)
 
 				var enableAutoGrow = me.Height().Value === -1 || (designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.Enabled === true);
 
-				if (enableAutoGrow === true && me.Height().Value !== -1)
-				{
-					me.Height(-1);
-				}
-
 				if (enableAutoGrow === true && me.Maximizable() === true)
 				{
-					// Maximize button is disabled (using CSS) when auto grow is enabled, but we make sure to "minimize"
-					// control so maximize button returns to its initial state, in case control was maximized prior to
-					// enabling DesignMode with auto grow. Otherwise the button indicates that the control is maximized,
-					// and so does calls to Maximized() which will incorrectly return True.
+					// Maximize button is disabled when auto grow is enabled, but we make sure to "minimize" control
+					// so maximize button returns to its initial state, in case control was maximized prior to enabling
+					// DesignMode with auto grow. Otherwise the button indicates that the control is maximized, and so
+					// does calls to Maximized() which will incorrectly return True.
 					me.Maximized(false);
 				}
 
+				if (enableAutoGrow === true && me.Height().Value !== -1)
+				{
+					me.Height(-1); // Enables auto grow
+				}
+
 				me._internal.Data("designmode", "true");
+				me._internal.Data("autogrow", enableAutoGrow === true ? "true" : "false"); // Ensure proper value in case Height(..), which is responsible for updating data-autogrow, is never called
 				repaint();
 			}
 			else if (val === false && designMode === true)
