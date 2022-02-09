@@ -3802,7 +3802,7 @@ declare namespace Fit
 			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it.
 			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
 			The value is considered the same unit set using Height(..) which defaults to px.
-			However, if DesignMode is enabled, the value unit is considered to be px.
+			If not set, the value assumes twice the height set using Height(..).
 			* @returns boolean
 			*/
 			public Maximizable(val?:boolean, heightMax?:number):boolean;
@@ -4123,12 +4123,40 @@ declare namespace Fit
 			*/
 			type DesignModeTagsTagCreator = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs) => Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType | null | void;
 			/**
+			* Auto grow configuration.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeAutoGrow DesignModeAutoGrow]
+			*/
+			class DesignModeAutoGrow
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeAutoGrow
+				/**
+				* Flag indicating whether auto grow feature is enabled or not - on by default if no height is set, or if Height(-1) is set.
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
+				* Maximum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+			}
+			/**
 			* Configuration for DesignMode.
 			* @class [Fit.Controls.InputTypeDefs.DesignModeConfig DesignModeConfig]
 			*/
 			class DesignModeConfig
 			{
 				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfig
+				/**
+				* Auto grow configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeAutoGrow} [AutoGrow=undefined]
+				*/
+				AutoGrow?:Fit.Controls.InputTypeDefs.DesignModeAutoGrow;
 				/**
 				* Information panel configuration.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel} [InfoPanel=undefined]
