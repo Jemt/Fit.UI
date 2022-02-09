@@ -24,11 +24,13 @@ Fit.Controls.Input = function(ctlId)
 	var designEditorConfig = null;
 	var designEditorRestoreButtonState = null;
 	var designEditorSuppressPaste = false;
+	var designEditorSuppressOnResize = false;
 	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
 	var maximizeHeight = -1;
 	var minMaxUnit = null;
+	var maximizeHeightConfigured = -1;
 	var resizable = Fit.Controls.InputResizing.Disabled;
 	var nativeResizableAvailable = false; // Updated in init()
 	var mutationObserverId = -1;
@@ -100,6 +102,7 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("maximized", "false");
 		me._internal.Data("resizable", resizable.toLowerCase());
 		me._internal.Data("resized", "false");
+		me._internal.Data("autogrow", "false");
 		me._internal.Data("designmode", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
@@ -492,7 +495,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorRestoreButtonState = designEditorSuppressPaste /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -505,6 +508,8 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
+			me._internal.Data("resized", "false");
+
 			base(val, unit);
 			updateDesignEditorSize();
 		}
@@ -521,16 +526,38 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			var h = base(val, unit);
-			updateDesignEditorSize(); // Throws error if in DesignMode and unit is not px
+			// Restore/minimize control if currently maximized
+			if (me.Maximizable() === true && suppressMinMax !== true)
+			{
+				me.Maximized(false);
+			}
 
+			me._internal.Data("resized", "false");
+			me._internal.Data("autogrow", "false");
+
+			if (val === -1 && designEditor !== null) // Enable auto grow
+			{
+				// A value of -1 is used to reset control height (assume default height).
+				// In DesignMode we want the control height to adjust to the content of the editor in this case.
+				// The editor's ability to adjust to the HTML content is handled in updateDesignEditorSize() below.
+				// Auto grow can also be enabled using configuration object passed to DesignMode(true, config).
+				me._internal.Data("autogrow", "true"); // Make control container adjust to editor's height
+			}
+
+			var h = base(val, unit);
+			updateDesignEditorSize();
+
+			// Calculate new maximize height if control is maximizable
 			if (me.Maximizable() === true && suppressMinMax !== true)
 			{
 				minimizeHeight = h.Value;
-				maximizeHeight = ((maximizeHeight > h.Value && h.Unit === minMaxUnit) ? maximizeHeight : h.Value * 2)
+				maximizeHeight = (maximizeHeightConfigured !== -1 ? maximizeHeightConfigured : (minimizeHeight !== -1 ? minimizeHeight * 2 : 300));
 				minMaxUnit = h.Unit;
+			}
 
-				me.Maximized(false);
+			if (val === -1 && designEditor !== null) // Auto grow enabled
+			{
+				repaint();
 			}
 		}
 
@@ -707,9 +734,6 @@ Fit.Controls.Input = function(ctlId)
 					});
 				}
 
-				if (me.Height().Value === -1)
-					me.Height(150);
-
 				if (focused === true)
 					input.focus();
 
@@ -840,7 +864,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<param name="heightMax" type="number" default="undefined">
 	/// 		If defined, this becomes the height of the input control when maximized.
 	/// 		The value is considered the same unit set using Height(..) which defaults to px.
-	/// 		However, if DesignMode is enabled, the value unit is considered to be px.
+	/// 		If not set, the value assumes twice the height set using Height(..).
 	/// 	</param>
 	/// </function>
 	this.Maximizable = function(val, heightMax)
@@ -868,18 +892,11 @@ Fit.Controls.Input = function(ctlId)
 
 				var h = me.Height();
 
-				if (designEditor === null)
-				{
-					minimizeHeight = h.Value;
-					maximizeHeight = ((Fit.Validation.IsSet(heightMax) === true) ? heightMax : ((minimizeHeight !== -1) ? minimizeHeight * 2 : 150));
-					minMaxUnit = h.Unit;
-				}
-				else
-				{
-					minimizeHeight = h.Value;
-					maximizeHeight = ((Fit.Validation.IsSet(heightMax) === true) ? heightMax : ((minimizeHeight !== -1) ? minimizeHeight * 2 : 300));
-					minMaxUnit = "px";
-				}
+				minimizeHeight = h.Value;
+				maximizeHeight = ((Fit.Validation.IsSet(heightMax) === true) ? heightMax : ((minimizeHeight !== -1) ? minimizeHeight * 2 : 300));
+				minMaxUnit = h.Unit;
+				maximizeHeightConfigured = heightMax || -1;
+
 
 				// Create maximize/minimize button
 
@@ -915,6 +932,12 @@ Fit.Controls.Input = function(ctlId)
 
 				repaint();
 			}
+			else if (val === true && cmdResize !== null && Fit.Validation.IsSet(heightMax) === true)
+			{
+				// Already enabled - just update maximize height
+				maximizeHeight = heightMax !== -1 ? heightMax : minimizeHeight * 2;
+				maximizeHeightConfigured = heightMax;
+			}
 		}
 
 		return (cmdResize !== null);
@@ -928,7 +951,9 @@ Fit.Controls.Input = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		if (Fit.Validation.IsSet(val) === true && cmdResize !== null)
+		var autoGrowEnabled = me.Height().Value === -1 && designEditor !== null;
+
+		if (Fit.Validation.IsSet(val) === true && me.Maximizable() === true && autoGrowEnabled === false)
 		{
 			if (val === true && Fit.Dom.HasClass(cmdResize, "fa-chevron-up") === false)
 			{
@@ -1111,12 +1136,20 @@ Fit.Controls.Input = function(ctlId)
 	/// 	</member>
 	/// </container>
 
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeAutoGrow">
+	/// 	<description> Auto grow configuration </description>
+	/// 	<member name="Enabled" type="boolean"> Flag indicating whether auto grow feature is enabled or not - on by default if no height is set, or if Height(-1) is set </member>
+	/// 	<member name="MinimumHeight" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Minimum height of editable area </member>
+	/// 	<member name="MaximumHeight" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Maximum height of editable area </member>
+	/// </container>
+
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfig">
 	/// 	<description> Configuration for DesignMode </description>
 	/// 	<member name="Plugins" type="Fit.Controls.InputTypeDefs.DesignModeConfigPlugins" default="undefined"> Plugins configuration </member>
 	/// 	<member name="Toolbar" type="Fit.Controls.InputTypeDefs.DesignModeConfigToolbar" default="undefined"> Toolbar configuration </member>
 	/// 	<member name="InfoPanel" type="Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel" default="undefined"> Information panel configuration </member>
 	/// 	<member name="Tags" type="Fit.Controls.InputTypeDefs.DesignModeConfigTags" default="undefined"> Tags configuration </member>
+	/// 	<member name="AutoGrow" type="Fit.Controls.InputTypeDefs.DesignModeAutoGrow" default="undefined"> Auto grow configuration </member>
 	/// </container>
 
 	/// <function container="Fit.Controls.Input" name="DesignMode" access="public" returns="boolean">
@@ -1151,6 +1184,14 @@ Fit.Controls.Input = function(ctlId)
 		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Text, true);
 		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Alignment, true);
 		Fit.Validation.ExpectObject((editorConfig || {}).Tags, true);
+		Fit.Validation.ExpectObject((editorConfig || {}).AutoGrow, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).AutoGrow || {}).Enabled, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).AutoGrow || {}).MinimumHeight, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).AutoGrow || {}).MinimumHeight || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).AutoGrow || {}).MinimumHeight || {}).Unit, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).AutoGrow || {}).MaximumHeight, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).AutoGrow || {}).MaximumHeight || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).AutoGrow || {}).MaximumHeight || {}).Unit, true);
 
 		if (editorConfig && editorConfig.Tags)
 		{
@@ -1405,13 +1446,29 @@ Fit.Controls.Input = function(ctlId)
 					createEditor();
 				}
 
-				if (val !== Fit.Controls.InputResizing.Disabled)
+				if (me.Resizable() !== Fit.Controls.InputResizing.Disabled) // Undo any resizing done in ordinary MultiLine mode
 				{
 					Fit.Dom.Data(me.GetDomElement(), "resized", "false");
 
 					input.style.width = "";
 					input.style.height = "";
 					input.style.margin = ""; // Chrome adds some odd margin when textarea is resized
+				}
+
+				var enableAutoGrow = me.Height().Value === -1 || (designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.Enabled === true);
+
+				if (enableAutoGrow === true && me.Height().Value !== -1)
+				{
+					me.Height(-1);
+				}
+
+				if (enableAutoGrow === true && me.Maximizable() === true)
+				{
+					// Maximize button is disabled (using CSS) when auto grow is enabled, but we make sure to "minimize"
+					// control so maximize button returns to its initial state, in case control was maximized prior to
+					// enabling DesignMode with auto grow. Otherwise the button indicates that the control is maximized,
+					// and so does calls to Maximized() which will incorrectly return True.
+					me.Maximized(false);
 				}
 
 				me._internal.Data("designmode", "true");
@@ -1462,6 +1519,7 @@ Fit.Controls.Input = function(ctlId)
 				}
 
 				me._internal.Data("designmode", "false");
+				me._internal.Data("autogrow", "false");
 				Fit.Dom.Data(me.GetDomElement(), "resized", "false");
 
 				revertToSingleLineIfNecessary();
@@ -1918,6 +1976,8 @@ Fit.Controls.Input = function(ctlId)
 			readOnly: me.Enabled() === false,
 			tabIndex: me.Enabled() === false ? -1 : 0,
 			title: "",
+			width: "100%", // Assume width of container
+			height: me.Height().Value > -1 ? me.Height().Value + me.Height().Unit : "100%", // Height of content area - toolbar and bottom panel takes up additional space - once editor is loaded, the outer dimensions are accurately set using updateDesignEditorSize() - a height of 100% enables auto grow
 			startupFocus: focused === true ? "end" : false,
 			extraPlugins: plugins.join(","),
 			clipboard_handleImages: false, // Disable native support for image pasting - allow base64imagepaste plugin to handle image data if loaded
@@ -1959,20 +2019,21 @@ Fit.Controls.Input = function(ctlId)
 						me.Maximized(false); // Minimize to allow editor to initially assume normal height - maximized again afterwards
 					}
 
-					var h = me.Height();
-					var useConfiguredHeight = h.Value >= 150 && h.Unit === "px"; // Only pixels are supported in DesignMode, and a minimum height of 150px must be applied for editor to be usable
-
-					if (useConfiguredHeight === false)
+					if (me.Height().Value === -1 || (designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.Enabled === true))
 					{
-						var defaultHeight = 150;
-						me.Height(defaultHeight);
+						// Enable auto grow
 
-						if (me.Maximizable() === true)
+						if (me.Height().Value !== -1) // Enable auto grow if not already enabled
 						{
-							minimizeHeight = defaultHeight;
-							maximizeHeight = defaultHeight * 2;
-							minMaxUnit = "px";
+							me.Height(-1);
 						}
+
+						// Make necessary adjustments to editor DOM for auto grow's min/max height to work
+
+						var editorContainer = designEditor.container.$;
+						var editableDiv = editorContainer.querySelector("div.cke_wysiwyg_div");
+						editableDiv.style.minHeight = config.AutoGrow && config.AutoGrow.MinimumHeight ? config.AutoGrow.MinimumHeight.Value + (config.AutoGrow.MinimumHeight.Unit || "px") : ""; // NOTICE: Minimum height of editable area, not control
+						editableDiv.style.maxHeight = config.AutoGrow && config.AutoGrow.MaximumHeight ? config.AutoGrow.MaximumHeight.Value + (config.AutoGrow.MaximumHeight.Unit || "px") : ""; // NOTICE: Maximum height of editable area, not control
 					}
 
 					if (maximized === true)
@@ -2062,10 +2123,13 @@ Fit.Controls.Input = function(ctlId)
 
 					input.onkeyup();
 				},
-				resize: function() // Fires when size is changed, not just when resized using resize handle in lower right cornor
+				resize: function() // Fires when size is changed (except via auto grow), not just when resized using resize handle in lower right cornor
 				{
-					me._internal.Data("resized", "true");
-					repaint();
+					if (designEditorSuppressOnResize === false) // Only set data-resized="true" when resized using resize handle
+					{
+						me._internal.Data("resized", "true");
+						repaint();
+					}
 				},
 				selectionChange: function(ev)
 				{
@@ -2231,8 +2295,6 @@ Fit.Controls.Input = function(ctlId)
 
 	function restoreDesignEditorButtons()
 	{
-		console.log("RESTORING toolbar buttons");
-
 		if (designEditorRestoreButtonState !== null)
 		{
 			Fit.Array.ForEach(designEditorRestoreButtonState, function(commandKey)
@@ -2269,21 +2331,17 @@ Fit.Controls.Input = function(ctlId)
 				return;
 			}
 
-			var w = me.Width();
+			//var w = me.Width();
 			var h = me.Height();
-
-			// CKEditor contains a bug that prevents us from resizing
-			// with a CSS unit, so currently only pixels are supported.
-
-			if (w.Unit !== "px" || h.Unit !== "px")
-				throw new Error("DesignMode does not support resizing in units different from px");
 
 			// Default control width is 200px (defined in Styles.css).
 			// NOTICE: resize does not work reliably when editor is hidden, e.g. behind a tab with display:none.
 			// The height set will not have the height of the toolbar substracted since the height can not be
 			// determined for hidden objects, so the editor will become larger than the value set (height specified + toolbar height).
 			// http://docs.ckeditor.com/#!/api/CKEDITOR.editor-method-resize
-			designEditor.resize(((w.Value > -1) ? w.Value : 200), ((h.Value > -1) ? h.Value : 150));
+			designEditorSuppressOnResize = true;
+			designEditor.resize("100%", h.Value > -1 ? h.Value + h.Unit : "100%"); // A height of 100% allow editor to automatically adjust the height of the editor's content area to the height of its content (data-autogrow="true" must be set to make control container adjust to its content as well)
+			designEditorSuppressOnResize = false;
 
 			// Set mutation observer responsible for updating editor size once it becomes visible
 
@@ -2301,7 +2359,10 @@ Fit.Controls.Input = function(ctlId)
 				{
 					if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
 					{
-						designEditor.resize(((w.Value > -1) ? w.Value : 200), ((h.Value > -1) ? h.Value : 150));
+						designEditorSuppressOnResize = true;
+						designEditor.resize("100%", h.Value > -1 ? h.Value + h.Unit : "100%"); // A height of 100% allow editor to automatically adjust the height of the editor's content area to the height of its content (data-autogrow="true" must be set to make control container adjust to its content as well)
+						designEditorSuppressOnResize = false;
+
 						disconnect(); // Observers are expensive - remove when no longer needed
 					}
 				});

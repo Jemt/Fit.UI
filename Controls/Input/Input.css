@@ -26,6 +26,12 @@ div.FitUiControlInput textarea:first-child
 	appearance: none;
 }
 
+/* Default height for ordinary multi line input control (textarea) */
+div.FitUiControlInput[data-multiline="true"][data-designmode="false"]
+{
+	height: 150px;
+}
+
 /* Make control container adjust to textarea or HTML editor when it has been resized */
 div.FitUiControlInput[data-resized="true"]
 {
@@ -70,6 +76,12 @@ div.FitUiControlInput > span.fa
 	font-size: 0.8em;
 	color: #BBBBBB;
 }
+div.FitUiControlInput[data-autogrow="true"] > span.fa /* Maximize button does nothing (disabled) when auto grow is enabled in DesignMode */
+{
+	border-color: #DEDEDE;
+	color: #DEDEDE;
+	cursor: not-allowed;
+}
 div.FitUiControlInput > span.fa:focus
 {
 	outline: none;
@@ -106,6 +118,12 @@ div.FitUiControlInput[data-resizable="horizontal"] textarea:first-child
 }
 
 /* CKEditor */
+
+/* Make control container adjust to the height of CKEditor when auto grow is enabled */
+div.FitUiControlInput[data-autogrow="true"]
+{
+	height: auto;
+}
 
 /* Hide empty labels in dialogs (make controls align properly in Base64Image dialog) */
 table.cke_dialog_contents label:empty
