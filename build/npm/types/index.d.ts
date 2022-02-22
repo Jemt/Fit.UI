@@ -1192,6 +1192,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -1737,6 +1738,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -2149,6 +2151,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -2949,6 +2952,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -3472,6 +3476,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -3895,6 +3900,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -4144,6 +4150,11 @@ declare namespace Fit
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
 				*/
 				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Prevent user from resizing editor beyond maximum height (see MaximumHeight property - defaults to False).
+				* @member {boolean} [PreventResizeBeyondMaximumHeight=undefined]
+				*/
+				PreventResizeBeyondMaximumHeight?:boolean;
 			}
 			/**
 			* Configuration for DesignMode.
@@ -4179,7 +4190,7 @@ declare namespace Fit
 				Toolbar?:Fit.Controls.InputTypeDefs.DesignModeConfigToolbar;
 			}
 			/**
-			* Information panel at the bottom of the editor.
+			* Information panel at the top or bottom of the editor, depending on the location of the toolbar.
 			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel DesignModeConfigInfoPanel]
 			*/
 			class DesignModeConfigInfoPanel
@@ -4350,6 +4361,11 @@ declare namespace Fit
 				*/
 				Formatting?:boolean;
 				/**
+				* Hide toolbar until control gains focus (defaults to False).
+				* @member {boolean} [HideInitially=undefined]
+				*/
+				HideInitially?:boolean;
+				/**
 				* Enable image button (defaults to false).
 				* @member {boolean} [Images=undefined]
 				*/
@@ -4369,6 +4385,16 @@ declare namespace Fit
 				* @member {boolean} [Lists=undefined]
 				*/
 				Lists?:boolean;
+				/**
+				* Toolbar position (defaults to Top).
+				* @member {'Top' | 'Bottom'} [Position=undefined]
+				*/
+				Position?:'Top' | 'Bottom';
+				/**
+				* Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False).
+				* @member {boolean} [Sticky=undefined]
+				*/
+				Sticky?:boolean;
 			}
 			/**
 			* Request handler event arguments.
@@ -5751,6 +5777,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -6893,6 +6920,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
@@ -8328,6 +8356,7 @@ declare namespace Fit
 			public Enabled(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
 			* @function Focused
 			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
 			* @returns boolean
