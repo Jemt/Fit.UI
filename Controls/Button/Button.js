@@ -139,6 +139,7 @@ Fit.Controls.Button = function(controlId)
 			}
 			else
 			{
+				me.Focused(false);
 				Fit.Dom.Attribute(element, "tabindex", null);
 			}
 

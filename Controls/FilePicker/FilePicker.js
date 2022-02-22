@@ -484,6 +484,11 @@ Fit.Controls.FilePicker = function(ctlId)
 		{
 			me._internal.Data("enabled", val.toString());
 
+			if (val === false)
+			{
+				me.Focused(false);
+			}
+
 			if (inputs.length === 0) // Modern control
 			{
 				input.disabled = !val;

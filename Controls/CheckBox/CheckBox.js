@@ -256,6 +256,7 @@ Fit.Controls.CheckBox = function(ctlId)
 			}
 			else
 			{
+				me.Focused(false);
 				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
 			}
 
