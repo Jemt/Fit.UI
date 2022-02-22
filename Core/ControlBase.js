@@ -204,7 +204,10 @@ Fit.Controls.ControlBase = function(controlId)
 	}
 
 	/// <function container="Fit.Controls.ControlBase" name="Focused" access="public" returns="boolean">
-	/// 	<description> Get/set value indicating whether control has focus </description>
+	/// 	<description>
+	/// 		Get/set value indicating whether control has focus.
+	/// 		Control must be rooted in DOM and be visible for control to gain focus.
+	/// 	</description>
 	/// 	<param name="value" type="boolean" default="undefined"> If defined, True assigns focus, False removes focus (blur) </param>
 	/// </function>
 	this.Focused = function(val)
@@ -1122,6 +1125,11 @@ Fit.Controls.ControlBase = function(controlId)
 		if (me === null) // Disposed while focused (e.g. from an onscroll event handler)
 			return;
 
+		// Make sure OnBlur does not fire unless OnFocus was fired first. This prevents OnBlur from firing
+		// if a disabled control allow some elements to gain focus such as links via tab navigation.
+		if (hasFocus === false)
+			return;
+
 		if (focusStateLocked === true)
 			return;
 
@@ -1461,4 +1469,4 @@ Fit.Controls.DirtyCheckAll = function(scope)
 // 		visible when interacting with controls on the screen.
 // 	</member>
 // </container>
-Fit._internal.ControlBase.ReduceDocumentRootPollution = true;
+Fit._internal.ControlBase.ReduceDocumentRootPollution = false;

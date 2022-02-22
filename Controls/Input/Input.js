@@ -19,12 +19,25 @@ Fit.Controls.Input = function(ctlId)
 	var input = null;
 	var cmdResize = null;
 	var designEditor = null;
+	var designEditorDom = null; // DOM elements within CKEditor which we rely on - some <div> elements become <span> elements in older browsers
+	/*{
+		OuterContainer: null,	// <div class="cke">
+		InnerContainer: null,	//     <div class="cke_inner">
+		Top: null,				//         <span class="cke_top">
+		Content: null,			//         <div class="cke_contents">
+		Editable: null,			//             <div class="cke_editable">
+		Bottom: null			//         <span class="cke_bottom">
+	}*/
 	var designEditorDirty = false;
 	var designEditorDirtyPending = false;
 	var designEditorConfig = null;
 	var designEditorRestoreButtonState = null;
 	var designEditorSuppressPaste = false;
 	var designEditorSuppressOnResize = false;
+	var designEditorMustReloadWhenReady = false;
+	var designEditorMustDisposeWhenReady = false;
+	var designEditorUpdateSizeDebouncer = -1;
+	var designEditorActiveToolbarPanel = null; // { DomElement: HTMLElement, UnlockFocusStateIfEmojiPanelIsClosed: function, CloseEmojiPanel: function }
 	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
@@ -33,13 +46,13 @@ Fit.Controls.Input = function(ctlId)
 	var maximizeHeightConfigured = -1;
 	var resizable = Fit.Controls.InputResizing.Disabled;
 	var nativeResizableAvailable = false; // Updated in init()
-	var mutationObserverId = -1;
-	var rootedEventId = -1;
-	var createWhenReadyIntervalId = -1;
+	var mutationObserverId = -1;		// Specific to DesignMode
+	var rootedEventId = -1;				// Specific to DesignMode
+	var createWhenReadyIntervalId = -1;	// Specific to DesignMode
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 	var debounceOnChangeTimeout = -1;
 	var debouncedOnChange = null;
-	var imageBlobUrls = [];
+	var imageBlobUrls = [];				// Specific to DesignMode
 
 	// ============================================
 	// Init
@@ -72,7 +85,7 @@ Fit.Controls.Input = function(ctlId)
 				// Scroll to bottom if nearby, to make sure text does not collide with maximize button.
 				// Extra padding-bottom is added inside control to allow for spacing between text and maximize button.
 
-				var scrollContainer = designEditor !== null ? designEditor.container.$.querySelector("div.cke_editable") : input;
+				var scrollContainer = designEditorDom && designEditorDom.Editable || input;
 				var autoScrollToBottom = scrollContainer.scrollTop + scrollContainer.clientHeight > scrollContainer.scrollHeight - 15; // True when at bottom or very close (15px buffer)
 
 				if (autoScrollToBottom === true)
@@ -102,7 +115,6 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("maximized", "false");
 		me._internal.Data("resizable", resizable.toLowerCase());
 		me._internal.Data("resized", "false");
-		me._internal.Data("autogrow", "false");
 		me._internal.Data("designmode", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
@@ -120,18 +132,22 @@ Fit.Controls.Input = function(ctlId)
 			}
 
 			fireOnChange(); // Only fires OnChange if value has actually changed
+		});
 
-			// Restore editor's toolbar buttons in case they were temporarily disabled
-
-			if (designEditor !== null)
-			{
-				restoreDesignEditorButtons();
-			}
+		me.OnFocus(function()
+		{
+			restoreHiddenToolbarInDesignEditor();	// Make toolbar appear if currently hidden
+			updateDesignEditorPlaceholder(true);	// Clear placeholder text
+		});
+		me.OnBlur(function()
+		{
+			restoreDesignEditorButtons();			// Restore (enable) editor's toolbar buttons in case they were temporarily disabled
+			updateDesignEditorPlaceholder();		// Show placeholder text if control value is empty
 		});
 
 		Fit.Events.AddHandler(me.GetDomElement(), "paste", true, function(e)
 		{
-			if (designEditor !== null && designEditorSuppressPaste === true)
+			if (me.DesignMode() === true && designEditorSuppressPaste === true)
 			{
 				Fit.Events.Stop(e);
 			}
@@ -159,14 +175,27 @@ Fit.Controls.Input = function(ctlId)
 		{
 			me._internal.Data("enabled", val === true ? "true" : "false");
 
+			if (val === false)
+			{
+				me.Focused(false);
+			}
+
 			input.disabled = val === false;
 
-			if (designEditor !== null && designEditor._isReadyForInteraction === true) // ReadOnly mode will be set when instance is ready, if not ready at this time
+			if (designModeEnabledAndReady() === true) // ReadOnly mode will be set when instance is ready, if not ready at this time
 			{
 				designEditor.setReadOnly(input.disabled);
 
-				// Unfortunately there is no API for changing the tabIndex
-				designEditor.container.$.querySelector("[contenteditable]").tabIndex = input.disabled === true ? -1 : 0;
+				// Set tabindex to allow or disallow focus. Unfortunately there is no editor API for changing the tabindex.
+				// Preventing focus is only possible by nullifying DOM attribute (these does not work: delete elm.tabIndex; elm.tabIndex = null|undefined|-1).
+				Fit.Dom.Attribute(designEditorDom.Editable, "tabindex", input.disabled === true ? null : "0");
+
+				// Prevent control from losing focus when HTML editor is initialized,
+				// e.g. if Design Mode is enabled when ordinary input control gains focus.
+				// This also prevents control from losing focus if toolbar is clicked without
+				// hitting a button. A value of -1 makes it focusable, but keeps it out of
+				// tab flow (keyboard navigation). Also set when DesignMode(true) is called.
+				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", input.disabled !== true && me.DesignMode() === true ? "-1" : null); // Remove tabindex used to prevent control from losing focus when clicking toolbar buttons, as it will allow control to gain focus when clicked using the mouse
 			}
 
 			me._internal.UpdateInternalState();
@@ -181,7 +210,19 @@ Fit.Controls.Input = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
 
-		var elm = ((designEditor !== null) ? designEditor : input); // Notice: designEditor is an instance of CKEditor, not a DOM element
+		elm = input;
+
+		if (me.DesignMode() === true)
+		{
+			if (designModeEnabledAndReady() === true)
+			{
+				elm = designEditor; // Notice: designEditor is an instance of CKEditor, not a DOM element, but it does expose a focus() function
+			}
+			else
+			{
+				elm = me.GetDomElement(); // Editor not loaded yet - focus control container temporarily - focus is later moved to editable area once instanceReady handler is invoked
+			}
+		}
 
 		if (Fit.Validation.IsSet(focus) === true)
 		{
@@ -198,7 +239,7 @@ Fit.Controls.Input = function(ctlId)
 			}
 			else // Remove focus
 			{
-				if (designEditor !== null)
+				if (designModeEnabledAndReady() === true)
 				{
 					if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
 					{
@@ -242,6 +283,11 @@ Fit.Controls.Input = function(ctlId)
 					}
 					else
 					{
+						if (designEditorActiveToolbarPanel !== null)
+						{
+							designEditorActiveToolbarPanel.CloseEmojiPanel(); // Returns focus to editor and nullifies designEditorActiveToolbarPanel
+						}
+
 						// Make sure this control is focused so that one control instance can not
 						// be used to accidentially remove focus from another control instance.
 						if (Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused()) === true)
@@ -258,7 +304,7 @@ Fit.Controls.Input = function(ctlId)
 			}
 		}
 
-		if (designEditor !== null)
+		if (me.DesignMode() === true)
 		{
 			// If a dialog is open and it belongs to this control instance, and focus is found within dialog, then control is considered having focus.
 			// However, if <body> is focused while dialog is open, control is also considered to have focus, since dialog temporarily assigns focus to
@@ -266,7 +312,12 @@ Fit.Controls.Input = function(ctlId)
 			if (Fit._internal.Controls.Input.ActiveEditorForDialog === me && (Fit.Dom.Contained(Fit._internal.Controls.Input.ActiveDialogForEditor.getElement().$, Fit.Dom.GetFocused()) === true || Fit.Dom.GetFocused() === document.body))
 				return true;
 
-			return Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused());
+			// If a toolbar dialog/callout is open and contains the element currently having focus, then control is considered having focus.
+			// If the dialog/callout contains an iframe in which an element has focus, then the iframe is considered focused in the main window.
+			if (designEditorActiveToolbarPanel !== null && Fit.Dom.Contained(designEditorActiveToolbarPanel.DomElement, Fit.Dom.GetFocused()) === true)
+				return true;
+
+			return Fit.Dom.GetFocused() === me.GetDomElement() || Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused());
 		}
 
 		return (Fit.Dom.GetFocused() === elm);
@@ -290,7 +341,7 @@ Fit.Controls.Input = function(ctlId)
 			/*if (val.indexOf("<p>") === 0)
 				htmlWrappedInParagraph = true; // Indicates that val is comparable with value from CKEditor which wraps content in paragraphs*/
 
-			if (designEditor !== null)
+			if (designModeEnabledAndReady() === true)
 			{
 				// NOTICE: Invalid HTML is removed, so an all invalid HTML string will be discarded
 				// by the editor, resulting in the editor's getData() function returning an empty string.
@@ -301,6 +352,8 @@ Fit.Controls.Input = function(ctlId)
 				{
 					CKEDITOR.instances[me.GetId() + "_DesignMode"].setData(val);
 				});
+
+				updateDesignEditorPlaceholder();
 			}
 			else
 			{
@@ -331,7 +384,7 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.FireOnChange();
 		}
 
-		if (designEditor !== null)
+		if (designModeEnabledAndReady() === true)
 		{
 			// If user has not changed value, then return the value initially set.
 			// CKEditor may change (optimize) HTML when applied, but we always want
@@ -364,7 +417,7 @@ Fit.Controls.Input = function(ctlId)
 	// See documentation on ControlBase
 	this.UserValue = Fit.Core.CreateOverride(this.UserValue, function(val)
 	{
-		if (Fit.Validation.IsSet(val) === true && designEditor !== null)
+		if (Fit.Validation.IsSet(val) === true && me.DesignMode() === true)
 		{
 			designEditorDirtyPending = true;
 		}
@@ -375,7 +428,7 @@ Fit.Controls.Input = function(ctlId)
 	// See documentation on ControlBase
 	this.IsDirty = function()
 	{
-		if (designEditor !== null)
+		if (me.DesignMode() === true)
 		{
 			// Never do value comparison in DesignMode.
 			// A value such as "Hello world" could have been provided,
@@ -408,6 +461,38 @@ Fit.Controls.Input = function(ctlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		// This will destroy control - it will no longer work!
+
+		if (me.DesignMode() === true && designModeEnabledAndReady() === false) // DesignMode is enabled but editor is not done loading/initializing
+		{
+			// WARNING: This has the potential to leak memory if editor never loads and resumes task of disposing control!
+			designEditorMustDisposeWhenReady = true;
+
+			// Editor was disposed while loading/initializing.
+			// Postpone destruction of control to make sure we can clean up resources
+			// reliably once editor is ready. We know that CKEditor does not dispose properly
+			// unless fully loaded (it may leave an instance on the global CKEDITOR object or even fail).
+			Fit.Browser.Debug("WARNING: Attempting to dispose Input control '" + me.GetId() + "' while initializing DesignMode! Control will be disposed later.");
+
+			// Do not keep control in user interface when disposed.
+			// Mount control in document root and move it off screen (outside visible
+			// viewport area). CKEditor will fail initialization if not mounted in DOM.
+			me.Render(document.body);
+			me.GetDomElement().style.position = "fixed";
+			me.GetDomElement().style.left = "0px";
+			me.GetDomElement().style.bottom = "-100px";
+			me.GetDomElement().style.maxHeight = "100px";
+
+			// Detect memory leak
+			/* setTimeout(function()
+			{
+				if (me !== null)
+				{
+					Fit.Browser.Debug("WARNING: Input in DesignMode was not properly disposed in time - potential memory leak detected");
+				}
+			}, 5000); // Usually the load time for an editor is barely measurable, so 5 seconds seems sufficient */
+
+			return;
+		}
 
 		var curVal = designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.RevokeBlobUrlsOnDispose === "UnreferencedOnly" ? me.Value() : null;
 
@@ -452,10 +537,15 @@ Fit.Controls.Input = function(ctlId)
 			// Fit._internal.Controls.Input.ActiveDialogForEditor;
 			// Fit._internal.Controls.Input.ActiveDialogForEditorCanceled;
 
-			designEditor.destroy();
+			destroyDesignEditorInstance(); // Destroys editor and stops related mutation observers, timers, etc.
 		}
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+
+		/*if (designEditorUpdateSizeDebouncer !== -1)
+		{
+			clearTimeout(designEditorUpdateSizeDebouncer);
+		}
 
 		if (mutationObserverId !== -1)
 		{
@@ -470,7 +560,7 @@ Fit.Controls.Input = function(ctlId)
 		if (createWhenReadyIntervalId !== -1)
 		{
 			clearInterval(createWhenReadyIntervalId);
-		}
+		}*/
 
 		if (debouncedOnChange !== null)
 		{
@@ -495,7 +585,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorActiveToolbarPanel /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -533,19 +623,36 @@ Fit.Controls.Input = function(ctlId)
 			}
 
 			me._internal.Data("resized", "false");
-			me._internal.Data("autogrow", "false");
+			me._internal.Data("autogrow", me.DesignMode() === true ? "false" : null);
 
-			if (val === -1 && designEditor !== null) // Enable auto grow
+			var autoGrowEnabled = false;
+			if (val === -1 && designModeEnabledAndReady() === true) // Enable auto grow if editor is loaded and ready - otherwise enabled in instanceReady handler
 			{
 				// A value of -1 is used to reset control height (assume default height).
 				// In DesignMode we want the control height to adjust to the content of the editor in this case.
 				// The editor's ability to adjust to the HTML content is handled in updateDesignEditorSize() below.
 				// Auto grow can also be enabled using configuration object passed to DesignMode(true, config).
 				me._internal.Data("autogrow", "true"); // Make control container adjust to editor's height
+				autoGrowEnabled = true;
+			}
+
+			var hideToolbarAgain = false;
+			if (isToolbarHiddenInDesignEditor() === true)
+			{
+				// If in DesignMode, temporarily restore toolbar to allow update to height.
+				// When toolbar is hidden, a fixed height is set on the editable area which
+				// prevent changes to control height.
+				restoreHiddenToolbarInDesignEditor();
+				hideToolbarAgain = true;
 			}
 
 			var h = base(val, unit);
 			updateDesignEditorSize();
+
+			if (hideToolbarAgain === true)
+			{
+				hideToolbarInDesignMode();
+			}
 
 			// Calculate new maximize height if control is maximizable
 			if (me.Maximizable() === true && suppressMinMax !== true)
@@ -555,7 +662,7 @@ Fit.Controls.Input = function(ctlId)
 				minMaxUnit = h.Unit;
 			}
 
-			if (val === -1 && designEditor !== null) // Auto grow enabled
+			if (autoGrowEnabled === true) // Repaint in case auto grow was enabled above
 			{
 				repaint();
 			}
@@ -579,6 +686,7 @@ Fit.Controls.Input = function(ctlId)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			input.placeholder = val;
+			updateDesignEditorPlaceholder();
 		}
 
 		return (input.placeholder ? input.placeholder : "");
@@ -692,6 +800,12 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
+			if (me.DesignMode() === true && designModeEnabledAndReady() === false)
+			{
+				console.error("MultiLine(boolean) is not allowed for Input control '" + me.GetId() + "' while DesignMode editor is initializing!");
+				return false; // Return current un-modified state - Input control is not in MultiLine mode when DesignMode is enabled
+			}
+
 			if (me.DesignMode() === true)
 				me.DesignMode(false);
 
@@ -786,7 +900,7 @@ Fit.Controls.Input = function(ctlId)
 			}
 		}
 
-		return (input.tagName === "TEXTAREA" && designEditor === null);
+		return (input.tagName === "TEXTAREA" && me.DesignMode() === false);
 	}
 
 	/// <function container="Fit.Controls.Input" name="Resizable" access="public" returns="Fit.Controls.InputResizing">
@@ -814,7 +928,7 @@ Fit.Controls.Input = function(ctlId)
 						//Fit.Browser.Log("Maximizable disabled as Resizable was enabled!");
 					}
 
-					if (me.MultiLine() === false && designEditor === null)
+					if (me.MultiLine() === false && me.DesignMode() === false)
 					{
 						me.MultiLine(true);
 						wasAutoChangedToMultiLineMode = true;
@@ -882,7 +996,7 @@ Fit.Controls.Input = function(ctlId)
 					//Fit.Browser.Log("Resizable disabled as Maximizable was enabled!");
 				}
 
-				if (me.MultiLine() === false && designEditor === null)
+				if (me.MultiLine() === false && me.DesignMode() === false)
 				{
 					me.MultiLine(true);
 					wasAutoChangedToMultiLineMode = true;
@@ -951,7 +1065,7 @@ Fit.Controls.Input = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
-		var autoGrowEnabled = me.Height().Value === -1 && designEditor !== null;
+		var autoGrowEnabled = me.Height().Value === -1 && me.DesignMode() === true;
 
 		if (Fit.Validation.IsSet(val) === true && me.Maximizable() === true && autoGrowEnabled === false)
 		{
@@ -1016,10 +1130,13 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Links" type="boolean" default="undefined"> Enable links (defaults to True) </member>
 	/// 	<member name="Emojis" type="boolean" default="undefined"> Enable emoji button (defaults to False) </member>
 	/// 	<member name="Images" type="boolean" default="undefined"> Enable image button (defaults to false) </member>
+	/// 	<member name="Position" type="'Top' | 'Bottom'" default="undefined"> Toolbar position (defaults to Top) </member>
+	/// 	<member name="Sticky" type="boolean" default="undefined"> Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False) </member>
+	/// 	<member name="HideInitially" type="boolean" default="undefined"> Hide toolbar until control gains focus (defaults to False) </member>
 	/// </container>
 
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel">
-	/// 	<description> Information panel at the bottom of the editor </description>
+	/// 	<description> Information panel at the top or bottom of the editor, depending on the location of the toolbar </description>
 	/// 	<member name="Text" type="string" default="undefined"> Text to display </member>
 	/// 	<member name="Alignment" type="'Left' | 'Center' | 'Right'" default="undefined"> Text alignment - defaults to Center </member>
 	/// </container>
@@ -1141,6 +1258,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Enabled" type="boolean"> Flag indicating whether auto grow feature is enabled or not - on by default if no height is set, or if Height(-1) is set </member>
 	/// 	<member name="MinimumHeight" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Minimum height of editable area </member>
 	/// 	<member name="MaximumHeight" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Maximum height of editable area </member>
+	/// 	<member name="PreventResizeBeyondMaximumHeight" type="boolean" default="undefined"> Prevent user from resizing editor beyond maximum height (see MaximumHeight property - defaults to False) </member>
 	/// </container>
 
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfig">
@@ -1180,6 +1298,9 @@ Fit.Controls.Input = function(ctlId)
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Links, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Emojis, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Images, true);
+		Fit.Validation.ExpectStringValue(((editorConfig || {}).Toolbar || {}).Position, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Sticky, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).HideInitially, true);
 		Fit.Validation.ExpectObject((editorConfig || {}).InfoPanel, true);
 		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Text, true);
 		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Alignment, true);
@@ -1192,6 +1313,7 @@ Fit.Controls.Input = function(ctlId)
 		Fit.Validation.ExpectObject(((editorConfig || {}).AutoGrow || {}).MaximumHeight, true);
 		Fit.Validation.ExpectNumber((((editorConfig || {}).AutoGrow || {}).MaximumHeight || {}).Value, true);
 		Fit.Validation.ExpectStringValue((((editorConfig || {}).AutoGrow || {}).MaximumHeight || {}).Unit, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).AutoGrow || {}).PreventResizeBeyondMaximumHeight, true);
 
 		if (editorConfig && editorConfig.Tags)
 		{
@@ -1220,7 +1342,7 @@ Fit.Controls.Input = function(ctlId)
 			{
 				if (Fit.Validation.IsSet(editorConfig) === true)
 				{
-					designEditorConfig = editorConfig;
+					designEditorConfig = Fit.Core.Clone(editorConfig); // Clone to prevent external code from making changes later
 				}
 
 				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
@@ -1236,6 +1358,27 @@ Fit.Controls.Input = function(ctlId)
 				{
 					me.MultiLine(true);
 					wasAutoChangedToMultiLineMode = true;
+				}
+
+				me._internal.Data("designmode", "true");
+				me._internal.Data("toolbar", designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideInitially === true ? "false" : "true");
+				me._internal.Data("toolbar-position", designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Position === "Bottom" ? "bottom" : "top");
+				me._internal.Data("toolbar-sticky", designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Sticky === true ? "true" : "false");
+
+				// Prevent control from losing focus when HTML editor is initialized,
+				// e.g. if Design Mode is enabled when ordinary input control gains focus.
+				// This also prevents control from losing focus if toolbar is clicked without
+				// hitting a button. A value of -1 makes it focusable, but keeps it out of
+				// tab flow (keyboard navigation). Also set when Enabled(true) is called.
+				me.GetDomElement().tabIndex = -1; // TabIndex is removed if DesignMode is disabled (DesignMode(false)) or if control is disabled (Enabled(false))
+
+				if (me.Focused() === true)
+				{
+					// Move focus from input to control's outer container (tabindex
+					// set above) to keep focus while editor is loading/initializing.
+					// Focus is moved to editor once initialization is complete - see
+					// instanceReady handler.
+					me.GetDomElement().focus();
 				}
 
 				input.id = me.GetId() + "_DesignMode";
@@ -1337,6 +1480,21 @@ Fit.Controls.Input = function(ctlId)
 									return;
 								}
 
+								// Allow light dismissable panels/callouts to prevent close/dismiss
+								// when interacting with editor dialogs hosted outside of these panels/callouts,
+								// by detecting the presence of the data-disable-light-dismiss="true" attribute.
+
+								var ckeDialogElement = this.getElement().$;
+								Fit.Dom.Data(ckeDialogElement, "disable-light-dismiss", "true");
+
+								var bgModalLayer = document.querySelector("div.cke_dialog_background_cover"); // Shared among instances
+								if (bgModalLayer !== null) // Better safe than sorry
+								{
+									Fit.Dom.Data(bgModalLayer, "disable-light-dismiss", "true");
+								}
+
+								// Reduce pollution of document root
+
 								if (Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
 								{
 									// Move dialog to control - otherwise placed in the root of the document where it pollutes,
@@ -1356,6 +1514,41 @@ Fit.Controls.Input = function(ctlId)
 									// 2nd+ time dialog is opened it remains invisible - make it appear and position it
 									ckeDialogElement.style.display = !CKEDITOR.env.ie || CKEDITOR.env.edge ? "flex" : ""; // https://github.com/ckeditor/ckeditor4/blob/8b208d05d1338d046cdc8f971c9faf21604dd75d/plugins/dialog/plugin.js#L152
 									this.layout(); // 'this' is the dialog instance - layout() positions dialog
+
+									// Temporarily move modal background layer next to control to ensure it is part of same
+									// stacking context as control and dialog. Otherwise it might stay on top of a panel containing
+									// the editor, if that panel has position:fixed (which creates a separate stacking context)
+									// and a lower z-index than the background layer.
+									// Be aware that the background layer also has position:fixed so it will "escape" a parent
+									// container that also has position:fixed, still making it stretch from the upper left corner
+									// of the screen to the lower right corner of the screen. However, if a parent is using
+									// CSS transform, it will prevent the background layer from escaping, instead positioning it
+									// and making it stretch from the upper left corner of the container using transform, to the
+									// lower right corner of that container.
+									// Also be aware that the use of transform will cause minor problems when moving/dragging dialog,
+									// although that is not related to remounting of the background layer.
+									var bgModalLayer = document.querySelector("div.cke_dialog_background_cover");
+									if (bgModalLayer !== null) // Better safe than sorry
+									{
+										Fit.Dom.InsertAfter(Fit._internal.Controls.Input.ActiveEditorForDialog.GetDomElement(), bgModalLayer);
+									}
+
+									if (ev.sender.definition.title === "Image")
+									{
+										// Hide image resize handles placed in the root of the document.
+										// When the modal background layer above is rooted next to the control,
+										// it becomes impossible to ensure the resize handles remains hidden behind
+										// the background layer, since the control may be part of a stacking context
+										// different from the one containing the image resize handles (document root).
+										// It would require dynamic z-index values to achieve this. Therefore the
+										// resize handles are temporarily hidden instead.
+
+										var imageResizeHandlersContainer = document.querySelector("#ckimgrsz");
+										if (imageResizeHandlersContainer !== null) // Better safe than sorry
+										{
+											imageResizeHandlersContainer.style.display = "none";
+										}
+									}
 								}
 							});
 
@@ -1370,6 +1563,29 @@ Fit.Controls.Input = function(ctlId)
 								delete Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed;
 								delete Fit._internal.Controls.Input.ActiveDialogForEditor;
 								delete Fit._internal.Controls.Input.ActiveDialogForEditorCanceled;
+
+								if (Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
+								{
+									// Return modal background layer to document root - it was temporarily moved
+									// next to control to ensure it works properly with current stacking context.
+									// See comments regarding this in dialog "show" handler registered above.
+									// The background layer will not work for other editor instances if not moved back.
+									var bgModalLayer = document.querySelector("div.cke_dialog_background_cover");
+									if (bgModalLayer !== null) // Better safe than sorry
+									{
+										Fit.Dom.Add(document.body, bgModalLayer);
+									}
+
+									// Allow image resize handlers to show up again (hidden in "show" handler registered above)
+									if (ev.sender.definition.title === "Image")
+									{
+										var imageResizeHandlersContainer = document.querySelector("#ckimgrsz");
+										if (imageResizeHandlersContainer !== null) // Better safe than sorry
+										{
+											imageResizeHandlersContainer.style.display = "";
+										}
+									}
+								}
 
 								// Disable focus lock - let ControlBase handle OnFocus and OnBlur automatically again.
 								// This is done postponed since unlocking it immediately will cause OnFocus to fire when
@@ -1466,24 +1682,22 @@ Fit.Controls.Input = function(ctlId)
 					me.Maximized(false);
 				}
 
-				if (enableAutoGrow === true && me.Height().Value !== -1)
-				{
-					me.Height(-1); // Enables auto grow
-				}
-
-				me._internal.Data("designmode", "true");
-				me._internal.Data("autogrow", enableAutoGrow === true ? "true" : "false"); // Ensure proper value in case Height(..), which is responsible for updating data-autogrow, is never called
 				repaint();
 			}
 			else if (val === false && designMode === true)
 			{
+				if (designModeEnabledAndReady() === false)
+				{
+					console.error("DesignMode(false) is not allowed for Input control '" + me.GetId() + "' while DesignMode editor is initializing!");
+					return true; // Return current un-modified state - DesignMode remains enabled
+				}
+
 				var focused = me.Focused();
 
 				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
 				{
 					if (Fit._internal.Controls.Input.ActiveDialogForEditor !== null)
 					{
-						focused = true; // Always considered focused when a dialog is open - Focused() returns False which is actually the truth
 						Fit._internal.Controls.Input.ActiveDialogForEditor.hide(); // Fires dialog's OnHide event
 					}
 					else
@@ -1510,18 +1724,24 @@ Fit.Controls.Input = function(ctlId)
 					}
 				}
 
+				if (designEditorActiveToolbarPanel !== null)
+				{
+					designEditorActiveToolbarPanel.CloseEmojiPanel();
+				}
+
 				// Destroy editor - content is automatically synchronized to input control.
 				// Calling destroy() fires OnHide for any dialog currently open, which in turn
 				// disables locked focus state and returns focus to the control.
-				if (designEditor !== null) // Will be null if DesignMode is being disabled while CKEditor resources are loading, in which case editor has not yet been created - e.g. DesignMode(true); DesignMode(false);
-				{
-					designEditor.destroy();
-					designEditor = null;
-				}
+				destroyDesignEditorInstance();
 
 				me._internal.Data("designmode", "false");
-				me._internal.Data("autogrow", "false");
 				Fit.Dom.Data(me.GetDomElement(), "resized", "false");
+
+				// Remove DesignMode specific data attributes
+				me._internal.Data("autogrow", null);
+				me._internal.Data("toolbar", null);
+				me._internal.Data("toolbar-position", null);
+				me._internal.Data("toolbar-sticky", null);
 
 				revertToSingleLineIfNecessary();
 
@@ -1808,22 +2028,39 @@ Fit.Controls.Input = function(ctlId)
 								item.name = item.Title;
 							});
 
-							resolve(items);
+							resolve(items); // Opens context menu immediately if array contain elements, unless user managed to add a space after the search value while waiting for a response, in which case the context menu will not be opened
 
-							if (items.length > 0 && Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
+							if (items.length > 0)
 							{
-								// Calling resolve(..) above immediately opens the context menu from which
-								// a tag can be selected. However, it is placed in the root of the document
-								// where it pollutes the global scope. Move it next to the Fit.UI control.
-								// We do not mount it within the Fit.UI control as it could cause Fit.UI styles
-								// to take effect on the context menu.
+								// Calling resolve(..) above immediately opens the context menu from which a tag can be selected
 
 								// Get the autocomplete context menu currently open. There can be only one
 								// such menu open at any time. Each editor can declare multiple autocomplete
 								// context menus since each tag marker is associated with its own context menu.
 								var ctm = document.querySelector("ul.cke_autocomplete_opened");
-								ctm.style.position = "fixed"; // Has position:absolute by default, but this may be affected by a positioned container (offsetParent) - downside: it no longer sticks to the editor when scrolling
-								Fit.Dom.InsertAfter(me.GetDomElement(), ctm);
+
+								if (ctm !== null) // Null if user managed to enter a space after tag search value, before response was received - in this case resolve(..) above will not open the context menu
+								{
+									// Allow light dismissable panels/callouts to prevent close/dismiss
+									// when interacting with tags context menu hosted outside of these panels/callouts,
+									// by detecting the presence of the data-disable-light-dismiss="true" attribute.
+									Fit.Dom.Data(ctm, "disable-light-dismiss", "true");
+
+									if (Fit._internal.ControlBase.ReduceDocumentRootPollution === true)
+									{
+										// Tags context menu is placed in the root of the document where
+										// it pollutes the global scope. Move it next to the Fit.UI control.
+										// We do not mount it within the Fit.UI control as it could cause Fit.UI styles
+										// to take effect on the context menu.
+
+										// Has position:absolute by default, but this may be affected by a positioned
+										// container (offsetParent), so we change it to position:fixed. Downside:
+										// It no longer sticks to the editor when scrolling. However, if a container has CSS
+										// transform set, the context menu's position will be affected and become inaccurate.
+										ctm.style.position = "fixed";
+										Fit.Dom.InsertAfter(me.GetDomElement(), ctm);
+									}
+								}
 							}
 						};
 
@@ -1919,19 +2156,6 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		// Prevent control from losing focus when HTML editor is initialized,
-		// e.g. if Design Mode is enabled when ordinary input control gains focus.
-		// This also prevents control from losing focus if toolbar is clicked without
-		// hitting a button. A value of -1 makes it focusable, but keeps it out of
-		// tab flow (keyboard navigation).
-		me.GetDomElement().tabIndex = -1; // TabIndex is removed if DesignMode is disabled
-
-		var focused = me.Focused();
-		if (focused === true)
-		{
-			me.GetDomElement().focus(); // Outer container is focusable - tabIndex set above
-		}
-
 		var onImageAdded = function(args)
 		{
 			if (args.type === "blob")
@@ -1970,6 +2194,8 @@ Fit.Controls.Input = function(ctlId)
 
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
+			toolbarLocation: designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Position === "Bottom" ? "bottom" : "top",
+			uiColor: Fit._internal.Controls.Input.Editor.Skin === "moono-lisa" || Fit._internal.Controls.Input.Editor.Skin === null ? "#FFFFFF" : undefined,
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			extraAllowedContent: "a[data-tag-type,data-tag-id,data-tag-data]", // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-extraAllowedContent
 			language: lang,
@@ -1979,7 +2205,7 @@ Fit.Controls.Input = function(ctlId)
 			title: "",
 			width: "100%", // Assume width of container
 			height: me.Height().Value > -1 ? me.Height().Value + me.Height().Unit : "100%", // Height of content area - toolbar and bottom panel takes up additional space - once editor is loaded, the outer dimensions are accurately set using updateDesignEditorSize() - a height of 100% enables auto grow
-			startupFocus: focused === true ? "end" : false,
+			startupFocus: me.Focused() === true ? "end" : false, // Doesn't work when editor is hidden while initializing to avoid flickering - focus is set again when editor is made visible in instanceReady handler, at which point it will place cursor at the end of the editor if startupFocus is set to "end"
 			extraPlugins: plugins.join(","),
 			clipboard_handleImages: false, // Disable native support for image pasting - allow base64imagepaste plugin to handle image data if loaded
 			base64image: // Custom property used by base64image plugin if loaded
@@ -1997,72 +2223,189 @@ Fit.Controls.Input = function(ctlId)
 			toolbar: toolbar,
 			removeButtons: "", // Set to empty string to prevent CKEditor from removing buttons such as Underline
 			mentions: mentions,
+			emoji_minChars: 9999, // Impossible requirement to number of search characters to "disable" emoji auto complete menu - we cannot make it work properly with light dismissable panels/callouts since we have no event available for registering the data-disable-light-dismiss="true" attribute, and it's not very useful in any case
 			on:
 			{
 				instanceReady: function()
 				{
-					Fit.Dom.Data(designEditor.container.$, "skin", CKEDITOR.config.skin); // Add e.g. data-skin="bootstrapck" to editor - used in Input.css
+					designEditorDom = // Object assignment will make designModeEnabledAndReady() return True, so it must be assigned immediately
+					{
+						OuterContainer: designEditor.container.$,
+						InnerContainer: designEditor.container.$.querySelector(".cke_inner"),
+						Top: designEditor.container.$.querySelector(".cke_top"), // Null if toolbar is placed at the bottom
+						Content: designEditor.container.$.querySelector(".cke_contents"),
+						Editable: designEditor.container.$.querySelector(".cke_editable"),
+						Bottom: designEditor.container.$.querySelector(".cke_bottom") // Only exist if editor is resizable or toolbar is placed at the bottom
+					}
+
+					// Make sure expected DOM elements are present, so we do not have to perform null checks anywhere else in the code.
+					// Notice that designEditorDom.Top is null if toolbar is placed at the bottom, and designEditorDom.Bottom is null
+					// unless toolbar is placed at the bottom, or editor is resizable, which adds a resize handled in the lower right corner.
+					if (designEditorDom.InnerContainer === null || designEditorDom.Content === null || designEditorDom.Editable === null || (designEditorDom.Top === null && designEditorDom.Bottom === null))
+					{
+						throw "One or more editor DOM elements are missing"; // This should only happen if CKEditor changes its DOM structure
+					}
+
+					if (designEditorMustDisposeWhenReady === true)
+					{
+						Fit.Browser.Debug("WARNING: Input control '" + me.GetId() + "' was disposed while initializing DesignMode - now resuming disposal");
+						me.Dispose();
+						return;
+					}
+
+					if (designEditorMustReloadWhenReady === true)
+					{
+						Fit.Browser.Debug("WARNING: Editor for Input control '" + me.GetId() + "' finished loading, but properties affecting editor has changed while initializing - reloading to adjust to changes");
+						reloadEditor(true);
+						return;
+					}
+
+					updateDesignEditorPlaceholder(); // Show/hide placeholder - value might have been set/removed while initializing editor
+
+					Fit.Dom.Data(designEditorDom.OuterContainer, "skin", CKEDITOR.config.skin); // Add e.g. data-skin="bootstrapck" to editor - used in Input.css
 
 					// Enabled state might have been changed while loading.
 					// Unfortunately there is no API for changing the tabIndex.
+					// Similar logic is found in Enabled(..) function.
 					designEditor.setReadOnly(me.Enabled() === false);
-					designEditor.container.$.querySelector("[contenteditable]").tabIndex = me.Enabled() === false ? -1 : 0;
-
-					if (focused === true)
-					{
-						me.Focused(true); // Focus actual input area rather than outer container temporarily focused further up
-					}
-
-					var maximized = me.Maximized(); // Call to Height(..) below will minimize control
-
-					if (maximized === true)
-					{
-						me.Maximized(false); // Minimize to allow editor to initially assume normal height - maximized again afterwards
-					}
+					Fit.Dom.Attribute(designEditorDom.Editable, "tabindex", me.Enabled() === false ? null : "0"); // Preventing focus is only possible by nullifying DOM attribute (these does not work: delete elm.tabIndex; elm.tabIndex = null|undefined|-1)
 
 					if (me.Height().Value === -1 || (designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.Enabled === true))
 					{
-						// Enable auto grow
+						// Enable auto grow - this is done late to allow an initial static height on the outer control which prevents "flickering" while loading
 
-						if (me.Height().Value !== -1) // Enable auto grow if not already enabled
-						{
-							me.Height(-1);
-						}
+						me.Height(-1); // Make sure auto grow is enabled since it is unlikely external code has done so explicitely by calling Height(-1)
 
 						// Make necessary adjustments to editor DOM for auto grow's min/max height to work
 
-						var editorContainer = designEditor.container.$;
-						var editableDiv = editorContainer.querySelector("div.cke_wysiwyg_div");
-						editableDiv.style.minHeight = config.AutoGrow && config.AutoGrow.MinimumHeight ? config.AutoGrow.MinimumHeight.Value + (config.AutoGrow.MinimumHeight.Unit || "px") : ""; // NOTICE: Minimum height of editable area, not control
-						editableDiv.style.maxHeight = config.AutoGrow && config.AutoGrow.MaximumHeight ? config.AutoGrow.MaximumHeight.Value + (config.AutoGrow.MaximumHeight.Unit || "px") : ""; // NOTICE: Maximum height of editable area, not control
+						var editableDiv = designEditorDom.Editable;
+						editableDiv.style.minHeight = designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.MinimumHeight ? designEditorConfig.AutoGrow.MinimumHeight.Value + (designEditorConfig.AutoGrow.MinimumHeight.Unit || "px") : ""; // NOTICE: Minimum height of editable area, not control
+						editableDiv.style.maxHeight = designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.MaximumHeight ? designEditorConfig.AutoGrow.MaximumHeight.Value + (designEditorConfig.AutoGrow.MaximumHeight.Unit || "px") : ""; // NOTICE: Maximum height of editable area, not control
+
+						// Restrict resizing:
+						// Make sure user cannot resize editor beyond max height of editable area.
+						// Editable area will not "follow" since it is restricted using maxHeight set above.
+						// If we do not want resizing to be restricted, then unset minHeight and maxHeight set
+						// above, when resizing occur (see CKEditor's resize event handler).
+						if (editableDiv.style.maxHeight !== "" && designEditorConfig.AutoGrow.PreventResizeBeyondMaximumHeight === true)
+						{
+							var contents = designEditorDom.Content;
+							contents.style.maxHeight = editableDiv.style.maxHeight;
+						}
 					}
 
-					if (maximized === true)
-					{
-						me.Maximized(true);
-					}
-
-					if (config.InfoPanel && config.InfoPanel.Text)
+					if (designEditorConfig !== null && designEditorConfig.InfoPanel && designEditorConfig.InfoPanel.Text)
 					{
 						var infoPanel = document.createElement("div");
 						infoPanel.className = "FitUiControlInputInfoPanel";
-						infoPanel.innerHTML = config.InfoPanel.Text;
-						infoPanel.style.cssText = "text-align: " + (config.InfoPanel.Alignment ? config.InfoPanel.Alignment.toLowerCase() : "center");
+						infoPanel.innerHTML = designEditorConfig.InfoPanel.Text;
+						infoPanel.style.cssText = "text-align: " + (designEditorConfig.InfoPanel.Alignment ? designEditorConfig.InfoPanel.Alignment.toLowerCase() : "center");
 
-						var ckEditorInner = designEditor.container.$.querySelector(".cke_inner"); // Div in modern browsers, span in legacy IE
-						var ckEditorBottom = designEditor.container.$.querySelector(".cke_inner span.cke_bottom"); // Only present if resize handle is enable
-
-						if (ckEditorInner !== null)
+						if (designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Position === "Bottom")
 						{
-							if (ckEditorBottom !== null)
-							{
-								Fit.Dom.InsertBefore(ckEditorBottom, infoPanel);
-							}
-							else
-							{
-								Fit.Dom.Add(ckEditorInner, infoPanel);
-							}
+							Fit.Dom.InsertBefore(designEditorDom.Content, infoPanel);
 						}
+						else
+						{
+							Fit.Dom.InsertAfter(designEditorDom.Content, infoPanel);
+						}
+					}
+
+					// Register necessary events with emoji panel when opened
+
+					var emojiButton = designEditor.container.$.querySelector("a.cke_button__emojipanel");
+
+					if (emojiButton !== null) // Better safe than sorry
+					{
+						Fit.Events.AddHandler(emojiButton, "click", function(e)
+						{
+							// Make sure OnFocus fires before locking focus state
+
+							if (me.Focused() === false)
+							{
+								// Control not focused - make sure OnFocus fires when emoji button is clicked,
+								// and make sure ControlBase internally considers itself focused, so there is
+								// no risk of OnFocus being fired twice without OnBlur firing in between,
+								// when focus state is unlocked, and focus is perhaps re-assigned to another
+								// DOM element within the control, which will be the case if the design editor
+								// is switched back to an ordinary input field (e.g. using DesignMode(false)).
+								me.Focused(true);
+							}
+
+							// Prevent control from firing OnBlur when emoji dialog is opened.
+							// Notice that locking the focus state will also prevent OnFocus
+							// from being fired automatically.
+							me._internal.FocusStateLocked(true);
+
+							setTimeout(function() // Postpone - emoji panel is made visible after click event
+							{
+								// Allow light dismissable panels/callouts to prevent close/dismiss
+								// when interacting with emoji widget hosted outside of panels/callouts,
+								// by detecting the presence of a data-disable-light-dismiss="true" attribute.
+								var emojiPanel = document.querySelector("div.cke_emoji-panel"); // Shared among instances
+
+								if (emojiPanel !== null) // Better safe than sorry
+								{
+									Fit.Dom.Data(emojiPanel, "disable-light-dismiss", "true");
+
+									emojiPanel._associatedFitUiControl = me;
+
+									designEditorActiveToolbarPanel =
+									{
+										DomElement: emojiPanel,
+										UnlockFocusStateIfEmojiPanelIsClosed: function() // Function called regularly via interval timer while emoji panel is open to make sure focus state is unlocked when emoji panel is closed, e.g. by pressing ESC, clicking outside of emoji panel, or by choosing an emoji
+										{
+											if (designModeEnabledAndReady() === false /* No longer in DesignMode */ || Fit.Dom.IsVisible(emojiPanel) === false /* Emoji panel closed */ || emojiPanel._associatedFitUiControl !== me /* Emoji panel now opened from another editor */)
+											{
+												designEditorActiveToolbarPanel = null;
+
+												// Disable focus lock - let ControlBase handle OnFocus and OnBlur automatically again
+												me._internal.FocusStateLocked(false);
+
+												// Fire OnBlur in case user changed focus while emoji panel was open.
+												// OnBlur does not fire automatically when focus state is locked.
+												if (me.Focused() === false)
+												{
+													me._internal.FireOnBlur();
+												}
+											}
+										},
+										CloseEmojiPanel: function()
+										{
+											if (emojiPanel._associatedFitUiControl === me && Fit.Dom.IsVisible(emojiPanel) === true && Fit.Dom.Contained(emojiPanel, Fit.Dom.GetFocused()) === true)
+											{
+												designEditor.focus();
+												designEditorActiveToolbarPanel.UnlockFocusStateIfEmojiPanelIsClosed();
+											}
+										}
+									}
+								}
+
+								var checkClosedId = setInterval(function()
+								{
+									// Invoke cleanup function regularly to make sure
+									// focus lock is relased when emoji panel is closed,
+									// and to fire OnBlur if another control was focused
+									// while emoji panel was open.
+
+									if (me === null)
+									{
+										clearInterval(checkClosedId);
+										return;
+									}
+
+									if (designEditorActiveToolbarPanel !== null)
+									{
+										designEditorActiveToolbarPanel.UnlockFocusStateIfEmojiPanelIsClosed(); // Nullfies designEditorActiveToolbarPanel if emoji panel is closed
+									}
+
+									if (designEditorActiveToolbarPanel === null)
+									{
+										clearInterval(checkClosedId);
+									}
+								}, 250);
+							}, 0);
+						});
 					}
 
 					// DISABLED: Doesn't work! Emoji panel contains an iFrame. When it is re-mounted
@@ -2096,14 +2439,40 @@ Fit.Controls.Input = function(ctlId)
 						}
 					}*/
 
-					designEditor._isReadyForInteraction = true;
-
 					// Make editor assume configured width and height.
 					// Notice that using config.width and config.height
 					// (https://ckeditor.com/docs/ckeditor4/latest/features/size.html)
 					// results in editor becoming too high since the toolbar height is not
 					// substracted. This problem does not occur when using updateDesignEditorSize().
-					updateDesignEditorSize(); // Important: Make sure designEditor._isReadyForInteraction is set first (see above)
+					updateDesignEditorSize();
+
+					if (me.Focused() === false)
+					{
+						// Hide editor toolbar if configured to do so
+						hideToolbarInDesignMode();
+					}
+					else
+					{
+						// Remove placeholder if initially focused
+						updateDesignEditorPlaceholder(true);
+					}
+
+					// Make editor visible - postpone to allow editor to first calculate auto grow height
+					// so the user will not see the chrome (borders) of the editor increase its height.
+					setTimeout(function()
+					{
+						designEditorDom.OuterContainer.style.visibility = "visible";
+
+						// Because editor is hidden while initializing, startupFocus
+						// (https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-startupFocus)
+						// won't be able to place focus in the editor. We resolve this by assigning focus again
+						// once editor is visible (visibility set above). Because startupFocus was set, it will
+						// place focus at the end of the editor as expected.
+						if (me.Focused() === true)
+						{
+							designEditor.focus();
+						}
+					}, 0);
 				},
 				change: function() // CKEditor bug: not fired in Opera 12 (possibly other old versions as well)
 				{
@@ -2128,15 +2497,42 @@ Fit.Controls.Input = function(ctlId)
 				{
 					if (designEditorSuppressOnResize === false) // Only set data-resized="true" when resized using resize handle
 					{
+						// Disable Min/Max height configured with auto grow feature so user can resize it freely, unless PreventResizeBeyondMaximumHeight is enabled
+						if (designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.Enabled === true && designEditorConfig.AutoGrow.PreventResizeBeyondMaximumHeight !== true)
+						{
+							var editableDiv = designEditorDom.Editable;
+							editableDiv.style.minHeight = "";
+							editableDiv.style.maxHeight = "";
+
+							var contents = designEditorDom.Content;
+							contents.style.maxHeight = "";
+						}
+
 						me._internal.Data("resized", "true");
 						repaint();
 					}
 				},
 				selectionChange: function(ev)
 				{
-					// Disable/enable toolbar buttons, depending on whether a tag/mention is selected
-
 					var elm = ev.data.selection.getStartElement().$;
+
+					// Allow light dismissable panels/callouts to prevent close/dismiss
+					// when interacting with image resize handles hosted outside of panels/callouts,
+					// by detecting the presence of a data-disable-light-dismiss="true" attribute.
+
+					if (elm.tagName === "IMG")
+					{
+						setTimeout(function() // Postpone - wait for image resize plugin to add image resize handles
+						{
+							var imageResizeHandlesContainer = document.querySelector("#ckimgrsz");
+							if (imageResizeHandlesContainer !== null) // Better safe than sorry
+							{
+								Fit.Dom.Data(imageResizeHandlesContainer, "disable-light-dismiss", "true");
+							}
+						}, 0);
+					}
+
+					// Disable/enable toolbar buttons, depending on whether a tag/mention is selected
 
 					if (elm.tagName === "A" && Fit.Dom.Data(elm, "tag-id") !== null)
 					{
@@ -2317,9 +2713,15 @@ Fit.Controls.Input = function(ctlId)
 
 	function updateDesignEditorSize()
 	{
-		if (designEditor !== null)
+		if (me.DesignMode() === true)
 		{
-			if (designEditor._isReadyForInteraction !== true)
+			if (designEditorUpdateSizeDebouncer !== -1)
+			{
+				clearTimeout(designEditorUpdateSizeDebouncer);
+				designEditorUpdateSizeDebouncer = -1;
+			}
+
+			if (designModeEnabledAndReady() === false)
 			{
 				// Postpone, editor is not ready yet.
 				// This may happen when editor is created and Width(..) is
@@ -2328,7 +2730,12 @@ Fit.Controls.Input = function(ctlId)
 				// This is a problem because CKEditor uses setTimeout(..) to for instance
 				// allow early registration of events, and because resources are loaded
 				// in an async. manner.
-				setTimeout(updateDesignEditorSize, 100);
+				designEditorUpdateSizeDebouncer = setTimeout(function()
+				{
+					designEditorUpdateSizeDebouncer = -1;
+					updateDesignEditorSize();
+				}, 100);
+
 				return;
 			}
 
@@ -2371,6 +2778,97 @@ Fit.Controls.Input = function(ctlId)
 		}
 	}
 
+	function isToolbarHiddenInDesignEditor() // Returns True if editor is fully loaded and toolbar is hidden
+	{
+		var toolbarContainer = designModeEnabledAndReady() === true ? designEditorDom.Top || designEditorDom.Bottom : null; // Top is null if editor is placed at the bottom
+		return (toolbarContainer !== null && toolbarContainer.style.display === "none");
+	}
+
+	function hideToolbarInDesignMode() // Editor must be fully loaded before calling this function!
+	{
+		if (designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideInitially === true)
+		{
+			var toolbarContainer = designEditorDom.Top || designEditorDom.Bottom; // Top is null if editor is placed at the bottom
+
+			if (toolbarContainer.style.display === "none")
+			{
+				return; // Already hidden
+			}
+
+			// Prevent editor from increasing its height when toolbar is shown.
+			// This is not ideal. We use the top/bottom's (toolbar's) height but it might change
+			// if window is resized, which will cause buttons to "word wrap". But that is
+			// acceptable. In this case the editor might change dimensions when toolbar is
+			// shown and static height on content area is removed in OnFocus handler registered
+			// in init().
+
+			var content = designEditorDom.Editable;
+			content.style.height = toolbarContainer.offsetHeight + content.offsetHeight + "px";
+
+			// Hide toolbar
+
+			toolbarContainer.style.display = "none";
+
+			// Make editable area adjust to take up space previously consumed by toolbar
+			updateDesignEditorSize();
+		}
+	}
+
+	function restoreHiddenToolbarInDesignEditor()
+	{
+		if (designModeEnabledAndReady() === true && designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideInitially === true)
+		{
+			// Toolbar has been initially hidden - make it appear again
+
+			var toolbarContainer = designEditorDom.Top || designEditorDom.Bottom; // Top is null if editor is placed at the bottom
+
+			if (toolbarContainer.style.display === "")
+			{
+				return; // Already restored - no longer hidden
+			}
+
+			toolbarContainer.style.display = "";
+
+			// Hiding the toolbar will cause the editor to decrease its height, while displaying the toolbar again
+			// will cause it to increase its height. To avoid this "flickering" a fixed height (toolbar height + content height)
+			// was applied when toolbar was hidden. But now that the toolbar is once again visible, we remove the fixed height
+			// again - otherwise resizing and auto grow will not work.
+
+			var content = designEditorDom.Editable;
+			content.style.height = "";
+
+			me._internal.Data("toolbar", "true");
+
+			// Update size of editable area in case auto grow is not enabled, in which case
+			// toolbar will now have taken up space outside of control's container (overflowing).
+			// Make editable area fit control container again.
+			updateDesignEditorSize();
+		}
+	}
+
+	function updateDesignEditorPlaceholder(clearPlaceholder)
+	{
+		Fit.Validation.ExpectBoolean(clearPlaceholder, true);
+
+		if (designModeEnabledAndReady() === true)
+		{
+			if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 10)
+			{
+				// Native support for placeholders (using the real placeholder attribute) was
+				// introduced in IE10, so we want to ensure consistent behaviour for all controls,
+				// as e.g. Input and DatePicker uses the native placeholder implementation.
+				return;
+			}
+
+			// WARNING: Retrieving value from editor is expensive! Do not
+			// call updateDesignEditorPlaceholder() too often (e.g. OnChange).
+			// Simply make sure placeholder is updated OnFocus and OnBlur.
+
+			var val = clearPlaceholder !== true && me.Value() === "" ? me.Placeholder() : "";
+			Fit.Dom.Data(designEditorDom.Editable, "placeholder", val || null);
+		}
+	}
+
 	function revertToSingleLineIfNecessary()
 	{
 		if (wasAutoChangedToMultiLineMode === true && me.Maximizable() === false && me.Resizable() === Fit.Controls.InputResizing.Disabled && me.DesignMode() === false)
@@ -2410,8 +2908,20 @@ Fit.Controls.Input = function(ctlId)
 		}
 	}
 
-	function reloadEditor()
+	function reloadEditor(force)
 	{
+		Fit.Validation.ExpectBoolean(force, true);
+
+		if (force !== true && (designModeEnabledAndReady() === false || designEditorMustReloadWhenReady === true))
+		{
+			// Attempting to reload editor while initializing - postpone until editor is fully loaded,
+			// since we cannot guarantee reliable behavior with CKEditor if it's disposed while loading.
+			designEditorMustReloadWhenReady = true;
+			return;
+		}
+
+		designEditorMustReloadWhenReady = false;
+
 		// Disabling DesignMode brings it back to input or textarea mode.
 		// If reverting to input mode, Height is reset, so we need to preserve that.
 
@@ -2425,6 +2935,62 @@ Fit.Controls.Input = function(ctlId)
 
 		me.Height(height.Value, height.Unit);
 		wasAutoChangedToMultiLineMode = currentWasAutoChangedToMultiLineMode;
+	}
+
+	function destroyDesignEditorInstance()
+	{
+		// Destroying editor also fires OnHide event for any dialog currently open, which will clean up:
+		// Fit._internal.Controls.Input.ActiveEditorForDialog;
+		// Fit._internal.Controls.Input.ActiveEditorForDialogDestroyed;
+		// Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed;
+		// Fit._internal.Controls.Input.ActiveDialogForEditor;
+		// Fit._internal.Controls.Input.ActiveDialogForEditorCanceled;
+
+		// Calling destroy() fires OnHide for any dialog currently open, which
+		// in turn disables locked focus state and returns focus to the control.
+
+		designEditor.destroy();
+
+		designEditor = null;
+		designEditorDom = null;
+		designEditorDirty = false;
+		designEditorDirtyPending = false;
+		//designEditorConfig = null; // Do NOT nullify this! We need it, in case DesignMode is toggled!
+		designEditorRestoreButtonState = null;
+		designEditorSuppressPaste = false;
+		designEditorSuppressOnResize = false;
+		designEditorMustReloadWhenReady = false;
+		designEditorMustDisposeWhenReady = false;
+		designEditorActiveToolbarPanel = null;
+
+		if (designEditorUpdateSizeDebouncer !== -1)
+		{
+			clearTimeout(designEditorUpdateSizeDebouncer);
+			designEditorUpdateSizeDebouncer = -1;
+		}
+
+		if (mutationObserverId !== -1)
+		{
+			Fit.Events.RemoveMutationObserver(mutationObserverId);
+			mutationObserverId = -1;
+		}
+
+		if (rootedEventId !== -1)
+		{
+			Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
+			rootedEventId = -1;
+		}
+
+		if (createWhenReadyIntervalId !== -1)
+		{
+			clearInterval(createWhenReadyIntervalId);
+			createWhenReadyIntervalId = -1;
+		}
+	}
+
+	function designModeEnabledAndReady()
+	{
+		return designEditorDom !== null; // Editor is fully loaded when editor DOM is made available
 	}
 
 	function localize()

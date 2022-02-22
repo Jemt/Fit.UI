@@ -76,7 +76,7 @@ div.FitUiControlInput > span.fa
 	font-size: 0.8em;
 	color: #BBBBBB;
 }
-div.FitUiControlInput[data-autogrow="true"] > span.fa /* Maximize button does nothing (disabled) when auto grow is enabled in DesignMode */
+div.FitUiControlInput[data-designmode="true"][data-autogrow="true"] > span.fa /* Maximize button does nothing (disabled) when auto grow is enabled in DesignMode */
 {
 	border-color: #DEDEDE;
 	color: #DEDEDE;
@@ -120,13 +120,13 @@ div.FitUiControlInput[data-resizable="horizontal"] textarea:first-child
 /* CKEditor */
 
 /* Make control container adjust to the height of CKEditor when auto grow is enabled */
-div.FitUiControlInput[data-autogrow="true"]
+div.FitUiControlInput[data-designmode="true"][data-autogrow="true"]
 {
 	height: auto;
 }
 
 /* Hide empty labels in dialogs (make controls align properly in Base64Image dialog) */
-table.cke_dialog_contents label:empty
+.cke_dialog_contents label:empty
 {
 	display: none;
 }
@@ -146,24 +146,81 @@ div#ckimgrsz
 	z-index: 9999; /* Defaults to 10001 but modal dialog background layer has z-index 10000 */
 }
 
+/* Reduce flickering while editor is loading by hiding components */
+div.FitUiControlInput[data-designmode="true"] textarea:first-child
+{
+	visibility: hidden; /* Hide textarea but preserve space consumed */
+}
+div.FitUiControlInput[data-designmode="true"] .cke_chrome
+{
+	visibility: hidden; /* Hide editor but preserve space consumed - changed back to "visible" in Input.js when editor is done loading */
+}
+
+/* Placeholder (not enabled on IE8/9) */
+/* Placeholder attributes are only set when placeholder is supposed to
+   be displayed. The text color for placeholders is defined i Styles.css. */
+div.FitUiControlInput[data-designmode="true"] .cke_editable[data-placeholder]:before
+{
+	content: attr(data-placeholder);
+	display: block;
+	position: absolute; /* Take out of flow to prevent it from affecting auto grow (editor height) */
+	/*margin: 1em 0em;*/
+}
+
+/* Set identical margins for paragraphs and placeholder in HTML editor to ensure proper alignment,
+   in case default margin for paragraphs have been changed, or if they differ across different browsers. */
+div.FitUiControlInput[data-designmode="true"] .cke_editable p,
+div.FitUiControlInput[data-designmode="true"] .cke_editable[data-placeholder]:before
+{
+	margin: 1em 0em;
+}
+
+/* CKEditor - moono-lisa skin overrides */
+
+/* Apply rounded corners */
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"],
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"] .cke_inner
+{
+    border-radius: 2px;
+}
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"] .cke_top
+{
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+}
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"] .cke_contents
+{
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+}
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"] .cke_editable
+{
+    border-radius: 2px;
+}
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"] .cke_bottom
+{
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
 /* CKEditor - bootstrapck skin overrides */
 
 /* Override: The bootstrapck skin define margins for content
    areas in dialogs which makes the vertical scrollbar appear. */
-div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_vbox
+.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_vbox
 {
 	margin-top: 0px !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
-div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_body label
+.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_body label
 {
 	margin-bottom: 0px !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
 
 /* Override: The bootstrapck skin does not align checkboxes and labels properly */
-div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input,
-div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input+label,
-div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input,
-div.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input+label
+.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input,
+.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input+label,
+.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input,
+.cke_dialog_container[data-skin="bootstrapck"] .cke_dialog fieldset .cke_dialog_ui_vbox .cke_dialog_ui_checkbox .cke_dialog_ui_checkbox_input+label
 {
 	vertical-align: top !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
@@ -174,68 +231,133 @@ div.FitUiControlInput[data-resizable="disabled"] .cke_chrome[data-skin="bootstra
 	padding: 0px 3px 3px 3px;
 }
 
-/* CKEditor - bottom panel, resize handler, and information panel */
-
-/* Optimize how resize handler looks in modern browsers */
-@supports (font-kerning: normal) /* Exclude legacy browsers (IE, Edge 12-18, etc.) by detecting support for modern feature */
+/* Override: Add missing spacing to editor chrome when toolbar is hidden or positioned at the bottom */
+div.FitUiControlInput[data-designmode="true"][data-toolbar="false"] .cke_chrome[data-skin="bootstrapck"],
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"] .cke_chrome[data-skin="bootstrapck"]
 {
-	div.cke span.cke_bottom
-	{
-		overflow: visible; /* Allow positioning of cke_resizer outside of bottom container */
-	}
-	div.cke span.cke_resizer
-	{
-		border-color: transparent #A0A0A0 transparent transparent;
-		margin: 0;
-		position: absolute;
-		top: -1px;
-		right: -1px;
-		color: gray;
-	}
-	div.cke[data-skin="bootstrapck"] span.cke_resizer
-	{
-		top: -6px;
-		right: -4px;
-	}
+	padding-top: 3px;
+}
+div.FitUiControlInput[data-designmode="true"][data-toolbar="false"][data-toolbar-position="bottom"] .cke_chrome[data-skin="bootstrapck"]
+{
+	padding-bottom: 3px;
+}
+
+/* CKEditor - bottom panel, resize handle, and information panel */
+
+/* Opimize resize handle when toolbar is placed at the top */
+
+/* Allow positioning of cke_resizer outside of bottom container */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="enabled"] .cke_chrome .cke_bottom,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="vertical"] .cke_chrome .cke_bottom,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="horizontal"] .cke_chrome .cke_bottom
+{
+	overflow: visible;
+}
+/* Remove/collapse bottom panel - resize handle is just placed in the lower right corner */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="enabled"] .cke_chrome[data-skin="moono-lisa"] .cke_bottom,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="vertical"] .cke_chrome[data-skin="moono-lisa"] .cke_bottom,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="horizontal"] .cke_chrome[data-skin="moono-lisa"] .cke_bottom
+{
+	padding: 0px;
+	border-top: none;
+}
+/* Position resize handle */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="enabled"] .cke_chrome .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="vertical"] .cke_chrome .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="horizontal"] .cke_chrome .cke_resizer
+{
+	border-color: transparent #A0A0A0 transparent transparent;
+	margin: 0;
+	position: absolute;
+	color: gray;
+}
+/* Position resize handle (moona-lisa skin) */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="enabled"] .cke_chrome[data-skin="moono-lisa"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="vertical"] .cke_chrome[data-skin="moono-lisa"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="horizontal"] .cke_chrome[data-skin="moono-lisa"] .cke_resizer
+{
+	top: -9px;
+	right: -1px;
+}
+/* Position resize handle (bootstrapck skin) */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="enabled"] .cke_chrome[data-skin="bootstrapck"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="vertical"] .cke_chrome[data-skin="bootstrapck"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="horizontal"] .cke_chrome[data-skin="bootstrapck"] .cke_resizer
+{
+	top: -6px;
+	right: -4px;
+}
+
+/* Opimize resize handle when toolbar is placed at the bottom */
+
+/* Position resize handle (bootstrapck skin) */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][data-resizable="enabled"] .cke_chrome[data-skin="bootstrapck"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][data-resizable="vertical"] .cke_chrome[data-skin="bootstrapck"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][data-resizable="horizontal"] .cke_chrome[data-skin="bootstrapck"] .cke_resizer
+{
+	position: absolute;
+	margin: 0px;
+	bottom: 3px;
+	right: -3px;
+}
+/* Position resize handle (moono-lisa skin) */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][data-resizable="enabled"] .cke_chrome[data-skin="moono-lisa"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][data-resizable="vertical"] .cke_chrome[data-skin="moono-lisa"] .cke_resizer,
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][data-resizable="horizontal"] .cke_chrome[data-skin="moono-lisa"] .cke_resizer
+{
+	position: absolute;
+	margin: 0px;
+	bottom: 2px;
+	right: 2px;
+}
+
+/* Make editor toolbar sticky if enabled  */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-sticky="true"][data-toolbar-position="top"] .cke_top
+{
+	position: sticky;
+	top: 0px;
+}
+div.FitUiControlInput[data-designmode="true"][data-toolbar-sticky="true"][data-toolbar-position="bottom"] .cke_bottom
+{
+	position: sticky;
+	bottom: 0px;
 }
 
 /* Editor information panel at the bottom of editor (moono-lisa skin) */
-div.cke[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel
 {
-	background-color: #F8F8F8;
-	border-top: 1px solid #D1D1D1;
 	font-size: 0.8em;
 	padding-top: 0.2em;
 	padding-bottom: 0.2em;
 	color: #585858;
 }
-/* Visually merge bottom panel with information panel (moono-lisa skin) */
-@supports (font-kerning: normal) /* Exclude legacy browsers (IE, Edge 12-18, etc.) by detecting support for modern feature */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"] .cke_chrome[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel
 {
-	div.cke[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel + span.cke_bottom
-	{
-		padding: 0px;
-		border: none;
-	}
-
-	div.cke[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel + span.cke_bottom > span.cke_resizer
-	{
-		top: -9px;
-	}
+	border-top: 1px solid #D1D1D1;
+}
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"] .cke_chrome[data-skin="moono-lisa"] div.FitUiControlInputInfoPanel
+{
+	border-bottom: 1px solid #D1D1D1;
 }
 
 /* Editor information panel at the bottom of editor (bootstrapck skin) */
-div.cke[data-skin="bootstrapck"] div.FitUiControlInputInfoPanel
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="bootstrapck"] div.FitUiControlInputInfoPanel
 {
-	background-color: #EEEEEE;
 	font-size: 0.8em;
-	padding-top: 0.2em;
 	color: #585858;
+}
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"] .cke_chrome[data-skin="bootstrapck"] div.FitUiControlInputInfoPanel
+{
+	padding-top: 0.2em;
+}
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"] .cke_chrome[data-skin="bootstrapck"] div.FitUiControlInputInfoPanel
+{
+	padding-bottom: 0.2em;
 }
 
 /* CKEditor - tags/mentions support */
 
-div.cke a[data-tag-id]
+div.FitUiControlInput[data-designmode="true"] .cke_chrome a[data-tag-id]
 {
 	background-color: #F5FbFF;
 	border: 0.065em solid #C6dAE1;
@@ -252,29 +374,29 @@ div.cke a[data-tag-id]
    top of everything else in Fluent UI which use very aggressive z-index values. */
 
 /* Image resize handlers */
-html[data-fitui-companion="fluent-ui"] div#ckimgrsz
+html[data-fitui-companion="fluent-ui"] #ckimgrsz
 {
 	z-index: 2000000;
 }
 
 /* Tags/mentions/autocomplete context menu */
-html[data-fitui-companion="fluent-ui"] ul.cke_autocomplete_panel
+html[data-fitui-companion="fluent-ui"] .cke_autocomplete_panel
 {
 	z-index: 2000000 !important; /* Using !important to override inline style */
 }
 
 /* Panels such as the toolbar's emoji panel/callout  */
-html[data-fitui-companion="fluent-ui"] div.cke_panel
+html[data-fitui-companion="fluent-ui"] .cke_panel
 {
 	z-index: 2000000 !important; /* Using !important to override inline style */
 }
 
 /* Dialogs (e.g. link and image dialogs) */
-html[data-fitui-companion="fluent-ui"] div.cke_dialog_background_cover
+html[data-fitui-companion="fluent-ui"] .cke_dialog_background_cover
 {
 	z-index: 2000010 !important; /* Using !important to override inline style */
 }
-html[data-fitui-companion="fluent-ui"] div.cke_dialog_container
+html[data-fitui-companion="fluent-ui"] .cke_dialog_container
 {
 	z-index: 2000020 !important; /* Using !important to override inline style */
 }
