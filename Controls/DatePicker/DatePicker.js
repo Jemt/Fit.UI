@@ -896,6 +896,12 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				datepicker.datepicker("show");
 
+				// Allow light dismissable panels/callouts to prevent close/dismiss
+				// when interacting with calendar widget hosted outside of panels/callouts,
+				// by detecting the presence of a data-disable-light-dismiss="true" attribute.
+				var calendarWidget = document.getElementById("fitui-datepicker-div");
+				Fit.Dom.Data(calendarWidget, "disable-light-dismiss", "true");
+
 				moveCalenderWidgetLocally();
 
 				if (focused === inputTime)
