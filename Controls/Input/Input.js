@@ -31,6 +31,7 @@ Fit.Controls.Input = function(ctlId)
 	var designEditorDirty = false;
 	var designEditorDirtyPending = false;
 	var designEditorConfig = null;
+	var designEditorReloadConfig = null;
 	var designEditorRestoreButtonState = null;
 	var designEditorSuppressPaste = false;
 	var designEditorSuppressOnResize = false;
@@ -585,7 +586,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorActiveToolbarPanel /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorActiveToolbarPanel /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
 
 		base();
 	});
@@ -1338,12 +1339,9 @@ Fit.Controls.Input = function(ctlId)
 			if (Fit._internal.Controls.Input.ActiveEditorForDialog === me && Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed === true)
 				designMode = false; // Not considered in Design Mode if scheduled to be disabled (postponed because a dialog is currently loading)
 
-			if (val === true && designMode === false)
+			if ((val === true && designMode === false) || (val === true && Fit.Validation.IsSet(editorConfig) === true && Fit.Core.IsEqual(editorConfig, designEditorConfig) === false))
 			{
-				if (Fit.Validation.IsSet(editorConfig) === true)
-				{
-					designEditorConfig = Fit.Core.Clone(editorConfig); // Clone to prevent external code from making changes later
-				}
+				var configUpdated = designMode === true; // Already in DesignMode which means editorConfig was changed
 
 				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
 				{
@@ -1351,7 +1349,22 @@ Fit.Controls.Input = function(ctlId)
 					// for dialog to finish loading, so DesignMode can be disabled (scheduled).
 					// Remove flag responsible for disabling DesignMode so it remains an editor.
 					delete Fit._internal.Controls.Input.ActiveEditorForDialogDisabledPostponed;
-					return;
+
+					if (configUpdated === false)
+					{
+						return true;
+					}
+				}
+
+				if (configUpdated === true)
+				{
+					reloadEditor(false, Fit.Core.Clone(editorConfig)); // Clone to prevent external code from making changes later
+					return true;
+				}
+
+				if (Fit.Validation.IsSet(editorConfig) === true)
+				{
+					designEditorConfig = Fit.Core.Clone(editorConfig); // Clone to prevent external code from making changes later
 				}
 
 				if (me.MultiLine() === false)
@@ -1720,7 +1733,7 @@ Fit.Controls.Input = function(ctlId)
 							}
 						}, 5000); // Usually the load time for a dialog is barely measurable, so 5 seconds seems sufficient */
 
-						return;
+						return true; // Return current un-modified state - DesignMode remains enabled until dialog is done loading
 					}
 				}
 
@@ -2908,15 +2921,17 @@ Fit.Controls.Input = function(ctlId)
 		}
 	}
 
-	function reloadEditor(force)
+	function reloadEditor(force, reloadConfig)
 	{
 		Fit.Validation.ExpectBoolean(force, true);
+		Fit.Validation.ExpectObject(reloadConfig, true); // Not validated further, as it has already been validated in DesignMode(..)
 
 		if (force !== true && (designModeEnabledAndReady() === false || designEditorMustReloadWhenReady === true))
 		{
 			// Attempting to reload editor while initializing - postpone until editor is fully loaded,
 			// since we cannot guarantee reliable behavior with CKEditor if it's disposed while loading.
 			designEditorMustReloadWhenReady = true;
+			designEditorReloadConfig = reloadConfig || designEditorReloadConfig;
 			return;
 		}
 
@@ -2931,7 +2946,8 @@ Fit.Controls.Input = function(ctlId)
 		var currentWasAutoChangedToMultiLineMode = wasAutoChangedToMultiLineMode; // DesignMode(false) will result in wasAutoChangedToMultiLineMode being set to false if DesignMode(true) changed the control to MultiLine mode
 
 		me.DesignMode(false);
-		me.DesignMode(true);
+		me.DesignMode(true, reloadConfig || designEditorReloadConfig || undefined); // Use reloadConfig if set (and if reload was not postponed) or use designEditorReloadConfig if reload was postponed with updated editor config
+		designEditorReloadConfig = null;
 
 		me.Height(height.Value, height.Unit);
 		wasAutoChangedToMultiLineMode = currentWasAutoChangedToMultiLineMode;
@@ -2956,6 +2972,7 @@ Fit.Controls.Input = function(ctlId)
 		designEditorDirty = false;
 		designEditorDirtyPending = false;
 		//designEditorConfig = null; // Do NOT nullify this! We need it, in case DesignMode is toggled!
+		//designEditorReloadConfig = null; // Do NOT nullify this! We need it, in case DesignMode is reloaded!
 		designEditorRestoreButtonState = null;
 		designEditorSuppressPaste = false;
 		designEditorSuppressOnResize = false;
