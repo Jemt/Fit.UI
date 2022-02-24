@@ -2122,7 +2122,7 @@ Fit.Controls.Input = function(ctlId)
 					{
 						if (item.Icon)
 						{
-							return '<li data-id="' + item.Value + '"><img src="' + item.Icon + '" style="width: 24px; height: 24px; border-radius: 24px; vertical-align: middle" alt=""><span style="display: inline-block; width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; margin-left: 5px">' + item.Title + '</span></li>';
+							return '<li data-id="' + item.Value + '"><img src="' + item.Icon + '" style="width: 24px; height: 24px; border-radius: 24px; vertical-align: middle" alt=""><span style="display: inline-block; width: 165px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; margin-left: 5px">' + item.Title + '</span></li>';
 						}
 						else
 						{

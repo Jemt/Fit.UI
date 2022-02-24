@@ -371,6 +371,11 @@ div.FitUiControlInput[data-designmode="true"] .cke_chrome a[data-tag-id]
 	cursor: default;
 }
 
+.cke_autocomplete_panel.cke_autocomplete_opened /* Using both .cke_autocomplete_panel and .cke_autocomplete_opened to increase specificity */
+{
+	width: 225px;
+}
+
 /* Fluent UI compatibility */
 
 /* The following elements are mounted in document root - make sure they stay on
