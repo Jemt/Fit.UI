@@ -312,15 +312,18 @@ div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][da
 }
 
 /* Make editor toolbar sticky if enabled  */
-div.FitUiControlInput[data-designmode="true"][data-toolbar-sticky="true"][data-toolbar-position="top"] .cke_top
+@supports (position: sticky)
 {
-	position: sticky;
-	top: 0px;
-}
-div.FitUiControlInput[data-designmode="true"][data-toolbar-sticky="true"][data-toolbar-position="bottom"] .cke_bottom
-{
-	position: sticky;
-	bottom: 0px;
+	div.FitUiControlInput[data-designmode="true"][data-toolbar-sticky="true"][data-toolbar-position="top"] .cke_top
+	{
+		position: sticky;
+		top: 0px;
+	}
+	div.FitUiControlInput[data-designmode="true"][data-toolbar-sticky="true"][data-toolbar-position="bottom"] .cke_bottom
+	{
+		position: sticky;
+		bottom: 0px;
+	}
 }
 
 /* Editor information panel at the bottom of editor (moono-lisa skin) */

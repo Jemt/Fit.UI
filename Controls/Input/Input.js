@@ -2324,6 +2324,30 @@ Fit.Controls.Input = function(ctlId)
 						}
 					}
 
+					// Sticky toolbar - compensate for padding in scroll parent
+
+					if (me._internal.Data("toolbar-sticky") === "true")
+					{
+						var toolbarContainer = designEditorDom.Top || designEditorDom.Bottom;
+
+						if (Fit.Dom.GetComputedStyle(toolbarContainer, "position") === "sticky") // False on non-supported browsers as position:sticky is applied via the @supports CSS rule
+						{
+							var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement());
+							var toolbarPosition = me._internal.Data("toolbar-position"); // top | bottom
+
+							if (toolbarPosition === "top")
+							{
+								var paddingOffset = Fit.Dom.GetComputedStyle(scrollParent, "padding-top"); // E.g. "28px"
+								toolbarContainer.style.top = paddingOffset !== "0px" ? "-" + paddingOffset : "";
+							}
+							else
+							{
+								var paddingOffset = Fit.Dom.GetComputedStyle(scrollParent, "padding-bottom"); // E.g. "28px"
+								toolbarContainer.style.bottom = paddingOffset !== "0px" ? "-" + paddingOffset : "";
+							}
+						}
+					}
+
 					// Register necessary events with emoji panel when opened
 
 					var emojiButton = designEditor.container.$.querySelector("a.cke_button__emojipanel");
