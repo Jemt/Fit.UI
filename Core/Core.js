@@ -381,6 +381,29 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 	return false;
 }
 
+/// <container name="Fit.Core.MergeOverwriteBehaviour">
+/// 	Merge behaviour
+/// </container>
+Fit.Core.MergeOverwriteBehaviour = // Enums must exist runtime
+{
+	/// <member container="Fit.Core.MergeOverwriteBehaviour" name="Always" access="public" static="true" type="string" default="Always">
+	/// 	<description> Always overwrite property values from target object with property values from merge object (default behaviour) </description>
+	/// </member>
+	Always: "Always",
+
+	/// <member container="Fit.Core.MergeOverwriteBehaviour" name="SkipNullAndUndefined" access="public" static="true" type="string" default="SkipNullAndUndefined">
+	/// 	<description> Always overwrite property values from target object with property values from merge object, except values from merge object that are Null or Undefined </description>
+	/// </member>
+	SkipNullAndUndefined: "SkipNullAndUndefined",
+
+	/// <member container="Fit.Core.MergeOverwriteBehaviour" name="Never" access="public" static="true" type="string" default="Never">
+	/// 	<description>
+	/// 		Never overwrite property values from target object - only add missing property values from merge object
+	/// 	</description>
+	/// </member>
+	Never: "Never"
+};
+
 /// <function container="Fit.Core" name="Merge" access="public" static="true" returns="$ObjectTypeA + $ObjectTypeB">
 /// 	<description>
 /// 		Deep merges two objects and returns the resulting object.
@@ -392,11 +415,13 @@ Fit.Core.IsEqual = function(jsObj1, jsObj2)
 /// 	</description>
 /// 	<param name="targetObject" type="$ObjectTypeA"> Target object </param>
 /// 	<param name="mergeObject" type="$ObjectTypeB"> Merge object </param>
+/// 	<param name="mergeObjectOverwriteBehaviour" type="Fit.Core.MergeOverwriteBehaviour" default="undefined"> Overwrite behaviour for merge object </param>
 /// </function>
-Fit.Core.Merge = function(targetObject, mergeObject)
+Fit.Core.Merge = function(targetObject, mergeObject, mergeObjectOverwriteBehaviour)
 {
 	Fit.Validation.ExpectObject(targetObject);
 	Fit.Validation.ExpectObject(mergeObject);
+	Fit.Validation.ExpectStringValue(mergeObjectOverwriteBehaviour, true);
 
 	/* // Test data
 	f1 = function() { alert("Hello"); };
@@ -454,10 +479,19 @@ Fit.Core.Merge = function(targetObject, mergeObject)
 	{
 		if (isObject(newObject[prop]) && isObject(mergeObject[prop]))
 		{
-			newObject[prop] = Fit.Core.Merge(newObject[prop], mergeObject[prop]);
+			newObject[prop] = Fit.Core.Merge(newObject[prop], mergeObject[prop], mergeObjectOverwriteBehaviour);
 		}
 		else
 		{
+			if (mergeObjectOverwriteBehaviour === Fit.Core.MergeOverwriteBehaviour.SkipNullAndUndefined && (mergeObject[prop] === null || mergeObject[prop] === undefined))
+			{
+				return; // Skip - ignore values of Null and Undefined from merge object
+			}
+			else if (mergeObjectOverwriteBehaviour === Fit.Core.MergeOverwriteBehaviour.Never && prop in newObject)
+			{
+				return; // Skip - never update values from target object, only add missing values
+			}
+
 			newObject[prop] = mergeObject[prop];
 		}
 	});
