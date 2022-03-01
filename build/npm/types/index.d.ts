@@ -8956,9 +8956,9 @@ declare namespace Fit
 	}
 	/**
 	* Core features extending the capabilities of native JS.
-	* @class [Fit.Core Core]
+	* @namespace [Fit.Core Core]
 	*/
-	class Core
+	namespace Core
 	{
 		// Functions defined by Fit.Core
 		/**
@@ -8982,7 +8982,7 @@ declare namespace Fit
 		* @param {ObjectType} obj - JS object to clone.
 		* @returns ObjectType
 		*/
-		public static Clone<ObjectType>(obj:ObjectType):ObjectType;
+		export function Clone<ObjectType>(obj:ObjectType):ObjectType;
 		/**
 		* Create a debouncing function that delays execution the specified number of milliseconds.
 		Invoking function multiple times merely postpone execution the specified number of milliseconds.
@@ -8994,7 +8994,7 @@ declare namespace Fit
 		* @param {any} [thisArg=undefined] - The value 'this' resolves to within debounced function.
 		* @returns Fit.CoreTypeDefs.DebounceFunction
 		*/
-		public static CreateDebouncer(func:Function, timeout:number, thisArg?:any):Fit.CoreTypeDefs.DebounceFunction;
+		export function CreateDebouncer(func:Function, timeout:number, thisArg?:any):Fit.CoreTypeDefs.DebounceFunction;
 		/**
 		* Create a function override for any given function using the approach below.
 		
@@ -9014,7 +9014,7 @@ declare namespace Fit
 		* @param {Function} newFunction - Reference to replacement function.
 		* @returns Function
 		*/
-		public static CreateOverride(originalFunction:Function, newFunction:Function):Function;
+		export function CreateOverride(originalFunction:Function, newFunction:Function):Function;
 		/**
 		* Extend any object with the public members of a super class.
 		
@@ -9043,7 +9043,7 @@ declare namespace Fit
 		* @param {Function} superType - Class (function) to extend from.
 		* @returns any
 		*/
-		public static Extend(subInstance:any, superType:Function):any;
+		export function Extend(subInstance:any, superType:Function):any;
 		/**
 		* Returns boolean indicating whether given object is an extension of a given super type - see Fit.Core.Extend(..).
 		Also look into Fit.Core.InstanceOf(..) which may provide the desired behaviour.
@@ -9053,7 +9053,7 @@ declare namespace Fit
 		* @param {Function} superType - Reference to super class (function).
 		* @returns boolean
 		*/
-		public static Extends(instance:any, superType:Function):boolean;
+		export function Extends(instance:any, superType:Function):boolean;
 		/**
 		* Returns boolean indicating whether given object is an instance or extension of a given class type - see Fit.Core.Extend(..).
 		This is equivalent of: var result = (obj instanceof MyType || Fit.Core.Extends(obj, MyType));.
@@ -9063,7 +9063,7 @@ declare namespace Fit
 		* @param {Function} type - Reference to class (function).
 		* @returns boolean
 		*/
-		public static InstanceOf(instance:any, type:Function):boolean;
+		export function InstanceOf(instance:any, type:Function):boolean;
 		/**
 		* Compare two JavaScript objects to determine whether they are identical.
 		Returns True if objects are identical (equal), otherwise False.
@@ -9079,7 +9079,7 @@ declare namespace Fit
 		* @param {any} jsObj2 - JS object to compare agains first JS object.
 		* @returns boolean
 		*/
-		public static IsEqual(jsObj1:any, jsObj2:any):boolean;
+		export function IsEqual(jsObj1:any, jsObj2:any):boolean;
 		/**
 		* Deep merges two objects and returns the resulting object.
 		Take notice of the behaviour and restriction of Fit.Core.Clone(..) since
@@ -9093,9 +9093,23 @@ declare namespace Fit
 		* @static
 		* @param {ObjectTypeA} targetObject - Target object.
 		* @param {ObjectTypeB} mergeObject - Merge object.
+		* @param {Fit.Core.MergeOverwriteBehaviour | "Always" | "Never" | "SkipNullAndUndefined"} [mergeObjectOverwriteBehaviour=undefined] - Overwrite behaviour for merge object.
 		* @returns ObjectTypeA & ObjectTypeB
 		*/
-		public static Merge<ObjectTypeA, ObjectTypeB>(targetObject:ObjectTypeA, mergeObject:ObjectTypeB):ObjectTypeA & ObjectTypeB;
+		export function Merge<ObjectTypeA, ObjectTypeB>(targetObject:ObjectTypeA, mergeObject:ObjectTypeB, mergeObjectOverwriteBehaviour?:Fit.Core.MergeOverwriteBehaviour | "Always" | "Never" | "SkipNullAndUndefined"):ObjectTypeA & ObjectTypeB;
+		/**
+		* Merge behaviour.
+		* @enum {string}
+		*/
+		enum MergeOverwriteBehaviour
+		{
+			/** Always overwrite property values from target object with property values from merge object (default behaviour). */
+			Always = "Always",
+			/** Never overwrite property values from target object - only add missing property values from merge object. */
+			Never = "Never",
+			/** Always overwrite property values from target object with property values from merge object, except values from merge object that are Null or Undefined. */
+			SkipNullAndUndefined = "SkipNullAndUndefined"
+		}
 	}
 	/**
 	* 
