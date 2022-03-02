@@ -1161,6 +1161,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Icon" type="string" default="undefined"> Optional URL to icon/image </member>
 	/// 	<member name="Url" type="string" default="undefined"> Optional URL to associate with tag </member>
 	/// 	<member name="Data" type="string" default="undefined"> Optional data to associate with tag </member>
+	/// 	<member name="Context" type="string" default="undefined"> Optional context information to associate with tag </member>
 	/// </container>
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs">
 	/// 	<description> Response handler event arguments </description>
@@ -1182,6 +1183,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Type" type="string"> Tag type (marker) </member>
 	/// 	<member name="Url" type="string" default="undefined"> Optional tag URL </member>
 	/// 	<member name="Data" type="string" default="undefined"> Optional tag data </member>
+	/// 	<member name="Context" type="string" default="undefined"> Optional tag context </member>
 	/// </container>
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs">
 	/// 	<description> TagCreator event arguments </description>
@@ -1218,8 +1220,8 @@ Fit.Controls.Input = function(ctlId)
 	/// 		btoa(JSON.stringify({ creationDate: new Date(), active: true }))
 	///
 	/// 		The data eventuelly results in a tag being added to the editor with the following format:
-	/// 		<a data-tag-type="@" data-tag-id="unique id 1" data-tag-data="..." href="show/1">Tag name 1</a>
-	/// 		The data-tag-data attribute is only declared if the corresponding Data property is defined in data.
+	/// 		<a data-tag-type="@" data-tag-id="unique id 1" data-tag-data="..." data-tag-context="..." href="show/1">Tag name 1</a>
+	/// 		The data-tag-data and data-tag-context attributes are only declared if the corresponding Data and Context properties are defined in data.
 	/// 	</member>
 	/// 	<member name="JsonpCallback" type="string" default="undefined"> Name of URL parameter receiving name of JSONP callback function (only for JSONP services) </member>
 	/// 	<member name="JsonpTimeout" type="integer" default="undefined"> Number of milliseconds to allow JSONP request to wait for a response before aborting (only for JSONP services) </member>
@@ -2150,11 +2152,11 @@ Fit.Controls.Input = function(ctlId)
 
 						if (alternativeItem !== null)
 						{
-							return '<a data-tag-type="' + (alternativeItem.Type || trigger.Marker) + '" data-tag-id="' + (alternativeItem.Value || item.Value) + '"' + (alternativeItem.Data || item.Data ? ' data-tag-data="' + (alternativeItem.Data || item.Data) + '"' : '') + (alternativeItem.Url || item.Url ? ' href="' + (alternativeItem.Url || item.Url) + '"' : 'href=""') + '>' + (alternativeItem.Title || (trigger.Marker + item.Title)) + '</a>';
+							return '<a data-tag-type="' + (alternativeItem.Type || trigger.Marker) + '" data-tag-id="' + (alternativeItem.Value || item.Value) + '"' + (alternativeItem.Data || item.Data ? ' data-tag-data="' + (alternativeItem.Data || item.Data) + '"' : '') + (alternativeItem.Context || item.Context ? ' data-tag-context="' + (alternativeItem.Context || item.Context) + '"' : '') + (alternativeItem.Url || item.Url ? ' href="' + (alternativeItem.Url || item.Url) + '"' : 'href=""') + '>' + (alternativeItem.Title || (trigger.Marker + item.Title)) + '</a>';
 						}
 						else
 						{
-							return '<a data-tag-type="' + trigger.Marker + '" data-tag-id="' + item.Value + '"' + (item.Data ? ' data-tag-data="' + item.Data + '"' : '') + (item.Url ? ' href="' + item.Url + '"' : 'href=""') + '>' + trigger.Marker + item.Title + '</a>';
+							return '<a data-tag-type="' + trigger.Marker + '" data-tag-id="' + item.Value + '"' + (item.Data ? ' data-tag-data="' + item.Data + '"' : '') + (item.Context ? ' data-tag-context="' + item.Context + '"' : '') + (item.Url ? ' href="' + item.Url + '"' : 'href=""') + '>' + trigger.Marker + item.Title + '</a>';
 						}
 					}
 				};
@@ -2165,7 +2167,7 @@ Fit.Controls.Input = function(ctlId)
 					mention.feed = Fit.Core.CreateDebouncer(mention.feed, trigger.DebounceQuery || 300).Invoke;
 				}
 
-				Fit.Array.Add(mentions, mention)
+				Fit.Array.Add(mentions, mention);
 			});
 		}
 
@@ -2210,7 +2212,7 @@ Fit.Controls.Input = function(ctlId)
 			toolbarLocation: designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Position === "Bottom" ? "bottom" : "top",
 			uiColor: Fit._internal.Controls.Input.Editor.Skin === "moono-lisa" || Fit._internal.Controls.Input.Editor.Skin === null ? "#FFFFFF" : undefined,
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
-			extraAllowedContent: "a[data-tag-type,data-tag-id,data-tag-data]", // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-extraAllowedContent
+			extraAllowedContent: "a[data-tag-type,data-tag-id,data-tag-data,data-tag-context]", // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-extraAllowedContent
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
 			readOnly: me.Enabled() === false,
