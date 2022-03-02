@@ -4321,7 +4321,7 @@ declare namespace Fit
 				
 				The data eventuelly results in a tag being added to the editor with the following format:
 				Tag name 1
-				The data-tag-data attribute is only declared if the corresponding Data property is defined in data.
+				The data-tag-data and data-tag-context attributes are only declared if the corresponding Data and Context properties are defined in data.
 				* @member {string} QueryUrl
 				*/
 				QueryUrl:string;
@@ -4455,6 +4455,11 @@ declare namespace Fit
 			{
 				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag
 				/**
+				* Optional context information to associate with tag.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
+				/**
 				* Optional data to associate with tag.
 				* @member {string} [Data=undefined]
 				*/
@@ -4510,6 +4515,11 @@ declare namespace Fit
 			class DesignModeTagsTagCreatorReturnType
 			{
 				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType
+				/**
+				* Optional tag context.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
 				/**
 				* Optional tag data.
 				* @member {string} [Data=undefined]
