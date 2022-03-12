@@ -14,15 +14,17 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
 	// Private properties
 
+	var me = this;
 	var elm = domElm;
 	var posState = null; // { position: "", left: "", top: "" };
 	var trgElm = (domTriggerElm ? domTriggerElm : null);
-	var me = this;
+	var bringToFrontOnActivation = false;
 
 	var onDragStart = null;
 	var onDragging = null;
 	var onDragStop = null;
 
+	var activationEventId = -1;
 	var mouseDownEventId = -1;
 
 	// Construct
@@ -34,14 +36,32 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		Fit.Dom.AddClass(elm, "FitDragDropDraggable");
 		Fit.Dom.AddClass((trgElm !== null ? trgElm : elm), "FitDragDropDraggableHandle");
 
+		// Bring to front on activation
+
+		activationEventId = Fit.Events.AddHandler(elm, (Fit.Browser.IsTouchEnabled() === true ? "touchstart" : "mousedown"), function(e)
+		{
+			if (bringToFrontOnActivation === true)
+			{
+				me.BringToFront();
+			}
+		});
+
 		// Mouse down
 
-		mouseDownEventId = Fit.Events.AddHandler(((trgElm !== null) ? trgElm : elm), "mousedown", function(e)
+		mouseDownEventId = Fit.Events.AddHandler(((trgElm !== null) ? trgElm : elm), (Fit.Browser.IsTouchEnabled() === true ? "touchstart" : "mousedown"), function(e)
 		{
-			var ev = e || window.event;
-
 			if (Fit.DragDrop.Draggable._internal.active !== null)
 				return; // Skip - current element is a draggable parent to which event propagated
+
+			var ev = Fit.Events.GetEvent(e);
+
+			if (onDragStart)
+			{
+				if (onDragStart(elm) === false)
+				{
+					return;
+				}
+			}
 
 			Fit.Dom.AddClass(elm, "FitDragDropDragging");
 
@@ -65,12 +85,9 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 			}
 
 			// Mouse position in viewport
-			var mouseXviewport = (ev.clientX || e.pageX);
-			var mouseYviewport = (ev.clientY || e.pageY);
-
-			// Make sure element being dragged is on top of every other draggable element
-			Fit.DragDrop.Draggable._internal.zIndex++;
-			elm.style.zIndex = Fit.DragDrop.Draggable._internal.zIndex;
+			var pp = Fit.Events.GetPointerState().Coordinates.ViewPort;
+			var mouseXviewport = pp.X;
+			var mouseYviewport = pp.Y;
 
 			// Create state information object for draggable currently being dragged
 			var state =
@@ -79,8 +96,8 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 				Positioning: "relative",
 				Mouse: {Viewport: {X: -1, Y: -1}, Document: {X: -1, Y: -1}},
 				Position: {Viewport: {X: -1, Y: -1}, Document: {X: -1, Y: -1}, Offset: {X: -1, Y: -1}},
-				Events: { OnDragStart: onDragStart, OnDragging: onDragging, OnDragStop: onDragStop },
-				OnSelectStart : document.onselectstart
+				Events: { OnDragStart: onDragStart, OnDragging: onDragging, OnDragStop: onDragStop }/*,
+				OnSelectStart : document.onselectstart*/
 			};
 
 			var positioning = Fit.Dom.GetComputedStyle(elm, "position");
@@ -89,8 +106,9 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 				state.Positioning = positioning;
 			}
 
-			// Disable text selection for legacy browsers
-			document.onselectstart = function() { return false; }
+			// Disable text selection for legacy browsers.
+			// DISABLED: Now handled using Fit.Events.PreventDefault(ev).
+			//document.onselectstart = function() { return false; }
 
 			// Find mouse position in viewport
 			state.Mouse.Viewport.X = mouseXviewport;
@@ -140,12 +158,10 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 				Fit.Array.Add(Fit.DragDrop.DropZone._internal.dropzones, draggableDropZone);
 			}
 
-			if (state.Events.OnDragStart)
-				state.Events.OnDragStart(elm);
-
-			/*if (ev.preventDefault)
-				ev.preventDefault();
-			ev.cancelBubble = true;*/
+			if (ev.type === "touchstart")
+			{
+				Fit.Events.PreventDefault(ev); // Stop page scrolling on iOS (required in both ontouchstart and ontouchmove handlers)
+			}
 		});
 
 		// Mouse Up
@@ -154,12 +170,10 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		{
 			Fit.DragDrop.Draggable._internal.mouseUpRegistered = true;
 
-			Fit.Events.AddHandler(document, "mouseup", function(e)
+			Fit.Events.AddHandler(document, (Fit.Browser.IsTouchEnabled() === true ? "touchend" : "mouseup"), function(e)
 			{
 				if (Fit.DragDrop.Draggable._internal.active === null)
 					return;
-
-				var ev = e || window.event;
 
 				var draggableState = Fit.DragDrop.Draggable._internal.active;
 				var draggable = Fit.DragDrop.Draggable._internal.active.Draggable;
@@ -193,7 +207,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 					draggableState.Events.OnDragStop(draggable);
 
 				// Restore OnSelectStart event
-				document.onselectstart = draggableState.OnSelectStart;
+				//document.onselectstart = draggableState.OnSelectStart;
 			});
 		}
 
@@ -203,12 +217,12 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		{
 			Fit.DragDrop.Draggable._internal.mouseMoveRegistered = true;
 
-			Fit.Events.AddHandler(document, "mousemove", function(e)
+			Fit.Events.AddHandler(document, (Fit.Browser.IsTouchEnabled() === true ? "touchmove" : "mousemove"), { passive: false /* https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener */ }, function(e)
 			{
 				if (Fit.DragDrop.Draggable._internal.active === null)
 					return;
 
-				var ev = e || window.event;
+				var ev = Fit.Events.GetEvent(e);
 
 				// Handle draggable
 
@@ -217,8 +231,16 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 				var elm = draggable.GetElement();
 
 				// Mouse position in viewport
-				var mouseXviewport = (ev.clientX || e.pageX);
-				var mouseYviewport = (ev.clientY || e.pageY);
+				var pp = Fit.Events.GetPointerState().Coordinates.ViewPort;
+				var mouseXviewport = pp.X;
+				var mouseYviewport = pp.Y;
+
+				// Prevent user from moving object out of viewport
+				var vpDim = Fit.Browser.GetViewPortDimensions();
+				mouseXviewport = mouseXviewport >= 0 ? mouseXviewport : 0;
+				mouseXviewport = mouseXviewport <= vpDim.Width ? mouseXviewport : vpDim.Width;
+				mouseYviewport = mouseYviewport >= 0 ? mouseYviewport : 0;
+				mouseYviewport = mouseYviewport <= vpDim.Height ? mouseYviewport : vpDim.Height;
 
 				// Positioning (fixed, absolute, or relative)
 				var positioning = Fit.DragDrop.Draggable._internal.active.Positioning;
@@ -318,11 +340,54 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 					if (dropzoneActive.OnEnter)
 						dropzoneActive.OnEnter(dropzoneActive.DropZone);
 				}
+
+				// Stop page scrolling on iOS (required in both ontouchstart and ontouchmove handlers).
+				// Ontouchmove must be registered with { passive: false } for this to work in browsers
+				// which defaults to passive:true. This also prevents text selection on older browsers
+				// not supporting user-select:none.
+
+				Fit.Events.PreventDefault(ev);
 			});
 		}
 	}
 
 	// Public
+
+	/// <function container="Fit.DragDrop.Draggable" name="BringToFrontOnActivation" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether to bring draggable to front when activated </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, a value of True enables functionality, False disables it (default) </param>
+	/// </function>
+	this.BringToFrontOnActivation = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			bringToFrontOnActivation = val;
+
+			// NOTICE: z-index is not reset when BringToFrontOnActivation is disabled.
+			// It may have been enabled at some point, but we keep the z-index to make
+			// sure the element remains below other elements that have BringToFrontOnActivation
+			// enabled. Resetting the z-index style attribute will cause the z-index value of
+			// 99999 from CSS to be applied when dragging the element, causing it to temporarily
+			// be positioned above elements with BringToFrontOnActivation enabled while dragging it.
+			// That becomes bad UX when the user stops dragging it and releases it, at which point
+			// the temporary z-index value of 99999 from CSS is no longer in effect and z-index:1200
+			// takes effect again, which causes the element to be hidden behind elements with
+			// BringToFrontOnActivation enabled.
+		}
+
+		return bringToFrontOnActivation;
+	}
+
+	/// <function container="Fit.DragDrop.Draggable" name="BringToFront" access="public">
+	/// 	<description> Bring draggable to front </description>
+	/// </function>
+	this.BringToFront = function()
+	{
+		Fit.DragDrop.Draggable._internal.zIndex++;
+		elm.style.zIndex = Fit.DragDrop.Draggable._internal.zIndex;
+	}
 
 	/// <function container="Fit.DragDrop.Draggable" name="Reset" access="public">
 	/// 	<description> Reset draggable to initial position </description>
@@ -335,6 +400,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		elm.style.position = posState.position;
 		elm.style.left = posState.left;
 		elm.style.top = posState.top;
+		elm.style.zIndex = "";
 
 		posState = null;
 	}
@@ -364,9 +430,15 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		Fit.Dom.RemoveClass(elm, "FitDragDropDraggable");
 		Fit.Dom.RemoveClass((trgElm !== null ? trgElm : elm), "FitDragDropDraggableHandle");
 
+		Fit.Events.RemoveHandler(elm, activationEventId);
 		Fit.Events.RemoveHandler(((trgElm !== null) ? trgElm : elm), mouseDownEventId);
 
-		me = elm = posState = trgElm = onDragStart = onDragging = onDragStop = mouseDownEventId = null;
+		if (Fit.DragDrop.Draggable._internal.active !== null && Fit.DragDrop.Draggable._internal.active.Draggable === me)
+		{
+			Fit.DragDrop.Draggable._internal.active = null;
+		}
+
+		me = elm = posState = trgElm = bringToFrontOnActivation = onDragStart = onDragging = onDragStop = activationEventId = mouseDownEventId = null;
 	}
 
 	// Event handling
