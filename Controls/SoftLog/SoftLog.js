@@ -111,7 +111,7 @@ Fit.Controls.SoftLog = function(controlId)
 
 	/// <function container="Fit.Controls.SoftLog" name="MaxEntries" access="public" returns="integer">
 	/// 	<description> Get/set number of log entries preserved </description>
-	/// 	<param name="val" type="boolean" default="undefined"> If defined, changes number of log entries preserved </param>
+	/// 	<param name="val" type="integer" default="undefined"> If defined, changes number of log entries preserved </param>
 	/// </function>
 	this.MaxEntries = function(val)
 	{
