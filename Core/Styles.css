@@ -121,10 +121,7 @@ Stacking context, Z-index:
 
 .FitDragDropDraggable.FitDragDropDragging
 {
-	opacity: 0.6;
 	z-index: 99999;
-
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
 }
 
 /* Disabled control */

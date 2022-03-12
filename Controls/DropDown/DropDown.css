@@ -335,6 +335,12 @@ div.FitUiControlDropDown[data-enabled="true"][data-valid="false"] div.FitUiContr
 
 /* Drag and drop */
 
+div.FitUiControlDropDownItems > span.FitDragDropDragging
+{
+	opacity: 0.6;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
+}
+
 div.FitUiControlDropDownItems > span.FitDragDropDragging input
 {
 	visibility: hidden;
