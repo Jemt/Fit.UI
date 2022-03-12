@@ -15,6 +15,8 @@ Stacking context, Z-index:
 	- Emoji panel			: 10001 (mounted in <body>) - changed to 2000000 in Input.css if html[data-fitui-companion="fluent-ui"]
     - Dialogs				: 10010 (mounted in <body>, might be re-mounted next to control) - changed to 2000020 in Input.css (+10 compared to modal BG layer) if html[data-fitui-companion="fluent-ui"]
 	   - Modal BG layer		: 10000 (mounted in <body>) - changed to 2000010 in Input.css (+10 compared to image resize handlers) if html[data-fitui-companion="fluent-ui"]
+ - Alert, Confirm, Prompt	: 50000 (must stay on top of draggable dialogs with z-index 10000+)
+    - Modal BG layer		: 50000
 */
 
 .FitUiStyleCheck

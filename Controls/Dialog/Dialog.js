@@ -15,15 +15,20 @@ Fit.Controls.Dialog = function(controlId)
 	var dialog = me.GetDomElement();
 	var focusTrapStart = null;
 	var focusTrapEnd = null;
-	var title = null;
+	var titleContainer = null;
+	var titleText = null;
 	var titleButtons = null;
 	var cmdMaximize = null;
 	var cmdDismiss = null;
 	var content = null;
 	var iframe = null;
+	var resizer = null;
 	var buttons = null;
 	var modal = false;
 	var layer = null;
+
+	var draggable = null;
+	var suppressPositioning = false;
 
 	var width = null;
 	var minWidth = null;
@@ -49,6 +54,7 @@ Fit.Controls.Dialog = function(controlId)
 		Fit.Dom.AddClass(dialog, "FitUiControlDialog");
 		Fit.Dom.Data(dialog, "framed", "false");
 		Fit.Dom.Data(dialog, "maximized", "false");
+		Fit.Dom.Data(dialog, "resizable", "false");
 
 		focusTrapStart = document.createElement("div");
 		focusTrapStart.tabIndex = 0;
@@ -123,44 +129,43 @@ Fit.Controls.Dialog = function(controlId)
 
 		if (val !== undefined) // Allow null to remove title
 		{
-			if (val === null && title !== null)
+			if (val === null && titleContainer !== null) // Remove title
 			{
-				if (titleButtons !== null)
+				if (titleButtons !== null || draggable !== null) // Clear title but keep title bar used for buttons and drag support
 				{
-					Fit.Dom.Text(title, "");
-					Fit.Dom.Add(title, titleButtons);
+					Fit.Dom.Text(titleText, "");
 				}
-				else
+				else // Remove title bar
 				{
-					Fit.Dom.Remove(title);
-					title = null;
+					Fit.Dom.Remove(titleContainer);
+					titleContainer = null;
+					titleText = null;
 
 					setContentHeight();
 					updatePosition();
 				}
 			}
-			else
+			else // Set title
 			{
-				if (title === null)
+				if (titleContainer === null)
 				{
-					title = document.createElement("div");
-					Fit.Dom.AddClass(title, "FitUiControlDialogTitle");
-					Fit.Dom.InsertAfter(focusTrapStart, title);
+					titleContainer = document.createElement("div");
+					Fit.Dom.AddClass(titleContainer, "FitUiControlDialogTitle");
+					Fit.Dom.InsertAfter(focusTrapStart, titleContainer);
+
+					titleText = document.createElement("div");
+					Fit.Dom.AddClass(titleText, "FitUiControlDialogTitleText");
+					Fit.Dom.Add(titleContainer, titleText);
 				}
 
-				Fit.Dom.Text(title, val);
-
-				if (titleButtons !== null)
-				{
-					Fit.Dom.Add(title, titleButtons);
-				}
+				Fit.Dom.Text(titleText, val);
 
 				setContentHeight();
 				updatePosition();
 			}
 		}
 
-		return (title !== null ? Fit.Dom.Text(title) : null);
+		return (titleText !== null ? Fit.Dom.Text(titleText) : null);
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="Width" access="public" returns="Fit.TypeDefs.CssValue">
@@ -182,12 +187,17 @@ Fit.Controls.Dialog = function(controlId)
 				width = { Value: val, Unit: ((Fit.Validation.IsSet(unit) === true) ? unit : "px") };
 				dialog.style.width = width.Value + width.Unit;
 
-				if (minWidth === null)
+				// Disable default min-width and default max-width from CSS when width alone is set, unless Resizable is
+				// enabled, in which case we must prevent dialog from "collapsing" completely due to resizing, or become
+				// larger than the viewport. When resizing is enabled, appropriate values for min-width and max-width are
+				// set from CSS, but can be overridden using MinimumWidth(..) and MaximumWidth(..)
+
+				if (minWidth === null && me.Resizable() === false)
 				{
 					dialog.style.minWidth = "0";
 				}
 
-				if (maxWidth === null)
+				if (maxWidth === null && me.Resizable() === false)
 				{
 					dialog.style.maxWidth = "none";
 				}
@@ -226,6 +236,7 @@ Fit.Controls.Dialog = function(controlId)
 
 		// defaultValue must match min-width in Dialog.css
 		var defaultValue = { Value: 280, Unit: "px" };
+		var defaultValueResizable = { Value: 15, Unit: "em" };
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -237,10 +248,15 @@ Fit.Controls.Dialog = function(controlId)
 			else
 			{
 				minWidth = null;
-				dialog.style.minWidth = (width !== null ? "0" : ""); // Apply "0" (no min-width) if width is set
+				dialog.style.minWidth = (width !== null && me.Resizable() === false ? "0" : ""); // Apply "0" (no min-width) if width is set, to override min-width from CSS - similar logic found in Width(..)
 			}
 
 			updatePosition();
+		}
+
+		if (minWidth === null && me.Resizable() === true)
+		{
+			return defaultValueResizable;
 		}
 
 		return (minWidth !== null ? minWidth : (width !== null ? width : defaultValue));
@@ -258,6 +274,7 @@ Fit.Controls.Dialog = function(controlId)
 
 		// defaultValue must match max-width in Dialog.css
 		var defaultValue = { Value: 800, Unit: "px" };
+		var defaultValueResizable = { Value: 100, Unit: "%" };
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -269,10 +286,15 @@ Fit.Controls.Dialog = function(controlId)
 			else
 			{
 				maxWidth = null;
-				dialog.style.maxWidth = (width !== null ? "none" : ""); // Apply "none" (no max-width) if width is set
+				dialog.style.maxWidth = (width !== null && me.Resizable() === false ? "none" : ""); // Apply "none" (no max-width) if width is set, to override max-width from CSS - similar logic found in Width(..)
 			}
 
 			updatePosition();
+		}
+
+		if (maxWidth === null && me.Resizable() === true)
+		{
+			return defaultValueResizable;
 		}
 
 		return (maxWidth !== null ? maxWidth : (width !== null ? width : defaultValue));
@@ -323,6 +345,7 @@ Fit.Controls.Dialog = function(controlId)
 
 		// defaultValue must match min-height in Dialog.css (which is not defined)
 		var defaultValue = { Value: -1, Unit: "px" };
+		var defaultValueResizable = { Value: 10, Unit: "em" };
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -341,6 +364,11 @@ Fit.Controls.Dialog = function(controlId)
 			updatePosition();
 		}
 
+		if (minHeight === null && me.Resizable() === true)
+		{
+			return defaultValueResizable;
+		}
+
 		return (minHeight !== null ? minHeight : defaultValue);
 	}
 
@@ -356,6 +384,7 @@ Fit.Controls.Dialog = function(controlId)
 
 		// defaultValue must match max-height in Dialog.css (which is not defined)
 		var defaultValue = { Value: -1, Unit: "px" };
+		var defaultValueResizable = { Value: 100, Unit: "%" };
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
@@ -374,6 +403,11 @@ Fit.Controls.Dialog = function(controlId)
 			updatePosition();
 		}
 
+		if (maxHeight === null && me.Resizable() === true)
+		{
+			return defaultValueResizable;
+		}
+
 		return (maxHeight !== null ? maxHeight : defaultValue);
 	}
 
@@ -390,9 +424,19 @@ Fit.Controls.Dialog = function(controlId)
 			if (val !== modal && me.IsOpen() === true)
 			{
 				if (val === true)
+				{
+					layer.style.zIndex = dialog.style.zIndex; // Update in case dialog was/is draggable and it was brought to front (z-index set by Fit.DragDrop.Draggable when Draggable is enabled)
 					Fit.Dom.InsertBefore(dialog, layer);
+
+					if (me.IsOpen() === true)
+					{
+						me.BringToFront();
+					}
+				}
 				else
+				{
 					Fit.Dom.Remove(layer);
+				}
 			}
 
 			modal = val;
@@ -606,6 +650,84 @@ Fit.Controls.Dialog = function(controlId)
 		return (cmdDismiss !== null);
 	}
 
+	/// <function container="Fit.Controls.Dialog" name="Draggable" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether dialog can be moved around on screen </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, a value of True enables dragging, False disables it (default) </param>
+	/// </function>
+	this.Draggable = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && draggable === null)
+			{
+				if (me.Title() === null) // Ensure title element
+				{
+					me.Title("");
+				}
+
+				draggable = new Fit.DragDrop.Draggable(me.GetDomElement(), titleText);
+				draggable.BringToFrontOnActivation(true);
+				draggable.OnDragStart(function()
+				{
+					if (me.Maximized() === true)
+					{
+						return false; // Prevent dragging while maximized
+					}
+
+					suppressPositioning = true;
+				});
+			}
+			else if (val === false && draggable !== null)
+			{
+				draggable.Dispose();
+				draggable = null;
+				suppressPositioning = false;
+
+				if (me.Title() === "")
+				{
+					me.Title(null); // Remove title element - will remain enabled if buttons (dismiss/maximize) are present though
+				}
+
+				updatePosition();
+			}
+		}
+
+		return (draggable !== null);
+	}
+
+	/// <function container="Fit.Controls.Dialog" name="Resizable" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether dialog can be resized by the user </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, a value of True enables resizing, False disables it (default) </param>
+	/// </function>
+	this.Resizable = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === true && resizer === null)
+			{
+				resizer = createResizerElement();
+				Fit.Dom.InsertAfter(content, resizer);
+				Fit.Dom.Data(dialog, "resizable", "true");
+			}
+			else if (val === false && resizer !== null)
+			{
+				Fit.Dom.Remove(resizer);
+				resizer = null;
+				Fit.Dom.Data(dialog, "resizable", "false");
+
+				// Undo width/height set by user
+				me.Width(me.Width().Value, me.Width().Unit);
+				me.Height(me.Height().Value, me.Height().Unit);
+			}
+		}
+
+		return (resizer !== null);
+	}
+
 	/// <function container="Fit.Controls.Dialog" name="AddButton" access="public">
 	/// 	<description> Add button to dialog </description>
 	/// 	<param name="btn" type="Fit.Controls.Button"> Instance of Fit.Controls.Button </param>
@@ -705,6 +827,18 @@ Fit.Controls.Dialog = function(controlId)
 		return Fit.Dom.IsRooted(dialog);
 	}
 
+	/// <function container="Fit.Controls.Dialog" name="BringToFront" access="public">
+	/// 	<description> Bring draggable dialog to front </description>
+	/// </function>
+	this.BringToFront = function()
+	{
+		if (draggable !== null)
+		{
+			draggable.BringToFront();
+			layer.style.zIndex = dialog.style.zIndex; // Ensure modal layer always remains exactly behind dialog with the same z-index value
+		}
+	}
+
 	/// <function container="Fit.Controls.Dialog" name="Open" access="public">
 	/// 	<description> Open dialog </description>
 	/// 	<param name="renderTarget" type="DOMElement" default="undefined">
@@ -720,8 +854,13 @@ Fit.Controls.Dialog = function(controlId)
 		if (me.IsOpen() === true)
 			return;
 
+		me.BringToFront();
+
 		if (modal === true)
+		{
+			layer.style.zIndex = dialog.style.zIndex; // Ensure modal layer always remains exactly behind dialog with the same z-index value
 			Fit.Dom.Add(renderTarget || document.body, layer);
+		}
 
 		Fit.Dom.Add(renderTarget || document.body, dialog);
 
@@ -829,6 +968,11 @@ Fit.Controls.Dialog = function(controlId)
 			cmdDismiss.Dispose();
 		}
 
+		if (draggable !== null)
+		{
+			draggable.Dispose();
+		}
+
 		if (buttons !== null)
 		{
 			Fit.Array.ForEach(Fit.Array.Copy(buttons.children), function(buttonElm) // Using Copy(..) since Dispose() modifies children collection
@@ -847,7 +991,7 @@ Fit.Controls.Dialog = function(controlId)
 			Fit.Events.RemoveHandler(window, resizeHandlerId);
 		}
 
-		me = dialog = title = titleButtons = cmdMaximize = cmdDismiss = content = buttons = modal = layer = width = minWidth = maxWidth = height = minHeight = maxHeight = mutationObserverId = resizeHandlerId = onDismissHandlers = onCloseHandlers = isClosing = null;
+		me = dialog = focusTrapStart = focusTrapEnd = titleContainer = titleText = titleButtons = cmdMaximize = cmdDismiss = content = iframe = resizer = buttons = modal = layer = draggable = suppressPositioning = width = minWidth = maxWidth = height = minHeight = maxHeight = mutationObserverId = resizeHandlerId = onDismissHandlers = onCloseHandlers = isClosing = null;
 
 		base();
 	});
@@ -896,6 +1040,17 @@ Fit.Controls.Dialog = function(controlId)
 	}
 
 	// ============================================
+	// Protected
+	// ============================================
+
+	this._internal = (this._internal ? this._internal : {});
+
+	this._internal.GetLayerElement = function()
+	{
+		return layer;
+	}
+
+	// ============================================
 	// Private
 	// ============================================
 
@@ -904,6 +1059,130 @@ Fit.Controls.Dialog = function(controlId)
 		var div = document.createElement("div");
 		Fit.Dom.AddClass(div, "FitUiControlDialogContent");
 		return div;
+	}
+
+	function createResizerElement()
+	{
+		// NOTICE: Resizing a dialog with an iframe:
+		// Resizing might not work properly with iframes with content from a foreign domain,
+		// since browsers won't dispatch mouse/touch events over foreign domains.
+		// Some older browsers won't even dispatch the events over iframes with content
+		// originating from the same domain as the one hosting the main page.
+		// This becomes a problem if the user is able to quickly move the mouse over the
+		// iframe while resizing, and the computer/browser is not fast enough to "catch up" with
+		// the movement of the resize handle. Slowly resizing the dialog in this case works.
+		// Possible solution:
+		// If we need better support for resizing dialogs with iframes, consider using a timer
+		// which on a regular basis (2-10 times per second) updates the dialog size based on the
+		// pointer position. That way the missing invocation of OnTouchMove or OnMouseMove is mitigated.
+		// It should also dispatch the logic found in OnTouchEnd, OnTouchCancel and OnMouseUp if the
+		// timer detects that the pointer (mouse or finger) has been released. This can be determined
+		// using: Fit.Events.GetPointerState().Buttons.Touch || Fit.Events.GetPointerState().Buttons.Primary
+		// However, make sure this issue is resolved first: https://github.com/Jemt/Fit.UI/issues/153
+		// The issue relates to the reliablity of Fit.Events.GetPointerState().Buttons.Primary since it
+		// is unset OnMouseOut, which will be triggered if mouse/finger leaves resize handle.
+
+		var resizer = document.createElement("div");
+		Fit.Dom.AddClass(resizer, "FitUiControlDialogResizer");
+
+		Fit.Events.AddHandler(resizer, (Fit.Browser.IsTouchEnabled() === true ? "touchstart" : "mousedown"), function(e)
+		{
+			if (me.Maximized() === true)
+			{
+				return; // Prevent resizing while maximized
+			}
+
+			var ev = Fit.Events.GetEvent(e);
+
+			var initPos = Fit.Events.GetPointerState().Coordinates.ViewPort;
+			var initDim = { Width: me.GetDomElement().offsetWidth, Height: me.GetDomElement().offsetHeight };
+
+			var moveHandler = null;		// OnMouseMove or OnTouchMove event ID
+			var releaseHandler = null;	// OnMouseUp or OnTouchEnd event ID
+			var cancelHandler = null;	// OnTouchCancel event ID (only set on touch devices)
+
+			var cleanup = function()
+			{
+				Fit.Events.RemoveHandler(document, moveHandler);
+				Fit.Events.RemoveHandler(document, releaseHandler);
+
+				if (cancelHandler !== null)
+				{
+					Fit.Events.RemoveHandler(document, cancelHandler);
+				}
+			};
+
+			moveHandler = Fit.Events.AddHandler(document, (Fit.Browser.IsTouchEnabled() === true ? "touchmove" : "mousemove"), { passive: false /* https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener */ }, function(e)
+			{
+				if (me === null) // Unlikely, but theoretically possible that dialog gets disposed while being resized
+				{
+					cleanup();
+					return;
+				}
+
+				var ev = Fit.Events.GetEvent(e);
+
+				// Determine mouse/finger travel
+
+				var pp = Fit.Events.GetPointerState().Coordinates.ViewPort;
+				var left = pp.X - initPos.X;	// Positive = moved right, negative = moved left
+				var top = pp.Y - initPos.Y;		// Positive = moved down, negative = moved up
+
+				if (suppressPositioning === false) // Dialog remains centered - adjust amount of resizing needed ("double up")
+				{
+					left = left * 2;	// Double up when dialog is centered since both left and right side is resized
+					top = top * 1.3;	// Approximate value to adjust resizing vertically - not 100% accurate - resize handle will not follow pointer precisely, but close enough - reason: dialog is not centered 50/50 vertically but 25/75, so a static value such as 1.3 is not accurate - the actual adjustment needed for accurate positioning is variable
+				}
+
+				// Calculate and apply new width and height
+
+				var newWidth = initDim.Width + left;
+				var newHeight = initDim.Height + top;
+
+				if (newWidth > 0)
+				{
+					dialog.style.width = newWidth + "px";
+				}
+
+				if (newHeight > 0)
+				{
+					dialog.style.height = newHeight + "px";
+					setContentHeight();
+				}
+
+				if (newWidth > 0 || newHeight > 0)
+				{
+					updatePosition();
+				}
+
+				// Stop page scrolling on iOS (required in both ontouchstart and ontouchmove handlers).
+				// Ontouchmove must be registered with { passive: false } for this to work in browsers
+				// which defaults to passive:true. This also prevents text selection on older browsers
+				// not supporting user-select:none.
+
+				Fit.Events.PreventDefault(ev);
+			});
+
+			releaseHandler = Fit.Events.AddHandler(document, (Fit.Browser.IsTouchEnabled() === true ? "touchend" : "mouseup"), function(e)
+			{
+				cleanup();
+			});
+
+			if (Fit.Browser.IsTouchEnabled() === true)
+			{
+				cancelHandler = Fit.Events.AddHandler(document, "touchcancel", function(e) // Can be triggered on iOS by swiping down notification panel or control center while resizing
+				{
+					cleanup();
+				});
+			}
+
+			if (ev.type === "touchstart")
+			{
+				Fit.Events.PreventDefault(ev); // Stop page scrolling on iOS (required in both ontouchstart and ontouchmove handlers)
+			}
+		});
+
+		return resizer;
 	}
 
 	function setContentHeight()
@@ -919,10 +1198,10 @@ Fit.Controls.Dialog = function(controlId)
 
 		content.style.height = "";
 
-		if ((buttons !== null || title !== null) && (me.Maximized() === true || me.Height().Value !== -1 || me.MinimumHeight().Value !== -1 || me.MaximumHeight().Value !== -1))
+		if ((buttons !== null || titleContainer !== null) && (me.Maximized() === true || me.Height().Value !== -1 || me.MinimumHeight().Value !== -1 || me.MaximumHeight().Value !== -1))
 		{
 			var dh = dialog.offsetHeight;
-			var th = (title !== null ? title.offsetHeight : 0);
+			var th = (titleContainer !== null ? titleContainer.offsetHeight : 0);
 			var bh = (buttons !== null ? buttons.offsetHeight : 0);
 
 			content.style.height = (dh - th - bh) + "px";
@@ -931,6 +1210,9 @@ Fit.Controls.Dialog = function(controlId)
 
 	function updatePosition()
 	{
+		if (suppressPositioning === true)
+			return;
+
 		if (me.IsOpen() === false)
 			return;
 
@@ -954,13 +1236,18 @@ Fit.Controls.Dialog = function(controlId)
 		elm.style.top = "0px";
 
 		var dim = Fit.Browser.GetViewPortDimensions();
-		var offsetLeft = Math.floor((dim.Width / 2) - (elm.offsetWidth / 2));	// Center horizontally - place center of dialog 1/2 (50%) from the left
-		var offsetTop = Math.floor((dim.Height / 3) - (elm.offsetHeight / 2));	// Place center of dialog 1/3 (33%) from the top
+		var offsetTop = (dim.Height - elm.offsetHeight) * 0.25;	// Place dialog vertically with 25% of available space above dialog and remaining 75% space below dialog
+		var offsetLeft = (dim.Width - elm.offsetWidth) * 0.5;	// Place dialog exactly in the middle horizontally
 
-		if (offsetTop < 0)
+		if (offsetTop < 0) // Value becomes negative if dialog is higher than viewport
+		{
 			offsetTop = 0;
-		if (offsetLeft < 0)
+		}
+
+		if (offsetLeft < 0) // Value becomes negative if dialog is wider than viewport
+		{
 			offsetLeft = 0;
+		}
 
 		elm.style.left = offsetLeft + "px";
 		elm.style.top = offsetTop + "px";
@@ -974,6 +1261,12 @@ Fit.Controls.Dialog = function(controlId)
 		{
 			Fit.Dom.Remove(titleButtons);
 			titleButtons = null;
+
+			if (me.Title() === "")
+			{
+				me.Title(null); // Remove title element - will remain enabled if Draggable is enabled
+			}
+
 			return;
 		}
 
@@ -986,7 +1279,7 @@ Fit.Controls.Dialog = function(controlId)
 
 			titleButtons = document.createElement("div");
 			Fit.Dom.AddClass(titleButtons, "FitUiControlDialogTitleButtons");
-			Fit.Dom.Add(title, titleButtons);
+			Fit.Dom.Add(titleContainer, titleButtons);
 		}
 
 		// Add/re-add to ensure proper order
@@ -1031,7 +1324,9 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 	var d = new Fit.Controls.Dialog();
 	d.Content(content.replace(/\n/g, "<br>"));
 	d.Modal(true);
+
 	Fit.Dom.AddClass(d.GetDomElement(), "FitUiControlDialogBase");
+	Fit.Dom.AddClass(d._internal.GetLayerElement(), "FitUiControlDialogBaseModalLayer");
 
 	// Declare buttons
 

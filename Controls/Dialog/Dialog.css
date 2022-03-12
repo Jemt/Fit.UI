@@ -18,6 +18,13 @@ div.FitUiControlDialog:not(#LegacyIE) /* :not() not supported by IE8 and below *
 	box-shadow: 0px 0px 10px 0px #333333;
 	border-radius: 2px;
 }
+div.FitUiControlDialog[data-resizable="true"]
+{
+	min-width: 15em;
+	max-width: 100%;
+	min-height: 10em;
+	max-height: 100%;
+}
 div.FitUiControlDialog[data-maximized="true"]
 {
 	/* Using !important due to specificity above (:not(#LegacyIE)).
@@ -44,11 +51,22 @@ div.FitUiControlDialog[data-maximized="true"]
 
 div.FitUiControlDialogTitle
 {
-	padding: 1em;
-	font-size: 1.1em;
 	font-weight: bold;
 	overflow: hidden;
 	white-space: nowrap;
+}
+
+div.FitUiControlDialogTitle,
+div.FitUiControlDialogTitleText,
+div.FitUiControlDialogTitleButtons
+{
+	height: 3.2em;
+}
+
+div.FitUiControlDialogTitleText
+{
+	padding-left: 1em;
+	line-height: 3.2em;
 }
 
 div.FitUiControlDialogTitleButtons
@@ -65,7 +83,6 @@ div.FitUiControlDialogTitleButtons
 	background-color: white;
 	border-bottom: 0.065em solid silver;
 	border-bottom-width: 1px\9;
-	height: 3.2em;
 }
 
 .FitUiControlDialogTitle div.FitUiControlButton + div.FitUiControlButton
@@ -105,6 +122,24 @@ div.FitUiControlDialog iframe
 	height: 100%;
 }
 
+div.FitUiControlDialogResizer
+{
+	width: 0.65em;
+	height: 0.65em;
+	border-left: 0.65em solid transparent;
+	border-bottom: 0.65em solid #A0A0A0;
+	cursor: nwse-resize;
+
+	position: absolute;
+	right: 0.1em;
+	bottom: 0.1em;
+
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
 div.FitUiControlDialogButtons
 {
 	/*background-color: white;*/
@@ -134,4 +169,11 @@ div.FitUiControlDialogModalLayer
 	background-color: #333333;
 	opacity: 0.5;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+}
+
+/* Alert, Confirm and Promp dialogs */
+div.FitUiControlDialogBaseModalLayer,
+div.FitUiControlDialogBase
+{
+	z-index: 50000; /* Remain on top of draggable dialogs with z-index 10000+ */
 }
