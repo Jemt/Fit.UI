@@ -4480,6 +4480,11 @@ declare namespace Fit
 				*/
 				MinimumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
 				/**
+				* Flag indicating whether dialog is resizable.
+				* @member {boolean} [Resizable=undefined]
+				*/
+				Resizable?:boolean;
+				/**
 				* Dialog title.
 				* @member {string} [Title=undefined]
 				*/
