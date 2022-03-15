@@ -1276,6 +1276,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Maximizable" type="boolean" default="undefined"> Flag indicating whether dialog is maximizable </member>
 	/// 	<member name="Maximized" type="boolean" default="undefined"> Flag indicating whether dialog is initially maximized </member>
 	/// 	<member name="Draggable" type="boolean" default="undefined"> Flag indicating whether dialog is draggable </member>
+	/// 	<member name="Resizable" type="boolean" default="undefined"> Flag indicating whether dialog is resizable </member>
 	/// 	<member name="Width" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Dialog width </member>
 	/// 	<member name="MinimumWidth" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Minimum width of dialog </member>
 	/// 	<member name="MaximumWidth" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Maximum Width of dialog </member>
@@ -1344,6 +1345,7 @@ Fit.Controls.Input = function(ctlId)
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Detachable || {}).Maximizable, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Detachable || {}).Maximized, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Detachable || {}).Draggable, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Detachable || {}).Resizable, true);
 		Fit.Validation.ExpectObject(((editorConfig || {}).Detachable || {}).Width, true);
 		Fit.Validation.ExpectNumber((((editorConfig || {}).Detachable || {}).Width || {}).Value, true);
 		Fit.Validation.ExpectStringValue((((editorConfig || {}).Detachable || {}).Width || {}).Unit, true);
