@@ -39,6 +39,7 @@ Fit.Controls.Input = function(ctlId)
 	var designEditorMustDisposeWhenReady = false;
 	var designEditorUpdateSizeDebouncer = -1;
 	var designEditorActiveToolbarPanel = null; // { DomElement: HTMLElement, UnlockFocusStateIfEmojiPanelIsClosed: function, CloseEmojiPanel: function }
+	var designEditorDetached = null; // { GetValue: function, Reload: function, Dispose: function }
 	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
@@ -54,6 +55,7 @@ Fit.Controls.Input = function(ctlId)
 	var debounceOnChangeTimeout = -1;
 	var debouncedOnChange = null;
 	var imageBlobUrls = [];				// Specific to DesignMode
+	var locale = null;
 
 	// ============================================
 	// Init
@@ -119,6 +121,7 @@ Fit.Controls.Input = function(ctlId)
 		me._internal.Data("designmode", "false");
 
 		Fit.Internationalization.OnLocaleChanged(localize);
+		localize();
 
 		me.OnBlur(function(sender)
 		{
@@ -361,20 +364,22 @@ Fit.Controls.Input = function(ctlId)
 				input.value = val;
 			}
 
+			// Notice: Identical logic found in DesignMode(true, config)!
 			if (designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.RevokeExternalBlobUrlsOnDispose === true)
 			{
-				// Keep track of image blobs added via Value(..) so we can dispose them automatically.
+				// Keep track of image blobs added via Value(..) so we can dispose of them automatically.
 				// When RevokeExternalBlobUrlsOnDispose is True it basically means that the Input control
 				// is allowed (and expected) to take control over memory management for these blobs
 				// based on the rule set in RevokeBlobUrlsOnDispose.
+				// This code is also found in DesignMode(true, config) since images might be added before
+				// editor is created, in which case we do not yet have the editor configuration used to determine
+				// the desired behaviour.
 
-				var blobImages = val.match(/<img .*?src=(["'])blob:.+?\1.*?>/gi) || [];
+				var blobUrls = Fit.String.ParseImageBlobUrls(val);
 
-				Fit.Array.ForEach(blobImages, function(img)
+				Fit.Array.ForEach(blobUrls, function(blobUrl)
 				{
-					var blobUrl = img.match(/src=(["'])(blob:.*?)\1/i)[2];
-
-					if (Fit.Array.Contains(blobImages, blobUrl) === false)
+					if (Fit.Array.Contains(imageBlobUrls, blobUrl) === false)
 					{
 						Fit.Array.Add(imageBlobUrls, blobUrl);
 					}
@@ -586,7 +591,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorActiveToolbarPanel /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorActiveToolbarPanel = designEditorDetached /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
 
 		base();
 	});
@@ -1097,7 +1102,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<description> Configuration for image plugins </description>
 	/// 	<member name="Enabled" type="boolean"> Flag indicating whether to enable image plugins or not (defaults to False) </member>
 	/// 	<member name="EmbedType" type="'base64' | 'blob'" default="undefined">
-	/// 		How to store and embed images. Base64 is persistent while blob (default) is temporary
+	/// 		How to store and embed images. Base64 (default) is persistent while blob is temporary
 	/// 		and must be extracted from memory and uploaded/stored to be permanantly persisted.
 	/// 		References to blobs can be parsed from the HTML value produced by the editor.
 	/// 	</member>
@@ -1131,6 +1136,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Links" type="boolean" default="undefined"> Enable links (defaults to True) </member>
 	/// 	<member name="Emojis" type="boolean" default="undefined"> Enable emoji button (defaults to False) </member>
 	/// 	<member name="Images" type="boolean" default="undefined"> Enable image button (defaults to false) </member>
+	/// 	<member name="Detach" type="boolean" default="undefined"> Enable detach button (defaults to false) </member>
 	/// 	<member name="Position" type="'Top' | 'Bottom'" default="undefined"> Toolbar position (defaults to Top) </member>
 	/// 	<member name="Sticky" type="boolean" default="undefined"> Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False) </member>
 	/// 	<member name="HideInitially" type="boolean" default="undefined"> Hide toolbar until control gains focus (defaults to False) </member>
@@ -1264,6 +1270,20 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="PreventResizeBeyondMaximumHeight" type="boolean" default="undefined"> Prevent user from resizing editor beyond maximum height (see MaximumHeight property - defaults to False) </member>
 	/// </container>
 
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeDetachable">
+	/// 	<description> Detachable configuration </description>
+	/// 	<member name="Title" type="string" default="undefined"> Dialog title </member>
+	/// 	<member name="Maximizable" type="boolean" default="undefined"> Flag indicating whether dialog is maximizable </member>
+	/// 	<member name="Maximized" type="boolean" default="undefined"> Flag indicating whether dialog is initially maximized </member>
+	/// 	<member name="Draggable" type="boolean" default="undefined"> Flag indicating whether dialog is draggable </member>
+	/// 	<member name="Width" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Dialog width </member>
+	/// 	<member name="MinimumWidth" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Minimum width of dialog </member>
+	/// 	<member name="MaximumWidth" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Maximum Width of dialog </member>
+	/// 	<member name="Height" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Dialog height </member>
+	/// 	<member name="MinimumHeight" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Minimum height of dialog </member>
+	/// 	<member name="MaximumHeight" type="{ Value: number, Unit?: Fit.TypeDefs.CssUnit }" default="undefined"> Maximum height of dialog </member>
+	/// </container>
+
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfig">
 	/// 	<description> Configuration for DesignMode </description>
 	/// 	<member name="Plugins" type="Fit.Controls.InputTypeDefs.DesignModeConfigPlugins" default="undefined"> Plugins configuration </member>
@@ -1271,6 +1291,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="InfoPanel" type="Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel" default="undefined"> Information panel configuration </member>
 	/// 	<member name="Tags" type="Fit.Controls.InputTypeDefs.DesignModeConfigTags" default="undefined"> Tags configuration </member>
 	/// 	<member name="AutoGrow" type="Fit.Controls.InputTypeDefs.DesignModeAutoGrow" default="undefined"> Auto grow configuration </member>
+	/// 	<member name="Detachable" type="Fit.Controls.InputTypeDefs.DesignModeDetachable" default="undefined"> Detachable configuration </member>
 	/// </container>
 
 	/// <function container="Fit.Controls.Input" name="DesignMode" access="public" returns="boolean">
@@ -1304,6 +1325,7 @@ Fit.Controls.Input = function(ctlId)
 		Fit.Validation.ExpectStringValue(((editorConfig || {}).Toolbar || {}).Position, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Sticky, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).HideInitially, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Detach, true);
 		Fit.Validation.ExpectObject((editorConfig || {}).InfoPanel, true);
 		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Text, true);
 		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Alignment, true);
@@ -1317,6 +1339,29 @@ Fit.Controls.Input = function(ctlId)
 		Fit.Validation.ExpectNumber((((editorConfig || {}).AutoGrow || {}).MaximumHeight || {}).Value, true);
 		Fit.Validation.ExpectStringValue((((editorConfig || {}).AutoGrow || {}).MaximumHeight || {}).Unit, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).AutoGrow || {}).PreventResizeBeyondMaximumHeight, true);
+		Fit.Validation.ExpectObject((editorConfig || {}).Detachable, true);
+		Fit.Validation.ExpectString(((editorConfig || {}).Detachable || {}).Title, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Detachable || {}).Maximizable, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Detachable || {}).Maximized, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Detachable || {}).Draggable, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).Detachable || {}).Width, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).Detachable || {}).Width || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Detachable || {}).Width || {}).Unit, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).Detachable || {}).MinimumWidth, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).Detachable || {}).MinimumWidth || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Detachable || {}).MinimumWidth || {}).Unit, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).Detachable || {}).MaximumWidth, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).Detachable || {}).MaximumWidth || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Detachable || {}).MaximumWidth || {}).Unit, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).Detachable || {}).Height, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).Detachable || {}).Height || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Detachable || {}).Height || {}).Unit, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).Detachable || {}).MinimumHeight, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).Detachable || {}).MinimumHeight || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Detachable || {}).MinimumHeight || {}).Unit, true);
+		Fit.Validation.ExpectObject(((editorConfig || {}).Detachable || {}).MaximumHeight, true);
+		Fit.Validation.ExpectNumber((((editorConfig || {}).Detachable || {}).MaximumHeight || {}).Value, true);
+		Fit.Validation.ExpectStringValue((((editorConfig || {}).Detachable || {}).MaximumHeight || {}).Unit, true);
 
 		if (editorConfig && editorConfig.Tags)
 		{
@@ -1367,6 +1412,26 @@ Fit.Controls.Input = function(ctlId)
 				if (Fit.Validation.IsSet(editorConfig) === true)
 				{
 					designEditorConfig = Fit.Core.Clone(editorConfig); // Clone to prevent external code from making changes later
+				}
+
+				// Notice: Identical logic found in Value(..)!
+				if (designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.RevokeExternalBlobUrlsOnDispose === true)
+				{
+					// Keep track of image blobs added via Value(..) so we can dispose of them automatically.
+					// When RevokeExternalBlobUrlsOnDispose is True it basically means that the Input control
+					// is allowed (and expected) to take control over memory management for these blobs
+					// based on the rule set in RevokeBlobUrlsOnDispose.
+					// This code is also found in Value(..) since images might be added after editor has been created.
+
+					var blobUrls = Fit.String.ParseImageBlobUrls(me.Value());
+
+					Fit.Array.ForEach(blobUrls, function(blobUrl)
+					{
+						if (Fit.Array.Contains(imageBlobUrls, blobUrl) === false)
+						{
+							Fit.Array.Add(imageBlobUrls, blobUrl);
+						}
+					});
 				}
 
 				if (me.MultiLine() === false)
@@ -1709,6 +1774,11 @@ Fit.Controls.Input = function(ctlId)
 
 				var focused = me.Focused();
 
+				if (focused === true) // Make sure focus is preserved when editor is destroyed
+				{
+					me.GetDomElement().focus();
+				}
+
 				if (Fit._internal.Controls.Input.ActiveEditorForDialog === me)
 				{
 					if (Fit._internal.Controls.Input.ActiveDialogForEditor !== null)
@@ -1759,30 +1829,24 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.Data("toolbar-sticky", null);
 
 				revertToSingleLineIfNecessary();
-
-				// Remove tabindex used to prevent control from losing focus when clicking toolbar buttons
-				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
-
 				if (focused === true)
 				{
-					if (Fit.Browser.GetBrowser() === "MSIE" && Fit.Browser.GetVersion() < 9 && me.MultiLine() === false)
-					{
-						// On IE8 input.focus() does not work if input field is switched to a single line control
-						// above (MultiLine(false)). Wrapping the code in setTimeout(..) solves the problem.
+					// On IE8 input.focus() does not work if input field is switched to a traditional input field,
+					// or if input field is hidden/invisible. It's just not reliable and not worth it. Remove focus
+					// from the control in IE8 when DesignMode is disabled and preserve focus in every other browser.
 
-						setTimeout(function()
-						{
-							if (me === null)
-								return; // Control was disposed
-
-							input.focus();
-						}, 0);
-					}
-					else
+					if (isIe8 === false)
 					{
 						input.focus();
 					}
+					else
+					{
+						me.GetDomElement().blur(); // Control container was given focus further up - this will fire OnBlur as expected
+					}
 				}
+
+				// Remove tabindex used to prevent control from losing focus when clicking toolbar buttons
+				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", null);
 
 				repaint();
 			}
@@ -1815,6 +1879,17 @@ Fit.Controls.Input = function(ctlId)
 		}
 
 		return debounceOnChangeTimeout;
+	}
+
+	// ============================================
+	// Protected
+	// ============================================
+
+	this._internal = (this._internal ? this._internal : {});
+
+	this._internal.DesignModeEnabledAndReady = function()
+	{
+		return designModeEnabledAndReady();
 	}
 
 	// ============================================
@@ -1879,8 +1954,8 @@ Fit.Controls.Input = function(ctlId)
 		}
 
 		var langSupport = ["da", "de", "en"];
-		var locale = Fit.Internationalization.Locale().length === 2 ? Fit.Internationalization.Locale() : Fit.Internationalization.Locale().substring(0, 2);
-		var lang = Fit.Array.Contains(langSupport, locale) === true ? locale : "en";
+		var localeCode = Fit.Internationalization.Locale().length === 2 ? Fit.Internationalization.Locale() : Fit.Internationalization.Locale().substring(0, 2);
+		var lang = Fit.Array.Contains(langSupport, localeCode) === true ? localeCode : "en";
 		var plugins = [];
 		var toolbar = [];
 		var mentions = [];
@@ -1894,7 +1969,7 @@ Fit.Controls.Input = function(ctlId)
 			Fit.Array.Add(plugins, "emoji");
 		}
 
-		if ((config.Plugins && config.Plugins.Images && config.Plugins.Images.Enabled === true) || (config.Toolbar && config.Toolbar.Images === true))
+		if (designModeEnableImagePlugin() === true)
 		{
 			if (config.Toolbar && config.Toolbar.Images === true)
 			{
@@ -1903,6 +1978,8 @@ Fit.Controls.Input = function(ctlId)
 
 			plugins = Fit.Array.Merge(plugins, ["base64imagepaste", "dragresize"]);
 		}
+
+		Fit.Array.Add(plugins, "custombuttons");
 
 		// Add toolbar buttons
 
@@ -1964,6 +2041,43 @@ Fit.Controls.Input = function(ctlId)
 					items: insert
 				});
 			}
+
+			var customButtons = [];
+			var customToolbarGroups = [];
+
+			if (config.Toolbar.Detach === true)
+			{
+				Fit.Array.Add(customButtons,
+				{
+					Label: locale.Detach,
+					Command: "Detach",
+					Icon: Fit.GetUrl() + "/Controls/Input/" + (window.devicePixelRatio === 2 ? "maximize-highres.png" : "maximize.png"),
+					Callback: function(args)
+					{
+						//console.log("Command " + args.Command.name + " executed", args);
+						openDetachedDesignEditor();
+					}
+				});
+
+				/*Fit.Array.Add(customButtons,
+				{
+					Label: "Testing 1-2-3",
+					Command: "TestButton",
+					Icon: "/files/images/Bird.png",
+					Callback: function(args)
+					{
+						alert("Hello world");
+					}
+				});*/
+
+				Fit.Array.Add(customToolbarGroups,
+				{
+					name: "DetachableEditor",
+					items: ["Detach"/*, "TestButton"*/]
+				});
+			}
+
+			toolbar = Fit.Array.Merge(toolbar, customToolbarGroups);
 		}
 
 		// Configure tags/mentions plugin
@@ -2237,6 +2351,7 @@ Fit.Controls.Input = function(ctlId)
 			resize_dir: resizable === Fit.Controls.InputResizing.Enabled ? "both" : resizable === Fit.Controls.InputResizing.Vertical ? "vertical" : resizable === Fit.Controls.InputResizing.Horizontal ? "horizontal" : "none", // Specific to resize plugin (horizontal | vertical | both - https://ckeditor.com/docs/ckeditor4/latest/features/resize.html)
 			toolbar: toolbar,
 			removeButtons: "", // Set to empty string to prevent CKEditor from removing buttons such as Underline
+			customButtons: customButtons,
 			mentions: mentions,
 			emoji_minChars: 9999, // Impossible requirement to number of search characters to "disable" emoji auto complete menu - we cannot make it work properly with light dismissable panels/callouts since we have no event available for registering the data-disable-light-dismiss="true" attribute, and it's not very useful in any case
 			on:
@@ -2335,17 +2450,21 @@ Fit.Controls.Input = function(ctlId)
 						if (Fit.Dom.GetComputedStyle(toolbarContainer, "position") === "sticky") // False on non-supported browsers as position:sticky is applied via the @supports CSS rule
 						{
 							var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement());
-							var toolbarPosition = me._internal.Data("toolbar-position"); // top | bottom
 
-							if (toolbarPosition === "top")
+							if (scrollParent !== null) // In case editor is hosted in a container with position:fixed with overflow:hidden, in which case Fit.Dom.GetScrollParent(..) returns null
 							{
-								var paddingOffset = Fit.Dom.GetComputedStyle(scrollParent, "padding-top"); // E.g. "28px"
-								toolbarContainer.style.top = paddingOffset !== "0px" ? "-" + paddingOffset : "";
-							}
-							else
-							{
-								var paddingOffset = Fit.Dom.GetComputedStyle(scrollParent, "padding-bottom"); // E.g. "28px"
-								toolbarContainer.style.bottom = paddingOffset !== "0px" ? "-" + paddingOffset : "";
+								var toolbarPosition = me._internal.Data("toolbar-position"); // top | bottom
+
+								if (toolbarPosition === "top")
+								{
+									var paddingOffset = Fit.Dom.GetComputedStyle(scrollParent, "padding-top"); // E.g. "28px"
+									toolbarContainer.style.top = paddingOffset !== "0px" ? "-" + paddingOffset : "";
+								}
+								else
+								{
+									var paddingOffset = Fit.Dom.GetComputedStyle(scrollParent, "padding-bottom"); // E.g. "28px"
+									toolbarContainer.style.bottom = paddingOffset !== "0px" ? "-" + paddingOffset : "";
+								}
 							}
 						}
 					}
@@ -2509,7 +2628,7 @@ Fit.Controls.Input = function(ctlId)
 						// place focus at the end of the editor as expected.
 						if (me.Focused() === true)
 						{
-							designEditor.focus();
+							designEditor.focus(); // Won't work on iOS as assigning focus must be the result of a direct user interaction, which this is not since it is postponed using setTimeout(..) and async. loading of the editor
 						}
 					}, 0);
 				},
@@ -2575,11 +2694,18 @@ Fit.Controls.Input = function(ctlId)
 
 					if (elm.tagName === "A" && Fit.Dom.Data(elm, "tag-id") !== null)
 					{
-						designEditorSuppressPaste = true;
-						setTimeout(function() // Postpone - otherwise we won't be able to temporarily disable some of the buttons (https://jsfiddle.net/ymv56znq/14/)
+						// Notice that selectionChange handler is invoked while editor is loading if control was given initial focus.
+						// But at this point the toolbar buttons are not yet available to be disabled, so disableDesignEditorButtons()
+						// won't work. However, as soon as the editor is done loading, focus is re-assigned to the editable area
+						// which will trigger selectionChange handler once again, at which point designModeEnabledAndReady() returns true.
+						if (designModeEnabledAndReady() === true)
 						{
-							disableDesignEditorButtons();
-						}, 0);
+							designEditorSuppressPaste = true;
+							setTimeout(function() // Postpone - otherwise we won't be able to temporarily disable some of the buttons (https://jsfiddle.net/ymv56znq/14/)
+							{
+								disableDesignEditorButtons();
+							}, 0);
+						}
 					}
 					else
 					{
@@ -2908,6 +3034,258 @@ Fit.Controls.Input = function(ctlId)
 		}
 	}
 
+	function openDetachedDesignEditor()
+	{
+		me._internal.FocusStateLocked(true);
+
+		var deConfig = null;
+
+		var updateDetachedConfiguration = function()
+		{
+			deConfig = Fit.Core.Clone(designEditorConfig || {});
+
+			// Configure detached editor like original, but with a few required changes.
+			// We need to make sure image blobs are handled properly, that detached editor
+			// cannot created another detached editor, that the toolbar is initially visible
+			// at the top of the dialog, and that auto grow is disabled.
+
+			if (designModeEnableImagePlugin() === true)
+			{
+				deConfig = Fit.Core.Merge(deConfig, // Override image plugin configuration
+				{
+					Plugins:
+					{
+						Images:
+						{
+							Enabled: true,
+							EmbedType: deConfig.Plugins && deConfig.Plugins.Images && deConfig.Plugins.Images.EmbedType,
+
+							// Image blobs added in detached editor must always be disposed if no longer referenced.
+							// Furthermore we make sure image blobs originating from main editor are never disposed.
+							// When detached editor is closed, images transfered from detached editor to main editor
+							// are added to the main editor's index over image blobs so that the main editor becomes
+							// responsible for the memory management of these.
+							// If detached editor is closed without transfering changes (canceled), all images found
+							// in the detached editor, which are not referenced in the main editor, are disposed.
+							// See OnClick handlers for OK and Cancel buttons.
+
+							RevokeBlobUrlsOnDispose: "UnreferencedOnly",	// Make dialog editor preserve newly added (and still referenced) image blobs when disposed
+							RevokeExternalBlobUrlsOnDispose: false			// Make dialog editor preserve images blobs initially added from main editor
+						}
+					}
+				});
+			}
+
+			deConfig.Toolbar = deConfig.Toolbar || {};
+			deConfig.Toolbar.Detach = false;
+			deConfig.Toolbar.Position = "Top";
+			deConfig.Toolbar.Sticky = false;
+			deConfig.Toolbar.HideInitially = false;
+
+			delete deConfig.AutoGrow;
+		};
+
+		updateDetachedConfiguration();
+
+		// Create dialog
+
+		var dia = new Fit.Controls.Dialog();
+		Fit.Dom.AddClass(dia.GetDomElement(), "FitUiControlInputDetached");
+
+		// Create editor
+
+		var de = new Fit.Controls.Input();
+
+		var setDetachedEditorSettings = function()
+		{
+			de.Width(100, "%");
+			de.Height(-1);
+			de.CheckSpelling(me.CheckSpelling());
+			de.DesignMode(true, deConfig);
+		};
+
+		setDetachedEditorSettings();
+		de.Value(me.Value());
+
+		// Make editor adjust to the dimensions of the dialog
+
+		// Adjust editor size to fit dialog using a timer.
+		// Alternatively expose an OnResize event on Fit.Controls.Dialog, use it in
+		// combination with window.onresize, and adjust editor when these events are triggered.
+		// However, the process of monitoring the dimensions using a timer is practically free,
+		// so even though the timer interupts browser events such as onmousemove, onscroll, etc.,
+		// it creates no lack at all.
+		var height = -1
+		var dimMonitorId = setInterval(function()
+		{
+			if (height === -1 && de._internal.DesignModeEnabledAndReady() === false)
+			{
+				return;
+			}
+
+			var newHeight = dia.GetDomElement().offsetHeight;
+
+			if (newHeight !== height)
+			{
+				height = newHeight
+				de.Height(Fit.Dom.GetInnerDimensions(dia.GetContentDomElement()).Height);
+			}
+		}, 250);
+
+		// Configure dialog
+
+		var setDialogSettings = function(update)
+		{
+			var detachConfig = deConfig.Detachable || {};
+			detachConfig = Fit.Core.Merge(detachConfig, // Apply default values - existing properties are preserved (Fit.Core.MergeOverwriteBehaviour.Never)
+			{
+				Title: "",
+				Maximizable: true,
+				Maximized: false,
+				Draggable: true,
+				Resizable: true,
+				Width: detachConfig.Width ? detachConfig.Width : { Value: 850, Unit: "px" },
+				MinimumWidth: detachConfig.MinimumWidth ? detachConfig.MinimumWidth : { Value: 20, Unit: "em" },
+				MaximumWidth: detachConfig.MaximumWidth ? detachConfig.MaximumWidth : { Value: 100, Unit: "%" },
+				Height: detachConfig.Height ? detachConfig.Height : { Value: 550, Unit: "px" },
+				MinimumHeight: detachConfig.MinimumHeight ? detachConfig.MinimumHeight : { Value: 12, Unit: "em" },
+				MaximumHeight: detachConfig.MaximumHeight ? detachConfig.MaximumHeight : { Value: 100, Unit: "%" }
+			}, Fit.Core.MergeOverwriteBehaviour.Never);
+
+			var updateDimensions = (!detachConfig.Resizable || update !== true);
+
+			dia.Title(detachConfig.Title);
+			dia.Modal(true);
+			dia.Draggable(detachConfig.Draggable);
+			dia.Resizable(detachConfig.Resizable);
+			dia.Maximizable(detachConfig.Maximizable);
+			dia.Maximized(detachConfig.Maximized);
+			updateDimensions === true && dia.Width(detachConfig.Width.Value, detachConfig.Width.Unit || "px");
+			updateDimensions === true && dia.Height(detachConfig.Height.Value, detachConfig.Height.Unit || "px");
+			dia.MinimumWidth(detachConfig.MinimumWidth.Value, detachConfig.MinimumWidth.Unit || "px");
+			dia.MinimumHeight(detachConfig.MinimumHeight.Value, detachConfig.MinimumHeight.Unit || "px");
+			dia.MaximumWidth(detachConfig.MaximumWidth.Value, detachConfig.MaximumWidth.Unit || "px");
+			dia.MaximumHeight(detachConfig.MaximumHeight.Value, detachConfig.MaximumHeight.Unit || "px");
+		};
+
+		setDialogSettings();
+
+		// Localization support
+
+		var localizeDetachedEditor = function()
+		{
+			// Editor itself is already localized, so we just need to
+			// localize the dialog. The locale variable will already have
+			// been updated by the OnLocaleChanged handler registered in init().
+
+			cmdOk.Title(locale.Ok);
+			cmdCancel.Title(locale.Cancel);
+		};
+		Fit.Internationalization.OnLocaleChanged(localizeDetachedEditor);
+
+		// Expose detached editor API
+
+		designEditorDetached =
+		{
+			GetValue: function()
+			{
+				return de.Value();
+			},
+
+			Reload: function()
+			{
+				// Update configuration
+				updateDetachedConfiguration();
+
+				// Update editor
+				setDetachedEditorSettings();
+
+				// Update dialog
+				setDialogSettings(true);
+
+				// Make dimension monitor ensure proper editor height (dialog height might have been changed)
+				height = -1;
+			},
+
+			Dispose: function()
+			{
+				clearInterval(dimMonitorId);
+				Fit.Internationalization.RemoveOnLocaleChanged(localizeDetachedEditor);
+				de.Dispose();
+				dia.Dispose(); // Will also dispose associated buttons
+				designEditorDetached = null;
+			}
+		};
+
+		var cmdOk = new Fit.Controls.Button();
+		cmdOk.Title(locale.Ok);
+		cmdOk.Icon("check");
+		cmdOk.Type(Fit.Controls.ButtonType.Success);
+		cmdOk.OnClick(function(sender)
+		{
+			var referencedBlobUrls = Fit.String.ParseImageBlobUrls(de.Value());
+			Fit.Array.ForEach(referencedBlobUrls, function(blobUrl)
+			{
+				if (Fit.Array.Contains(imageBlobUrls, blobUrl) === false)
+				{
+					Fit.Array.Add(imageBlobUrls, blobUrl);
+				}
+			});
+
+			me.Value(de.Value());
+
+			designEditorDetached.Dispose();
+
+			me.Focused(true);
+			me._internal.FocusStateLocked(false);
+		});
+		dia.AddButton(cmdOk);
+
+		var cmdCancel = new Fit.Controls.Button();
+		cmdCancel.Title(locale.Cancel);
+		cmdCancel.Icon("ban");
+		cmdCancel.Type(Fit.Controls.ButtonType.Danger);
+		cmdCancel.OnClick(function(sender)
+		{
+			var closeDialog = function()
+			{
+				var referencedBlobUrls = Fit.String.ParseImageBlobUrls(de.Value());
+				Fit.Array.ForEach(referencedBlobUrls, function(blobUrl)
+				{
+					if (Fit.Array.Contains(imageBlobUrls, blobUrl) === false) // Only remove images added in dialog editor
+					{
+						URL.revokeObjectURL(blobUrl);
+					}
+				});
+
+				designEditorDetached.Dispose();
+
+				me.Focused(true);
+				me._internal.FocusStateLocked(false);
+			};
+
+			if (de.IsDirty() === true)
+			{
+				Fit.Controls.Dialog.Confirm(locale.CancelConfirmTitle + "<br><br>" + locale.CancelConfirmDescription, function(res)
+				{
+					if (res === true)
+					{
+						closeDialog();
+					}
+				});
+			}
+			else
+			{
+				closeDialog();
+			}
+		});
+		dia.AddButton(cmdCancel);
+
+		dia.Open();
+		de.Render(dia.GetContentDomElement());
+		de.Focused(true);
+	}
+
 	function revertToSingleLineIfNecessary()
 	{
 		if (wasAutoChangedToMultiLineMode === true && me.Maximizable() === false && me.Resizable() === Fit.Controls.InputResizing.Disabled && me.DesignMode() === false)
@@ -2971,9 +3349,24 @@ Fit.Controls.Input = function(ctlId)
 		var height = me.Height();
 		var currentWasAutoChangedToMultiLineMode = wasAutoChangedToMultiLineMode; // DesignMode(false) will result in wasAutoChangedToMultiLineMode being set to false if DesignMode(true) changed the control to MultiLine mode
 
+		// Prevent detached editor from being closed when reloading, e.g. if CheckSpelling is changed.
+		// Editor will also be reloaded if a different editor configuration is passed to DesignMode(true, updatedConfig).
+		var detachedEditor = null;
+		if (designEditorDetached !== null)
+		{
+			detachedEditor = designEditorDetached;
+			designEditorDetached = null; // Prevent me.DesignMode(false), which in turn calls destroyDesignEditorInstance(), from closing detached editor dialog
+		}
+
 		me.DesignMode(false);
 		me.DesignMode(true, reloadConfig || designEditorReloadConfig || undefined); // Use reloadConfig if set (and if reload was not postponed) or use designEditorReloadConfig if reload was postponed with updated editor config
 		designEditorReloadConfig = null;
+
+		if (detachedEditor !== null)
+		{
+			designEditorDetached = detachedEditor;
+			designEditorDetached.Reload(); // Reload detached editor to reflect any changes made to configuration
+		}
 
 		me.Height(height.Value, height.Unit);
 		wasAutoChangedToMultiLineMode = currentWasAutoChangedToMultiLineMode;
@@ -2993,9 +3386,14 @@ Fit.Controls.Input = function(ctlId)
 
 		designEditor.destroy();
 
+		if (designEditorDetached !== null)
+		{
+			designEditorDetached.Dispose();
+		}
+
 		designEditor = null;
 		designEditorDom = null;
-		designEditorDirty = false;
+		//designEditorDirty = false; // Do NOT reset this! We need to preserve dirty state in case DesignMode is reloaded!
 		designEditorDirtyPending = false;
 		//designEditorConfig = null; // Do NOT nullify this! We need it, in case DesignMode is toggled!
 		//designEditorReloadConfig = null; // Do NOT nullify this! We need it, in case DesignMode is reloaded!
@@ -3005,6 +3403,7 @@ Fit.Controls.Input = function(ctlId)
 		designEditorMustReloadWhenReady = false;
 		designEditorMustDisposeWhenReady = false;
 		designEditorActiveToolbarPanel = null;
+		designEditorDetached = null;
 
 		if (designEditorUpdateSizeDebouncer !== -1)
 		{
@@ -3036,12 +3435,47 @@ Fit.Controls.Input = function(ctlId)
 		return designEditorDom !== null; // Editor is fully loaded when editor DOM is made available
 	}
 
+	function designModeEnableImagePlugin()
+	{
+		var config = designEditorConfig || {};
+		var enableImagePlugin = (config.Plugins && config.Plugins.Images && config.Plugins.Images.Enabled === true) || (config.Toolbar && config.Toolbar.Images === true) || false;
+
+		// Force enable image support if images are contained in value - otherwise editor will remove them
+		if (enableImagePlugin === false && designEditorDetached !== null && designEditorDetached.GetValue().indexOf("<img ") > -1)
+		{
+			enableImagePlugin = true;
+		}
+		if (enableImagePlugin === false && me.Value().indexOf("<img ") > -1)
+		{
+			enableImagePlugin = true;
+		}
+
+		return enableImagePlugin;
+	}
+
 	function localize()
 	{
+		locale = Fit.Internationalization.GetLocale(me);
+
 		if (me.DesignMode() === true)
 		{
+			// Prevent reloadEditor() from reloading detached editor.
+			// It will automatically reload when locale is changed.
+			// Without this guard the editor would reload twice.
+			var detachedEditor = null;
+			if (designEditorDetached !== null)
+			{
+				detachedEditor = designEditorDetached;
+				designEditorDetached = null; // Prevent reloadEditor() from reloading detached editor
+			}
+
 			// Re-create editor with new language
 			reloadEditor();
+
+			if (detachedEditor !== null)
+			{
+				designEditorDetached = detachedEditor;
+			}
 		}
 	}
 

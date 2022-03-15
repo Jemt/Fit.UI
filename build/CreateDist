@@ -12,10 +12,12 @@ if [ -d dist ] ; then
 fi
 
 mkdir dist
+mkdir -p dist/Controls/Input
 mkdir -p dist/Controls/TreeView
 
 cp Fit.UI*.js dist/
 cp Fit.UI*.css dist/
+cp ../Controls/Input/*.png dist/Controls/Input
 cp ../Controls/TreeView/*.png dist/Controls/TreeView
 cp -R ../Resources dist/
 cp SimpleDocs.html dist/Documentation.html

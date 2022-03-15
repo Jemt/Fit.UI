@@ -274,6 +274,28 @@ Fit.String.DecodeHtml = function(str)
 	return str.replace(/&quot;/g, "\"").replace(/&#39;/g, "'").replace(/&#039;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
 
+/// <function container="Fit.String" name="ParseImageBlobUrls" access="public" static="true" returns="string[]">
+/// 	<description> Parse and return image blob URLs from image tags </description>
+/// 	<param name="str" type="string"> String to parse </param>
+/// </function>
+Fit.String.ParseImageBlobUrls = function(str)
+{
+	var imageBlobUrls = [];
+	var blobImages = str.match(/<img .*?src=(["'])blob:.+?\1.*?>/gi) || [];
+
+	Fit.Array.ForEach(blobImages, function(img)
+	{
+		var blobUrl = img.match(/src=(["'])(blob:.*?)\1/i)[2]; // 0 = Full match, 1 = double quote or ping character, 2 = blob URL
+
+		if (Fit.Array.Contains(imageBlobUrls, blobUrl) === false)
+		{
+			Fit.Array.Add(imageBlobUrls, blobUrl);
+		}
+	});
+
+	return imageBlobUrls;
+}
+
 /// <function container="Fit.String" name="Hash" access="public" static="true" returns="integer">
 /// 	<description> Get Java compatible Hash Code from string </description>
 /// 	<param name="str" type="string"> String to get hash code from </param>
