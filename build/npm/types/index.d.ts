@@ -823,7 +823,7 @@ declare namespace Fit
 		*/
 		public static GetViewPortDimensions(includeScrollbars?:boolean):Fit.TypeDefs.Dimension;
 		/**
-		* Returns value indicating whether devices currently being used is a mobile device or not.
+		* Returns value indicating whether device is a mobile device or not.
 		* @function IsMobile
 		* @static
 		* @param {boolean} [includeTablets=true] - Value indicating whether tablets are considered mobile devices or not.
@@ -837,6 +837,13 @@ declare namespace Fit
 		* @returns boolean
 		*/
 		public static IsStorageSupported():boolean;
+		/**
+		* Returns value indicating whether device is touch enabled or not.
+		* @function IsTouchEnabled
+		* @static
+		* @returns boolean
+		*/
+		public static IsTouchEnabled():boolean;
 		/**
 		* Log message or object.
 		* @function Log
@@ -2356,41 +2363,16 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.Dialog
 			/**
-			* Display alert dialog.
-			* @function Alert
-			* @static
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @static
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @static
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
-			/**
 			* Add button to dialog.
 			* @function AddButton
 			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button.
 			*/
 			public AddButton(btn:Fit.Controls.Button):void;
+			/**
+			* Bring draggable dialog to front.
+			* @function BringToFront
+			*/
+			public BringToFront():void;
 			/**
 			* Close dialog.
 			* @function Close
@@ -2426,6 +2408,13 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public Dismissible(val?:boolean, disposeOnDismiss?:boolean):boolean;
+			/**
+			* Get/set flag indicating whether dialog can be moved around on screen.
+			* @function Draggable
+			* @param {boolean} [val=undefined] - If defined, a value of True enables dragging, False disables it (default).
+			* @returns boolean
+			*/
+			public Draggable(val?:boolean):boolean;
 			/**
 			* Get dialog content element.
 			* @function GetContentDomElement
@@ -2539,6 +2528,13 @@ declare namespace Fit
 			*/
 			public RemoveButton(btn:Fit.Controls.Button, dispose?:boolean):void;
 			/**
+			* Get/set flag indicating whether dialog can be resized by the user.
+			* @function Resizable
+			* @param {boolean} [val=undefined] - If defined, a value of True enables resizing, False disables it (default).
+			* @returns boolean
+			*/
+			public Resizable(val?:boolean):boolean;
+			/**
 			* Get/set title - returns null if not set, and null can be passed to remove title.
 			* @function Title
 			* @param {string | null} [val=undefined] - If specified, dialog title is updated with specified value.
@@ -2553,6 +2549,36 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Display alert dialog.
+			* @function Alert
+			* @static
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @static
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @static
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -4169,6 +4195,11 @@ declare namespace Fit
 				*/
 				AutoGrow?:Fit.Controls.InputTypeDefs.DesignModeAutoGrow;
 				/**
+				* Detachable configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeDetachable} [Detachable=undefined]
+				*/
+				Detachable?:Fit.Controls.InputTypeDefs.DesignModeDetachable;
+				/**
 				* Information panel configuration.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel} [InfoPanel=undefined]
 				*/
@@ -4233,7 +4264,7 @@ declare namespace Fit
 			{
 				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig
 				/**
-				* How to store and embed images. Base64 is persistent while blob (default) is temporary
+				* How to store and embed images. Base64 (default) is persistent while blob is temporary
 				and must be extracted from memory and uploaded/stored to be permanantly persisted.
 				References to blobs can be parsed from the HTML value produced by the editor.
 				* @member {'base64' | 'blob'} [EmbedType=undefined]
@@ -4351,6 +4382,11 @@ declare namespace Fit
 			{
 				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigToolbar
 				/**
+				* Enable detach button (defaults to false).
+				* @member {boolean} [Detach=undefined]
+				*/
+				Detach?:boolean;
+				/**
 				* Enable emoji button (defaults to False).
 				* @member {boolean} [Emojis=undefined]
 				*/
@@ -4395,6 +4431,64 @@ declare namespace Fit
 				* @member {boolean} [Sticky=undefined]
 				*/
 				Sticky?:boolean;
+			}
+			/**
+			* Detachable configuration.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeDetachable DesignModeDetachable]
+			*/
+			class DesignModeDetachable
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeDetachable
+				/**
+				* Flag indicating whether dialog is draggable.
+				* @member {boolean} [Draggable=undefined]
+				*/
+				Draggable?:boolean;
+				/**
+				* Dialog height.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Height=undefined]
+				*/
+				Height?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Flag indicating whether dialog is maximizable.
+				* @member {boolean} [Maximizable=undefined]
+				*/
+				Maximizable?:boolean;
+				/**
+				* Flag indicating whether dialog is initially maximized.
+				* @member {boolean} [Maximized=undefined]
+				*/
+				Maximized?:boolean;
+				/**
+				* Maximum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum Width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumWidth=undefined]
+				*/
+				MaximumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumWidth=undefined]
+				*/
+				MinimumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Dialog title.
+				* @member {string} [Title=undefined]
+				*/
+				Title?:string;
+				/**
+				* Dialog width.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Width=undefined]
+				*/
+				Width?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
 			}
 			/**
 			* Request handler event arguments.
@@ -5256,10 +5350,10 @@ declare namespace Fit
 			/**
 			* Get/set number of log entries preserved.
 			* @function MaxEntries
-			* @param {boolean} [val=undefined] - If defined, changes number of log entries preserved.
+			* @param {number} [val=undefined] - If defined, changes number of log entries preserved.
 			* @returns number
 			*/
-			public MaxEntries(val?:boolean):number;
+			public MaxEntries(val?:number):number;
 			/**
 			* Create instance of SoftLog control.
 			* @function SoftLog
@@ -8826,6 +8920,74 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Cookies
 		/**
+		* Create instance of cookie container isolated to either current path (default)
+		or a custom path, and optionally an alternative part of the domain (by default
+		cookies are available only on the current domain, while defining a domain makes
+		cookies available to that particular domain and subdomains).
+		* @function Cookies
+		*/
+		constructor();
+		/**
+		* Get/set portion of domain to which cookies are isolated.
+		* @function Domain
+		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
+		Null to unset it to make cookies available to current domain only (excluding subdomains).
+		* @returns string | null
+		*/
+		public Domain(val?:string | null):string | null;
+		/**
+		* Returns cookie value if found, otherwise Null.
+		* @function Get
+		* @param {string} name - Unique cookie name.
+		* @returns string | null
+		*/
+		public Get(name:string):string | null;
+		/**
+		* Get/set path to which cookies are isolated.
+		* @function Path
+		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
+		* @returns string
+		*/
+		public Path(val?:string):string;
+		/**
+		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
+		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
+		is completely transparent.
+		* @function Prefix
+		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
+		* @returns string | null
+		*/
+		public Prefix(val?:string):string | null;
+		/**
+		* Remove cookie.
+		* @function Remove
+		* @param {string} name - Unique cookie name.
+		*/
+		public Remove(name:string):void;
+		/**
+		* Get/set SameSite policy.
+		* @function SameSite
+		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
+		* @returns string | null
+		*/
+		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
+		/**
+		* Get/set Secure flag.
+		* @function Secure
+		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
+		* @returns boolean
+		*/
+		public Secure(val?:boolean):boolean;
+		/**
+		* Create or update cookie.
+		* @function Set
+		* @param {string} name - Unique cookie name.
+		* @param {string} value - Cookie value (cannot contain semicolon!).
+		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
+		no expiration time will cause it to expire when session ends.
+		*/
+		public Set(name:string, value:string, seconds?:number):void;
+		/**
 		* Returns cookie value if found, otherwise Null.
 		* @function Get
 		* @static
@@ -8895,74 +9057,6 @@ declare namespace Fit
 		* @param {Fit.CookiesDefs.Cookie} newCookie - New or updated cookie.
 		*/
 		public static Set(newCookie:Fit.CookiesDefs.Cookie):void;
-		/**
-		* Create instance of cookie container isolated to either current path (default)
-		or a custom path, and optionally an alternative part of the domain (by default
-		cookies are available only on the current domain, while defining a domain makes
-		cookies available to that particular domain and subdomains).
-		* @function Cookies
-		*/
-		constructor();
-		/**
-		* Get/set portion of domain to which cookies are isolated.
-		* @function Domain
-		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
-		Null to unset it to make cookies available to current domain only (excluding subdomains).
-		* @returns string | null
-		*/
-		public Domain(val?:string | null):string | null;
-		/**
-		* Returns cookie value if found, otherwise Null.
-		* @function Get
-		* @param {string} name - Unique cookie name.
-		* @returns string | null
-		*/
-		public Get(name:string):string | null;
-		/**
-		* Get/set path to which cookies are isolated.
-		* @function Path
-		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
-		* @returns string
-		*/
-		public Path(val?:string):string;
-		/**
-		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
-		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
-		is completely transparent.
-		* @function Prefix
-		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
-		* @returns string | null
-		*/
-		public Prefix(val?:string):string | null;
-		/**
-		* Remove cookie.
-		* @function Remove
-		* @param {string} name - Unique cookie name.
-		*/
-		public Remove(name:string):void;
-		/**
-		* Get/set SameSite policy.
-		* @function SameSite
-		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
-		* @returns string | null
-		*/
-		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
-		/**
-		* Get/set Secure flag.
-		* @function Secure
-		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
-		* @returns boolean
-		*/
-		public Secure(val?:boolean):boolean;
-		/**
-		* Create or update cookie.
-		* @function Set
-		* @param {string} name - Unique cookie name.
-		* @param {string} value - Cookie value (cannot contain semicolon!).
-		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
-		no expiration time will cause it to expire when session ends.
-		*/
-		public Set(name:string, value:string, seconds?:number):void;
 	}
 	/**
 	* Core features extending the capabilities of native JS.
@@ -10418,6 +10512,14 @@ declare namespace Fit
 		*/
 		public static Hash(str:string):number;
 		/**
+		* Parse and return image blob URLs from image tags.
+		* @function ParseImageBlobUrls
+		* @static
+		* @param {string} str - String to parse.
+		* @returns string[]
+		*/
+		public static ParseImageBlobUrls(str:string):string[];
+		/**
 		* Removes any HTML contained in string, and returns the raw text value.
 		* @function StripHtml
 		* @static
@@ -10995,6 +11097,11 @@ declare namespace Fit
 			*/
 			IsTablet:boolean;
 			/**
+			* Boolean indicating whether this is a touch enabled device.
+			* @member {boolean} IsTouchEnabled
+			*/
+			IsTouchEnabled:boolean;
+			/**
 			* Browser language, e.g. en, da, de, etc.
 			* @member {string} Language
 			*/
@@ -11027,6 +11134,11 @@ declare namespace Fit
 			* @member {boolean} IsTablet
 			*/
 			IsTablet:boolean;
+			/**
+			* Boolean indicating whether this is a touch enabled device.
+			* @member {boolean} IsTouchEnabled
+			*/
+			IsTouchEnabled:boolean;
 			/**
 			* Browser language, e.g. en, da, de, etc.
 			* @member {string} Language
@@ -11066,6 +11178,11 @@ declare namespace Fit
 			* @member {boolean} IsTablet
 			*/
 			IsTablet:boolean;
+			/**
+			* Boolean indicating whether this is a touch enabled device.
+			* @member {boolean} IsTouchEnabled
+			*/
+			IsTouchEnabled:boolean;
 			/**
 			* Browser language, e.g. en, da, de, etc.
 			* @member {string} Language
@@ -11364,6 +11481,18 @@ declare namespace Fit
 		class Draggable
 		{
 			// Functions defined by Fit.DragDrop.Draggable
+			/**
+			* Bring draggable to front.
+			* @function BringToFront
+			*/
+			public BringToFront():void;
+			/**
+			* Get/set flag indicating whether to bring draggable to front when activated.
+			* @function BringToFrontOnActivation
+			* @param {boolean} [val=undefined] - If defined, a value of True enables functionality, False disables it (default).
+			* @returns boolean
+			*/
+			public BringToFrontOnActivation(val?:boolean):boolean;
 			/**
 			* Free resources and disable dragging support for DOM element.
 			* @function Dispose
