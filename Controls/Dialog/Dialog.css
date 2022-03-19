@@ -177,3 +177,17 @@ div.FitUiControlDialogBase
 {
 	z-index: 50000; /* Remain on top of draggable dialogs with z-index 10000+ */
 }
+
+/* Fluent UI compatibility */
+
+html[data-fitui-companion="fluent-ui"] div.FitUiControlDialog,
+html[data-fitui-companion="fluent-ui"] div.FitUiControlDialogModalLayer
+{
+	z-index: 2001200;
+}
+
+html[data-fitui-companion="fluent-ui"] div.FitUiControlDialogBaseModalLayer,
+html[data-fitui-companion="fluent-ui"] div.FitUiControlDialogBase
+{
+	z-index: 2050000; /* Remain on top of draggable dialogs with z-index 2010000+ */
+}

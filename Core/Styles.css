@@ -4,19 +4,19 @@ Stacking context, Z-index:
 
  - Error indicator			: 500
  - Drop down				: 1000
- - Dialog					: 1200
-	- Modal BG layer		: 1200
+ - Dialog					: 1200 - changed to 2001200 in Dialog.css if html[data-fitui-companion="fluent-ui"]
+	- Modal BG layer		: 1200 - changed to 2001200 in Dialog.css if html[data-fitui-companion="fluent-ui"]
  - Context menu				: 1300 (mounted in <body>)
  - Calendar					: 1300 (mounted in <body>, might be re-mounted next to control) - changed to 2000000 in DatePicker.css if html[data-fitui-companion="fluent-ui"]
- - Dragging					: 10000 (incremented by 1 every time draggable is being dragged)
+ - Dragging					: 10000 (incremented by 1 every time draggable is being dragged) - changed to start from 2010000 in DragDrop.js if html[data-fitui-companion="fluent-ui"]
  - CKEditor
     - Tags context menu		: 9997 (mounted in <body>, might be re-mounted next to control) - changed to 2000000 in Input.css if html[data-fitui-companion="fluent-ui"]
 	- Image resize handlers	: 9999 (mounted in <body>) - changed to 2000000 in Input.css if html[data-fitui-companion="fluent-ui"]
 	- Emoji panel			: 10001 (mounted in <body>) - changed to 2000000 in Input.css if html[data-fitui-companion="fluent-ui"]
     - Dialogs				: 10010 (mounted in <body>, might be re-mounted next to control) - changed to 2000020 in Input.css (+10 compared to modal BG layer) if html[data-fitui-companion="fluent-ui"]
 	   - Modal BG layer		: 10000 (mounted in <body>) - changed to 2000010 in Input.css (+10 compared to image resize handlers) if html[data-fitui-companion="fluent-ui"]
- - Alert, Confirm, Prompt	: 50000 (must stay on top of draggable dialogs with z-index 10000+)
-    - Modal BG layer		: 50000
+ - Alert, Confirm, Prompt	: 50000 (must stay on top of draggable dialogs with z-index 10000+) - changed to 2050000 in Dialog.css if html[data-fitui-companion="fluent-ui"]
+    - Modal BG layer		: 50000 - changed to 2050000 in Dialog.css if html[data-fitui-companion="fluent-ui"]
 */
 
 .FitUiStyleCheck

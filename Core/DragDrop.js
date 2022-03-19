@@ -385,8 +385,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 	/// </function>
 	this.BringToFront = function()
 	{
-		Fit.DragDrop.Draggable._internal.zIndex++;
-		elm.style.zIndex = Fit.DragDrop.Draggable._internal.zIndex;
+		elm.style.zIndex = Fit.DragDrop.Draggable._internal.getNextZindex();
 	}
 
 	/// <function container="Fit.DragDrop.Draggable" name="Reset" access="public">
@@ -489,7 +488,12 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 Fit.DragDrop.Draggable._internal =
 {
 	/* Shared */
-	zIndex : 10000,
+	_zIndex : 10000,
+	getNextZindex: function()
+	{
+		Fit.DragDrop.Draggable._internal._zIndex++;
+		return Fit.DragDrop.Draggable._internal._zIndex + (Fit.Dom.Data(document.documentElement, "fitui-companion") === "fluent-ui" ? 2000000 : 0);
+	},
 	mouseUpRegistered : false,
 	mouseMoveRegistered : false,
 
