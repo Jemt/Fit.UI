@@ -565,6 +565,7 @@ Fit.Controls.Dialog = function(controlId)
 			{
 				cmdMaximize = new Fit.Controls.Button();
 				cmdMaximize.Icon((me.Maximized() === false ? "expand" : "compress"));
+				cmdMaximize.ReturnFocus(true);
 				cmdMaximize.OnClick(function(sender)
 				{
 					if (me.Maximized() === false)
@@ -669,7 +670,8 @@ Fit.Controls.Dialog = function(controlId)
 
 				draggable = new Fit.DragDrop.Draggable(me.GetDomElement(), titleText);
 				draggable.BringToFrontOnActivation(true);
-				draggable.OnDragStart(function()
+				draggable.ReturnFocus(true);
+				draggable.OnDragStart(function(elm)
 				{
 					if (me.Maximized() === true)
 					{
@@ -941,7 +943,7 @@ Fit.Controls.Dialog = function(controlId)
 
 	this.Render = function(toElement) // Override Render() on Fit.Controls.Component
 	{
-		Fit.Validation.ThrowError("Use Open function to open Dialog");
+		me.Open(toElement);
 	}
 
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
@@ -1094,6 +1096,7 @@ Fit.Controls.Dialog = function(controlId)
 
 			var ev = Fit.Events.GetEvent(e);
 
+			var focusedBeforeResize = Fit.Dom.GetFocused();
 			var initPos = Fit.Events.GetPointerState().Coordinates.ViewPort;
 			var initDim = { Width: me.GetDomElement().offsetWidth, Height: me.GetDomElement().offsetHeight };
 
@@ -1110,6 +1113,8 @@ Fit.Controls.Dialog = function(controlId)
 				{
 					Fit.Events.RemoveHandler(document, cancelHandler);
 				}
+
+				focusedBeforeResize.focus();
 			};
 
 			moveHandler = Fit.Events.AddHandler(document, (Fit.Browser.IsTouchEnabled() === true ? "touchmove" : "mousemove"), { passive: false /* https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener */ }, function(e)

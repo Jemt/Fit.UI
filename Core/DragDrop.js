@@ -19,6 +19,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 	var posState = null; // { position: "", left: "", top: "" };
 	var trgElm = (domTriggerElm ? domTriggerElm : null);
 	var bringToFrontOnActivation = false;
+	var returnFocus = false;
 
 	var onDragStart = null;
 	var onDragging = null;
@@ -48,6 +49,8 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 
 		// Mouse down
 
+		var focusedBeforeDrag = null;
+
 		mouseDownEventId = Fit.Events.AddHandler(((trgElm !== null) ? trgElm : elm), (Fit.Browser.IsTouchEnabled() === true ? "touchstart" : "mousedown"), function(e)
 		{
 			if (Fit.DragDrop.Draggable._internal.active !== null)
@@ -62,6 +65,8 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 					return;
 				}
 			}
+
+			focusedBeforeDrag = returnFocus === true ? Fit.Dom.GetFocused() : null;
 
 			Fit.Dom.AddClass(elm, "FitDragDropDragging");
 
@@ -200,6 +205,14 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 						dropzoneState.OnDrop(dropzone, draggable);
 				}
 
+				// Restore focus
+
+				if (focusedBeforeDrag !== null)
+				{
+					focusedBeforeDrag.focus();
+					focusedBeforeDrag = null;
+				}
+
 				// Fire OnDragStop after OnDrop to make sure OnDragStop can act
 				// depending on whether draggable was dropped on a dropzone or not.
 
@@ -210,6 +223,11 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 				//document.onselectstart = draggableState.OnSelectStart;
 			});
 		}
+
+		Fit.Browser.IsTouchEnabled() === true && Fit.Events.AddHandler(document, "touchcancel", function(e)
+		{
+			focusedBeforeDrag = null;
+		});
 
 		// Mouse move
 
@@ -380,6 +398,25 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 		return bringToFrontOnActivation;
 	}
 
+	/// <function container="Fit.DragDrop.Draggable" name="ReturnFocus" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether focus is returned/restored after drag operation </description>
+	/// 	<param name="val" type="boolean" default="undefined">
+	/// 		A value of True causes draggable to return focus to previously
+	/// 		focused element when drag operation is completed - defaults to False
+	/// 	</param>
+	/// </function>
+	this.ReturnFocus = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			returnFocus = val;
+		}
+
+		return returnFocus;
+	}
+
 	/// <function container="Fit.DragDrop.Draggable" name="BringToFront" access="public">
 	/// 	<description> Bring draggable to front </description>
 	/// </function>
@@ -437,7 +474,7 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 			Fit.DragDrop.Draggable._internal.active = null;
 		}
 
-		me = elm = posState = trgElm = bringToFrontOnActivation = onDragStart = onDragging = onDragStop = activationEventId = mouseDownEventId = null;
+		me = elm = posState = trgElm = bringToFrontOnActivation = returnFocus = onDragStart = onDragging = onDragStop = activationEventId = mouseDownEventId = null;
 	}
 
 	// Event handling

@@ -23,14 +23,37 @@ Fit.Controls.Button = function(controlId)
 	var label = null;
 	var width = { Value: -1, Unit: "px" };	// Initial width - a value of -1 indicates that size adjusts to content
 	var height = { Value: -1, Unit: "px" };	// Initial height - a value of -1 indicates that size adjusts to content
+	var returnFocus = false;
 	var onClickHandlers = [];
 
 	function init()
 	{
-		Fit.Events.AddHandler(element, "click", function(e)
+		var invokeClick = true;
+		var focusedBeforeClick = null;
+
+		Fit.Events.AddHandler(element, Fit.Browser.IsTouchEnabled() === true ? "touchstart" : "mousedown", function(e)
 		{
-			if (me.Enabled() === true)
+			invokeClick = true;
+			focusedBeforeClick = returnFocus === true ? Fit.Dom.GetFocused() : null;
+		});
+		Fit.Browser.IsTouchEnabled() === true && Fit.Events.AddHandler(element, "touchmove", function(e)
+		{
+			invokeClick = false;
+		});
+		Fit.Events.AddHandler(element, Fit.Browser.IsTouchEnabled() === true ? "touchend" : "click", function(e)
+		{
+			if (invokeClick === true && me.Enabled() === true)
 				me.Click();
+
+			if (focusedBeforeClick !== null)
+			{
+				focusedBeforeClick.focus();
+				focusedBeforeClick = null;
+			}
+		});
+		Fit.Browser.IsTouchEnabled() === true && Fit.Events.AddHandler(element, "touchcancel", function(e)
+		{
+			focusedBeforeClick = null;
 		});
 		Fit.Events.AddHandler(element, "keydown", function(e)
 		{
@@ -231,6 +254,24 @@ Fit.Controls.Button = function(controlId)
 		return height;
 	}
 
+	/// <function container="Fit.Controls.Button" name="ReturnFocus" access="public" returns="boolean">
+	/// 	<description> Get/set flag indicating whether button returns focus after click </description>
+	/// 	<param name="val" type="boolean" default="undefined">
+	/// 		A value of True causes button to return focus to previously focused element after click - defaults to False
+	/// 	</param>
+	/// </function>
+	this.ReturnFocus = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			returnFocus = val;
+		}
+
+		return returnFocus;
+	}
+
 	/// <function container="Fit.Controls.ButtonTypeDefs" name="ClickEventHandler">
 	/// 	<description> OnClick event handler </description>
 	/// 	<param name="sender" type="Fit.Controls.Button"> Instance of Button </param>
@@ -261,7 +302,7 @@ Fit.Controls.Button = function(controlId)
 
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
-		me = id = element = wrapper = icon = label = width = height = onClickHandlers = null;
+		me = id = element = wrapper = icon = label = width = height = returnFocus = onClickHandlers = null;
 		base();
 	});
 
