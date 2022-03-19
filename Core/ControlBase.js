@@ -1244,12 +1244,6 @@ Fit.Controls.ControlBase = function(controlId)
 		// focused state, and let the specialized control handle invocation of focus events when needed, and hand
 		// back control to ControlBase when the modal dialog closes.
 
-		// Notice regarding Focused(): One could argue that Focused() should return True if focus state is locked,
-		// if control was focused when lock was enabled, and if OnBlur has not been fired. But that means that two
-		// controls could return True from Focused() which is just wrong, and the Focused() state would contradict
-		// what is returned from Fit.Dom.GetFocused() or document.activeElement, which could potentially lead to
-		// incorrect behaviour. So Focused() must give us the truth, even when focus state is locked.
-
 		if (Fit.Validation.IsSet(value) === true)
 		{
 			if (value !== focusStateLocked)
@@ -1257,7 +1251,10 @@ Fit.Controls.ControlBase = function(controlId)
 				focusStateLocked = value;
 
 				// Make sure ControlBase can handle focus in/out properly when focus state is unlocked again
-				hasFocus = Fit.Dom.Contained(me.GetDomElement(), Fit.Dom.GetFocused()) === true;
+
+				var meElement = me.GetDomElement();
+				var focusElement = Fit.Dom.GetFocused();
+				hasFocus = meElement === focusElement || Fit.Dom.Contained(meElement, focusElement) === true;
 			}
 		}
 
