@@ -628,7 +628,7 @@ Fit.Events.GetModifierKeys = function()
 
 /// <container name="Fit.EventTypeDefs.PointerState">
 /// 	<description> Pointer state </description>
-/// 	<member name="Buttons" type="{ Primary: boolean, Secondary: boolean }"> Pointer buttons currently activated </member>
+/// 	<member name="Buttons" type="{ Primary: boolean, Secondary: boolean, Touch: boolean, Target: DOMElement | null }"> Pointer buttons currently activated </member>
 /// 	<member name="Coordinates" type="{ ViewPort: Fit.TypeDefs.Position, Document: Fit.TypeDefs.Position }"> Pointer position within viewport and document, which might have been scrolled </member>
 /// </container>
 
