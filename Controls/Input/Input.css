@@ -402,27 +402,27 @@ div.FitUiControlDialog.FitUiControlInputDetached .cke_wysiwyg_div
 /* Image resize handlers */
 html[data-fitui-companion="fluent-ui"] #ckimgrsz
 {
-	z-index: 2000000;
+	z-index: 2050000;
 }
 
 /* Tags/mentions/autocomplete context menu */
 html[data-fitui-companion="fluent-ui"] .cke_autocomplete_panel
 {
-	z-index: 2000000 !important; /* Using !important to override inline style */
+	z-index: 2050000 !important; /* Using !important to override inline style */
 }
 
 /* Panels such as the toolbar's emoji panel/callout  */
 html[data-fitui-companion="fluent-ui"] .cke_panel
 {
-	z-index: 2000000 !important; /* Using !important to override inline style */
+	z-index: 2050000 !important; /* Using !important to override inline style */
 }
 
 /* Dialogs (e.g. link and image dialogs) */
 html[data-fitui-companion="fluent-ui"] .cke_dialog_background_cover
 {
-	z-index: 2000010 !important; /* Using !important to override inline style */
+	z-index: 2050010 !important; /* Using !important to override inline style */
 }
 html[data-fitui-companion="fluent-ui"] .cke_dialog_container
 {
-	z-index: 2000020 !important; /* Using !important to override inline style */
+	z-index: 2050020 !important; /* Using !important to override inline style */
 }
