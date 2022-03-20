@@ -1027,6 +1027,13 @@ declare namespace Fit
 			*/
 			public OnClick(cb:Fit.Controls.ButtonTypeDefs.ClickEventHandler):void;
 			/**
+			* Get/set flag indicating whether button returns focus after click.
+			* @function ReturnFocus
+			* @param {boolean} [val=undefined] - A value of True causes button to return focus to previously focused element after click - defaults to False.
+			* @returns boolean
+			*/
+			public ReturnFocus(val?:boolean):boolean;
+			/**
 			* Get/set button title.
 			* @function Title
 			* @param {string} [val=undefined] - If specified, button title will be set to specified value.
@@ -2363,6 +2370,36 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.Dialog
 			/**
+			* Display alert dialog.
+			* @function Alert
+			* @static
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @static
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @static
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
+			/**
 			* Add button to dialog.
 			* @function AddButton
 			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button.
@@ -2549,36 +2586,6 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
-			/**
-			* Display alert dialog.
-			* @function Alert
-			* @static
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @static
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @static
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -3803,6 +3810,22 @@ declare namespace Fit
 			*/
 			public CheckSpelling(val?:boolean):boolean;
 			/**
+			* Get/set value indicating whether control should have spell checking enabled (default) or disabled.
+			* @function CheckSpelling
+			* @param {boolean} [val=undefined] - If defined, true enables spell checking while false disables it.
+			* @returns boolean
+			*/
+			public CheckSpelling(val?:boolean):boolean;
+			/**
+			* Get/set number of milliseconds used to postpone onchange event.
+			Every new keystroke/change resets the timer. Debouncing can
+			improve performance when working with large amounts of data.
+			* @function DebounceOnChange
+			* @param {number} timeout - If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing.
+			* @returns number
+			*/
+			public DebounceOnChange(timeout:number):number;
+			/**
 			* Get/set number of milliseconds used to postpone onchange event.
 			Every new keystroke/change resets the timer. Debouncing can
 			improve performance when working with large amounts of data.
@@ -3821,11 +3844,37 @@ declare namespace Fit
 			*/
 			public DesignMode(val?:boolean, editorConfig?:Fit.Controls.InputTypeDefs.DesignModeConfig):boolean;
 			/**
+			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
+			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
+			* @function DesignMode
+			* @param {boolean} [val=undefined] - If defined, True enables Design Mode, False disables it.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeConfig} [editorConfig=undefined] - If provided and DesignMode is enabled, configuration is applied when editor is created.
+			* @returns boolean
+			*/
+			public DesignMode(val?:boolean, editorConfig?:Fit.Controls.InputTypeDefs.DesignModeConfig):boolean;
+			/**
 			* Create instance of Input control.
 			* @function Input
 			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
 			*/
 			constructor(ctlId?:string);
+			/**
+			* Create instance of Input control.
+			* @function Input
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
+			/**
+			* Get/set value indicating whether control is maximizable.
+			Making control maximizable will disable Resizable.
+			* @function Maximizable
+			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it.
+			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
+			The value is considered the same unit set using Height(..) which defaults to px.
+			If not set, the value assumes twice the height set using Height(..).
+			* @returns boolean
+			*/
+			public Maximizable(val?:boolean, heightMax?:number):boolean;
 			/**
 			* Get/set value indicating whether control is maximizable.
 			Making control maximizable will disable Resizable.
@@ -3845,6 +3894,20 @@ declare namespace Fit
 			*/
 			public Maximized(val?:boolean):boolean;
 			/**
+			* Get/set value indicating whether control is maximized.
+			* @function Maximized
+			* @param {boolean} [val=undefined] - If defined, True maximizes control, False minimizes it.
+			* @returns boolean
+			*/
+			public Maximized(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Multi Line mode (textarea).
+			* @function MultiLine
+			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it.
+			* @returns boolean
+			*/
+			public MultiLine(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether control is in Multi Line mode (textarea).
 			* @function MultiLine
 			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it.
@@ -3859,20 +3922,457 @@ declare namespace Fit
 			*/
 			public Placeholder(val?:string):string;
 			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers.
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder.
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
+			/**
 			* Get/set value indicating whether control is resizable on supported
 			(modern) browsers. Making control resizable will disable Maximizable.
 			* @function Resizable
-			* @param {Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical"} [val=undefined] - If defined, determines whether control resizes, and in what direction(s).
-			* @returns Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical"
+			* @param {Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"} [val=undefined] - If defined, determines whether control resizes, and in what direction(s).
+			* @returns Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"
 			*/
-			public Resizable(val?:Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical"):Fit.Controls.InputResizing | "Disabled" | "Enabled" | "Horizontal" | "Vertical";
+			public Resizable(val?:Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"):Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical";
+			/**
+			* Get/set value indicating whether control is resizable on supported
+			(modern) browsers. Making control resizable will disable Maximizable.
+			* @function Resizable
+			* @param {Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"} [val=undefined] - If defined, determines whether control resizes, and in what direction(s).
+			* @returns Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"
+			*/
+			public Resizable(val?:Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"):Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical";
 			/**
 			* Get/set input type (e.g. Text, Password, Email, etc.).
 			* @function Type
-			* @param {Fit.Controls.InputType | "Color" | "Date" | "DateTime" | "Email" | "Month" | "Number" | "Password" | "PhoneNumber" | "Text" | "Textarea" | "Time" | "Week"} [val=undefined] - If defined, input type is changed to specified value.
-			* @returns Fit.Controls.InputType | "Color" | "Date" | "DateTime" | "Email" | "Month" | "Number" | "Password" | "PhoneNumber" | "Text" | "Textarea" | "Time" | "Week"
+			* @param {Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"} [val=undefined] - If defined, input type is changed to specified value.
+			* @returns Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"
 			*/
-			public Type(val?:Fit.Controls.InputType | "Color" | "Date" | "DateTime" | "Email" | "Month" | "Number" | "Password" | "PhoneNumber" | "Text" | "Textarea" | "Time" | "Week"):Fit.Controls.InputType | "Color" | "Date" | "DateTime" | "Email" | "Month" | "Number" | "Password" | "PhoneNumber" | "Text" | "Textarea" | "Time" | "Week";
+			public Type(val?:Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"):Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week";
+			/**
+			* Get/set input type (e.g. Text, Password, Email, etc.).
+			* @function Type
+			* @param {Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"} [val=undefined] - If defined, input type is changed to specified value.
+			* @returns Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"
+			*/
+			public Type(val?:Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"):Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week";
+			// Functions defined by Fit.Controls.ControlBase
+			/**
+			* Add CSS class to DOMElement representing control.
+			* @function AddCssClass
+			* @param {string} val - CSS class to add.
+			*/
+			public AddCssClass(val:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control.
+			* @function AddValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Function receiving an instance of the control.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function.
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against.
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails.
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
+			/**
+			* Get/set value indicating whether control is always considered dirty. This
+			comes in handy when programmatically changing a value of a control on behalf
+			of the user. Some applications may choose to only save values from dirty controls.
+			* @function AlwaysDirty
+			* @param {boolean} [val=undefined] - If defined, Always Dirty is enabled/disabled.
+			* @returns boolean
+			*/
+			public AlwaysDirty(val?:boolean):boolean;
+			/**
+			* Set flag indicating whether control should post back changes automatically when value is changed.
+			* @function AutoPostBack
+			* @param {boolean} [val=undefined] - If defined, True enables auto post back, False disables it.
+			* @returns boolean
+			*/
+			public AutoPostBack(val?:boolean):boolean;
+			/**
+			* Clear control value.
+			* @function Clear
+			*/
+			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
+			* @function Focused
+			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
+			* @returns boolean
+			*/
+			public Focused(value?:boolean):boolean;
+			/**
+			* Check whether CSS class is found on DOMElement representing control.
+			* @function HasCssClass
+			* @param {string} val - CSS class to check for.
+			* @returns boolean
+			*/
+			public HasCssClass(val:string):boolean;
+			/**
+			* Get/set control height - returns object with Value and Unit properties.
+			* @function Height
+			* @param {number} [val=undefined] - If defined, control height is updated to specified value. A value of -1 resets control height.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=px] - If defined, control height is updated to specified CSS unit.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public Height(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Get value indicating whether user has changed control value.
+			* @function IsDirty
+			* @returns boolean
+			*/
+			public IsDirty():boolean;
+			/**
+			* Get value indicating whether control value is valid.
+			Control value is considered invalid if control is required, but no value is set,
+			or if control value does not match regular expression set using SetValidationExpression(..).
+			* @function IsValid
+			* @returns boolean
+			*/
+			public IsValid():boolean;
+			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated using Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled.
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
+			* Register OnBlur event handler which is invoked when control loses focus.
+			* @function OnBlur
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnBlur(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Register OnChange event handler which is invoked when control value is changed either programmatically or by user.
+			* @function OnChange
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnChange(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Register OnFocus event handler which is invoked when control gains focus.
+			* @function OnFocus
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnFocus(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Remove all validation rules.
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
+			* Remove CSS class from DOMElement representing control.
+			* @function RemoveCssClass
+			* @param {string} val - CSS class to remove.
+			*/
+			public RemoveCssClass(val:string):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control.
+			* @function RemoveValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Validation function registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value.
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Get/set value indicating whether control is required to be set.
+			* @function Required
+			* @param {boolean} [val=undefined] - If defined, control required feature is enabled/disabled.
+			* @returns boolean
+			*/
+			public Required(val?:boolean):boolean;
+			/**
+			* Get/set scope to which control belongs - this is used to validate multiple
+			controls at once using Fit.Controls.ValidateAll(scope) or Fit.Controls.DirtyCheckAll(scope).
+			* @function Scope
+			* @param {string} [val=undefined] - If defined, control scope is updated.
+			* @returns string
+			*/
+			public Scope(val?:string):string;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
+			* @function SetValidationCallback
+			* @param {Function | null} cb - Function receiving control value - must return True if value is valid, otherwise False.
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator.
+			*/
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
+			* @function SetValidationExpression
+			* @param {RegExp | null} regEx - Regular expression to validate against.
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator.
+			*/
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
+			* @function SetValidationHandler
+			* @param {Function | null} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
+			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
+			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
+			value. The intention with UserValue(..) is to mimic the behaviour of what the user can do with the user interface control.
+			For picker controls the value format is equivalent to the one dictated by the Value(..) function.
+			* @function UserValue
+			* @param {string} [val=undefined] - If defined, value is inserted into control.
+			* @returns string
+			*/
+			public UserValue(val?:string):string;
+			/**
+			* Get/set control value.
+			For controls supporting multiple selections: Set value by providing a string in one the following formats:
+			title1=val1[;title2=val2[;title3=val3]] or val1[;val2[;val3]].
+			If Title or Value contains reserved characters (semicolon or equality sign), these most be URIEncoded.
+			Selected items are returned in the first format described, also with reserved characters URIEncoded.
+			Providing a new value to this function results in OnChange being fired.
+			* @function Value
+			* @param {string} [val=undefined] - If defined, value is inserted into control.
+			* @param {boolean} [preserveDirtyState=false] - If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+			If dirty state is reset (default), the control value will be compared against the value passed,
+			to determine whether it has been changed by the user or not, when IsDirty() is called.
+			* @returns string
+			*/
+			public Value(val?:string, preserveDirtyState?:boolean):string;
+			/**
+			* Get/set value indicating whether control is visible.
+			* @function Visible
+			* @param {boolean} [val=undefined] - If defined, control visibility is updated.
+			* @returns boolean
+			*/
+			public Visible(val?:boolean):boolean;
+			/**
+			* Get/set control width - returns object with Value and Unit properties.
+			* @function Width
+			* @param {number} [val=undefined] - If defined, control width is updated to specified value. A value of -1 resets control width.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=px] - If defined, control width is updated to specified CSS unit.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+			     // Add control specific dispose logic here
+			     base(); // Call Dispose on Component
+			});.
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control.
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID.
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified.
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element.
+			*/
+			public Render(toElement?:HTMLElement):void;
+		}
+		/**
+		* Input control which allows for one or multiple lines of
+		text, and features a Design Mode for rich HTML content.
+		Extending from Fit.Controls.ControlBase.
+		* @class [Fit.Controls.Input Input]
+		*/
+		class Input
+		{
+			// Functions defined by Fit.Controls.Input
+			/**
+			* Get/set value indicating whether control should have spell checking enabled (default) or disabled.
+			* @function CheckSpelling
+			* @param {boolean} [val=undefined] - If defined, true enables spell checking while false disables it.
+			* @returns boolean
+			*/
+			public CheckSpelling(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control should have spell checking enabled (default) or disabled.
+			* @function CheckSpelling
+			* @param {boolean} [val=undefined] - If defined, true enables spell checking while false disables it.
+			* @returns boolean
+			*/
+			public CheckSpelling(val?:boolean):boolean;
+			/**
+			* Get/set number of milliseconds used to postpone onchange event.
+			Every new keystroke/change resets the timer. Debouncing can
+			improve performance when working with large amounts of data.
+			* @function DebounceOnChange
+			* @param {number} timeout - If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing.
+			* @returns number
+			*/
+			public DebounceOnChange(timeout:number):number;
+			/**
+			* Get/set number of milliseconds used to postpone onchange event.
+			Every new keystroke/change resets the timer. Debouncing can
+			improve performance when working with large amounts of data.
+			* @function DebounceOnChange
+			* @param {number} timeout - If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing.
+			* @returns number
+			*/
+			public DebounceOnChange(timeout:number):number;
+			/**
+			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
+			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
+			* @function DesignMode
+			* @param {boolean} [val=undefined] - If defined, True enables Design Mode, False disables it.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeConfig} [editorConfig=undefined] - If provided and DesignMode is enabled, configuration is applied when editor is created.
+			* @returns boolean
+			*/
+			public DesignMode(val?:boolean, editorConfig?:Fit.Controls.InputTypeDefs.DesignModeConfig):boolean;
+			/**
+			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
+			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
+			* @function DesignMode
+			* @param {boolean} [val=undefined] - If defined, True enables Design Mode, False disables it.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeConfig} [editorConfig=undefined] - If provided and DesignMode is enabled, configuration is applied when editor is created.
+			* @returns boolean
+			*/
+			public DesignMode(val?:boolean, editorConfig?:Fit.Controls.InputTypeDefs.DesignModeConfig):boolean;
+			/**
+			* Create instance of Input control.
+			* @function Input
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
+			/**
+			* Create instance of Input control.
+			* @function Input
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
+			/**
+			* Get/set value indicating whether control is maximizable.
+			Making control maximizable will disable Resizable.
+			* @function Maximizable
+			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it.
+			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
+			The value is considered the same unit set using Height(..) which defaults to px.
+			If not set, the value assumes twice the height set using Height(..).
+			* @returns boolean
+			*/
+			public Maximizable(val?:boolean, heightMax?:number):boolean;
+			/**
+			* Get/set value indicating whether control is maximizable.
+			Making control maximizable will disable Resizable.
+			* @function Maximizable
+			* @param {boolean} [val=undefined] - If defined, True enables maximize button, False disables it.
+			* @param {number} [heightMax=undefined] - If defined, this becomes the height of the input control when maximized.
+			The value is considered the same unit set using Height(..) which defaults to px.
+			If not set, the value assumes twice the height set using Height(..).
+			* @returns boolean
+			*/
+			public Maximizable(val?:boolean, heightMax?:number):boolean;
+			/**
+			* Get/set value indicating whether control is maximized.
+			* @function Maximized
+			* @param {boolean} [val=undefined] - If defined, True maximizes control, False minimizes it.
+			* @returns boolean
+			*/
+			public Maximized(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is maximized.
+			* @function Maximized
+			* @param {boolean} [val=undefined] - If defined, True maximizes control, False minimizes it.
+			* @returns boolean
+			*/
+			public Maximized(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Multi Line mode (textarea).
+			* @function MultiLine
+			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it.
+			* @returns boolean
+			*/
+			public MultiLine(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control is in Multi Line mode (textarea).
+			* @function MultiLine
+			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it.
+			* @returns boolean
+			*/
+			public MultiLine(val?:boolean):boolean;
+			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers.
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder.
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
+			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers.
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder.
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
+			/**
+			* Get/set value indicating whether control is resizable on supported
+			(modern) browsers. Making control resizable will disable Maximizable.
+			* @function Resizable
+			* @param {Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"} [val=undefined] - If defined, determines whether control resizes, and in what direction(s).
+			* @returns Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"
+			*/
+			public Resizable(val?:Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"):Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical";
+			/**
+			* Get/set value indicating whether control is resizable on supported
+			(modern) browsers. Making control resizable will disable Maximizable.
+			* @function Resizable
+			* @param {Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"} [val=undefined] - If defined, determines whether control resizes, and in what direction(s).
+			* @returns Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"
+			*/
+			public Resizable(val?:Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical"):Fit.Controls.InputResizing | "Disabled" | "Disabled" | "Enabled" | "Enabled" | "Horizontal" | "Horizontal" | "Vertical" | "Vertical";
+			/**
+			* Get/set input type (e.g. Text, Password, Email, etc.).
+			* @function Type
+			* @param {Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"} [val=undefined] - If defined, input type is changed to specified value.
+			* @returns Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"
+			*/
+			public Type(val?:Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"):Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week";
+			/**
+			* Get/set input type (e.g. Text, Password, Email, etc.).
+			* @function Type
+			* @param {Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"} [val=undefined] - If defined, input type is changed to specified value.
+			* @returns Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"
+			*/
+			public Type(val?:Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week"):Fit.Controls.InputType | "Color" | "Color" | "Date" | "Date" | "DateTime" | "DateTime" | "Email" | "Email" | "Month" | "Month" | "Number" | "Number" | "Password" | "Password" | "PhoneNumber" | "PhoneNumber" | "Text" | "Text" | "Textarea" | "Textarea" | "Time" | "Time" | "Week" | "Week";
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control.
@@ -4139,12 +4639,36 @@ declare namespace Fit
 			*/
 			type DesignModeTagsOnRequest = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs) => boolean | void;
 			/**
+			* Cancelable request event handler.
+			* @callback DesignModeTagsOnRequest
+			* @param {Fit.Controls.Input} sender - Instance of control.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs} eventArgs - Event arguments.
+			* @returns boolean | void
+			*/
+			type DesignModeTagsOnRequest = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs) => boolean | void;
+			/**
 			* Response event handler.
 			* @callback DesignModeTagsOnResponse
 			* @param {Fit.Controls.Input} sender - Instance of control.
 			* @param {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs} eventArgs - Event arguments.
 			*/
 			type DesignModeTagsOnResponse = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs) => void;
+			/**
+			* Response event handler.
+			* @callback DesignModeTagsOnResponse
+			* @param {Fit.Controls.Input} sender - Instance of control.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs} eventArgs - Event arguments.
+			*/
+			type DesignModeTagsOnResponse = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs) => void;
+			/**
+			* Function producing JSON object representing tag to be inserted into editor.
+			Returning nothing or Null results in default tag being inserted into editor.
+			* @callback DesignModeTagsTagCreator
+			* @param {Fit.Controls.Input} sender - Instance of control.
+			* @param {Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs} eventArgs - Event arguments.
+			* @returns Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType | null | void
+			*/
+			type DesignModeTagsTagCreator = (sender:Fit.Controls.Input, eventArgs:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs) => Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType | null | void;
 			/**
 			* Function producing JSON object representing tag to be inserted into editor.
 			Returning nothing or Null results in default tag being inserted into editor.
@@ -4167,6 +4691,16 @@ declare namespace Fit
 				*/
 				Enabled:boolean;
 				/**
+				* Flag indicating whether auto grow feature is enabled or not - on by default if no height is set, or if Height(-1) is set.
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
+				* Maximum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
 				* Maximum height of editable area.
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
 				*/
@@ -4176,6 +4710,64 @@ declare namespace Fit
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
 				*/
 				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Prevent user from resizing editor beyond maximum height (see MaximumHeight property - defaults to False).
+				* @member {boolean} [PreventResizeBeyondMaximumHeight=undefined]
+				*/
+				PreventResizeBeyondMaximumHeight?:boolean;
+				/**
+				* Prevent user from resizing editor beyond maximum height (see MaximumHeight property - defaults to False).
+				* @member {boolean} [PreventResizeBeyondMaximumHeight=undefined]
+				*/
+				PreventResizeBeyondMaximumHeight?:boolean;
+			}
+			/**
+			* Auto grow configuration.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeAutoGrow DesignModeAutoGrow]
+			*/
+			class DesignModeAutoGrow
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeAutoGrow
+				/**
+				* Flag indicating whether auto grow feature is enabled or not - on by default if no height is set, or if Height(-1) is set.
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
+				* Flag indicating whether auto grow feature is enabled or not - on by default if no height is set, or if Height(-1) is set.
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
+				* Maximum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of editable area.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Prevent user from resizing editor beyond maximum height (see MaximumHeight property - defaults to False).
+				* @member {boolean} [PreventResizeBeyondMaximumHeight=undefined]
+				*/
+				PreventResizeBeyondMaximumHeight?:boolean;
 				/**
 				* Prevent user from resizing editor beyond maximum height (see MaximumHeight property - defaults to False).
 				* @member {boolean} [PreventResizeBeyondMaximumHeight=undefined]
@@ -4195,10 +4787,31 @@ declare namespace Fit
 				*/
 				AutoGrow?:Fit.Controls.InputTypeDefs.DesignModeAutoGrow;
 				/**
+				* Auto grow configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeAutoGrow} [AutoGrow=undefined]
+				*/
+				AutoGrow?:Fit.Controls.InputTypeDefs.DesignModeAutoGrow;
+				/**
 				* Detachable configuration.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeDetachable} [Detachable=undefined]
 				*/
 				Detachable?:Fit.Controls.InputTypeDefs.DesignModeDetachable;
+				/**
+				* Detachable configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeDetachable} [Detachable=undefined]
+				*/
+				Detachable?:Fit.Controls.InputTypeDefs.DesignModeDetachable;
+				/**
+				* If set, control opens in dialog when activated (on click, on touch, and on ENTER key).
+				Control is initially rendered as a read-only value which becomes editable on activation.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeDialogMode} [DialogMode=undefined]
+				*/
+				DialogMode?:Fit.Controls.InputTypeDefs.DesignModeDialogMode;
+				/**
+				* Information panel configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel} [InfoPanel=undefined]
+				*/
+				InfoPanel?:Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel;
 				/**
 				* Information panel configuration.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel} [InfoPanel=undefined]
@@ -4210,10 +4823,99 @@ declare namespace Fit
 				*/
 				Plugins?:Fit.Controls.InputTypeDefs.DesignModeConfigPlugins;
 				/**
+				* Plugins configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPlugins} [Plugins=undefined]
+				*/
+				Plugins?:Fit.Controls.InputTypeDefs.DesignModeConfigPlugins;
+				/**
 				* Tags configuration.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigTags} [Tags=undefined]
 				*/
 				Tags?:Fit.Controls.InputTypeDefs.DesignModeConfigTags;
+				/**
+				* Tags configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigTags} [Tags=undefined]
+				*/
+				Tags?:Fit.Controls.InputTypeDefs.DesignModeConfigTags;
+				/**
+				* Toolbar configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigToolbar} [Toolbar=undefined]
+				*/
+				Toolbar?:Fit.Controls.InputTypeDefs.DesignModeConfigToolbar;
+				/**
+				* Toolbar configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigToolbar} [Toolbar=undefined]
+				*/
+				Toolbar?:Fit.Controls.InputTypeDefs.DesignModeConfigToolbar;
+			}
+			/**
+			* Configuration for DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfig DesignModeConfig]
+			*/
+			class DesignModeConfig
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfig
+				/**
+				* Auto grow configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeAutoGrow} [AutoGrow=undefined]
+				*/
+				AutoGrow?:Fit.Controls.InputTypeDefs.DesignModeAutoGrow;
+				/**
+				* Auto grow configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeAutoGrow} [AutoGrow=undefined]
+				*/
+				AutoGrow?:Fit.Controls.InputTypeDefs.DesignModeAutoGrow;
+				/**
+				* Detachable configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeDetachable} [Detachable=undefined]
+				*/
+				Detachable?:Fit.Controls.InputTypeDefs.DesignModeDetachable;
+				/**
+				* Detachable configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeDetachable} [Detachable=undefined]
+				*/
+				Detachable?:Fit.Controls.InputTypeDefs.DesignModeDetachable;
+				/**
+				* If set, control opens in dialog when activated (on click, on touch, and on ENTER key).
+				Control is initially rendered as a read-only value which becomes editable on activation.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeDialogMode} [DialogMode=undefined]
+				*/
+				DialogMode?:Fit.Controls.InputTypeDefs.DesignModeDialogMode;
+				/**
+				* Information panel configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel} [InfoPanel=undefined]
+				*/
+				InfoPanel?:Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel;
+				/**
+				* Information panel configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel} [InfoPanel=undefined]
+				*/
+				InfoPanel?:Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel;
+				/**
+				* Plugins configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPlugins} [Plugins=undefined]
+				*/
+				Plugins?:Fit.Controls.InputTypeDefs.DesignModeConfigPlugins;
+				/**
+				* Plugins configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPlugins} [Plugins=undefined]
+				*/
+				Plugins?:Fit.Controls.InputTypeDefs.DesignModeConfigPlugins;
+				/**
+				* Tags configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigTags} [Tags=undefined]
+				*/
+				Tags?:Fit.Controls.InputTypeDefs.DesignModeConfigTags;
+				/**
+				* Tags configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigTags} [Tags=undefined]
+				*/
+				Tags?:Fit.Controls.InputTypeDefs.DesignModeConfigTags;
+				/**
+				* Toolbar configuration.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigToolbar} [Toolbar=undefined]
+				*/
+				Toolbar?:Fit.Controls.InputTypeDefs.DesignModeConfigToolbar;
 				/**
 				* Toolbar configuration.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigToolbar} [Toolbar=undefined]
@@ -4233,6 +4935,44 @@ declare namespace Fit
 				*/
 				Alignment?:'Left' | 'Center' | 'Right';
 				/**
+				* Text alignment - defaults to Center.
+				* @member {'Left' | 'Center' | 'Right'} [Alignment=undefined]
+				*/
+				Alignment?:'Left' | 'Center' | 'Right';
+				/**
+				* Text to display.
+				* @member {string} [Text=undefined]
+				*/
+				Text?:string;
+				/**
+				* Text to display.
+				* @member {string} [Text=undefined]
+				*/
+				Text?:string;
+			}
+			/**
+			* Information panel at the top or bottom of the editor, depending on the location of the toolbar.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel DesignModeConfigInfoPanel]
+			*/
+			class DesignModeConfigInfoPanel
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel
+				/**
+				* Text alignment - defaults to Center.
+				* @member {'Left' | 'Center' | 'Right'} [Alignment=undefined]
+				*/
+				Alignment?:'Left' | 'Center' | 'Right';
+				/**
+				* Text alignment - defaults to Center.
+				* @member {'Left' | 'Center' | 'Right'} [Alignment=undefined]
+				*/
+				Alignment?:'Left' | 'Center' | 'Right';
+				/**
+				* Text to display.
+				* @member {string} [Text=undefined]
+				*/
+				Text?:string;
+				/**
 				* Text to display.
 				* @member {string} [Text=undefined]
 				*/
@@ -4250,6 +4990,44 @@ declare namespace Fit
 				* @member {boolean} [Emojis=undefined]
 				*/
 				Emojis?:boolean;
+				/**
+				* Plugin(s) related to emoji support (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Plugin(s) related to support for images (defaults to False).
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig} [Images=undefined]
+				*/
+				Images?:Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig;
+				/**
+				* Plugin(s) related to support for images (defaults to False).
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig} [Images=undefined]
+				*/
+				Images?:Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig;
+			}
+			/**
+			* Additional plugins enabled in DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigPlugins DesignModeConfigPlugins]
+			*/
+			class DesignModeConfigPlugins
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigPlugins
+				/**
+				* Plugin(s) related to emoji support (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Plugin(s) related to emoji support (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Plugin(s) related to support for images (defaults to False).
+				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig} [Images=undefined]
+				*/
+				Images?:Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig;
 				/**
 				* Plugin(s) related to support for images (defaults to False).
 				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig} [Images=undefined]
@@ -4271,6 +5049,18 @@ declare namespace Fit
 				*/
 				EmbedType?:'base64' | 'blob';
 				/**
+				* How to store and embed images. Base64 (default) is persistent while blob is temporary
+				and must be extracted from memory and uploaded/stored to be permanantly persisted.
+				References to blobs can be parsed from the HTML value produced by the editor.
+				* @member {'base64' | 'blob'} [EmbedType=undefined]
+				*/
+				EmbedType?:'base64' | 'blob';
+				/**
+				* Flag indicating whether to enable image plugins or not (defaults to False).
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
 				* Flag indicating whether to enable image plugins or not (defaults to False).
 				* @member {boolean} Enabled
 				*/
@@ -4283,6 +5073,92 @@ declare namespace Fit
 				* @member {'All' | 'UnreferencedOnly'} [RevokeBlobUrlsOnDispose=undefined]
 				*/
 				RevokeBlobUrlsOnDispose?:'All' | 'UnreferencedOnly';
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
+				If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
+				disposing referenced blobs. Failing to do so may cause a memory leak. Defaults to All.
+				* @member {'All' | 'UnreferencedOnly'} [RevokeBlobUrlsOnDispose=undefined]
+				*/
+				RevokeBlobUrlsOnDispose?:'All' | 'UnreferencedOnly';
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added through Value(..)
+				function when control is disposed. Basically ownership of these blobs are handed
+				over to the control for the duration of its life time.
+				These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
+				Defaults to False.
+				* @member {boolean} [RevokeExternalBlobUrlsOnDispose=undefined]
+				*/
+				RevokeExternalBlobUrlsOnDispose?:boolean;
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added through Value(..)
+				function when control is disposed. Basically ownership of these blobs are handed
+				over to the control for the duration of its life time.
+				These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
+				Defaults to False.
+				* @member {boolean} [RevokeExternalBlobUrlsOnDispose=undefined]
+				*/
+				RevokeExternalBlobUrlsOnDispose?:boolean;
+			}
+			/**
+			* Configuration for image plugins.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig DesignModeConfigPluginsImagesConfig]
+			*/
+			class DesignModeConfigPluginsImagesConfig
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig
+				/**
+				* How to store and embed images. Base64 (default) is persistent while blob is temporary
+				and must be extracted from memory and uploaded/stored to be permanantly persisted.
+				References to blobs can be parsed from the HTML value produced by the editor.
+				* @member {'base64' | 'blob'} [EmbedType=undefined]
+				*/
+				EmbedType?:'base64' | 'blob';
+				/**
+				* How to store and embed images. Base64 (default) is persistent while blob is temporary
+				and must be extracted from memory and uploaded/stored to be permanantly persisted.
+				References to blobs can be parsed from the HTML value produced by the editor.
+				* @member {'base64' | 'blob'} [EmbedType=undefined]
+				*/
+				EmbedType?:'base64' | 'blob';
+				/**
+				* Flag indicating whether to enable image plugins or not (defaults to False).
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
+				* Flag indicating whether to enable image plugins or not (defaults to False).
+				* @member {boolean} Enabled
+				*/
+				Enabled:boolean;
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
+				If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
+				disposing referenced blobs. Failing to do so may cause a memory leak. Defaults to All.
+				* @member {'All' | 'UnreferencedOnly'} [RevokeBlobUrlsOnDispose=undefined]
+				*/
+				RevokeBlobUrlsOnDispose?:'All' | 'UnreferencedOnly';
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added though image plugins when control is disposed.
+				If "UnreferencedOnly" is specified, the component using Fit.UI's input control will be responsible for
+				disposing referenced blobs. Failing to do so may cause a memory leak. Defaults to All.
+				* @member {'All' | 'UnreferencedOnly'} [RevokeBlobUrlsOnDispose=undefined]
+				*/
+				RevokeBlobUrlsOnDispose?:'All' | 'UnreferencedOnly';
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) added through Value(..)
+				function when control is disposed. Basically ownership of these blobs are handed
+				over to the control for the duration of its life time.
+				These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
+				Defaults to False.
+				* @member {boolean} [RevokeExternalBlobUrlsOnDispose=undefined]
+				*/
+				RevokeExternalBlobUrlsOnDispose?:boolean;
 				/**
 				* This option is in effect when EmbedType is blob.
 				Dispose images from blob storage (revoke blob URLs) added through Value(..)
@@ -4307,6 +5183,16 @@ declare namespace Fit
 				*/
 				JsonpCallback?:string;
 				/**
+				* Name of URL parameter receiving name of JSONP callback function (only for JSONP services).
+				* @member {string} [JsonpCallback=undefined]
+				*/
+				JsonpCallback?:string;
+				/**
+				* Number of milliseconds to allow JSONP request to wait for a response before aborting (only for JSONP services).
+				* @member {number} [JsonpTimeout=undefined]
+				*/
+				JsonpTimeout?:number;
+				/**
 				* Number of milliseconds to allow JSONP request to wait for a response before aborting (only for JSONP services).
 				* @member {number} [JsonpTimeout=undefined]
 				*/
@@ -4322,6 +5208,29 @@ declare namespace Fit
 				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest} [OnRequest=undefined]
 				*/
 				OnRequest?:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest;
+				/**
+				* Event handler invoked when tags are requested. Request may be canceled by returning False.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest} [OnRequest=undefined]
+				*/
+				OnRequest?:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest;
+				/**
+				* Event handler invoked when tags data is received, allowing for data transformation.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property
+				- Tags: JSON tags array received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse} [OnResponse=undefined]
+				*/
+				OnResponse?:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse;
 				/**
 				* Event handler invoked when tags data is received, allowing for data transformation.
 				Function receives two arguments:
@@ -4357,6 +5266,28 @@ declare namespace Fit
 				*/
 				QueryUrl:string;
 				/**
+				* URL to request data from. Endpoint receives the following payload:
+				{ Marker: "@", Query: "search" }
+				
+				Data is expected to be returned in the following format:
+				[
+				{ Value: "t-1", Title: "Tag 1", Icon: "images/img1.jpeg", Url: "show/1", Data: "..." },
+				{ Value: "t-2", Title: "Tag 2", Icon: "images/img2.jpeg", Url: "show/2", Data: "..." }, ...
+				]
+				
+				The Value and Title properties are required. The Icon property is optional and must specify the path to an image.
+				The Url property is optional and must specify a path to a related page/resource.
+				The Data property is optional and allows for additional data to be associated with the tag.
+				To hold multiple values, consider using a base64 encoded JSON object:
+				btoa(JSON.stringify({ creationDate: new Date(), active: true }))
+				
+				The data eventuelly results in a tag being added to the editor with the following format:
+				Tag name 1
+				The data-tag-data and data-tag-context attributes are only declared if the corresponding Data and Context properties are defined in data.
+				* @member {string} QueryUrl
+				*/
+				QueryUrl:string;
+				/**
 				* Callback invoked when a tag is being inserted into editor, allowing
 				for customization to the title and attributes associated with the tag.
 				Function receives two arguments:
@@ -4368,6 +5299,175 @@ declare namespace Fit
 				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator} [TagCreator=undefined]
 				*/
 				TagCreator?:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator;
+				/**
+				* Callback invoked when a tag is being inserted into editor, allowing
+				for customization to the title and attributes associated with the tag.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- QueryMarker: String containing query marker
+				- Tag: JSON tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator} [TagCreator=undefined]
+				*/
+				TagCreator?:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator;
+				/**
+				* Markers triggering tags request and context menu.
+				* @member {{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[]} Triggers
+				*/
+				Triggers:{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[];
+				/**
+				* Markers triggering tags request and context menu.
+				* @member {{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[]} Triggers
+				*/
+				Triggers:{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[];
+			}
+			/**
+			* Configuration for tags in DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigTags DesignModeConfigTags]
+			*/
+			class DesignModeConfigTags
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigTags
+				/**
+				* Name of URL parameter receiving name of JSONP callback function (only for JSONP services).
+				* @member {string} [JsonpCallback=undefined]
+				*/
+				JsonpCallback?:string;
+				/**
+				* Name of URL parameter receiving name of JSONP callback function (only for JSONP services).
+				* @member {string} [JsonpCallback=undefined]
+				*/
+				JsonpCallback?:string;
+				/**
+				* Number of milliseconds to allow JSONP request to wait for a response before aborting (only for JSONP services).
+				* @member {number} [JsonpTimeout=undefined]
+				*/
+				JsonpTimeout?:number;
+				/**
+				* Number of milliseconds to allow JSONP request to wait for a response before aborting (only for JSONP services).
+				* @member {number} [JsonpTimeout=undefined]
+				*/
+				JsonpTimeout?:number;
+				/**
+				* Event handler invoked when tags are requested. Request may be canceled by returning False.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest} [OnRequest=undefined]
+				*/
+				OnRequest?:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest;
+				/**
+				* Event handler invoked when tags are requested. Request may be canceled by returning False.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest} [OnRequest=undefined]
+				*/
+				OnRequest?:Fit.Controls.InputTypeDefs.DesignModeTagsOnRequest;
+				/**
+				* Event handler invoked when tags data is received, allowing for data transformation.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property
+				- Tags: JSON tags array received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse} [OnResponse=undefined]
+				*/
+				OnResponse?:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse;
+				/**
+				* Event handler invoked when tags data is received, allowing for data transformation.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+				- Query: Contains query information in its Marker and Query property
+				- Tags: JSON tags array received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse} [OnResponse=undefined]
+				*/
+				OnResponse?:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponse;
+				/**
+				* URL to request data from. Endpoint receives the following payload:
+				{ Marker: "@", Query: "search" }
+				
+				Data is expected to be returned in the following format:
+				[
+				{ Value: "t-1", Title: "Tag 1", Icon: "images/img1.jpeg", Url: "show/1", Data: "..." },
+				{ Value: "t-2", Title: "Tag 2", Icon: "images/img2.jpeg", Url: "show/2", Data: "..." }, ...
+				]
+				
+				The Value and Title properties are required. The Icon property is optional and must specify the path to an image.
+				The Url property is optional and must specify a path to a related page/resource.
+				The Data property is optional and allows for additional data to be associated with the tag.
+				To hold multiple values, consider using a base64 encoded JSON object:
+				btoa(JSON.stringify({ creationDate: new Date(), active: true }))
+				
+				The data eventuelly results in a tag being added to the editor with the following format:
+				Tag name 1
+				The data-tag-data and data-tag-context attributes are only declared if the corresponding Data and Context properties are defined in data.
+				* @member {string} QueryUrl
+				*/
+				QueryUrl:string;
+				/**
+				* URL to request data from. Endpoint receives the following payload:
+				{ Marker: "@", Query: "search" }
+				
+				Data is expected to be returned in the following format:
+				[
+				{ Value: "t-1", Title: "Tag 1", Icon: "images/img1.jpeg", Url: "show/1", Data: "..." },
+				{ Value: "t-2", Title: "Tag 2", Icon: "images/img2.jpeg", Url: "show/2", Data: "..." }, ...
+				]
+				
+				The Value and Title properties are required. The Icon property is optional and must specify the path to an image.
+				The Url property is optional and must specify a path to a related page/resource.
+				The Data property is optional and allows for additional data to be associated with the tag.
+				To hold multiple values, consider using a base64 encoded JSON object:
+				btoa(JSON.stringify({ creationDate: new Date(), active: true }))
+				
+				The data eventuelly results in a tag being added to the editor with the following format:
+				Tag name 1
+				The data-tag-data and data-tag-context attributes are only declared if the corresponding Data and Context properties are defined in data.
+				* @member {string} QueryUrl
+				*/
+				QueryUrl:string;
+				/**
+				* Callback invoked when a tag is being inserted into editor, allowing
+				for customization to the title and attributes associated with the tag.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- QueryMarker: String containing query marker
+				- Tag: JSON tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator} [TagCreator=undefined]
+				*/
+				TagCreator?:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator;
+				/**
+				* Callback invoked when a tag is being inserted into editor, allowing
+				for customization to the title and attributes associated with the tag.
+				Function receives two arguments:
+				Sender (Fit.Controls.Input) and EventArgs object.
+				EventArgs object contains the following properties:
+				- Sender: Fit.Controls.Input instance
+				- QueryMarker: String containing query marker
+				- Tag: JSON tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator} [TagCreator=undefined]
+				*/
+				TagCreator?:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator;
+				/**
+				* Markers triggering tags request and context menu.
+				* @member {{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[]} Triggers
+				*/
+				Triggers:{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[];
 				/**
 				* Markers triggering tags request and context menu.
 				* @member {{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[]} Triggers
@@ -4387,10 +5487,25 @@ declare namespace Fit
 				*/
 				Detach?:boolean;
 				/**
+				* Enable detach button (defaults to false).
+				* @member {boolean} [Detach=undefined]
+				*/
+				Detach?:boolean;
+				/**
 				* Enable emoji button (defaults to False).
 				* @member {boolean} [Emojis=undefined]
 				*/
 				Emojis?:boolean;
+				/**
+				* Enable emoji button (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Enable text formatting (bold, italic, underline) (defaults to True).
+				* @member {boolean} [Formatting=undefined]
+				*/
+				Formatting?:boolean;
 				/**
 				* Enable text formatting (bold, italic, underline) (defaults to True).
 				* @member {boolean} [Formatting=undefined]
@@ -4402,10 +5517,25 @@ declare namespace Fit
 				*/
 				HideInitially?:boolean;
 				/**
+				* Hide toolbar until control gains focus (defaults to False).
+				* @member {boolean} [HideInitially=undefined]
+				*/
+				HideInitially?:boolean;
+				/**
 				* Enable image button (defaults to false).
 				* @member {boolean} [Images=undefined]
 				*/
 				Images?:boolean;
+				/**
+				* Enable image button (defaults to false).
+				* @member {boolean} [Images=undefined]
+				*/
+				Images?:boolean;
+				/**
+				* Enable text alignment (defaults to True).
+				* @member {boolean} [Justify=undefined]
+				*/
+				Justify?:boolean;
 				/**
 				* Enable text alignment (defaults to True).
 				* @member {boolean} [Justify=undefined]
@@ -4417,6 +5547,16 @@ declare namespace Fit
 				*/
 				Links?:boolean;
 				/**
+				* Enable links (defaults to True).
+				* @member {boolean} [Links=undefined]
+				*/
+				Links?:boolean;
+				/**
+				* Enable ordered and unordered lists with indentation (defaults to True).
+				* @member {boolean} [Lists=undefined]
+				*/
+				Lists?:boolean;
+				/**
 				* Enable ordered and unordered lists with indentation (defaults to True).
 				* @member {boolean} [Lists=undefined]
 				*/
@@ -4426,6 +5566,124 @@ declare namespace Fit
 				* @member {'Top' | 'Bottom'} [Position=undefined]
 				*/
 				Position?:'Top' | 'Bottom';
+				/**
+				* Toolbar position (defaults to Top).
+				* @member {'Top' | 'Bottom'} [Position=undefined]
+				*/
+				Position?:'Top' | 'Bottom';
+				/**
+				* Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False).
+				* @member {boolean} [Sticky=undefined]
+				*/
+				Sticky?:boolean;
+				/**
+				* Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False).
+				* @member {boolean} [Sticky=undefined]
+				*/
+				Sticky?:boolean;
+			}
+			/**
+			* Toolbar buttons enabled in DesignMode.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeConfigToolbar DesignModeConfigToolbar]
+			*/
+			class DesignModeConfigToolbar
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigToolbar
+				/**
+				* Enable detach button (defaults to false).
+				* @member {boolean} [Detach=undefined]
+				*/
+				Detach?:boolean;
+				/**
+				* Enable detach button (defaults to false).
+				* @member {boolean} [Detach=undefined]
+				*/
+				Detach?:boolean;
+				/**
+				* Enable emoji button (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Enable emoji button (defaults to False).
+				* @member {boolean} [Emojis=undefined]
+				*/
+				Emojis?:boolean;
+				/**
+				* Enable text formatting (bold, italic, underline) (defaults to True).
+				* @member {boolean} [Formatting=undefined]
+				*/
+				Formatting?:boolean;
+				/**
+				* Enable text formatting (bold, italic, underline) (defaults to True).
+				* @member {boolean} [Formatting=undefined]
+				*/
+				Formatting?:boolean;
+				/**
+				* Hide toolbar until control gains focus (defaults to False).
+				* @member {boolean} [HideInitially=undefined]
+				*/
+				HideInitially?:boolean;
+				/**
+				* Hide toolbar until control gains focus (defaults to False).
+				* @member {boolean} [HideInitially=undefined]
+				*/
+				HideInitially?:boolean;
+				/**
+				* Enable image button (defaults to false).
+				* @member {boolean} [Images=undefined]
+				*/
+				Images?:boolean;
+				/**
+				* Enable image button (defaults to false).
+				* @member {boolean} [Images=undefined]
+				*/
+				Images?:boolean;
+				/**
+				* Enable text alignment (defaults to True).
+				* @member {boolean} [Justify=undefined]
+				*/
+				Justify?:boolean;
+				/**
+				* Enable text alignment (defaults to True).
+				* @member {boolean} [Justify=undefined]
+				*/
+				Justify?:boolean;
+				/**
+				* Enable links (defaults to True).
+				* @member {boolean} [Links=undefined]
+				*/
+				Links?:boolean;
+				/**
+				* Enable links (defaults to True).
+				* @member {boolean} [Links=undefined]
+				*/
+				Links?:boolean;
+				/**
+				* Enable ordered and unordered lists with indentation (defaults to True).
+				* @member {boolean} [Lists=undefined]
+				*/
+				Lists?:boolean;
+				/**
+				* Enable ordered and unordered lists with indentation (defaults to True).
+				* @member {boolean} [Lists=undefined]
+				*/
+				Lists?:boolean;
+				/**
+				* Toolbar position (defaults to Top).
+				* @member {'Top' | 'Bottom'} [Position=undefined]
+				*/
+				Position?:'Top' | 'Bottom';
+				/**
+				* Toolbar position (defaults to Top).
+				* @member {'Top' | 'Bottom'} [Position=undefined]
+				*/
+				Position?:'Top' | 'Bottom';
+				/**
+				* Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False).
+				* @member {boolean} [Sticky=undefined]
+				*/
+				Sticky?:boolean;
 				/**
 				* Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False).
 				* @member {boolean} [Sticky=undefined]
@@ -4445,10 +5703,25 @@ declare namespace Fit
 				*/
 				Draggable?:boolean;
 				/**
+				* Flag indicating whether dialog is draggable.
+				* @member {boolean} [Draggable=undefined]
+				*/
+				Draggable?:boolean;
+				/**
 				* Dialog height.
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Height=undefined]
 				*/
 				Height?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Dialog height.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Height=undefined]
+				*/
+				Height?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Flag indicating whether dialog is maximizable.
+				* @member {boolean} [Maximizable=undefined]
+				*/
+				Maximizable?:boolean;
 				/**
 				* Flag indicating whether dialog is maximizable.
 				* @member {boolean} [Maximizable=undefined]
@@ -4460,10 +5733,25 @@ declare namespace Fit
 				*/
 				Maximized?:boolean;
 				/**
+				* Flag indicating whether dialog is initially maximized.
+				* @member {boolean} [Maximized=undefined]
+				*/
+				Maximized?:boolean;
+				/**
 				* Maximum height of dialog.
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
 				*/
 				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum Width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumWidth=undefined]
+				*/
+				MaximumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
 				/**
 				* Maximum Width of dialog.
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumWidth=undefined]
@@ -4475,6 +5763,16 @@ declare namespace Fit
 				*/
 				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
 				/**
+				* Minimum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumWidth=undefined]
+				*/
+				MinimumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
 				* Minimum width of dialog.
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumWidth=undefined]
 				*/
@@ -4485,10 +5783,267 @@ declare namespace Fit
 				*/
 				Resizable?:boolean;
 				/**
+				* Flag indicating whether dialog is resizable.
+				* @member {boolean} [Resizable=undefined]
+				*/
+				Resizable?:boolean;
+				/**
 				* Dialog title.
 				* @member {string} [Title=undefined]
 				*/
 				Title?:string;
+				/**
+				* Dialog title.
+				* @member {string} [Title=undefined]
+				*/
+				Title?:string;
+				/**
+				* Dialog width.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Width=undefined]
+				*/
+				Width?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Dialog width.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Width=undefined]
+				*/
+				Width?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+			}
+			/**
+			* Detachable configuration.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeDetachable DesignModeDetachable]
+			*/
+			class DesignModeDetachable
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeDetachable
+				/**
+				* Flag indicating whether dialog is draggable.
+				* @member {boolean} [Draggable=undefined]
+				*/
+				Draggable?:boolean;
+				/**
+				* Flag indicating whether dialog is draggable.
+				* @member {boolean} [Draggable=undefined]
+				*/
+				Draggable?:boolean;
+				/**
+				* Dialog height.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Height=undefined]
+				*/
+				Height?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Dialog height.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Height=undefined]
+				*/
+				Height?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Flag indicating whether dialog is maximizable.
+				* @member {boolean} [Maximizable=undefined]
+				*/
+				Maximizable?:boolean;
+				/**
+				* Flag indicating whether dialog is maximizable.
+				* @member {boolean} [Maximizable=undefined]
+				*/
+				Maximizable?:boolean;
+				/**
+				* Flag indicating whether dialog is initially maximized.
+				* @member {boolean} [Maximized=undefined]
+				*/
+				Maximized?:boolean;
+				/**
+				* Flag indicating whether dialog is initially maximized.
+				* @member {boolean} [Maximized=undefined]
+				*/
+				Maximized?:boolean;
+				/**
+				* Maximum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum Width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumWidth=undefined]
+				*/
+				MaximumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum Width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumWidth=undefined]
+				*/
+				MaximumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumWidth=undefined]
+				*/
+				MinimumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumWidth=undefined]
+				*/
+				MinimumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Flag indicating whether dialog is resizable.
+				* @member {boolean} [Resizable=undefined]
+				*/
+				Resizable?:boolean;
+				/**
+				* Flag indicating whether dialog is resizable.
+				* @member {boolean} [Resizable=undefined]
+				*/
+				Resizable?:boolean;
+				/**
+				* Dialog title.
+				* @member {string} [Title=undefined]
+				*/
+				Title?:string;
+				/**
+				* Dialog title.
+				* @member {string} [Title=undefined]
+				*/
+				Title?:string;
+				/**
+				* Dialog width.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Width=undefined]
+				*/
+				Width?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Dialog width.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Width=undefined]
+				*/
+				Width?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+			}
+			/**
+			* DialogMode configuration.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeDialogMode DesignModeDialogMode]
+			*/
+			class DesignModeDialogMode
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeDialogMode
+				/**
+				* Flag indicating whether dialog is automatically opened.
+				* @member {boolean} [AutoOpen=undefined]
+				*/
+				AutoOpen?:boolean;
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeDetachable
+				/**
+				* Flag indicating whether dialog is draggable.
+				* @member {boolean} [Draggable=undefined]
+				*/
+				Draggable?:boolean;
+				/**
+				* Flag indicating whether dialog is draggable.
+				* @member {boolean} [Draggable=undefined]
+				*/
+				Draggable?:boolean;
+				/**
+				* Dialog height.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Height=undefined]
+				*/
+				Height?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Dialog height.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Height=undefined]
+				*/
+				Height?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Flag indicating whether dialog is maximizable.
+				* @member {boolean} [Maximizable=undefined]
+				*/
+				Maximizable?:boolean;
+				/**
+				* Flag indicating whether dialog is maximizable.
+				* @member {boolean} [Maximizable=undefined]
+				*/
+				Maximizable?:boolean;
+				/**
+				* Flag indicating whether dialog is initially maximized.
+				* @member {boolean} [Maximized=undefined]
+				*/
+				Maximized?:boolean;
+				/**
+				* Flag indicating whether dialog is initially maximized.
+				* @member {boolean} [Maximized=undefined]
+				*/
+				Maximized?:boolean;
+				/**
+				* Maximum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumHeight=undefined]
+				*/
+				MaximumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum Width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumWidth=undefined]
+				*/
+				MaximumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Maximum Width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MaximumWidth=undefined]
+				*/
+				MaximumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum height of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumHeight=undefined]
+				*/
+				MinimumHeight?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumWidth=undefined]
+				*/
+				MinimumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Minimum width of dialog.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [MinimumWidth=undefined]
+				*/
+				MinimumWidth?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
+				/**
+				* Flag indicating whether dialog is resizable.
+				* @member {boolean} [Resizable=undefined]
+				*/
+				Resizable?:boolean;
+				/**
+				* Flag indicating whether dialog is resizable.
+				* @member {boolean} [Resizable=undefined]
+				*/
+				Resizable?:boolean;
+				/**
+				* Dialog title.
+				* @member {string} [Title=undefined]
+				*/
+				Title?:string;
+				/**
+				* Dialog title.
+				* @member {string} [Title=undefined]
+				*/
+				Title?:string;
+				/**
+				* Dialog width.
+				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Width=undefined]
+				*/
+				Width?:{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" };
 				/**
 				* Dialog width.
 				* @member {{ Value: number, Unit?: Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw" }} [Width=undefined]
@@ -4508,10 +6063,63 @@ declare namespace Fit
 				*/
 				Query:{ Marker: string, Query: string };
 				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
 				* Instance of JsonRequest or JsonpRequest.
 				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
 				*/
 				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+			}
+			/**
+			* Request handler event arguments.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs DesignModeTagsOnRequestEventHandlerArgs]
+			*/
+			class DesignModeTagsOnRequestEventHandlerArgs
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsOnRequestEventHandlerArgs
+				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
 				/**
 				* Instance of control.
 				* @member {Fit.Controls.Input} Sender
@@ -4531,6 +6139,16 @@ declare namespace Fit
 				*/
 				Query:{ Marker: string, Query: string };
 				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
 				* Instance of JsonRequest or JsonpRequest.
 				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
 				*/
@@ -4540,6 +6158,64 @@ declare namespace Fit
 				* @member {Fit.Controls.Input} Sender
 				*/
 				Sender:Fit.Controls.Input;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Tags received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[]} Tags
+				*/
+				Tags:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[];
+				/**
+				* Tags received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[]} Tags
+				*/
+				Tags:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[];
+			}
+			/**
+			* Response handler event arguments.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs DesignModeTagsOnResponseEventHandlerArgs]
+			*/
+			class DesignModeTagsOnResponseEventHandlerArgs
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseEventHandlerArgs
+				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
+				* Query information.
+				* @member {{ Marker: string, Query: string }} Query
+				*/
+				Query:{ Marker: string, Query: string };
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of JsonRequest or JsonpRequest.
+				* @member {Fit.Http.JsonRequest | Fit.Http.JsonpRequest} Request
+				*/
+				Request:Fit.Http.JsonRequest | Fit.Http.JsonpRequest;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Tags received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[]} Tags
+				*/
+				Tags:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[];
 				/**
 				* Tags received from WebService.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag[]} Tags
@@ -4559,10 +6235,25 @@ declare namespace Fit
 				*/
 				Context?:string;
 				/**
+				* Optional context information to associate with tag.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
+				/**
 				* Optional data to associate with tag.
 				* @member {string} [Data=undefined]
 				*/
 				Data?:string;
+				/**
+				* Optional data to associate with tag.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Optional URL to icon/image.
+				* @member {string} [Icon=undefined]
+				*/
+				Icon?:string;
 				/**
 				* Optional URL to icon/image.
 				* @member {string} [Icon=undefined]
@@ -4574,10 +6265,93 @@ declare namespace Fit
 				*/
 				Title:string;
 				/**
+				* Title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
 				* Optional URL to associate with tag.
 				* @member {string} [Url=undefined]
 				*/
 				Url?:string;
+				/**
+				* Optional URL to associate with tag.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Unique value.
+				* @member {string} Value
+				*/
+				Value:string;
+				/**
+				* Unique value.
+				* @member {string} Value
+				*/
+				Value:string;
+			}
+			/**
+			* JSON object representing tag.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag DesignModeTagsOnResponseJsonTag]
+			*/
+			class DesignModeTagsOnResponseJsonTag
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag
+				/**
+				* Optional context information to associate with tag.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
+				/**
+				* Optional context information to associate with tag.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
+				/**
+				* Optional data to associate with tag.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Optional data to associate with tag.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Optional URL to icon/image.
+				* @member {string} [Icon=undefined]
+				*/
+				Icon?:string;
+				/**
+				* Optional URL to icon/image.
+				* @member {string} [Icon=undefined]
+				*/
+				Icon?:string;
+				/**
+				* Title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
+				* Title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
+				* Optional URL to associate with tag.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Optional URL to associate with tag.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Unique value.
+				* @member {string} Value
+				*/
+				Value:string;
 				/**
 				* Unique value.
 				* @member {string} Value
@@ -4597,10 +6371,63 @@ declare namespace Fit
 				*/
 				QueryMarker:string;
 				/**
+				* Query marker.
+				* @member {string} QueryMarker
+				*/
+				QueryMarker:string;
+				/**
 				* Instance of control.
 				* @member {Fit.Controls.Input} Sender
 				*/
 				Sender:Fit.Controls.Input;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag} Tag
+				*/
+				Tag:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag;
+				/**
+				* Tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag} Tag
+				*/
+				Tag:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag;
+			}
+			/**
+			* TagCreator event arguments.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs DesignModeTagsTagCreatorCallbackArgs]
+			*/
+			class DesignModeTagsTagCreatorCallbackArgs
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorCallbackArgs
+				/**
+				* Query marker.
+				* @member {string} QueryMarker
+				*/
+				QueryMarker:string;
+				/**
+				* Query marker.
+				* @member {string} QueryMarker
+				*/
+				QueryMarker:string;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Instance of control.
+				* @member {Fit.Controls.Input} Sender
+				*/
+				Sender:Fit.Controls.Input;
+				/**
+				* Tag received from WebService.
+				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag} Tag
+				*/
+				Tag:Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag;
 				/**
 				* Tag received from WebService.
 				* @member {Fit.Controls.InputTypeDefs.DesignModeTagsOnResponseJsonTag} Tag
@@ -4620,10 +6447,25 @@ declare namespace Fit
 				*/
 				Context?:string;
 				/**
+				* Optional tag context.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
+				/**
 				* Optional tag data.
 				* @member {string} [Data=undefined]
 				*/
 				Data?:string;
+				/**
+				* Optional tag data.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Tag title.
+				* @member {string} Title
+				*/
+				Title:string;
 				/**
 				* Tag title.
 				* @member {string} Title
@@ -4635,10 +6477,93 @@ declare namespace Fit
 				*/
 				Type:string;
 				/**
+				* Tag type (marker).
+				* @member {string} Type
+				*/
+				Type:string;
+				/**
 				* Optional tag URL.
 				* @member {string} [Url=undefined]
 				*/
 				Url?:string;
+				/**
+				* Optional tag URL.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Tag value (ID).
+				* @member {string} Value
+				*/
+				Value:string;
+				/**
+				* Tag value (ID).
+				* @member {string} Value
+				*/
+				Value:string;
+			}
+			/**
+			* JSON object representing tag to be inserted into editor.
+			* @class [Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType DesignModeTagsTagCreatorReturnType]
+			*/
+			class DesignModeTagsTagCreatorReturnType
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeTagsTagCreatorReturnType
+				/**
+				* Optional tag context.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
+				/**
+				* Optional tag context.
+				* @member {string} [Context=undefined]
+				*/
+				Context?:string;
+				/**
+				* Optional tag data.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Optional tag data.
+				* @member {string} [Data=undefined]
+				*/
+				Data?:string;
+				/**
+				* Tag title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
+				* Tag title.
+				* @member {string} Title
+				*/
+				Title:string;
+				/**
+				* Tag type (marker).
+				* @member {string} Type
+				*/
+				Type:string;
+				/**
+				* Tag type (marker).
+				* @member {string} Type
+				*/
+				Type:string;
+				/**
+				* Optional tag URL.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Optional tag URL.
+				* @member {string} [Url=undefined]
+				*/
+				Url?:string;
+				/**
+				* Tag value (ID).
+				* @member {string} Value
+				*/
+				Value:string;
 				/**
 				* Tag value (ID).
 				* @member {string} Value
@@ -8861,10 +10786,41 @@ declare namespace Fit
 		{
 			/** Do not allow resizing. */
 			Disabled = "Disabled",
+			/** Do not allow resizing. */
+			Disabled = "Disabled",
+			/** Allow for resizing both vertically and horizontally. */
+			Enabled = "Enabled",
 			/** Allow for resizing both vertically and horizontally. */
 			Enabled = "Enabled",
 			/** Allow for horizontal resizing. */
 			Horizontal = "Horizontal",
+			/** Allow for horizontal resizing. */
+			Horizontal = "Horizontal",
+			/** Allow for vertical resizing. */
+			Vertical = "Vertical",
+			/** Allow for vertical resizing. */
+			Vertical = "Vertical"
+		}
+		/**
+		* Resizing options.
+		* @enum {string}
+		*/
+		enum InputResizing
+		{
+			/** Do not allow resizing. */
+			Disabled = "Disabled",
+			/** Do not allow resizing. */
+			Disabled = "Disabled",
+			/** Allow for resizing both vertically and horizontally. */
+			Enabled = "Enabled",
+			/** Allow for resizing both vertically and horizontally. */
+			Enabled = "Enabled",
+			/** Allow for horizontal resizing. */
+			Horizontal = "Horizontal",
+			/** Allow for horizontal resizing. */
+			Horizontal = "Horizontal",
+			/** Allow for vertical resizing. */
+			Vertical = "Vertical",
 			/** Allow for vertical resizing. */
 			Vertical = "Vertical"
 		}
@@ -8876,26 +10832,105 @@ declare namespace Fit
 		{
 			/** Input control useful for entering a color. */
 			Color = "Color",
+			/** Input control useful for entering a color. */
+			Color = "Color",
+			/** Input control useful for entering a date. */
+			Date = "Date",
 			/** Input control useful for entering a date. */
 			Date = "Date",
 			/** Input control useful for entering a date and time. */
 			DateTime = "DateTime",
+			/** Input control useful for entering a date and time. */
+			DateTime = "DateTime",
+			/** Input control useful for entering an e-mail address. */
+			Email = "Email",
 			/** Input control useful for entering an e-mail address. */
 			Email = "Email",
 			/** Input control useful for entering a month. */
 			Month = "Month",
+			/** Input control useful for entering a month. */
+			Month = "Month",
+			/** Input control useful for entering a number. */
+			Number = "Number",
 			/** Input control useful for entering a number. */
 			Number = "Number",
 			/** Input control useful for entering a password (characters are masked). */
 			Password = "Password",
+			/** Input control useful for entering a password (characters are masked). */
+			Password = "Password",
+			/** Input control useful for entering a phone number. */
+			PhoneNumber = "PhoneNumber",
 			/** Input control useful for entering a phone number. */
 			PhoneNumber = "PhoneNumber",
 			/** Input control useful for entering ordinary text. */
 			Text = "Text",
+			/** Input control useful for entering ordinary text. */
+			Text = "Text",
+			/** Multi line input field. */
+			Textarea = "Textarea",
 			/** Multi line input field. */
 			Textarea = "Textarea",
 			/** Input control useful for entering time. */
 			Time = "Time",
+			/** Input control useful for entering time. */
+			Time = "Time",
+			/** Input control useful for entering a week number. */
+			Week = "Week",
+			/** Input control useful for entering a week number. */
+			Week = "Week"
+		}
+		/**
+		* Enum values determining input type.
+		* @enum {string}
+		*/
+		enum InputType
+		{
+			/** Input control useful for entering a color. */
+			Color = "Color",
+			/** Input control useful for entering a color. */
+			Color = "Color",
+			/** Input control useful for entering a date. */
+			Date = "Date",
+			/** Input control useful for entering a date. */
+			Date = "Date",
+			/** Input control useful for entering a date and time. */
+			DateTime = "DateTime",
+			/** Input control useful for entering a date and time. */
+			DateTime = "DateTime",
+			/** Input control useful for entering an e-mail address. */
+			Email = "Email",
+			/** Input control useful for entering an e-mail address. */
+			Email = "Email",
+			/** Input control useful for entering a month. */
+			Month = "Month",
+			/** Input control useful for entering a month. */
+			Month = "Month",
+			/** Input control useful for entering a number. */
+			Number = "Number",
+			/** Input control useful for entering a number. */
+			Number = "Number",
+			/** Input control useful for entering a password (characters are masked). */
+			Password = "Password",
+			/** Input control useful for entering a password (characters are masked). */
+			Password = "Password",
+			/** Input control useful for entering a phone number. */
+			PhoneNumber = "PhoneNumber",
+			/** Input control useful for entering a phone number. */
+			PhoneNumber = "PhoneNumber",
+			/** Input control useful for entering ordinary text. */
+			Text = "Text",
+			/** Input control useful for entering ordinary text. */
+			Text = "Text",
+			/** Multi line input field. */
+			Textarea = "Textarea",
+			/** Multi line input field. */
+			Textarea = "Textarea",
+			/** Input control useful for entering time. */
+			Time = "Time",
+			/** Input control useful for entering time. */
+			Time = "Time",
+			/** Input control useful for entering a week number. */
+			Week = "Week",
 			/** Input control useful for entering a week number. */
 			Week = "Week"
 		}
@@ -8924,74 +10959,6 @@ declare namespace Fit
 	class Cookies
 	{
 		// Functions defined by Fit.Cookies
-		/**
-		* Create instance of cookie container isolated to either current path (default)
-		or a custom path, and optionally an alternative part of the domain (by default
-		cookies are available only on the current domain, while defining a domain makes
-		cookies available to that particular domain and subdomains).
-		* @function Cookies
-		*/
-		constructor();
-		/**
-		* Get/set portion of domain to which cookies are isolated.
-		* @function Domain
-		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
-		Null to unset it to make cookies available to current domain only (excluding subdomains).
-		* @returns string | null
-		*/
-		public Domain(val?:string | null):string | null;
-		/**
-		* Returns cookie value if found, otherwise Null.
-		* @function Get
-		* @param {string} name - Unique cookie name.
-		* @returns string | null
-		*/
-		public Get(name:string):string | null;
-		/**
-		* Get/set path to which cookies are isolated.
-		* @function Path
-		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
-		* @returns string
-		*/
-		public Path(val?:string):string;
-		/**
-		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
-		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
-		is completely transparent.
-		* @function Prefix
-		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
-		* @returns string | null
-		*/
-		public Prefix(val?:string):string | null;
-		/**
-		* Remove cookie.
-		* @function Remove
-		* @param {string} name - Unique cookie name.
-		*/
-		public Remove(name:string):void;
-		/**
-		* Get/set SameSite policy.
-		* @function SameSite
-		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
-		* @returns string | null
-		*/
-		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
-		/**
-		* Get/set Secure flag.
-		* @function Secure
-		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
-		* @returns boolean
-		*/
-		public Secure(val?:boolean):boolean;
-		/**
-		* Create or update cookie.
-		* @function Set
-		* @param {string} name - Unique cookie name.
-		* @param {string} value - Cookie value (cannot contain semicolon!).
-		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
-		no expiration time will cause it to expire when session ends.
-		*/
-		public Set(name:string, value:string, seconds?:number):void;
 		/**
 		* Returns cookie value if found, otherwise Null.
 		* @function Get
@@ -9062,6 +11029,74 @@ declare namespace Fit
 		* @param {Fit.CookiesDefs.Cookie} newCookie - New or updated cookie.
 		*/
 		public static Set(newCookie:Fit.CookiesDefs.Cookie):void;
+		/**
+		* Create instance of cookie container isolated to either current path (default)
+		or a custom path, and optionally an alternative part of the domain (by default
+		cookies are available only on the current domain, while defining a domain makes
+		cookies available to that particular domain and subdomains).
+		* @function Cookies
+		*/
+		constructor();
+		/**
+		* Get/set portion of domain to which cookies are isolated.
+		* @function Domain
+		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
+		Null to unset it to make cookies available to current domain only (excluding subdomains).
+		* @returns string | null
+		*/
+		public Domain(val?:string | null):string | null;
+		/**
+		* Returns cookie value if found, otherwise Null.
+		* @function Get
+		* @param {string} name - Unique cookie name.
+		* @returns string | null
+		*/
+		public Get(name:string):string | null;
+		/**
+		* Get/set path to which cookies are isolated.
+		* @function Path
+		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
+		* @returns string
+		*/
+		public Path(val?:string):string;
+		/**
+		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
+		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
+		is completely transparent.
+		* @function Prefix
+		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
+		* @returns string | null
+		*/
+		public Prefix(val?:string):string | null;
+		/**
+		* Remove cookie.
+		* @function Remove
+		* @param {string} name - Unique cookie name.
+		*/
+		public Remove(name:string):void;
+		/**
+		* Get/set SameSite policy.
+		* @function SameSite
+		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
+		* @returns string | null
+		*/
+		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
+		/**
+		* Get/set Secure flag.
+		* @function Secure
+		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
+		* @returns boolean
+		*/
+		public Secure(val?:boolean):boolean;
+		/**
+		* Create or update cookie.
+		* @function Set
+		* @param {string} name - Unique cookie name.
+		* @param {string} value - Cookie value (cannot contain semicolon!).
+		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
+		no expiration time will cause it to expire when session ends.
+		*/
+		public Set(name:string, value:string, seconds?:number):void;
 	}
 	/**
 	* Core features extending the capabilities of native JS.
@@ -11063,6 +13098,80 @@ declare namespace Fit
 					* @static
 					*/
 					static Skin:'bootstrapck' | 'moono-lisa' | null;
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
+				}
+				/**
+				* Internal settings related to HTML Editor (Design Mode).
+				* @class [Fit._internal.Controls.Input.Editor Editor]
+				*/
+				class Editor
+				{
+					// Properties defined by Fit._internal.Controls.Input.Editor
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
+				}
+			}
+			/**
+			* Allows for manipulating control (appearance, features, and behaviour).
+			Features are NOT guaranteed to be backward compatible, and incorrect use might break control!.
+			* @namespace [Fit._internal.Controls.Input Input]
+			*/
+			namespace Input
+			{
+				/**
+				* Internal settings related to HTML Editor (Design Mode).
+				* @class [Fit._internal.Controls.Input.Editor Editor]
+				*/
+				class Editor
+				{
+					// Properties defined by Fit._internal.Controls.Input.Editor
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
+				}
+				/**
+				* Internal settings related to HTML Editor (Design Mode).
+				* @class [Fit._internal.Controls.Input.Editor Editor]
+				*/
+				class Editor
+				{
+					// Properties defined by Fit._internal.Controls.Input.Editor
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
+					/**
+					* Skin used with DesignMode - must be set before an editor is created and cannot be changed for each individual control.
+					* @member {'bootstrapck' | 'moono-lisa' | null} Skin
+					* @static
+					*/
+					static Skin:'bootstrapck' | 'moono-lisa' | null;
 				}
 			}
 		}
@@ -11539,6 +13648,14 @@ declare namespace Fit
 			* @function Reset
 			*/
 			public Reset():void;
+			/**
+			* Get/set flag indicating whether focus is returned/restored after drag operation.
+			* @function ReturnFocus
+			* @param {boolean} [val=undefined] - A value of True causes draggable to return focus to previously
+			focused element when drag operation is completed - defaults to False.
+			* @returns boolean
+			*/
+			public ReturnFocus(val?:boolean):boolean;
 		}
 		/**
 		* 
@@ -11685,9 +13802,9 @@ declare namespace Fit
 			// Properties defined by Fit.EventTypeDefs.PointerState
 			/**
 			* Pointer buttons currently activated.
-			* @member {{ Primary: boolean, Secondary: boolean }} Buttons
+			* @member {{ Primary: boolean, Secondary: boolean, Touch: boolean, Target: HTMLElement | null }} Buttons
 			*/
-			Buttons:{ Primary: boolean, Secondary: boolean };
+			Buttons:{ Primary: boolean, Secondary: boolean, Touch: boolean, Target: HTMLElement | null };
 			/**
 			* Pointer position within viewport and document, which might have been scrolled.
 			* @member {{ ViewPort: Fit.TypeDefs.Position, Document: Fit.TypeDefs.Position }} Coordinates
