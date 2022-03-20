@@ -159,7 +159,7 @@ Fit.Controls.Input = function(ctlId)
 
 		try
 		{
-			// We rely on the .buttons property to optimization resizing for textarea (MultiLine mode).
+			// We rely on the .buttons property to optimize resizing for textarea (MultiLine mode).
 			// The MouseEvent class might not be available on older browsers or might throw an exception when constructing.
 			nativeResizableAvailable = window.MouseEvent && new MouseEvent("mousemove", {}).buttons !== undefined || false;
 		}
@@ -169,6 +169,19 @@ Fit.Controls.Input = function(ctlId)
 	// ============================================
 	// Public - overrides
 	// ============================================
+
+	// See documentation on ControlBase
+	this.Visible = Fit.Core.CreateOverride(this.Visible, function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) && designEditorDetached !== null)
+		{
+			designEditorDetached.SetVisible(val);
+		}
+
+		return base(val);
+	});
 
 	// See documentation on ControlBase
 	this.Enabled = function(val)
@@ -202,6 +215,11 @@ Fit.Controls.Input = function(ctlId)
 				Fit.Dom.Attribute(me.GetDomElement(), "tabindex", input.disabled !== true && me.DesignMode() === true ? "-1" : null); // Remove tabindex used to prevent control from losing focus when clicking toolbar buttons, as it will allow control to gain focus when clicked using the mouse
 			}
 
+			if (designEditorDetached !== null)
+			{
+				designEditorDetached.SetEnabled(val);
+			}
+
 			me._internal.UpdateInternalState();
 			me._internal.Repaint();
 		}
@@ -213,6 +231,21 @@ Fit.Controls.Input = function(ctlId)
 	this.Focused = function(focus)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
+
+		if (designEditorDetached !== null)
+		{
+			if (focus === true)
+			{
+				designEditorDetached.Focus();
+			}
+			else if (focus === false)
+			{
+				Fit.Browser.Debug("WARNING: Unable to remove focus from Input control '" + me.GetId() + "' when modal detached editor is open");
+			}
+
+			return me.Visible(); // Always considered focused if detached editor is open and control (along with detached editor) is visible
+			//return designEditorDetached.GetFocused();
+		}
 
 		elm = input;
 
@@ -1016,7 +1049,6 @@ Fit.Controls.Input = function(ctlId)
 				maximizeHeight = ((Fit.Validation.IsSet(heightMax) === true) ? heightMax : ((minimizeHeight !== -1) ? minimizeHeight * 2 : 300));
 				minMaxUnit = h.Unit;
 				maximizeHeightConfigured = heightMax || -1;
-
 
 				// Create maximize/minimize button
 
@@ -2717,12 +2749,22 @@ Fit.Controls.Input = function(ctlId)
 				},
 				doubleclick: function(ev)
 				{
-					// Suppress link dialog for tags (similar code found in beforeCommandExec handler below)
-					if (Fit.Dom.Data(ev.data.element.$, "tag-id") !== null)
+					// Suppress link dialog when double clicking. User must use link
+					// button instead which triggers beforeCommandExec below - it creates
+					// a focus lock to prevent control from losing focus and firing OnBlur.
+					if (ev.data.element.$.tagName === "A")
 					{
 						ev.cancel();
 						return;
 					}
+
+					// Suppress link dialog for tags (similar code found in beforeCommandExec handler below)
+					// DISABLED: No longer needed since link dialog is now suppressed for all links (see code above)
+					/*if (Fit.Dom.Data(ev.data.element.$, "tag-id") !== null)
+					{
+						ev.cancel();
+						return;
+					}*/
 				},
 				paste: function(ev)
 				{
@@ -3089,10 +3131,13 @@ Fit.Controls.Input = function(ctlId)
 
 		updateDetachedConfiguration();
 
-		// Create dialog
+		// Create dialog and buttons
 
 		var dia = new Fit.Controls.Dialog();
 		Fit.Dom.AddClass(dia.GetDomElement(), "FitUiControlInputDetached");
+
+		var cmdOk = new Fit.Controls.Button();
+		var cmdCancel = new Fit.Controls.Button();
 
 		// Create editor
 
@@ -3118,8 +3163,14 @@ Fit.Controls.Input = function(ctlId)
 		// so even though the timer interupts browser events such as onmousemove, onscroll, etc.,
 		// it creates no lack at all.
 		var height = -1
+		var suspendDimensionMonitor = false;
 		var dimMonitorId = setInterval(function()
 		{
+			if (suspendDimensionMonitor === true)
+			{
+				return;
+			}
+
 			if (height === -1 && de._internal.DesignModeEnabledAndReady() === false)
 			{
 				return;
@@ -3194,6 +3245,62 @@ Fit.Controls.Input = function(ctlId)
 				return de.Value();
 			},
 
+			SetVisible: function(val)
+			{
+				// Focus state remains locked when toggling visibility.
+				// We merely make sure to invoke OnBlur and OnFocus events.
+				// Focus lock is only released when detached editor is closed
+				// or if control is disposed.
+
+				if (val === false && dia.IsOpen() === true)
+				{
+					dia.Close();
+					me._internal.FireOnBlur();
+					suspendDimensionMonitor = true;
+				}
+				else if (val === true && dia.IsOpen() === false)
+				{
+					dia.Open();
+					de.Focused(true);
+					me._internal.FireOnFocus();
+					suspendDimensionMonitor = false;
+				}
+			},
+
+			SetEnabled: function(val)
+			{
+				if (val === false && de.Enabled() === true)
+				{
+					de.Enabled(false);
+					cmdOk.Enabled(false);
+					cmdCancel.Focused(true);
+				}
+				else if (val === true && de.Enabled() === false)
+				{
+					de.Enabled(true);
+					cmdOk.Enabled(true);
+					de.Focused(true);
+				}
+			},
+
+			Focus: function()
+			{
+				if (de.Enabled() === true)
+				{
+					de.Focused(true);
+				}
+				else
+				{
+					cmdCancel.Focused(true);
+				}
+			},
+
+			// GetFocused: function()
+			// {
+			// 	return de.Focused() === true /* also returns true if e.g. link/image dialog is open */
+			// 		|| cmdOk.Focused() === true || cmdCancel.Focused() === true;
+			// },
+
 			Reload: function()
 			{
 				// Update configuration
@@ -3219,7 +3326,6 @@ Fit.Controls.Input = function(ctlId)
 			}
 		};
 
-		var cmdOk = new Fit.Controls.Button();
 		cmdOk.Title(locale.Ok);
 		cmdOk.Icon("check");
 		cmdOk.Type(Fit.Controls.ButtonType.Success);
@@ -3243,7 +3349,6 @@ Fit.Controls.Input = function(ctlId)
 		});
 		dia.AddButton(cmdOk);
 
-		var cmdCancel = new Fit.Controls.Button();
 		cmdCancel.Title(locale.Cancel);
 		cmdCancel.Icon("ban");
 		cmdCancel.Type(Fit.Controls.ButtonType.Danger);
@@ -3260,10 +3365,19 @@ Fit.Controls.Input = function(ctlId)
 					}
 				});
 
-				designEditorDetached.Dispose();
+				var enabled = me.Enabled();
+				designEditorDetached.Dispose(); // Dispose first so me.Focused(true) below does not redirect focus to detached editor
 
-				me.Focused(true);
-				me._internal.FocusStateLocked(false);
+				if (enabled === true) // Return focus to control if it is still enabled - if not, do not return focus and fire OnBlur
+				{
+					me.Focused(true);
+					me._internal.FocusStateLocked(false);
+				}
+				else
+				{
+					me._internal.FocusStateLocked(false);
+					me._internal.FireOnBlur();
+				}
 			};
 
 			if (de.IsDirty() === true)
@@ -3273,6 +3387,10 @@ Fit.Controls.Input = function(ctlId)
 					if (res === true)
 					{
 						closeDialog();
+					}
+					else
+					{
+						cmdCancel.Focused(true);
 					}
 				});
 			}
