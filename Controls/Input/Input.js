@@ -38,6 +38,7 @@ Fit.Controls.Input = function(ctlId)
 	var designEditorMustReloadWhenReady = false;
 	var designEditorMustDisposeWhenReady = false;
 	var designEditorUpdateSizeDebouncer = -1;
+	var designEditorHeightMonitorId = -1;
 	var designEditorActiveToolbarPanel = null; // { DomElement: HTMLElement, UnlockFocusStateIfEmojiPanelIsClosed: function, CloseEmojiPanel: function }
 	var designEditorDetached = null; // { GetValue: function, Reload: function, Dispose: function }
 	//var htmlWrappedInParagraph = false;
@@ -624,7 +625,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorActiveToolbarPanel = designEditorDetached /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
 
 		base();
 	});
@@ -674,6 +675,9 @@ Fit.Controls.Input = function(ctlId)
 				me._internal.Data("autogrow", "true"); // Make control container adjust to editor's height
 				autoGrowEnabled = true;
 			}
+
+			// Enable support for relative height if editor is loaded and ready - otherwise enabled in instanceReady handler
+			enableDesignEditorHeightMonitor(val !== -1 && unit === "%" && designModeEnabledAndReady() === true);
 
 			var hideToolbarAgain = false;
 			if (isToolbarHiddenInDesignEditor() === true)
@@ -2458,6 +2462,11 @@ Fit.Controls.Input = function(ctlId)
 						}
 					}
 
+					if (me.Height().Value !== -1 && me.Height().Unit === "%")
+					{
+						enableDesignEditorHeightMonitor(true); // Enable support for relative height
+					}
+
 					if (designEditorConfig !== null && designEditorConfig.InfoPanel && designEditorConfig.InfoPanel.Text)
 					{
 						var infoPanel = document.createElement("div");
@@ -2922,7 +2931,7 @@ Fit.Controls.Input = function(ctlId)
 
 	function updateDesignEditorSize()
 	{
-		if (me.DesignMode() === true)
+		if (me.DesignMode() === true && designEditorHeightMonitorId === -1)
 		{
 			if (designEditorUpdateSizeDebouncer !== -1)
 			{
@@ -2987,6 +2996,39 @@ Fit.Controls.Input = function(ctlId)
 		}
 	}
 
+	function enableDesignEditorHeightMonitor(enable)
+	{
+		Fit.Validation.ExpectBoolean(enable);
+
+		if (enable === true && designEditorHeightMonitorId === -1)
+		{
+			// Temporary fixed height might be set (see hideToolbarInDesignMode()).
+			// Remove it - it will prevent editor from obtaining the height of the control container.
+			designEditorDom.Editable.style.height = "";
+
+			var prevHeight = -1;
+
+			designEditorHeightMonitorId = setInterval(function()
+			{
+				var newHeight = me.GetDomElement().offsetHeight; // Returns 0 if element is not visible
+
+				if (newHeight > 0 && newHeight !== prevHeight)
+				{
+					prevHeight = newHeight;
+
+					designEditorSuppressOnResize = true;
+					designEditor.resize("100%", newHeight + "px"); // Assume full width and height of control container - height:100% does not achieve this, so we apply height in pixels
+					designEditorSuppressOnResize = false;
+				}
+			}, 250);
+		}
+		else if (enable === false && designEditorHeightMonitorId !== -1)
+		{
+			clearInterval(designEditorHeightMonitorId);
+			designEditorHeightMonitorId = -1;
+		}
+	}
+
 	function isToolbarHiddenInDesignEditor() // Returns True if editor is fully loaded and toolbar is hidden
 	{
 		var toolbarContainer = designModeEnabledAndReady() === true ? designEditorDom.Top || designEditorDom.Bottom : null; // Top is null if editor is placed at the bottom
@@ -3011,15 +3053,22 @@ Fit.Controls.Input = function(ctlId)
 			// shown and static height on content area is removed in OnFocus handler registered
 			// in init().
 
-			var content = designEditorDom.Editable;
-			content.style.height = toolbarContainer.offsetHeight + content.offsetHeight + "px";
+			var updateSize = false;
+
+			if (designEditorHeightMonitorId === -1) // Do not apply temporary fixed height if height monitor is running - in this case height will be adjusted as needed
+			{
+				var content = designEditorDom.Editable;
+				content.style.height = toolbarContainer.offsetHeight + content.offsetHeight + "px";
+
+				updateSize = true;
+			}
 
 			// Hide toolbar
 
 			toolbarContainer.style.display = "none";
 
 			// Make editable area adjust to take up space previously consumed by toolbar
-			updateDesignEditorSize();
+			updateSize === true && updateDesignEditorSize();
 		}
 	}
 
@@ -3048,10 +3097,21 @@ Fit.Controls.Input = function(ctlId)
 
 			me._internal.Data("toolbar", "true");
 
-			// Update size of editable area in case auto grow is not enabled, in which case
-			// toolbar will now have taken up space outside of control's container (overflowing).
-			// Make editable area fit control container again.
-			updateDesignEditorSize();
+			if (designEditorHeightMonitorId === -1)
+			{
+				// Update size of editable area in case auto grow is not enabled, in which case
+				// toolbar will now have taken up space outside of control's container (overflowing).
+				// Make editable area fit control container again.
+				updateDesignEditorSize();
+			}
+			else
+			{
+				// Restart height monitor to force update to editor height.
+				// Toolbar buttons caused editor to increase its height so it no longer
+				// fits within the control container - the editor exceeds the boundaries.
+				enableDesignEditorHeightMonitor(false);
+				enableDesignEditorHeightMonitor(true);
+			}
 		}
 	}
 
@@ -3162,7 +3222,7 @@ Fit.Controls.Input = function(ctlId)
 		// However, the process of monitoring the dimensions using a timer is practically free,
 		// so even though the timer interupts browser events such as onmousemove, onscroll, etc.,
 		// it creates no lack at all.
-		var height = -1
+		var height = -1;
 		var suspendDimensionMonitor = false;
 		var dimMonitorId = setInterval(function()
 		{
@@ -3529,6 +3589,12 @@ Fit.Controls.Input = function(ctlId)
 		{
 			clearTimeout(designEditorUpdateSizeDebouncer);
 			designEditorUpdateSizeDebouncer = -1;
+		}
+
+		if (designEditorHeightMonitorId !== -1)
+		{
+			clearInterval(designEditorHeightMonitorId);
+			designEditorHeightMonitorId = -1;
 		}
 
 		if (mutationObserverId !== -1)
