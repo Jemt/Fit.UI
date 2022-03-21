@@ -33,10 +33,18 @@ div.FitUiControlInput[data-multiline="true"][data-designmode="false"]
 }
 
 /* Make control container adjust to textarea or HTML editor when it has been resized */
-div.FitUiControlInput[data-resized="true"]
+div.FitUiControlInput[data-resized="true"][data-resizable="enabled"]
 {
 	width: auto !important;		/* Using !important since dimensions are set as inline styles */
 	height: auto !important;	/* Using !important since dimensions are set as inline styles */
+}
+div.FitUiControlInput[data-resized="true"][data-resizable="vertical"]
+{
+	height: auto !important;
+}
+div.FitUiControlInput[data-resized="true"][data-resizable="horizontal"]
+{
+	width: auto !important;
 }
 div.FitUiControlInput[data-resized="true"] textarea:first-child
 {
