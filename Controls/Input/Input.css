@@ -384,24 +384,6 @@ div.FitUiControlInput[data-designmode="true"] .cke_chrome a[data-tag-id]
 	width: 225px;
 }
 
-/* Detached and maximizable editor hosted in a modal dialog */
-
-div.FitUiControlDialog.FitUiControlInputDetached div.FitUiControlDialogContent
-{
-	padding: 0px;
-	overflow: hidden; /* Make sure scrollbars do not emerge when resizing dialog (reducing height) - editor has scrollbars */
-}
-
-div.FitUiControlDialog.FitUiControlInputDetached .cke_chrome
-{
-	border: none;
-}
-
-div.FitUiControlDialog.FitUiControlInputDetached .cke_wysiwyg_div
-{
-	padding: 0.5em 1.5em;
-}
-
 /* Fluent UI compatibility */
 
 /* The following elements are mounted in document root - make sure they stay on

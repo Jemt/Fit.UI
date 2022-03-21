@@ -101,5 +101,35 @@ Fit.Controls.DialogEditor = function(ctlId)
 		return ed.Enabled(val);
 	}
 
+	/// <function container="Fit.Controls.DialogEditor" name="Focused" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether editor control has focus.
+	/// 		Dialog must be open and visible for focus assignment to work.
+	/// 	</description>
+	/// 	<param name="value" type="boolean" default="undefined"> If defined, True assigns focus, False removes focus (blur) </param>
+	/// </function>
+	this.Focused = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+		return ed.Focused(val);
+	}
+
+	// ============================================
+	// Protected
+	// ============================================
+
+	this._internal = this._internal || {};
+	this._internal.SetDesignModeConfig = function(config) // Allow Input to update editor within dialog - config object validated in DesignMode(..)
+	{
+		if (me.IsOpen() === true)
+		{
+			ed.DesignMode(true, config);
+		}
+		else
+		{
+			updatedConfig = config;
+		}
+	}
+
 	init();
 }

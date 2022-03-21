@@ -730,6 +730,25 @@ Fit.Controls.Dialog = function(controlId)
 		return (resizer !== null);
 	}
 
+	/// <function container="Fit.Controls.Dialog" name="Reset" access="public">
+	/// 	<description> Reset custom size (Resizable enabled) and position (Draggable enabled) </description>
+	/// </function>
+	this.Reset = function()
+	{
+		if (draggable !== null)
+		{
+			draggable.Reset();
+			suppressPositioning = false;
+			updatePosition();
+		}
+
+		if (me.Resizable() === true)
+		{
+			me.Width(me.Width().Value, me.Width().Unit);
+			me.Height(me.Height().Value, me.Height().Unit);
+		}
+	}
+
 	/// <function container="Fit.Controls.Dialog" name="AddButton" access="public">
 	/// 	<description> Add button to dialog </description>
 	/// 	<param name="btn" type="Fit.Controls.Button"> Instance of Fit.Controls.Button </param>

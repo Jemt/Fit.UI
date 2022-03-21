@@ -40,7 +40,7 @@ Fit.Controls.Input = function(ctlId)
 	var designEditorUpdateSizeDebouncer = -1;
 	var designEditorHeightMonitorId = -1;
 	var designEditorActiveToolbarPanel = null; // { DomElement: HTMLElement, UnlockFocusStateIfEmojiPanelIsClosed: function, CloseEmojiPanel: function }
-	var designEditorDetached = null; // { GetValue: function, Reload: function, Dispose: function }
+	var designEditorDetached = null; // { IsActive: boolean, GetValue: function, SetVisible: function, SetEnabled: function, Focus: function, Reload: function, Open: function, Close: function, Dispose: function }
 	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
@@ -233,7 +233,7 @@ Fit.Controls.Input = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
 
-		if (designEditorDetached !== null)
+		if (designEditorDetached !== null && designEditorDetached.IsActive === true)
 		{
 			if (focus === true)
 			{
@@ -3142,16 +3142,32 @@ Fit.Controls.Input = function(ctlId)
 	{
 		me._internal.FocusStateLocked(true);
 
-		var deConfig = null;
+		// Re-use previously created detached editor
 
-		var updateDetachedConfiguration = function()
+		if (designEditorDetached !== null)
 		{
-			deConfig = Fit.Core.Clone(designEditorConfig || {});
+			designEditorDetached.Open();
+			return;
+		}
+
+		// Create dialog editor and buttons
+
+		var de = new Fit.Controls.DialogEditor();
+		var cmdOk = new Fit.Controls.Button();
+		var cmdCancel = new Fit.Controls.Button();
+
+		// Configure dialog
+
+		var setSettings = function(preserveCustomSizeAndPosition)
+		{
+			// Editor configuration
 
 			// Configure detached editor like original, but with a few required changes.
 			// We need to make sure image blobs are handled properly, that detached editor
 			// cannot created another detached editor, that the toolbar is initially visible
 			// at the top of the dialog, and that auto grow is disabled.
+
+			var deConfig = Fit.Core.Clone(designEditorConfig || {});
 
 			if (designModeEnableImagePlugin() === true)
 			{
@@ -3187,69 +3203,12 @@ Fit.Controls.Input = function(ctlId)
 			deConfig.Toolbar.HideInitially = false;
 
 			delete deConfig.AutoGrow;
-		};
 
-		updateDetachedConfiguration();
+			// Dialog configuration - apply default values for properties not defined
 
-		// Create dialog and buttons
-
-		var dia = new Fit.Controls.Dialog();
-		Fit.Dom.AddClass(dia.GetDomElement(), "FitUiControlInputDetached");
-
-		var cmdOk = new Fit.Controls.Button();
-		var cmdCancel = new Fit.Controls.Button();
-
-		// Create editor
-
-		var de = new Fit.Controls.Input();
-
-		var setDetachedEditorSettings = function()
-		{
-			de.Width(100, "%");
-			de.Height(-1);
-			de.CheckSpelling(me.CheckSpelling());
-			de.DesignMode(true, deConfig);
-		};
-
-		setDetachedEditorSettings();
-		de.Value(me.Value());
-
-		// Make editor adjust to the dimensions of the dialog
-
-		// Adjust editor size to fit dialog using a timer.
-		// Alternatively expose an OnResize event on Fit.Controls.Dialog, use it in
-		// combination with window.onresize, and adjust editor when these events are triggered.
-		// However, the process of monitoring the dimensions using a timer is practically free,
-		// so even though the timer interupts browser events such as onmousemove, onscroll, etc.,
-		// it creates no lack at all.
-		var height = -1;
-		var suspendDimensionMonitor = false;
-		var dimMonitorId = setInterval(function()
-		{
-			if (suspendDimensionMonitor === true)
-			{
-				return;
-			}
-
-			if (height === -1 && de._internal.DesignModeEnabledAndReady() === false)
-			{
-				return;
-			}
-
-			var newHeight = dia.GetDomElement().offsetHeight;
-
-			if (newHeight !== height)
-			{
-				height = newHeight
-				de.Height(Fit.Dom.GetInnerDimensions(dia.GetContentDomElement()).Height);
-			}
-		}, 250);
-
-		// Configure dialog
-
-		var setDialogSettings = function(update)
-		{
 			var detachConfig = deConfig.Detachable || {};
+			delete deConfig.Detachable;
+
 			detachConfig = Fit.Core.Merge(detachConfig, // Apply default values - existing properties are preserved (Fit.Core.MergeOverwriteBehaviour.Never)
 			{
 				Title: "",
@@ -3265,23 +3224,28 @@ Fit.Controls.Input = function(ctlId)
 				MaximumHeight: detachConfig.MaximumHeight ? detachConfig.MaximumHeight : { Value: 100, Unit: "%" }
 			}, Fit.Core.MergeOverwriteBehaviour.Never);
 
-			var updateDimensions = (!detachConfig.Resizable || update !== true);
+			// Set dialog settings
 
-			dia.Title(detachConfig.Title);
-			dia.Modal(true);
-			dia.Draggable(detachConfig.Draggable);
-			dia.Resizable(detachConfig.Resizable);
-			dia.Maximizable(detachConfig.Maximizable);
-			dia.Maximized(detachConfig.Maximized);
-			updateDimensions === true && dia.Width(detachConfig.Width.Value, detachConfig.Width.Unit || "px");
-			updateDimensions === true && dia.Height(detachConfig.Height.Value, detachConfig.Height.Unit || "px");
-			dia.MinimumWidth(detachConfig.MinimumWidth.Value, detachConfig.MinimumWidth.Unit || "px");
-			dia.MinimumHeight(detachConfig.MinimumHeight.Value, detachConfig.MinimumHeight.Unit || "px");
-			dia.MaximumWidth(detachConfig.MaximumWidth.Value, detachConfig.MaximumWidth.Unit || "px");
-			dia.MaximumHeight(detachConfig.MaximumHeight.Value, detachConfig.MaximumHeight.Unit || "px");
+			de.Title(detachConfig.Title);
+			de.Modal(true);
+			de.Draggable(detachConfig.Draggable);
+			de.Resizable(detachConfig.Resizable);
+			de.Maximizable(detachConfig.Maximizable);
+			de.Maximized(detachConfig.Maximized);
+			preserveCustomSizeAndPosition === false && de.Width(detachConfig.Width.Value, detachConfig.Width.Unit || "px");
+			preserveCustomSizeAndPosition === false && de.Height(detachConfig.Height.Value, detachConfig.Height.Unit || "px");
+			de.MinimumWidth(detachConfig.MinimumWidth.Value, detachConfig.MinimumWidth.Unit || "px");
+			de.MinimumHeight(detachConfig.MinimumHeight.Value, detachConfig.MinimumHeight.Unit || "px");
+			de.MaximumWidth(detachConfig.MaximumWidth.Value, detachConfig.MaximumWidth.Unit || "px");
+			de.MaximumHeight(detachConfig.MaximumHeight.Value, detachConfig.MaximumHeight.Unit || "px");
+
+			preserveCustomSizeAndPosition === false && de.Reset(); // Reset custom size (resized) and position (dragged)
+
+			// Set dialog editor settings
+
+			de.CheckSpelling(me.CheckSpelling());
+			de._internal.SetDesignModeConfig(deConfig);
 		};
-
-		setDialogSettings();
 
 		// Localization support
 
@@ -3300,6 +3264,8 @@ Fit.Controls.Input = function(ctlId)
 
 		designEditorDetached =
 		{
+			IsActive: false,
+
 			GetValue: function()
 			{
 				return de.Value();
@@ -3312,18 +3278,15 @@ Fit.Controls.Input = function(ctlId)
 				// Focus lock is only released when detached editor is closed
 				// or if control is disposed.
 
-				if (val === false && dia.IsOpen() === true)
+				if (val === false && de.IsOpen() === true)
 				{
-					dia.Close();
+					de.Close();
 					me._internal.FireOnBlur();
-					suspendDimensionMonitor = true;
 				}
-				else if (val === true && dia.IsOpen() === false)
+				else if (val === true && de.IsOpen() === false)
 				{
-					dia.Open();
-					de.Focused(true);
+					de.Open(); // Automatically brings focus to editor
 					me._internal.FireOnFocus();
-					suspendDimensionMonitor = false;
 				}
 			},
 
@@ -3363,25 +3326,27 @@ Fit.Controls.Input = function(ctlId)
 
 			Reload: function()
 			{
-				// Update configuration
-				updateDetachedConfiguration();
+				setSettings(true); // True argument = preserve custom size (resized) and position (dragged)
+			},
 
-				// Update editor
-				setDetachedEditorSettings();
+			Open: function()
+			{
+				designEditorDetached.IsActive = true;
+				de.Value(me.Value());
+				setSettings(false); // False argument = reset custom size (resized) and position (dragged)
+				de.Open();
+			},
 
-				// Update dialog
-				setDialogSettings(true);
-
-				// Make dimension monitor ensure proper editor height (dialog height might have been changed)
-				height = -1;
+			Close: function()
+			{
+				designEditorDetached.IsActive = false;
+				de.Close();
 			},
 
 			Dispose: function()
 			{
-				clearInterval(dimMonitorId);
 				Fit.Internationalization.RemoveOnLocaleChanged(localizeDetachedEditor);
-				de.Dispose();
-				dia.Dispose(); // Will also dispose associated buttons
+				de.Dispose(); // Will also dispose associated buttons
 				designEditorDetached = null;
 			}
 		};
@@ -3402,12 +3367,12 @@ Fit.Controls.Input = function(ctlId)
 
 			me.Value(de.Value());
 
-			designEditorDetached.Dispose();
+			designEditorDetached.Close();
 
 			me.Focused(true);
 			me._internal.FocusStateLocked(false);
 		});
-		dia.AddButton(cmdOk);
+		de.AddButton(cmdOk);
 
 		cmdCancel.Title(locale.Cancel);
 		cmdCancel.Icon("ban");
@@ -3426,7 +3391,7 @@ Fit.Controls.Input = function(ctlId)
 				});
 
 				var enabled = me.Enabled();
-				designEditorDetached.Dispose(); // Dispose first so me.Focused(true) below does not redirect focus to detached editor
+				designEditorDetached.Close(); // Close first so me.Focused(true) below does not redirect focus to detached editor
 
 				if (enabled === true) // Return focus to control if it is still enabled - if not, do not return focus and fire OnBlur
 				{
@@ -3440,7 +3405,7 @@ Fit.Controls.Input = function(ctlId)
 				}
 			};
 
-			if (de.IsDirty() === true)
+			if (de.Value() !== me.Value())
 			{
 				Fit.Controls.Dialog.Confirm(locale.CancelConfirmTitle + "<br><br>" + locale.CancelConfirmDescription, function(res)
 				{
@@ -3459,11 +3424,9 @@ Fit.Controls.Input = function(ctlId)
 				closeDialog();
 			}
 		});
-		dia.AddButton(cmdCancel);
+		de.AddButton(cmdCancel);
 
-		dia.Open();
-		de.Render(dia.GetContentDomElement());
-		de.Focused(true);
+		designEditorDetached.Open();
 	}
 
 	function revertToSingleLineIfNecessary()
