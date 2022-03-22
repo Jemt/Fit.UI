@@ -737,7 +737,6 @@ Fit.Controls.Dialog = function(controlId)
 	{
 		if (draggable !== null)
 		{
-			draggable.Reset();
 			suppressPositioning = false;
 			updatePosition();
 		}
