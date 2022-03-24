@@ -24,6 +24,15 @@ Fit.Controls.DialogEditor = function(ctlId)
 		ed.Height(100, "%");
 		ed.Render(me.GetContentDomElement());
 
+		// Performance optimization:
+		// The editor internally fires OnChange on every change which is expensive.
+		// By configuring OnChange debouncing, we can greatly increase performance,
+		// especially for large documents, which is what DialogEditor is intended for.
+		// The only downside to this is that ControlBase will not be able to update IsDirty
+		// and IsValid state in the control's data-dirty and data-valid DOM attributes.
+		// Control will always fire OnChange immediately when the editor lose focus though.
+		ed.DebounceOnChange(5000); // Only process OnChange every 5 seconds - we don't rely on OnChange or the data-dirty and data-valid attributes
+
 		// me.Modal(true);
 		// me.Maximizable(true);
 		// me.Dismissible(true);
