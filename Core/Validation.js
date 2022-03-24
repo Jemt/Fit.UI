@@ -463,7 +463,7 @@ Fit.Validation.ExpectIsSet = function(val)
 // Misc.
 // ==========================================================
 
-/// <function container="Fit.Validation" name="IsSet" access="public" static="true">
+/// <function container="Fit.Validation" name="IsSet" access="public" static="true" returns="boolean">
 /// 	<description> Returns True if specified object is set (not Null or Undefined), otherwise False </description>
 /// 	<param name="val" type="object"> Object to validate </param>
 /// </function>
