@@ -5,6 +5,11 @@ Fit._internal.ControlBase = { Controls: {} };
 /// <container name="Fit.Controls.Component">
 /// 	Class from which all UI components extend
 /// </container>
+
+/// <function container="Fit.Controls.Component" name="Component" access="public">
+/// 	<description> Component constructor </description>
+/// 	<param name="ctlId" type="string" default="undefined"> Unique component ID that can be used to access component using Fit.Controls.Find(..) </param>
+/// </function>
 Fit.Controls.Component = function(controlId)
 {
 	Fit.Validation.ExpectStringValue(controlId, true);
@@ -135,6 +140,11 @@ Fit.Controls.Component = function(controlId)
 /// <container name="Fit.Controls.ControlBase" extends="Fit.Controls.Component">
 /// 	Class from which all editable controls extend
 /// </container>
+
+/// <function container="Fit.Controls.ControlBase" name="ControlBase" access="public">
+/// 	<description> ControlBase constructor </description>
+/// 	<param name="ctlId" type="string" default="undefined"> Unique control ID that can be used to access control using Fit.Controls.Find(..) </param>
+/// </function>
 Fit.Controls.ControlBase = function(controlId)
 {
 	Fit.Validation.ExpectStringValue(controlId, true);
