@@ -49,7 +49,7 @@ Fit.Controls.DialogEditor = function(ctlId)
 
 		if (ed.DesignMode() === false || updatedConfig !== null)
 		{
-			ed.DesignMode(true, updatedConfig || {});
+			ed.DesignMode(true, updatedConfig || undefined);
 			updatedConfig = null
 		}
 
@@ -69,6 +69,16 @@ Fit.Controls.DialogEditor = function(ctlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.DialogEditor" name="Placeholder" access="public" returns="string">
+	/// 	<description> Get/set value used as a placeholder to indicate expected input on supported browsers </description>
+	/// 	<param name="val" type="string" default="undefined"> If defined, value is set as placeholder </param>
+	/// </function>
+	this.Placeholder = function(val)
+	{
+		Fit.Validation.ExpectString(val, true);
+		return ed.Placeholder(val);
+	}
+
 	/// <function container="Fit.Controls.DialogEditor" name="CheckSpelling" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether control should have spell checking enabled (default) or disabled </description>
 	/// 	<param name="val" type="boolean" default="undefined"> If defined, true enables spell checking while false disables it </param>
@@ -87,6 +97,14 @@ Fit.Controls.DialogEditor = function(ctlId)
 	{
 		Fit.Validation.ExpectString(val, true);
 		return ed.Value(val);
+	}
+
+	/// <function container="Fit.Controls.DialogEditor" name="IsDirty" access="public" returns="boolean">
+	/// 	<description> Get value indicating whether user has changed control value </description>
+	/// </function>
+	this.IsDirty = function()
+	{
+		return ed.IsDirty();
 	}
 
 	/// <function container="Fit.Controls.DialogEditor" name="Enabled" access="public" returns="boolean">
@@ -119,7 +137,7 @@ Fit.Controls.DialogEditor = function(ctlId)
 	// ============================================
 
 	this._internal = this._internal || {};
-	this._internal.SetDesignModeConfig = function(config) // Allow Input to update editor within dialog - config object validated in DesignMode(..)
+	this._internal.SetDesignModeConfig = function(config) // Allow Input control (DesignMode) to update editor within dialog (detached editing) - config object validated in DesignMode(..)
 	{
 		if (me.IsOpen() === true)
 		{
