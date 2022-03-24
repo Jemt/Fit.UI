@@ -41,6 +41,7 @@ Fit.Controls.Input = function(ctlId)
 	var designEditorHeightMonitorId = -1;
 	var designEditorActiveToolbarPanel = null; // { DomElement: HTMLElement, UnlockFocusStateIfEmojiPanelIsClosed: function, CloseEmojiPanel: function }
 	var designEditorDetached = null; // { IsActive: boolean, GetValue: function, SetVisible: function, SetEnabled: function, Focus: function, Reload: function, Open: function, Close: function, Dispose: function }
+	var designEditorClearPlaceholder = true;
 	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
@@ -70,6 +71,12 @@ Fit.Controls.Input = function(ctlId)
 		input.spellcheck = true;
 		input.onkeyup = function()
 		{
+			if (designEditorClearPlaceholder === true)
+			{
+				designEditorClearPlaceholder = false;	// Prevent additional calls to updateDesignEditorPlaceholder - it retrieves editor value which is expensive
+				updateDesignEditorPlaceholder(true);	// Clear placeholder
+			}
+
 			if (debounceOnChangeTimeout === -1)
 			{
 				fireOnChange();
@@ -139,12 +146,12 @@ Fit.Controls.Input = function(ctlId)
 			fireOnChange(); // Only fires OnChange if value has actually changed
 		});
 
-		me.OnFocus(function()
+		me.OnFocus(function(sender)
 		{
 			restoreHiddenToolbarInDesignEditor();	// Make toolbar appear if currently hidden
-			updateDesignEditorPlaceholder(true);	// Clear placeholder text
+			//updateDesignEditorPlaceholder(true);	// Clear placeholder text
 		});
-		me.OnBlur(function()
+		me.OnBlur(function(sender)
 		{
 			restoreDesignEditorButtons();			// Restore (enable) editor's toolbar buttons in case they were temporarily disabled
 			updateDesignEditorPlaceholder();		// Show placeholder text if control value is empty
@@ -625,7 +632,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached = designEditorClearPlaceholder /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
 
 		base();
 	});
@@ -2652,11 +2659,11 @@ Fit.Controls.Input = function(ctlId)
 						// Hide editor toolbar if configured to do so
 						hideToolbarInDesignMode();
 					}
-					else
+					/*else
 					{
 						// Remove placeholder if initially focused
 						updateDesignEditorPlaceholder(true);
-					}
+					}*/
 
 					// Make editor visible - postpone to allow editor to first calculate auto grow height
 					// so the user will not see the chrome (borders) of the editor increase its height.
@@ -3135,6 +3142,11 @@ Fit.Controls.Input = function(ctlId)
 
 			var val = clearPlaceholder !== true && me.Value() === "" ? me.Placeholder() : "";
 			Fit.Dom.Data(designEditorDom.Editable, "placeholder", val || null);
+
+			if (val !== "")
+			{
+				designEditorClearPlaceholder = true;
+			}
 		}
 	}
 
