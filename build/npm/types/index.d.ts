@@ -1411,6 +1411,12 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.Component
 			/**
+			* Component constructor.
+			* @function Component
+			* @param {string} [ctlId=undefined] - Unique component ID that can be used to access component using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
+			/**
 			* Destroys control to free up memory.
 			Make sure to call Dispose() on Component which can be done like so:
 			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
@@ -1742,6 +1748,12 @@ declare namespace Fit
 			* @function Clear
 			*/
 			public Clear():void;
+			/**
+			* ControlBase constructor.
+			* @function ControlBase
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
 			/**
 			* Get/set value indicating whether control is enabled or disabled.
 			A disabled control's value and state is still included on postback, if part of a form.
@@ -2657,6 +2669,19 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public Focused(value?:boolean):boolean;
+			/**
+			* Get value indicating whether user has changed control value.
+			* @function IsDirty
+			* @returns boolean
+			*/
+			public IsDirty():boolean;
+			/**
+			* Get/set value used as a placeholder to indicate expected input on supported browsers.
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder.
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
 			/**
 			* Get/set editor control value.
 			* @function Value
@@ -11323,8 +11348,9 @@ declare namespace Fit
 		* @function IsSet
 		* @static
 		* @param {any} val - Object to validate.
+		* @returns boolean
 		*/
-		public static IsSet(val:any):void;
+		public static IsSet(val:any):boolean;
 		/**
 		* Throw error and provide stack trace to browser console.
 		* @function ThrowError
