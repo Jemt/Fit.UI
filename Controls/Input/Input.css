@@ -416,3 +416,24 @@ html[data-fitui-companion="fluent-ui"] .cke_dialog_container
 {
 	z-index: 2050020 !important; /* Using !important to override inline style */
 }
+
+/* Dialog buttons */
+html[data-fitui-companion="fluent-ui"] a.cke_dialog_ui_button
+{
+	/*height: 2.65em;
+	padding-left: 1.35em;
+	padding-right: 1.35em;*/
+	padding-left: 1em;
+	padding-right: 1em;
+
+	border-radius: 2px;
+	border: 1px solid #8A8886;
+	background-color: white;
+	color: #292E34;
+}
+html[data-fitui-companion="fluent-ui"] a.cke_dialog_ui_button_ok
+{
+	border-color: #39A5DC;
+	background-color: #39A5DC;
+	color: white;
+}

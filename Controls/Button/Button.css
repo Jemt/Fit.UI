@@ -120,3 +120,26 @@ div.FitUiControlButton[data-enabled="true"]:focus
 	outline-offset: 2px;
 	border: 1px solid #4484C7\9; /* Legacy IE (9 and earlier) which does not support outline */
 }
+
+/* Fluent UI compatibility */
+
+html[data-fitui-companion="fluent-ui"] div.FitUiControlButton
+{
+	/*height: 2.65em;
+	padding-left: 1.35em;
+	padding-right: 1.35em;*/
+	padding-left: 1em;
+	padding-right: 1em;
+
+	border-radius: 2px;
+	border: 1px solid #8A8886;
+	background-color: white;
+	color: #292E34;
+}
+html[data-fitui-companion="fluent-ui"] div.FitUiControlButton[data-type="Primary"],
+html[data-fitui-companion="fluent-ui"] div.FitUiControlButton[data-type="Success"]
+{
+	border-color: #39A5DC;
+	background-color: #39A5DC;
+	color: white;
+}
