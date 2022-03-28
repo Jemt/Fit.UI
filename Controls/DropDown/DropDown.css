@@ -167,6 +167,7 @@ div.FitUiControlDropDownItems input
 	font-style: inherit;
 	font-weight: inherit;
 	color: inherit;
+	white-space: pre; /* Bug fix: color:inherit triggers bug in Chrome 99 which prevents whitespaces from working: https://bugs.chromium.org/p/chromium/issues/detail?id=1309014 */
 
 	width: 5px;
 
