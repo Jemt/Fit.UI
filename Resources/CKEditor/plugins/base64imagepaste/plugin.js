@@ -28,6 +28,25 @@
 								return;
 							}
 
+							// Skip handling of image blobs when mixed content (text and images) is received. In this case
+							// images are represented both as <img> tags and (sometimes) as image blobs, resulting in images
+							// being inserted twice. Image blobs are contained in clipboardData.files while image tags are
+							// contained in clipboardData.items.
+							// Copying an image from a web page results in clipboardData containing both an image blob and
+							// an <img> tag with an external image URL.
+							// Copying both text and images from a web page (at least in Chrome 99) results in an empty files
+							// collection, while text and images are contained as text and <img> tags in the items collection.
+							// Copying text and/or images from Word results in files collection containing image blobs,
+							// as well as text and images being represented in the items collection, where images are
+							// represented as <img> tags with image data encoded as base64 (inline images).
+							// Therefore, skipping handling of file data when receiving mixed content, will not cause problems.
+							// We will simply get references to external image URLs or base64 images instead. Insertion of images
+							// as base64 is also what older browsers does.
+							if (clipboardData.files && clipboardData.files.length !== clipboardData.items.length)
+							{
+								return; // Skip image blob handling - let browser insert text content
+							}
+
 							var imageType = /^image/;
 							var items = clipboardData.files || clipboardData.items;
 
