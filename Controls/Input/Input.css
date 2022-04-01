@@ -384,6 +384,23 @@ div.FitUiControlInput[data-designmode="true"] .cke_chrome a[data-tag-id]
 	width: 225px;
 }
 
+@media screen /* Not supported by IE8 - modern browsers only */
+{
+	.cke_autocomplete_panel.cke_autocomplete_opened /* Using both .cke_autocomplete_panel and .cke_autocomplete_opened to increase specificity */
+	{
+		width: auto;		/* Adjust to width of contained items */
+		max-width: 350px;	/* Stay within reasonable proportions */
+	}
+}
+
+@media (max-width: 400px)
+{
+	.cke_autocomplete_panel.cke_autocomplete_opened
+	{
+		max-width: 100%; /* On lowres screens consume no more than available width */
+	}
+}
+
 /* Fluent UI compatibility */
 
 /* The following elements are mounted in document root - make sure they stay on

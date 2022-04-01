@@ -2283,11 +2283,15 @@ Fit.Controls.Input = function(ctlId)
 					{
 						if (item.Icon)
 						{
-							return '<li data-id="' + item.Value + '"><img src="' + item.Icon + '" style="width: 24px; height: 24px; border-radius: 24px; vertical-align: middle" alt=""><span style="display: inline-block; width: 165px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; margin-left: 5px">' + item.Title + '</span></li>';
+							var imageWidth = "24px";
+							var spacingWidth = "5px";
+							var spanWidthCss = isIe8 === true ? "width: 165px" : "width: calc(100% - " + imageWidth + " - " + spacingWidth + ")"; // We are using fixed dimensions on IE8 (see Input.css)
+
+							return '<li data-id="' + item.Value + '"><img src="' + item.Icon + '" style="width: ' + imageWidth + '; height: ' + imageWidth + '; border-radius: ' + imageWidth + '; vertical-align: middle" alt=""><span style="display: inline-block; box-sizing: border-box; ' + spanWidthCss + '; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; margin-left: ' + spacingWidth + '">' + item.Title + '</span></li>';
 						}
 						else
 						{
-							return '<li data-id="' + item.Value + '">' + item.Title + '</li>';
+							return '<li data-id="' + item.Value + '"><span style="display: inline-block; box-sizing: border-box; width: 100%">' + item.Title + '</span></li>';
 						}
 					},
 					outputTemplate: function(item)
