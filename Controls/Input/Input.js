@@ -1251,7 +1251,11 @@ Fit.Controls.Input = function(ctlId)
 
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigTags">
 	/// 	<description> Configuration for tags in DesignMode </description>
-	/// 	<member name="Triggers" type="{ Marker: string, MinimumCharacters?: integer, DebounceQuery?: integer }[]"> Markers triggering tags request and context menu </member>
+	/// 	<member name="Triggers" type="{ Marker: string, MinimumCharacters?: integer, DebounceQuery?: integer, Pattern?: RegExp }[]">
+	/// 		Markers triggering tags request and context menu.
+	/// 		Notice that Pattern, if specified, must include the marker for match to occur,
+	/// 		as well as specifying the minimum amount of characters - e.g. /^@[a-z]{3,}$/
+	/// 	</member>
 	/// 	<member name="QueryUrl" type="string">
 	/// 		URL to request data from. Endpoint receives the following payload:
 	/// 		{ Marker: "@", Query: "search" }
@@ -1415,6 +1419,7 @@ Fit.Controls.Input = function(ctlId)
 				Fit.Validation.ExpectStringValue(trigger.Marker);
 				Fit.Validation.ExpectInteger(trigger.MinimumCharacters, true);
 				Fit.Validation.ExpectInteger(trigger.DebounceQuery, true);
+				Fit.Validation.ExpectInstance(trigger.Pattern, RegExp, true);
 			});
 			Fit.Validation.ExpectStringValue(editorConfig.Tags.QueryUrl);
 			Fit.Validation.ExpectStringValue(editorConfig.Tags.JsonpCallback, true);
@@ -2142,6 +2147,7 @@ Fit.Controls.Input = function(ctlId)
 				{
 					marker: trigger.Marker,
 					minChars: trigger.MinimumCharacters || 0,
+					pattern: trigger.Pattern,
 					throttle: 0, // Throttling is not debouncing - it merely ensures that no more than 1 request is made every X milliseconds when value is changed (defaults to 200ms) - real debouncing implemented further down, which reduce and cancel network calls as user types - also a work around for https://github.com/ckeditor/ckeditor4/issues/5036
 					feed: function(args, resolve)
 					{
