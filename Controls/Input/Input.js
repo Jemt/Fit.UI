@@ -2321,11 +2321,11 @@ Fit.Controls.Input = function(ctlId)
 
 						if (alternativeItem !== null)
 						{
-							return '<a data-tag-type="' + (alternativeItem.Type || trigger.Marker) + '" data-tag-id="' + (alternativeItem.Value || item.Value) + '"' + (alternativeItem.Data || item.Data ? ' data-tag-data="' + (alternativeItem.Data || item.Data) + '"' : '') + (alternativeItem.Context || item.Context ? ' data-tag-context="' + (alternativeItem.Context || item.Context) + '"' : '') + (alternativeItem.Url || item.Url ? ' href="' + (alternativeItem.Url || item.Url) + '"' : 'href=""') + '>' + (alternativeItem.Title || (trigger.Marker + item.Title)) + '</a>';
+							return '<a data-tag-type="' + (alternativeItem.Type || trigger.Marker) + '" data-tag-id="' + (alternativeItem.Value || item.Value) + '"' + (alternativeItem.Data || item.Data ? ' data-tag-data="' + (alternativeItem.Data || item.Data) + '"' : '') + (alternativeItem.Context || item.Context ? ' data-tag-context="' + (alternativeItem.Context || item.Context) + '"' : '') + (alternativeItem.Url || item.Url ? ' href="' + (alternativeItem.Url || item.Url) + '"' : 'href=""') + '>' + (alternativeItem.Title || (trigger.Marker + item.Title)) + '</a>&nbsp;';
 						}
 						else
 						{
-							return '<a data-tag-type="' + trigger.Marker + '" data-tag-id="' + item.Value + '"' + (item.Data ? ' data-tag-data="' + item.Data + '"' : '') + (item.Context ? ' data-tag-context="' + item.Context + '"' : '') + (item.Url ? ' href="' + item.Url + '"' : 'href=""') + '>' + trigger.Marker + item.Title + '</a>';
+							return '<a data-tag-type="' + trigger.Marker + '" data-tag-id="' + item.Value + '"' + (item.Data ? ' data-tag-data="' + item.Data + '"' : '') + (item.Context ? ' data-tag-context="' + item.Context + '"' : '') + (item.Url ? ' href="' + item.Url + '"' : 'href=""') + '>' + trigger.Marker + item.Title + '</a>&nbsp;';
 						}
 					}
 				};
