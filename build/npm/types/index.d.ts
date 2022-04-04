@@ -4697,9 +4697,11 @@ declare namespace Fit
 				TagCreator?:Fit.Controls.InputTypeDefs.DesignModeTagsTagCreator;
 				/**
 				* Markers triggering tags request and context menu.
-				* @member {{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[]} Triggers
+				Notice that Pattern, if specified, must include the marker for match to occur,
+				as well as specifying the minimum amount of characters - e.g. /^@[a-z]{3,}$/.
+				* @member {{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number, Pattern?: RegExp }[]} Triggers
 				*/
-				Triggers:{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number }[];
+				Triggers:{ Marker: string, MinimumCharacters?: number, DebounceQuery?: number, Pattern?: RegExp }[];
 			}
 			/**
 			* Toolbar buttons enabled in DesignMode.
