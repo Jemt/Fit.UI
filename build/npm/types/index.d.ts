@@ -4726,10 +4726,10 @@ declare namespace Fit
 				*/
 				Formatting?:boolean;
 				/**
-				* Hide toolbar until control gains focus (defaults to False).
-				* @member {boolean} [HideInitially=undefined]
+				* Hide toolbar when control is inactive (defaults to False).
+				* @member {boolean} [HideWhenInactive=undefined]
 				*/
-				HideInitially?:boolean;
+				HideWhenInactive?:boolean;
 				/**
 				* Enable image button (defaults to false).
 				* @member {boolean} [Images=undefined]
