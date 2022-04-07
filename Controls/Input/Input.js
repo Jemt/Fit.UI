@@ -3310,6 +3310,19 @@ Fit.Controls.Input = function(ctlId)
 		};
 		Fit.Internationalization.OnLocaleChanged(localizeDetachedEditor);
 
+		// Commit changes when pressing CTRL + S (Windows) or CMD + S (Mac)
+
+		Fit.Events.AddHandler(de.GetDomElement(), "keydown", function(e)
+		{
+			var ev = Fit.Events.GetEvent(e);
+
+			if ((ev.ctrlKey === true || ev.metaKey === true) && ev.keyCode === 83) // CTRL/CMD + S
+			{
+				cmdOk.Click();
+				Fit.Events.PreventDefault(ev);
+			}
+		});
+
 		// Expose detached editor API
 
 		designEditorDetached =
