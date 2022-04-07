@@ -133,6 +133,8 @@ Fit.Controls.Input = function(ctlId)
 
 		me.OnBlur(function(sender)
 		{
+			hideToolbarInDesignMode(); // Hide toolbar if configured to do so
+
 			// Due to CKEditor and plugins allowing for inconsistency between what is being
 			// pushed via OnChange and the editor's actual value, we ensure that the latest
 			// and actual value is pushed via Input.OnChange when the control lose focus.
@@ -1182,7 +1184,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Detach" type="boolean" default="undefined"> Enable detach button (defaults to false) </member>
 	/// 	<member name="Position" type="'Top' | 'Bottom'" default="undefined"> Toolbar position (defaults to Top) </member>
 	/// 	<member name="Sticky" type="boolean" default="undefined"> Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False) </member>
-	/// 	<member name="HideInitially" type="boolean" default="undefined"> Hide toolbar until control gains focus (defaults to False) </member>
+	/// 	<member name="HideWhenInactive" type="boolean" default="undefined"> Hide toolbar when control is inactive (defaults to False) </member>
 	/// </container>
 
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigInfoPanel">
@@ -1372,7 +1374,7 @@ Fit.Controls.Input = function(ctlId)
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Images, true);
 		Fit.Validation.ExpectStringValue(((editorConfig || {}).Toolbar || {}).Position, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Sticky, true);
-		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).HideInitially, true);
+		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).HideWhenInactive, true);
 		Fit.Validation.ExpectBoolean(((editorConfig || {}).Toolbar || {}).Detach, true);
 		Fit.Validation.ExpectObject((editorConfig || {}).InfoPanel, true);
 		Fit.Validation.ExpectString(((editorConfig || {}).InfoPanel || {}).Text, true);
@@ -1491,7 +1493,7 @@ Fit.Controls.Input = function(ctlId)
 				}
 
 				me._internal.Data("designmode", "true");
-				me._internal.Data("toolbar", designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideInitially === true ? "false" : "true");
+				me._internal.Data("toolbar", designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideWhenInactive === true ? "false" : "true");
 				me._internal.Data("toolbar-position", designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Position === "Bottom" ? "bottom" : "top");
 				me._internal.Data("toolbar-sticky", designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Sticky === true ? "true" : "false");
 
@@ -2715,6 +2717,8 @@ Fit.Controls.Input = function(ctlId)
 				{
 					if (designEditorSuppressOnResize === false) // Only set data-resized="true" when resized using resize handle
 					{
+						designEditorDom.Editable.style.height = ""; // Disable fixed height set if toolbar was hidden/displayed at some point (see hideToolbarInDesignMode() and restoreHiddenToolbarInDesignEditor())
+
 						// Disable Min/Max height configured with auto grow feature so user can resize it freely, unless PreventResizeBeyondMaximumHeight is enabled
 						if (designEditorConfig !== null && designEditorConfig.AutoGrow && designEditorConfig.AutoGrow.Enabled === true && designEditorConfig.AutoGrow.PreventResizeBeyondMaximumHeight !== true)
 						{
@@ -3023,15 +3027,20 @@ Fit.Controls.Input = function(ctlId)
 			// Remove it - it will prevent editor from obtaining the height of the control container.
 			designEditorDom.Editable.style.height = "";
 
+			var toolbarContainer = designEditorDom.Top || designEditorDom.Bottom; // Top is null if editor is placed at the bottom
+
 			var prevHeight = -1;
+			var prevToolbarVisible = toolbarContainer.style.display === "";
 
 			designEditorHeightMonitorId = setInterval(function()
 			{
 				var newHeight = me.GetDomElement().offsetHeight; // Returns 0 if element is not visible
+				var newToolbarVisible = toolbarContainer.style.display === "";
 
-				if (newHeight > 0 && newHeight !== prevHeight)
+				if (newHeight > 0 && (newHeight !== prevHeight || newToolbarVisible !== prevToolbarVisible))
 				{
 					prevHeight = newHeight;
+					prevToolbarVisible = newToolbarVisible;
 
 					designEditorSuppressOnResize = true;
 					designEditor.resize("100%", newHeight + "px"); // Assume full width and height of control container - height:100% does not achieve this, so we apply height in pixels
@@ -3052,9 +3061,9 @@ Fit.Controls.Input = function(ctlId)
 		return (toolbarContainer !== null && toolbarContainer.style.display === "none");
 	}
 
-	function hideToolbarInDesignMode() // Editor must be fully loaded before calling this function!
+	function hideToolbarInDesignMode()
 	{
-		if (designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideInitially === true)
+		if (designModeEnabledAndReady() === true && designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideWhenInactive === true)
 		{
 			var toolbarContainer = designEditorDom.Top || designEditorDom.Bottom; // Top is null if editor is placed at the bottom
 
@@ -3091,7 +3100,7 @@ Fit.Controls.Input = function(ctlId)
 
 	function restoreHiddenToolbarInDesignEditor()
 	{
-		if (designModeEnabledAndReady() === true && designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideInitially === true)
+		if (designModeEnabledAndReady() === true && designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideWhenInactive === true)
 		{
 			// Toolbar has been initially hidden - make it appear again
 
@@ -3104,13 +3113,28 @@ Fit.Controls.Input = function(ctlId)
 
 			toolbarContainer.style.display = "";
 
-			// Hiding the toolbar will cause the editor to decrease its height, while displaying the toolbar again
-			// will cause it to increase its height. To avoid this "flickering" a fixed height (toolbar height + content height)
-			// was applied when toolbar was hidden. But now that the toolbar is once again visible, we remove the fixed height
-			// again - otherwise resizing and auto grow will not work.
+			// Hiding the toolbar will reduce the height of the editor since the toolbar takes up place when shown.
+			// Displaying the toolbar again later will naturally increase the editor's height again. To avoid this,
+			// a fixed height is applied to the editable area when toolbar is hidden, so the editor remains the same
+			// height. This fixed height is removed once the toolbar is shown again.
+			// However, if the editor has been resized, then we need to use the resized height of the editor and reduce
+			// the height of the editable area, so the toolbar can fit within the editor without increasing its height.
+			// We must keep the size set by the user.
 
-			var content = designEditorDom.Editable;
-			content.style.height = "";
+			if (me._internal.Data("resized") === "false")
+			{
+				// Remove fixed height from editable area. When toolbar is
+				// shown again, editor will assume its normal height again.
+				var content = designEditorDom.Editable;
+				content.style.height = "";
+			}
+			else
+			{
+				// User has changed size of editor. Reduce height of editable area so that
+				// the toolbar can fit within the editor without increasing the height of it.
+				var content = designEditorDom.Editable;
+				content.style.height = (content.offsetHeight - toolbarContainer.offsetHeight) + "px";
+			}
 
 			me._internal.Data("toolbar", "true");
 
@@ -3222,7 +3246,7 @@ Fit.Controls.Input = function(ctlId)
 			deConfig.Toolbar.Detach = false;
 			deConfig.Toolbar.Position = "Top";
 			deConfig.Toolbar.Sticky = false;
-			deConfig.Toolbar.HideInitially = false;
+			deConfig.Toolbar.HideWhenInactive = false;
 
 			delete deConfig.AutoGrow;
 
