@@ -1524,6 +1524,10 @@ Fit.Controls.Input = function(ctlId)
 						// WARNING: Control could potentially have been disposed at this point, but
 						// we still need to finalize the configuration of CKEditor which is global.
 
+						// Prevent CKEditor from automatically converting editable elements to inline editors.
+						// https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR.html#cfg-disableAutoInline
+						CKEDITOR.disableAutoInline = true;
+
 						if (Fit.Validation.IsSet(Fit._internal.Controls.Input.Editor.Skin) === true)
 						{
 							CKEDITOR.config.skin = Fit._internal.Controls.Input.Editor.Skin;
