@@ -9557,6 +9557,18 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Data
 		/**
+		* Converts base64 value into a blob.
+		* @function Base64ToBlob
+		* @static
+		* @param {string} base64Data - Base64 data to convert into a blob.
+		* @param {string | null} mimeType - Mime type such as image/png. If Null is passed, then mime
+		type will be extracted from base64 value if possible. If mime type
+		cannot be determined, then application/octet-stream will be used.
+		* @param {boolean} async - Perform conversion asynchronously on supported browsers.
+		* @param {(result: { Success: boolean, Blob: Blob | null, Error: string | null }) => void} resolve - Function receiving blob once it is ready. Blob is null if an error occurred, in which case the Error property is set.
+		*/
+		public static Base64ToBlob(base64Data:string, mimeType:string | null, async:boolean, resolve:(result: { Success: boolean, Blob: Blob | null, Error: string | null }) => void):void;
+		/**
 		* Returns Version 4 compliant GUID.
 		* @function CreateGuid
 		* @static
