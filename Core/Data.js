@@ -73,6 +73,103 @@ Fit.Data.CreateGuid = function(dashFormat)
 	return uuid.join("");
 }
 
+/// <function container="Fit.Data" name="Base64ToBlob" access="public" static="true">
+/// 	<description> Converts base64 value into a blob </description>
+/// 	<param name="base64Data" type="string"> Base64 data to convert into a blob </param>
+/// 	<param name="mimeType" type="string | null">
+/// 		Mime type such as image/png. If Null is passed, then mime
+/// 		type will be extracted from base64 value if possible. If mime type
+/// 		cannot be determined, then application/octet-stream will be used.
+/// 	</param>
+/// 	<param name="async" type="boolean"> Perform conversion asynchronously on supported browsers </param>
+/// 	<param name="resolve" type="(result: { Success: boolean, Blob: Blob | null, Error: string | null }) => void">
+/// 		Function receiving blob once it is ready. Blob is null if an error occurred, in which case the Error property is set.
+/// 	</param>
+/// </function>
+Fit.Core.Base64ToBlob = function(base64Data, mimeType, async, resolve)
+{
+	Fit.Validation.ExpectStringValue(base64Data);
+	Fit.Validation.ExpectStringValue(mimeType || "unknown"); // Allow null to sniff mime type from base64 data URL
+	Fit.Validation.ExpectBoolean(async);
+	Fit.Validation.ExpectFunction(resolve);
+
+	// Prepare data - handle base64 image URL format
+
+	var base64 = base64Data;
+	var contentType = mimeType || "";
+
+	var dataUrlRegEx = /^data:(.+);base64,/; // 0 = Full match, 1 = mime type
+
+	if (dataUrlRegEx.test(base64) === true)
+	{
+		contentType = contentType || base64.match(dataUrlRegEx)[1];
+		base64 = base64.replace(dataUrlRegEx, ""); // Remove e.g. "data:image/png;base64," which leaves us with just the raw base64 data
+	}
+
+	contentType = contentType || "application/octet-stream";
+
+	// Convert base64 to blob
+
+	var createResult = function(success, blob, error)
+	{
+		return { Success: success, Blob: blob, Error: error };
+	};
+
+	if (async === true && window.fetch) // Chrome 42+, Safari 10.1+, Firefox 39+, MSEdge 14+
+	{
+		fetch("data:" + contentType + ";base64," + base64).then(function(response)
+		{
+			response.blob().then(function(blob)
+			{
+				resolve(createResult(true, blob, null));
+
+			})["catch"](function(rejectReason) // Using ["catch"](..) rather than .catch(..) to avoid parse error in IE8
+			{
+				resolve(createResult(false, null, "Unable to read blob"));
+			});
+
+		})["catch"](function(rejectReason) // Using ["catch"](..) rather than .catch(..) to avoid parse error in IE8
+		{
+			resolve(createResult(false, null, "Unable to fetch blob, possibly due to invalid base64 value"));
+		});
+	}
+	else if (window.atob) // Almost all browsers (not IE8 and IE9 though)
+	{
+		var byteCharacters = null;
+		var byteArrays = [];
+		var sliceSize = 512;
+
+		try
+		{
+			byteCharacters = atob(base64);
+		}
+		catch (err)
+		{
+			resolve(createResult(false, null, "Invalid base64 value"));
+		}
+
+		for (var offset = 0; offset < byteCharacters.length; offset += sliceSize)
+		{
+			var slice = byteCharacters.slice(offset, offset + sliceSize);
+			var byteNumbers = new Array(slice.length);
+
+			for (var i = 0; i < slice.length; i++)
+			{
+				byteNumbers[i] = slice.charCodeAt(i);
+			}
+
+			var byteArray = new Uint8Array(byteNumbers);
+			byteArrays.push(byteArray);
+		}
+
+		resolve(createResult(true, new Blob(byteArrays, { type: contentType }), null));
+	}
+	else // Unsupported browser
+	{
+		resolve(createResult(false, null, "Unsupported browser"));
+	}
+}
+
 
 // =====================================
 // Math
