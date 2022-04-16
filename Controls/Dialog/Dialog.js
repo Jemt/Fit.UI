@@ -1262,6 +1262,12 @@ Fit.Controls.Dialog = function(controlId)
 		var offsetTop = (dim.Height - elm.offsetHeight) * 0.25;	// Place dialog vertically with 25% of available space above dialog and remaining 75% space below dialog
 		var offsetLeft = (dim.Width - elm.offsetWidth) * 0.5;	// Place dialog exactly in the middle horizontally
 
+		// Positioning affects element dimensions on high density pixel displays
+		// in Chrome which can be resolved by rounding down top and left values:
+		// https://bugs.chromium.org/p/chromium/issues/detail?id=1316873
+		offsetTop = Math.floor(offsetTop);
+		offsetLeft = Math.floor(offsetLeft);
+
 		if (offsetTop < 0) // Value becomes negative if dialog is higher than viewport
 		{
 			offsetTop = 0;
