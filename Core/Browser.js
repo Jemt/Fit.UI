@@ -18,17 +18,29 @@
 Fit.Browser = {};
 Fit._internal.Browser = {};
 
+// Allow Fit.Browser unit tests to override user agent information
+// to test parsing of a range of different user agent strings.
+Fit._internal.Browser.UserAgent = navigator.userAgent;
+
 /// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns='"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"'>
 /// 	<description>
-/// 		Returns name of browser. Possible values are: Chrome (which also covers modern versions of Opera and Edge),
-/// 		Safari, Edge (version 12-18), MSIE (version 8-11), Firefox, Opera (version 1-12), Unknown.
+/// 		Returns name of browser useful for adjusting behaviour based on render engine.
+/// 		Possible values are: Chrome (both WebKit and Blink based - also returned for modern versions of
+/// 		Opera and Edge), Safari (also returned for Edge, Chrome, Opera, and Firefox on iOS), Edge (version 12-18),
+/// 		MSIE (version 8-11), Firefox, Opera (version 1-12), and Unknown.
 /// 	</description>
 /// 	<param name="returnAppId" type="false" default="false"> Set True to have app specific identifier returned </param>
 /// </function>
-/// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns='"Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown"'>
+/// <function container="Fit.Browser" name="GetBrowser" access="public" static="true" returns='"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"'>
 /// 	<description>
-/// 		Returns browser app identifer. Possible values are: Chrome, Safari, Edge (version 12-18), EdgeChromium (version 85+),
-/// 		MSIE (version 8-11), Firefox, Opera (version 1-12), OperaChromium (version 15+), Unknown
+/// 		Returns browser app name useful for adjusting behaviour based on actual
+/// 		application, regardless of render engine and platform. Possible values are:
+/// 		Chrome (both Webkit and Blink based), Safari, Edge (both legacy and modern),
+/// 		MSIE (version 8-11), Firefox, Opera (both legacy and modern), and Unknown.
+/// 		Be careful not to check against browser app name and app version alone.
+/// 		For instance Opera 3 on a touch device is newer than Opera 60 on a Desktop
+/// 		device, as they are two completely different browsers. Check whether the browser runs on
+/// 		a tablet or phone using e.g. Fit.Browser.IsMobile(true) or Fit.Browser.GetInfo(true).IsMobile.
 /// 	</description>
 /// 	<param name="returnAppId" type="true"> Set True to have app specific identifier returned </param>
 /// </function>
@@ -36,7 +48,7 @@ Fit.Browser.GetBrowser = function(returnAppId)
 {
 	Fit.Validation.ExpectBoolean(returnAppId, true);
 
-	var agent = navigator.userAgent;
+	var agent = Fit._internal.Browser.UserAgent;
 
 	// IMPORTANT: The order in which browsers are detected matters! For instance, several browsers define both Chrome and Safari as part of their user agent string. Examples:
 	// Firefox 46	"Mozilla/5.0 (Windows NT 5.2; rv:46.0) Gecko/20100101 Firefox/46.0"
@@ -50,20 +62,18 @@ Fit.Browser.GetBrowser = function(returnAppId)
 	// Edge 18		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363"
 	// Edge 85		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36 Edg/85.0.564.41"
 
-	if (agent.indexOf("Edge/") > -1)
-		return "Edge";
-	if (returnAppId === true && agent.indexOf("Edg/") > -1)
-		return "EdgeChromium";
+	if (agent.indexOf("Edge/") > -1 || (returnAppId === true && (agent.indexOf("Edg/") > -1 || agent.indexOf("EdgiOS/") > -1 || agent.indexOf("EdgA/") > -1)))
+		return "Edge"; // Legacy Edge is identified by "Edge/", Chromium based Edge is identified by "Edg/", Edge on iOS is identified by "EdgiOS/", and Edge on Android is identified by "EdgA/"
 	if (agent.indexOf("MSIE") > -1 || agent.indexOf("Trident") > -1)
 		return "MSIE";
-	if (agent.indexOf("Firefox") > -1)
-		return "Firefox";
-	if (agent.indexOf("Opera") > -1)
-		return "Opera";
-	if (returnAppId === true && agent.indexOf("OPR/") > -1)
-		return "OperaChromium";
-	if (agent.indexOf("Chrome") > -1)
-		return "Chrome";
+	if (agent.indexOf("Opera") > -1 || (returnAppId === true && (agent.indexOf("OPR/") > -1 || agent.indexOf("OPT/") > -1)))
+		return "Opera"; // Legacy Opera is identified by "Opera", Chromium based Opera is identified by "OPR/", and Opera on iOS is identified by "OPT/"
+	if (agent.indexOf("OPT/") > -1 && (agent.indexOf("iPhone;") > -1 || agent.indexOf("iPad;") > -1))
+		return "Safari"; // Opera on iOS does not contain "Opera", nor "Safari" to identify the engine like other browsers using WebView - we can use "OPT/" plus "iPhone;" or "iPad;" instead
+	if (agent.indexOf("Firefox") > -1 || (returnAppId === true && agent.indexOf("FxiOS/") > -1))
+		return "Firefox"; // Firefox is identified by "Firefox" except on iOS where "FxiOS/" identifies it instead
+	if (agent.indexOf("Chrome") > -1 || (returnAppId === true && agent.indexOf("CriOS/") > -1))
+		return "Chrome"; // Chrome is identified by "Chrome" except on iOS where "CriOS/" identifies it instead
 	if (agent.indexOf("Safari") > -1)
 		return "Safari";
 
@@ -97,37 +107,56 @@ Fit.Browser.GetVersion = function(returnAppVersion)
 
 	var start = 0;
 	var end = 0;
-	var agent = navigator.userAgent;
+	var agent = Fit._internal.Browser.UserAgent;
 
 	if (browser === "Edge")
 	{
-		start = agent.indexOf("Edge/");
-		start = (start !== -1 ? start + 5 : 0);
+		var search = agent.indexOf("Edge/") > -1 && "Edge/" || agent.indexOf("Edg/") > -1 && "Edg/" || agent.indexOf("EdgiOS/") > -1 && "EdgiOS/" || agent.indexOf("EdgA/") > -1 && "EdgA/" || null;
+
+		start = search !== null && agent.indexOf(search) || -1;
+		start = (start !== -1 ? start + search.length : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
-	if (browser === "EdgeChromium")
+	else if (browser === "Chrome")
 	{
-		start = agent.indexOf("Edg/");
-		start = (start !== -1 ? start + 4 : 0);
+		var search = agent.indexOf("Chrome/") > -1 && "Chrome/" || agent.indexOf("CriOS/") > -1 && "CriOS/" || null;
+
+		start = search !== null && agent.indexOf(search) || -1;
+		start = (start !== -1 ? start + search.length : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
-	if (browser === "Chrome")
+	else if (browser === "Safari")
 	{
-		start = agent.indexOf("Chrome/");
-		start = (start !== -1 ? start + 7 : 0);
-		end = agent.indexOf(".", start);
-		end = (end !== -1 ? end : 0);
+		var search = agent.indexOf("CriOS/") > -1 && "CriOS/" || agent.indexOf("FxiOS/") > -1 && "FxiOS/" || agent.indexOf("EdgiOS/") > -1 && "EdgiOS/" || agent.indexOf("OPT/") > -1 && "OPT/" || null;
+
+		if (search !== null) // Browser based on WebView on iOS - Chrome, Firefox, Edge, or Opera
+		{
+			if (returnAppVersion !== true) // Return Safari version parsed from OS version
+			{
+				start = agent.indexOf(" OS ");
+				start = (start !== -1 ? start + 4 : 0);
+				end = agent.indexOf("_", start);
+				end = (end !== -1 ? end : 0);
+			}
+			else // Return application version
+			{
+				start = agent.indexOf(search);
+				start = (start !== -1 ? start + search.length : 0);
+				end = agent.indexOf(".", start);
+				end = (end !== -1 ? end : 0);
+			}
+		}
+		else // Real Safari or Firefox on iPad which does not identify itself as Firefox
+		{
+			start = agent.indexOf("Version/");
+			start = (start !== -1 ? start + 8 : 0);
+			end = agent.indexOf(".", start);
+			end = (end !== -1 ? end : 0);
+		}
 	}
-	if (browser === "Safari")
-	{
-		start = agent.indexOf("Version/");
-		start = (start !== -1 ? start + 8 : 0);
-		end = agent.indexOf(".", start);
-		end = (end !== -1 ? end : 0);
-	}
-	if (browser === "MSIE")
+	else if (browser === "MSIE")
 	{
 		if (agent.indexOf("MSIE") > -1)
 		{
@@ -144,37 +173,21 @@ Fit.Browser.GetVersion = function(returnAppVersion)
 			end = (end !== -1 ? end : 0);
 		}
 	}
-	if (browser === "Firefox")
+	else if (browser === "Firefox")
 	{
-		start = agent.indexOf("Firefox/");
-		start = (start !== -1 ? start + 8 : 0);
+		var search = agent.indexOf("Firefox/") > -1 && "Firefox/" || agent.indexOf("FxiOS/") > -1 && "FxiOS/" || null;
+
+		start = search !== null && agent.indexOf(search) || -1;
+		start = (start !== -1 ? start + search.length : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
-	if (browser === "Opera")
+	else if (browser === "Opera")
 	{
-		start = agent.indexOf("Version/");
-		start = (start !== -1 ? start + 8 : -1);
+		var search = agent.indexOf("Version/") > -1 && "Version/" || agent.indexOf("Opera ") > -1 && "Opera " || agent.indexOf("Opera/") > -1 && "Opera/" || agent.indexOf("OPR/") > -1 && "OPR/" || agent.indexOf("OPT/") > -1 && "OPT/" || null;
 
-		if (start === -1)
-		{
-			start = agent.indexOf("Opera/");
-			start = (start !== -1 ? start + 6 : -1);
-		}
-
-		if (start === -1)
-		{
-			start = agent.indexOf("Opera ");
-			start = (start !== -1 ? start + 6 : -1);
-		}
-
-		end = agent.indexOf(".", start);
-		end = (end !== -1 ? end : 0);
-	}
-	if (browser === "OperaChromium")
-	{
-		start = agent.indexOf("OPR/");
-		start = (start !== -1 ? start + 4 : 0);
+		start = search !== null && agent.indexOf(search) || -1;
+		start = (start !== -1 ? start + search.length : 0);
 		end = agent.indexOf(".", start);
 		end = (end !== -1 ? end : 0);
 	}
@@ -708,7 +721,22 @@ Fit.Browser.GetScreenDimensions = function(onlyAvailable)
 }
 
 /// <function container="Fit.Browser" name="IsMobile" access="public" static="true" returns="boolean">
-/// 	<description> Returns value indicating whether device is a mobile device or not </description>
+/// 	<description>
+/// 		Returns value indicating whether device is a mobile device or not.
+/// 		Notice that some phones and tablets may identify as desktop devices,
+/// 		in which case IsMobile(..) will return False. In this case consider
+/// 		using Fit.Browser.IsTouchEnabled(), e.g. in combination with
+/// 		Fit.Browser.GetBrowser(), or a check against the size of the viewport,
+/// 		which will provide some indication as to whether device should be treated
+/// 		as a mobile device or not. As an example, Safari on iPad identifies as
+/// 		a Mac computer by default (it has &quot;Request Desktop Website&quot; enabled by default).
+/// 		To always detect iPad and iPhone as a mobile device, no matter the configuration
+/// 		of &quot;Request Desktop Website&quot;), simply use:
+/// 		var isMobile = Fit.Browser.IsMobile(true) || (Fit.Browser.GetBrowser() === &quot;Safari&quot; &amp;&amp; Fit.Browser.IsTouchEnabled())
+/// 		We will not be able to distinguish between an iPhone and an iPad though, not even
+/// 		by looking at the viewport size, since this approach is unreliable with high resolution
+/// 		iPhones and support for split screen which affects the viewport size.
+/// 	</description>
 /// 	<param name="includeTablets" type="boolean" default="true"> Value indicating whether tablets are considered mobile devices or not </param>
 /// </function>
 Fit.Browser.IsMobile = function(includeTablets)
@@ -718,7 +746,7 @@ Fit.Browser.IsMobile = function(includeTablets)
 	// Based on http://detectmobilebrowsers.com
 	// See About section for Tablet support: http://detectmobilebrowsers.com/about
 
-	var nav = navigator.userAgent || navigator.vendor;
+	var nav = Fit._internal.Browser.UserAgent;
 
 	if (includeTablets !== false && /android|ipad|playbook|silk/i.test(nav))
 		return true;
@@ -733,7 +761,6 @@ Fit.Browser.IsTouchEnabled = function()
 {
 	return ("ontouchstart" in window);
 }
-
 
 /// <function container="Fit.Browser" name="Log" access="public" static="true">
 /// 	<description> Log message or object </description>
