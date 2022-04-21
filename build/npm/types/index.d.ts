@@ -670,8 +670,10 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Browser
 		/**
-		* Returns name of browser. Possible values are: Chrome (which also covers modern versions of Opera and Edge),
-		Safari, Edge (version 12-18), MSIE (version 8-11), Firefox, Opera (version 1-12), Unknown.
+		* Returns name of browser useful for adjusting behaviour based on render engine.
+		Possible values are: Chrome (both WebKit and Blink based - also returned for modern versions of
+		Opera and Edge), Safari (also returned for Edge, Chrome, Opera, and Firefox on iOS), Edge (version 12-18),
+		MSIE (version 8-11), Firefox, Opera (version 1-12), and Unknown.
 		* @function GetBrowser
 		* @static
 		* @param {false} [returnAppId=false] - Set True to have app specific identifier returned.
@@ -679,14 +681,20 @@ declare namespace Fit
 		*/
 		public static GetBrowser(returnAppId?:false):"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown";
 		/**
-		* Returns browser app identifer. Possible values are: Chrome, Safari, Edge (version 12-18), EdgeChromium (version 85+),
-		MSIE (version 8-11), Firefox, Opera (version 1-12), OperaChromium (version 15+), Unknown.
+		* Returns browser app name useful for adjusting behaviour based on actual
+		application, regardless of render engine and platform. Possible values are:
+		Chrome (both Webkit and Blink based), Safari, Edge (both legacy and modern),
+		MSIE (version 8-11), Firefox, Opera (both legacy and modern), and Unknown.
+		Be careful not to check against browser app name and app version alone.
+		For instance Opera 3 on a touch device is newer than Opera 60 on a Desktop
+		device, as they are two completely different browsers. Check whether the browser runs on
+		a tablet or phone using e.g. Fit.Browser.IsMobile(true) or Fit.Browser.GetInfo(true).IsMobile.
 		* @function GetBrowser
 		* @static
 		* @param {true} returnAppId - Set True to have app specific identifier returned.
-		* @returns "Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown"
+		* @returns "Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown"
 		*/
-		public static GetBrowser(returnAppId:true):"Edge" | "EdgeChromium" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "OperaChromium" | "Unknown";
+		public static GetBrowser(returnAppId:true):"Edge" | "Chrome" | "Safari" | "MSIE" | "Firefox" | "Opera" | "Unknown";
 		/**
 		* Get style value applied after stylesheets have been loaded.
 		An empty string or null may be returned if style has not been defined or does not exist.
@@ -824,6 +832,19 @@ declare namespace Fit
 		public static GetViewPortDimensions(includeScrollbars?:boolean):Fit.TypeDefs.Dimension;
 		/**
 		* Returns value indicating whether device is a mobile device or not.
+		Notice that some phones and tablets may identify as desktop devices,
+		in which case IsMobile(..) will return False. In this case consider
+		using Fit.Browser.IsTouchEnabled(), e.g. in combination with
+		Fit.Browser.GetBrowser(), or a check against the size of the viewport,
+		which will provide some indication as to whether device should be treated
+		as a mobile device or not. As an example, Safari on iPad identifies as
+		a Mac computer by default (it has "Request Desktop Website" enabled by default).
+		To always detect iPad and iPhone as a mobile device, no matter the configuration
+		of "Request Desktop Website"), simply use:
+		var isMobile = Fit.Browser.IsMobile(true) || (Fit.Browser.GetBrowser() === "Safari" && Fit.Browser.IsTouchEnabled())
+		We will not be able to distinguish between an iPhone and an iPad though, not even
+		by looking at the viewport size, since this approach is unreliable with high resolution
+		iPhones and support for split screen which affects the viewport size.
 		* @function IsMobile
 		* @static
 		* @param {boolean} [includeTablets=true] - Value indicating whether tablets are considered mobile devices or not.
