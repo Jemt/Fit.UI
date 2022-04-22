@@ -352,12 +352,25 @@ Fit.Controls.Input = function(ctlId)
 			}
 		}
 
+		// Guard against disposed control in case Focused(false) was called and an OnBlur handler disposed the control.
+		// As the code further up shows, we call me._internal.FireOnBlur() if a dialog is currently open. This results
+		// in OnBlur firing immediately, while normally it happens asynchronously due to how OnFocus and OnBlur is handled
+		// in ControlBase, in which case we do not need to worry that the control might be disposed. It happens "later".
+		// The situation can easily arise if an OnScroll handler is reponsible for removing focus from a control,
+		// and if that control also has an OnBlur handler registered which disposes the control. Scrolling with a
+		// dialog open will then trigger the situation which we guard against here.
+		if (me === null)
+		{
+			return false;
+		}
+
 		if (me.DesignMode() === true)
 		{
 			// If a dialog is open and it belongs to this control instance, and focus is found within dialog, then control is considered having focus.
 			// However, if <body> is focused while dialog is open, control is also considered to have focus, since dialog temporarily assigns focus to
 			// <body> when tabbing between elements within the dialog. This seems safe as no other control can be considered focused if <body> has focus.
-			if (Fit._internal.Controls.Input.ActiveEditorForDialog === me && (Fit.Dom.Contained(Fit._internal.Controls.Input.ActiveDialogForEditor.getElement().$, Fit.Dom.GetFocused()) === true || Fit.Dom.GetFocused() === document.body))
+			// We also consider the control focused if an associated dialog (modal) is currently loading (Fit._internal.Controls.Input.ActiveDialogForEditor is null).
+			if (Fit._internal.Controls.Input.ActiveEditorForDialog === me && (Fit._internal.Controls.Input.ActiveDialogForEditor === null || Fit.Dom.Contained(Fit._internal.Controls.Input.ActiveDialogForEditor.getElement().$, Fit.Dom.GetFocused()) === true || Fit.Dom.GetFocused() === document.body))
 				return true;
 
 			// If a toolbar dialog/callout is open and contains the element currently having focus, then control is considered having focus.
@@ -1998,7 +2011,7 @@ Fit.Controls.Input = function(ctlId)
 				{
 					// Still not rooted - add observer to create editor instance once control is rooted
 
-					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(e)
+					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(e) // NOTICE: Also set in updateDesignEditorSize()
 					{
 						if (retry() === true || me.DesignMode() === false)
 						{
@@ -3038,11 +3051,35 @@ Fit.Controls.Input = function(ctlId)
 				// This is a problem because CKEditor uses setTimeout(..) to for instance
 				// allow early registration of events, and because resources are loaded
 				// in an async. manner.
-				designEditorUpdateSizeDebouncer = setTimeout(function()
+				designEditorUpdateSizeDebouncer = setTimeout(function() // Timer is stopped if control is disposed
 				{
 					designEditorUpdateSizeDebouncer = -1;
 					updateDesignEditorSize();
 				}, 100);
+
+				return;
+			}
+
+			if (Fit.Dom.IsRooted(me.GetDomElement()) === false) // CKEditor has been created and is ready but control has been removed from DOM
+			{
+				// CKEditor throws an error if dimensions are changed when not rooted in DOM. Control might
+				// be added/removed dynamically as needed in the user interface, so we need to support this.
+
+				if (rootedEventId === -1)
+				{
+					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(e) // NOTICE: Also set in createEditor()
+					{
+						Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
+						rootedEventId = -1;
+
+						// Control has been rooted in DOM again - call updateDesignEditorSize() again if DesignMode is still enabled
+
+						if (me.DesignMode() === true)
+						{
+							updateDesignEditorSize();
+						}
+					});
+				}
 
 				return;
 			}
