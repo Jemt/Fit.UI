@@ -931,7 +931,9 @@ Fit.Events.AddMutationObserver = function(elm, obs, deep)
 		Fit.Events.AddHandler(document, "touchstart", Fit._internal.Events.CheckMutations);
 		Fit.Events.AddHandler(document, "touchend", Fit._internal.Events.CheckMutations);
 		Fit.Events.AddHandler(document, "touchcancel", Fit._internal.Events.CheckMutations);
-		Fit._internal.Events.MutationObserverIntervalId = setInterval(Fit._internal.Events.CheckMutations, 1000);
+
+		var checkInterval = Fit._internal.Events.Browser.Name !== "MSIE" ? 500 : 1000;
+		Fit._internal.Events.MutationObserverIntervalId = setInterval(Fit._internal.Events.CheckMutations, checkInterval);
 	}
 
 	// Add mutation observer
