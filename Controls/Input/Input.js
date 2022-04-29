@@ -423,6 +423,41 @@ Fit.Controls.Input = function(ctlId)
 				input.value = val;
 			}
 
+			// Notice: Identical logic is NOT found in DesignMode(true, config) as with RevokeExternalBlobUrlsOnDispose below.
+			// When the RevokeUnreferencedBlobUrlsOnValueSet mechanism is in play, the control has already been used as an HTML editor
+			// before, as we are expecting the control to be re(-used) to manipulate different values. In this case we already have
+			// designEditorConfig available, although it could theoretically be changed over time so RevokeUnreferencedBlobUrlsOnValueSet
+			// is sometimes enabled and sometimes not - but we don't care to support poor design like this:
+			// input.DesignMode(true, configWithRevokeUnreferencedBlobUrlsOnValueSetDISBLED);
+			// input.Value("New HTML value");
+			// input.DesignMode(true, configWithRevokeUnreferencedBlobUrlsOnValueSetENABLED); // This will not clean up image blobs no longer referenced
+			if (designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.RevokeUnreferencedBlobUrlsOnValueSet === true)
+			{
+				// Remove image blobs from memory when a new value is set, unless some (or all)
+				// of these image blobs are still referenced in the new value, of course.
+				// This is useful if an editor instance is being (re-)used to modify different values.
+				// NOTICE: There is a major memory leak in CKEditor related to bulk pasting images
+				// from the file system, and the last image pasted always remains in memory:
+				// https://github.com/ckeditor/ckeditor4/issues/5124
+
+				var blobUrlsReferenced = Fit.String.ParseImageBlobUrls(val);
+				var newImageBlobUrls = [];
+
+				Fit.Array.ForEach(imageBlobUrls, function(blobUrl)
+				{
+					if (Fit.Array.Contains(blobUrlsReferenced, blobUrl) === true)
+					{
+						newImageBlobUrls.push(blobUrl); // Keep - still referenced in new value
+					}
+					else
+					{
+						URL.revokeObjectURL(blobUrl); // Revoke - no longer referenced in new value
+					}
+				});
+
+				imageBlobUrls = newImageBlobUrls;
+			}
+
 			// Notice: Identical logic found in DesignMode(true, config)!
 			if (designEditorConfig !== null && designEditorConfig.Plugins && designEditorConfig.Plugins.Images && designEditorConfig.Plugins.Images.RevokeExternalBlobUrlsOnDispose === true)
 			{
@@ -431,8 +466,11 @@ Fit.Controls.Input = function(ctlId)
 				// is allowed (and expected) to take control over memory management for these blobs
 				// based on the rule set in RevokeBlobUrlsOnDispose.
 				// This code is also found in DesignMode(true, config) since images might be added before
-				// editor is created, in which case we do not yet have the editor configuration used to determine
-				// the desired behaviour.
+				// DesignMode is enabled, in which case we do not yet have the editor configuration needed
+				// to determine the desired behaviour.
+				// NOTICE: There is a major memory leak in CKEditor related to bulk pasting images
+				// from the file system, and the last image pasted always remains in memory:
+				// https://github.com/ckeditor/ckeditor4/issues/5124
 
 				var blobUrls = Fit.String.ParseImageBlobUrls(val);
 
@@ -1180,6 +1218,12 @@ Fit.Controls.Input = function(ctlId)
 	/// 		over to the control for the duration of its life time.
 	/// 		These images are furthermore subject to the rule set in RevokeBlobUrlsOnDispose.
 	/// 		Defaults to False.
+	/// 	</member>
+	/// 	<member name="RevokeUnreferencedBlobUrlsOnValueSet" type="boolean" default="undefined">
+	/// 		This option is in effect when EmbedType is blob.
+	/// 		Dispose images from blob storage (revoke blob URLs) when value is changed with Value(..),
+	/// 		but keep any images still referenced in new value. This is useful if an editor instance
+	/// 		is being used to modify different HTML values over time.
 	/// 	</member>
 	/// </container>
 
