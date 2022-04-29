@@ -417,6 +417,7 @@ Fit.Controls.Input = function(ctlId)
 				});
 
 				updateDesignEditorPlaceholder();
+				updateDesignEditorSize(); // In case auto grow is enabled, in which case editor must adjust its height to its new content
 			}
 			else
 			{
@@ -2055,7 +2056,7 @@ Fit.Controls.Input = function(ctlId)
 				{
 					// Still not rooted - add observer to create editor instance once control is rooted
 
-					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(e) // NOTICE: Also set in updateDesignEditorSize()
+					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(e)
 					{
 						if (retry() === true || me.DesignMode() === false)
 						{
@@ -3080,6 +3081,8 @@ Fit.Controls.Input = function(ctlId)
 	{
 		if (me.DesignMode() === true && designEditorHeightMonitorId === -1)
 		{
+			// Postpone if editor is not ready yet
+
 			if (designEditorUpdateSizeDebouncer !== -1)
 			{
 				clearTimeout(designEditorUpdateSizeDebouncer);
@@ -3104,43 +3107,8 @@ Fit.Controls.Input = function(ctlId)
 				return;
 			}
 
-			if (Fit.Dom.IsRooted(me.GetDomElement()) === false) // CKEditor has been created and is ready but control has been removed from DOM
-			{
-				// CKEditor throws an error if dimensions are changed when not rooted in DOM. Control might
-				// be added/removed dynamically as needed in the user interface, so we need to support this.
-
-				if (rootedEventId === -1)
-				{
-					rootedEventId = Fit.Events.AddHandler(me.GetDomElement(), "#rooted", function(e) // NOTICE: Also set in createEditor()
-					{
-						Fit.Events.RemoveHandler(me.GetDomElement(), rootedEventId);
-						rootedEventId = -1;
-
-						// Control has been rooted in DOM again - call updateDesignEditorSize() again if DesignMode is still enabled
-
-						if (me.DesignMode() === true)
-						{
-							updateDesignEditorSize();
-						}
-					});
-				}
-
-				return;
-			}
-
-			//var w = me.Width();
-			var h = me.Height();
-
-			// Default control width is 200px (defined in Styles.css).
-			// NOTICE: resize does not work reliably when editor is hidden, e.g. behind a tab with display:none.
-			// The height set will not have the height of the toolbar substracted since the height can not be
-			// determined for hidden objects, so the editor will become larger than the value set (height specified + toolbar height).
-			// http://docs.ckeditor.com/#!/api/CKEDITOR.editor-method-resize
-			designEditorSuppressOnResize = true;
-			designEditor.resize("100%", h.Value > -1 ? h.Value + h.Unit : "100%"); // A height of 100% allow editor to automatically adjust the height of the editor's content area to the height of its content (data-autogrow="true" must be set to make control container adjust to its content as well)
-			designEditorSuppressOnResize = false;
-
-			// Set mutation observer responsible for updating editor size once it becomes visible
+			// Postpone update to editor size if control is currently hidden or not
+			// rooted in DOM, in which case designEditor.resize(..) will throw an error.
 
 			if (mutationObserverId !== -1) // Cancel any mutation observer previously registered
 			{
@@ -3148,22 +3116,43 @@ Fit.Controls.Input = function(ctlId)
 				mutationObserverId = -1;
 			}
 
-			var concealer = Fit.Dom.GetConcealer(me.GetDomElement()); // Get element hiding editor
-
-			if (concealer !== null) // Editor is hidden - adjust size when it becomes visible
+			if (Fit.Dom.IsVisible(me.GetDomElement()) === false) // Hidden (e.g. display:none or not rooted in DOM)
 			{
-				mutationObserverId = Fit.Events.AddMutationObserver(concealer, function(elm)
+				// Mutation observer is triggered when element changes, including when rooted, in which case
+				// width and height becomes measurable, and changes to dimensions also trigger mutation observer.
+				mutationObserverId = Fit.Events.AddMutationObserver(me.GetDomElement(), function(elm)
 				{
 					if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
 					{
-						designEditorSuppressOnResize = true;
-						designEditor.resize("100%", h.Value > -1 ? h.Value + h.Unit : "100%"); // A height of 100% allow editor to automatically adjust the height of the editor's content area to the height of its content (data-autogrow="true" must be set to make control container adjust to its content as well)
-						designEditorSuppressOnResize = false;
+						disconnect();
+						mutationObserverId = -1;
 
-						disconnect(); // Observers are expensive - remove when no longer needed
+						updateDesignEditorSize(); // Does nothing if DesignMode is no longer enabled
 					}
 				});
+
+				return;
 			}
+
+			//var w = me.Width();
+			var h = me.Height();
+
+			// If editor is configured with AutoGrow enabled and toolbar is configured with HideWhenInactive,
+			// then editor won't be able to adjust its height when not focused, since a fixed height is applied
+			// to the editable area while the toolbar is hidden. Therefore, temporarily show the toolbar, update
+			// the editor size, and then hide the toolbar again.
+			var showHideToolbar = me.Focused() === false;
+
+			// Default control width is 200px (defined in Styles.css).
+			// NOTICE: resize does not work reliably when editor is hidden, e.g. behind a tab with display:none.
+			// The height set will not have the height of the toolbar substracted since the height can not be
+			// determined for hidden objects, so the editor will become larger than the value set (height specified + toolbar height).
+			// http://docs.ckeditor.com/#!/api/CKEDITOR.editor-method-resize
+			designEditorSuppressOnResize = true;
+			showHideToolbar && restoreHiddenToolbarInDesignEditor(true); // Does nothing unless HideWhenInactive is enabled - true argument prevents call back to updateDesignEditorSize again, hence preventing a "maximum call stack exceeded" error
+			designEditor.resize("100%", h.Value > -1 ? h.Value + h.Unit : "100%"); // A height of 100% allow editor to automatically adjust the height of the editor's content area to the height of its content (data-autogrow="true" must be set to make control container adjust to its content as well)
+			showHideToolbar && hideToolbarInDesignMode(true); // Does nothing unless HideWhenInactive is enabled - true argument prevents call back to updateDesignEditorSize again, hence preventing a "maximum call stack exceeded" error
+			designEditorSuppressOnResize = false;
 		}
 	}
 
@@ -3211,8 +3200,10 @@ Fit.Controls.Input = function(ctlId)
 		return (toolbarContainer !== null && toolbarContainer.style.display === "none");
 	}
 
-	function hideToolbarInDesignMode()
+	function hideToolbarInDesignMode(suppressUpdateEditorSize)
 	{
+		Fit.Validation.ExpectBoolean(suppressUpdateEditorSize, true);
+
 		if (designModeEnabledAndReady() === true && designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideWhenInactive === true)
 		{
 			var toolbarContainer = designEditorDom.Top || designEditorDom.Bottom; // Top is null if editor is placed at the bottom
@@ -3244,12 +3235,14 @@ Fit.Controls.Input = function(ctlId)
 			toolbarContainer.style.display = "none";
 
 			// Make editable area adjust to take up space previously consumed by toolbar
-			updateSize === true && updateDesignEditorSize();
+			updateSize === true && suppressUpdateEditorSize !== true && updateDesignEditorSize();
 		}
 	}
 
-	function restoreHiddenToolbarInDesignEditor()
+	function restoreHiddenToolbarInDesignEditor(suppressUpdateEditorSize)
 	{
+		Fit.Validation.ExpectBoolean(suppressUpdateEditorSize, true);
+
 		if (designModeEnabledAndReady() === true && designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideWhenInactive === true)
 		{
 			// Toolbar has been initially hidden - make it appear again
@@ -3293,7 +3286,7 @@ Fit.Controls.Input = function(ctlId)
 				// Update size of editable area in case auto grow is not enabled, in which case
 				// toolbar will now have taken up space outside of control's container (overflowing).
 				// Make editable area fit control container again.
-				updateDesignEditorSize();
+				suppressUpdateEditorSize !== true && updateDesignEditorSize();
 			}
 			else
 			{
