@@ -4641,6 +4641,14 @@ declare namespace Fit
 				* @member {boolean} [RevokeExternalBlobUrlsOnDispose=undefined]
 				*/
 				RevokeExternalBlobUrlsOnDispose?:boolean;
+				/**
+				* This option is in effect when EmbedType is blob.
+				Dispose images from blob storage (revoke blob URLs) when value is changed with Value(..),
+				but keep any images still referenced in new value. This is useful if an editor instance
+				is being used to modify different HTML values over time.
+				* @member {boolean} [RevokeUnreferencedBlobUrlsOnValueSet=undefined]
+				*/
+				RevokeUnreferencedBlobUrlsOnValueSet?:boolean;
 			}
 			/**
 			* Configuration for tags in DesignMode.
