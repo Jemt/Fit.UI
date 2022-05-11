@@ -36,7 +36,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	var detectBoundaries = false;				// Flag indicating whether calendar widget should detect viewport collision and open upwards when needed
 	var detectBoundariesRelToViewPort = false;	// Flag indicating whether calendar widget should be positioned relative to viewport (true) or scroll parent (false)
 
-	var isMobile = Fit.Browser.GetInfo().IsMobile;
+	var isMobile = Fit.Browser.GetInfo().IsMobile || (Fit.Browser.GetInfo().IsTouchEnabled && Fit.Browser.GetInfo().Name === "Safari"); // More recent versions of Safari on iPad identifies as a Mac computer by default ("Request desktop website" is enabled by default)
 	var inputMobile = null;		// Native date picker on mobile devices - value selected is synchronized to input field defined above (remains Null on desktop devices)
 	var inputTimeMobile = null;	// Native time picker on mobile devices - value selected is synchronized to inputTime field defined above (remains Null on desktop devices)
 
@@ -133,7 +133,6 @@ Fit.Controls.DatePicker = function(ctlId)
 		// Prevent OnFocus from firing when user interacts with calendar widget which
 		// is not contained in div.FitUiControlDatePicker (changing month/year and selecting date).
 		// Focus is returned to input almost immediately after interacting with calendar widget.
-		// TODO/TBD: Use FocusStateLocked instead? See https://github.com/Jemt/Fit.UI/issues/103
 		//  - Also see FireOnBlur override further down.
 		me._internal.FireOnFocus = Fit.Core.CreateOverride(me._internal.FireOnFocus, function()
 		{
@@ -147,15 +146,19 @@ Fit.Controls.DatePicker = function(ctlId)
 		// Prevent OnBlur from firing when user interacts with calendar widget which
 		// is not contained in div.FitUiControlDatePicker (changing month/year).
 		// Focus is returned to input almost immediately after interacting with calendar widget.
-		// TODO/TBD: Use FocusStateLocked instead? See https://github.com/Jemt/Fit.UI/issues/103
 		//  - Also see FireOnFocus override above.
 		me._internal.FireOnBlur = Fit.Core.CreateOverride(me._internal.FireOnBlur, function()
 		{
-			if (open === false)
+			var pointerState = Fit.Events.GetPointerState();
+			var userAction = pointerState.Buttons.Primary === true || pointerState.Buttons.Touch === true;
+
+			if (open === true && userAction === true) // Skipping invocation of OnBlur event when user interacts with calendar widget
 			{
-				focused = false;
-				base();
+				return;
 			}
+
+			focused = false;
+			base();
 		});
 
 		input.onblur = function()
@@ -201,6 +204,11 @@ Fit.Controls.DatePicker = function(ctlId)
 				inputTime.value = "00:00";
 				prevTimeVal = "00:00";
 			}
+
+			if (open === true) // Calendar might be left open if focus is "stolen" from control, e.g. using document.activeElement.blur(), or using datePicker.Focused(false)
+			{
+				me.Hide();
+			}
 		});
 
 		me._internal.AddDomElement(input);
@@ -238,24 +246,19 @@ Fit.Controls.DatePicker = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
 
-		var inp = ((inputMobile === null) ? input : inputMobile);
-
 		if (Fit.Validation.IsSet(focus) === true)
 		{
-			if (focus === true)
+			if (focus === true && me.Focused() === false)
 			{
-				inp.focus();
+				((inputMobile === null) ? input : inputMobile).focus();
 			}
-			else
+			else if (focus === false && me.Focused() === true)
 			{
-				inp.blur();
-
-				if (isMobile === false) // Prevent infinite loop - Hide() calls Focused(false) on mobile
-					me.Hide();
+				Fit.Dom.GetFocused().blur();
 			}
 		}
 
-		return Fit.Dom.GetFocused() === inp;
+		return Fit.Array.Contains([input, inputTime, inputMobile, inputTimeMobile], Fit.Dom.GetFocused()) === true;
 	}
 
 	/// <function container="Fit.Controls.DatePicker" name="Value" access="public" returns="string">
@@ -1141,6 +1144,21 @@ Fit.Controls.DatePicker = function(ctlId)
 				// the value manually and pressed ESC to close the calendar.
 				// Calendar widget returns focus if closed using ESC key.
 				input.onblur();
+
+				// Calendar remains open if control lose focus while year or month picker is open (has focus).
+				// In this case OnBlur does not fire for the control since elements within the calendar
+				// widget is not part of the control (it lives in the root of the document), and therefore
+				// does not inherit the automatic invocation of OnBlur and OnFocus.
+				// This is unlikely to happen since it would require focus to programmatically be changed
+				// while user is interacting with the year or month pickers. But if it does happen, we make
+				// sure to fire OnBlur when the calendar widget closes, which happens when the user interacts
+				// with something else on the page.
+				// If the user decides to return focus to the control, it will not cause OnFocus to fire again,
+				// without firing OnBlur in-between, thanks to the 'focused' flag.
+				if (focused === true && Fit.Dom.GetFocused() !== input)
+				{
+					me._internal.FireOnBlur();
+				}
 			}
 		});
 
