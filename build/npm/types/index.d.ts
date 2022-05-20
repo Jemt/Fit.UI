@@ -11858,6 +11858,13 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.DragDrop.Draggable
 			/**
+			* Get next z-index which will place an element above any draggable element.
+			* @function GetNextZindex
+			* @static
+			* @returns number
+			*/
+			public static GetNextZindex():number;
+			/**
 			* Bring draggable to front.
 			* @function BringToFront
 			*/
