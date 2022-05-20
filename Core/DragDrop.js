@@ -538,6 +538,14 @@ Fit.DragDrop.Draggable._internal =
 	active: null
 }
 
+/// <function container="Fit.DragDrop.Draggable" name="GetNextZindex" access="public" static="true" returns="integer">
+/// 	<description> Get next z-index which will place an element above any draggable element </description>
+/// </function>
+Fit.DragDrop.Draggable.GetNextZindex = function()
+{
+	return Fit.DragDrop.Draggable._internal.getNextZindex();
+}
+
 // DropZone
 
 /// <function container="Fit.DragDrop.DropZone" name="DropZone" access="public">

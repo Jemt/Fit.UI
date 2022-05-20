@@ -855,8 +855,22 @@ Fit.Controls.Dialog = function(controlId)
 		if (draggable !== null)
 		{
 			draggable.BringToFront();
-			layer.style.zIndex = dialog.style.zIndex; // Ensure modal layer always remains exactly behind dialog with the same z-index value
 		}
+		else
+		{
+			Fit.Array.ForEach(document.querySelectorAll("div.FitUiControlDialog"), function(diaElm)
+			{
+				var dia = Fit.Controls.Find(diaElm.id);
+
+				if (dia.Draggable() === true)
+				{
+					dialog.style.zIndex = Fit.DragDrop.Draggable.GetNextZindex();
+					return false;
+				}
+			});
+		}
+
+		layer.style.zIndex = dialog.style.zIndex; // Ensure modal layer always remains exactly behind dialog with the same z-index value
 	}
 
 	/// <function container="Fit.Controls.Dialog" name="Open" access="public">
