@@ -77,13 +77,22 @@ Fit.Controls.Dialog = function(controlId)
 			if (me === null)
 				return; // Dialog was disposed when a button was clicked
 
+			var target = Fit.Events.GetTarget(e);
+
 			// Do not focus first button when a (any) button within the button area was clicked.
 			// Button clicked might have been e.g. second button, which perhaps caused dialog to remain open,
 			// in which case we should not change focus. The button clicked could also have changed focus in
 			// which case we should not intervene. In case button did not change focus, it will remain focused
 			// of course since it was clicked.
-			if (buttons !== null && Fit.Dom.Contained(buttons, Fit.Events.GetTarget(e)))
+			if (buttons !== null && Fit.Dom.Contained(buttons, target))
 				return;
+
+			// Do not focus first button if maximize button or dismiss button was clicked
+			if ((cmdMaximize !== null && (target === cmdMaximize.GetDomElement() || Fit.Dom.Contained(cmdMaximize.GetDomElement(), target) === true)) ||
+				(cmdDismiss !== null && (target === cmdDismiss.GetDomElement() || Fit.Dom.Contained(cmdDismiss.GetDomElement(), target) === true)))
+			{
+				return;
+			}
 
 			if (buttons !== null && (Fit.Dom.GetFocused() === null || Fit.Dom.Contained(dialog, Fit.Dom.GetFocused()) === false))
 				buttons.children[0].focus();
