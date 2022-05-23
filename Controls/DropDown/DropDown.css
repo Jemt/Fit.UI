@@ -420,3 +420,21 @@ div.FitUiControlDropDown span.FitUiControlDropDownActionMenuItemIconDelete
 {
 	color: #DB1E1E;
 }
+
+/* Fluent UI compatibility */
+
+/* Replace font-awesome X icon with more lightweight icon based on rotated plus symbol */
+html[data-fitui-companion="fluent-ui"] div.FitUiControlDropDown div.FitUiControlDropDownItems > span > span > i
+{
+	transform: rotate(45deg);
+	font-size: 1.5em;
+	top: -0.01em;
+}
+html[data-fitui-companion="fluent-ui"] div.FitUiControlDropDown div.FitUiControlDropDownItems > span > span > i:before
+{
+	content: "+";
+}
+html[data-fitui-companion="fluent-ui"] div.FitUiControlDropDown[data-multiselect="true"] div.FitUiControlDropDownItems > span > span > i
+{
+	top: 0.05em;
+}
