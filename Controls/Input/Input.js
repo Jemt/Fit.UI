@@ -43,6 +43,8 @@ Fit.Controls.Input = function(ctlId)
 	var designEditorDetached = null; // { IsActive: boolean, GetValue: function, SetVisible: function, SetEnabled: function, Focus: function, Reload: function, Open: function, Close: function, Dispose: function }
 	var designEditorClearPlaceholder = true;
 	var designEditorCleanEditableDom = false;
+	var designEditorGlobalKeyDownEventId = -1;
+	var designEditorGlobalKeyUpEventId = -1;
 	//var htmlWrappedInParagraph = false;
 	var wasAutoChangedToMultiLineMode = false; // Used to revert to single line if multi line was automatically enabled along with DesignMode(true), Maximizable(true), or Resizable(true)
 	var minimizeHeight = -1;
@@ -689,7 +691,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached = designEditorClearPlaceholder = designEditorCleanEditableDom /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
+		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached = designEditorClearPlaceholder = designEditorCleanEditableDom = designEditorGlobalKeyDownEventId = designEditorGlobalKeyUpEventId /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
 
 		base();
 	});
@@ -2512,6 +2514,63 @@ Fit.Controls.Input = function(ctlId)
 						return;
 					}
 
+					// Make links in editor clickable in combination with CTRL/META/SHIFT
+					var mouseOver = false;
+					Fit.Events.AddHandler(designEditorDom.Editable, "mouseover", function(e)
+					{
+						mouseOver = true;
+						Fit.Dom.Data(designEditorDom.Editable, "command-button-active", (e.ctrlKey === true || e.metaKey === true || e.shiftKey === true) && "true" || null);
+					});
+					Fit.Events.AddHandler(designEditorDom.Editable, "mouseout", function(e)
+					{
+						mouseOver = false;
+						Fit.Dom.Data(designEditorDom.Editable, "command-button-active", null);
+					});
+					designEditorGlobalKeyDownEventId = Fit.Events.AddHandler(document, "keydown", function(e)
+					{
+						mouseOver && Fit.Dom.Data(designEditorDom.Editable, "command-button-active", (e.ctrlKey === true || e.metaKey === true || e.shiftKey === true) && "true" || null);
+					});
+					designEditorGlobalKeyUpEventId = Fit.Events.AddHandler(document, "keyup", function(e)
+					{
+						mouseOver && Fit.Dom.Data(designEditorDom.Editable, "command-button-active", null);
+					});
+					Fit.Events.AddHandler(designEditorDom.Editable, "click", function(e)
+					{
+						var target = Fit.Events.GetTarget(e);
+
+						// Notice that target.href is computed - it is always a fully qualified URL. For an empty href attribute the href property
+						// will point to the current page URL, and for a relative URL in the href attribute the href property is combined with the
+						// current page URL, also forming a fully qualified URL.
+
+						if (target.tagName === "A" && Fit.Dom.Attribute(target, "href") !== "")
+						{
+							if (e.ctrlKey === true || e.metaKey === true)
+							{
+								window.open(target.href);
+							}
+							else if (e.shiftKey === true)
+							{
+								window.open(target.href, "_blank");
+							}
+							else if (me.Enabled() === false)
+							{
+								var popupCode = Fit.Dom.Data(target, "cke-pa-onclick");
+
+								if (popupCode !== null) // Popup window link - example code: window.open(this.href, "name", "options"); return false;
+								{
+									popupCode = popupCode.replace("this.href", "'" + target.href + "'"); // Insert link URL
+									popupCode = popupCode.replace("return false;", ""); // Remove return statement which is illegal in eval(..)
+
+									eval(popupCode);
+								}
+								else
+								{
+									window.open(target.href, Fit.Dom.Attribute(target, "target") || "_self");
+								}
+							}
+						}
+					});
+
 					removeCkeSavedSrcAttributesFromDesignEditor();
 
 					updateDesignEditorPlaceholder(); // Show/hide placeholder - value might have been set/removed while initializing editor
@@ -3752,6 +3811,16 @@ Fit.Controls.Input = function(ctlId)
 			designEditorDetached.Dispose();
 		}
 
+		if (designEditorGlobalKeyDownEventId !== -1)
+		{
+			Fit.Events.RemoveHandler(document, designEditorGlobalKeyDownEventId);
+		}
+
+		if (designEditorGlobalKeyUpEventId !== -1)
+		{
+			Fit.Events.RemoveHandler(document, designEditorGlobalKeyUpEventId);
+		}
+
 		designEditor = null;
 		designEditorDom = null;
 		//designEditorDirty = false; // Do NOT reset this! We need to preserve dirty state in case DesignMode is reloaded!
@@ -3767,6 +3836,8 @@ Fit.Controls.Input = function(ctlId)
 		designEditorDetached = null;
 		designEditorClearPlaceholder = true;
 		designEditorCleanEditableDom = false;
+		designEditorGlobalKeyDownEventId = -1;
+		designEditorGlobalKeyUpEventId = -1;
 
 		if (designEditorUpdateSizeDebouncer !== -1)
 		{
