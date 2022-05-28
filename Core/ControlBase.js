@@ -35,7 +35,8 @@ Fit.Controls.Component = function(controlId)
 		container.id = id;
 		container._internal = { Instance: me };
 
-		Fit.Dom.Data(container, "device", ((Fit.Browser.GetInfo().IsMobile === false) ? "Desktop" : (Fit.Browser.GetInfo().IsPhone === true) ? "Phone" : "Tablet"));
+		//Fit.Dom.Data(container, "device", ((Fit.Browser.GetInfo().IsMobile === false) ? "Desktop" : (Fit.Browser.GetInfo().IsPhone === true) ? "Phone" : "Tablet"));
+		Fit.Dom.Data(container, "device", Fit.Device.OptimizeForTouch === false ? "Desktop" : "Touch");
 	}
 
 	/// <function container="Fit.Controls.Component" name="GetId" access="public" returns="string">

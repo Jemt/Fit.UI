@@ -21,8 +21,9 @@ div.FitUiControlDropDownItems /* Item container */
 	position: relative; /* Allow absolute positioning of arrow icon within item container */
 	overflow: hidden; /* Prevent large items from overflowing boundaries, in case of tiny control width */
 }
-div.FitUiControlDropDown[data-focused="true"][data-device="Phone"] div.FitUiControlDropDownItems,
-div.FitUiControlDropDown[data-focused="true"][data-device="Tablet"] div.FitUiControlDropDownItems
+/*div.FitUiControlDropDown[data-focused="true"][data-device="Phone"] div.FitUiControlDropDownItems,
+div.FitUiControlDropDown[data-focused="true"][data-device="Tablet"] div.FitUiControlDropDownItems*/
+div.FitUiControlDropDown[data-focused="true"][data-device="Touch"] div.FitUiControlDropDownItems
 {
 	/* Make it obvious that a drop down has focus in
 	   case the menu is closed and no input field has focus.
