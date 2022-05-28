@@ -1980,13 +1980,13 @@ Fit.Controls.Input = function(ctlId)
 	/// 		Every new keystroke/change resets the timer. Debouncing can
 	/// 		improve performance when working with large amounts of data.
 	/// 	</description>
-	/// 	<param name="timeout" type="integer"> If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing </param>
+	/// 	<param name="timeout" type="integer" default="undefined"> If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing </param>
 	/// </function>
 	this.DebounceOnChange = function(timeout)
 	{
-		Fit.Validation.ExpectInteger(timeout);
+		Fit.Validation.ExpectInteger(timeout, true);
 
-		if (Fit.Validation.IsSet(debounceOnChangeTimeout) === true && timeout !== debounceOnChangeTimeout)
+		if (Fit.Validation.IsSet(timeout) === true && timeout !== debounceOnChangeTimeout)
 		{
 			debounceOnChangeTimeout = timeout;
 
