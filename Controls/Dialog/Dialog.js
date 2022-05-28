@@ -1532,6 +1532,7 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 
 		var val = txt.Value();
 		txt.Dispose();
+		txt = null;
 
 		if (res === true) // OK
 		{
@@ -1545,8 +1546,18 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 
 	Fit.Events.AddHandler(baseDialog.Dialog.GetDomElement(), "keydown", function(e)
 	{
+		if (txt === null)
+		{
+			return; // Dialog closed - user pressed Space or Enter on OK or Cancel button
+		}
+
 		if (e.keyCode === 13 && txt.Focused() === true) // ENTER
 		{
+			// Prevent insertion of a line break if focus is returned to an editable
+			// element when dialog is closed. This does not happen when pressing ENTER
+			// on a focused button because it also invokes PreventDefault(e) internally.
+			Fit.Events.PreventDefault(e);
+
 			baseDialog.ConfirmButton.Click();
 		}
 		else if (e.keyCode === 27) // ESC
