@@ -36,7 +36,8 @@ Fit.Controls.DatePicker = function(ctlId)
 	var detectBoundaries = false;				// Flag indicating whether calendar widget should detect viewport collision and open upwards when needed
 	var detectBoundariesRelToViewPort = false;	// Flag indicating whether calendar widget should be positioned relative to viewport (true) or scroll parent (false)
 
-	var isMobile = Fit.Browser.GetInfo().IsMobile || (Fit.Browser.GetInfo().IsTouchEnabled && Fit.Browser.GetInfo().Name === "Safari"); // More recent versions of Safari on iPad identifies as a Mac computer by default ("Request desktop website" is enabled by default)
+	//var isMobile = Fit.Browser.GetInfo().IsMobile || (Fit.Browser.GetInfo().IsTouchEnabled && Fit.Browser.GetInfo().Name === "Safari"); // More recent versions of Safari on iPad identifies as a Mac computer by default ("Request desktop website" is enabled by default)
+	var isMobile = Fit.Device.OptimizeForTouch;
 	var inputMobile = null;		// Native date picker on mobile devices - value selected is synchronized to input field defined above (remains Null on desktop devices)
 	var inputTimeMobile = null;	// Native time picker on mobile devices - value selected is synchronized to inputTime field defined above (remains Null on desktop devices)
 

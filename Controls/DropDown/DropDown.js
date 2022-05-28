@@ -70,8 +70,9 @@ Fit.Controls.DropDown = function(ctlId)
 		me._internal.Data("selectionmodetoggle", "false");
 		me._internal.Data("open", "false");
 
-		if (Fit.Browser.GetInfo().IsMobile === true)
-			isMobile = true;
+		isMobile = Fit.Device.OptimizeForTouch;
+		// if (Fit.Browser.GetInfo().IsMobile === true)
+		// 	isMobile = true;
 
 		// Create item container
 
@@ -1542,6 +1543,31 @@ Fit.Controls.DropDown = function(ctlId)
 		return txtEnabled;
 	}
 
+	/// <function container="Fit.Controls.DropDown" name="SearchModeOnFocus" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Clear input and display "Search.." placeholder when control receives focus.
+	/// 		If SearchModeOnFocus is enabled, InputEnabled will also be enabled. Disabling
+	/// 		SearchModeOnFocus does not disable InputEnabled.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables search mode on focus, False disables it </param>
+	/// </function>
+	this.SearchModeOnFocus = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			searchModeOnFocus = val;
+
+			if (me.InputEnabled() === false && val === true)
+			{
+				me.InputEnabled(true);
+			}
+		}
+
+		return searchModeOnFocus;
+	}
+
 	// Controlling drop down menu
 
 	/// <function container="Fit.Controls.DropDown" name="OpenDropDown" access="public">
@@ -1883,14 +1909,9 @@ Fit.Controls.DropDown = function(ctlId)
 
 		txt.onfocus = function(e)
 		{
-			// Move focus to arrow icon if on mobile and if user activated control in a way where bringing focus to
-			// input fields does not make sense (search for focusInputOnMobile), or if control is configured with
-			// TextSelectionMode(true) and InputEnabled(false) which doesn't allow user to place cursor between
-			// selected items, nor write in the input field.
-			if (isMobile === true && (focusInputOnMobile === false || (me.TextSelectionMode() === true && me.InputEnabled() === false)))
+			if (moveFocusToArrowOnMobile() === true) // Also found in focusInput(..) but is also necessary here in case focus was received using a tablet's virtual keyboard's "next/previous control" navigation
 			{
-				arrow.focus(); // Notice that arrow.onfocus will set focusAssigned
-				return;
+				return; // Focused was moved to arrow
 			}
 
 			if (Fit.Dom.GetIndex(txt.parentElement) === itemCollectionOrdered.length - 1 && txt.nextSibling === null)
@@ -2242,6 +2263,21 @@ Fit.Controls.DropDown = function(ctlId)
 		focusInput(newInput);
 	}
 
+	function moveFocusToArrowOnMobile()
+	{
+		// Move focus to arrow icon if on mobile and if user activated control in a way where bringing focus to
+		// input fields does not make sense (search for focusInputOnMobile), or if control is configured with
+		// TextSelectionMode(true) and InputEnabled(false) which doesn't allow user to place cursor between
+		// selected items, nor write in the input field.
+		if (isMobile === true && (focusInputOnMobile === false || (me.TextSelectionMode() === true && me.InputEnabled() === false)))
+		{
+			arrow.focus();	// Notice that arrow.onfocus will set focusAssigned
+			return true;	// Indicate that focus was moved to arrow icon
+		}
+
+		return false; // Indicate that focus was NOT moved to arrow icon
+	}
+
 	function focusInput(input)
 	{
 		Fit.Validation.ExpectInstance(input, HTMLInputElement);
@@ -2249,7 +2285,12 @@ Fit.Controls.DropDown = function(ctlId)
 		txtActive = input;
 
 		if (focusAssigned === true) // Only set focus if user initially assigned focus to control
-			txtActive.focus(); // Notice: Input field's onfocus handler will move focus to txtPrimary if this is the last selection's right side input field - on mobile it might redirect focus to the arrow icon to avoid bringing up the virtual keyboard
+		{
+			if (moveFocusToArrowOnMobile() === false) // Returns false if focus was NOT moved to arrow icon
+			{
+				txtActive.focus(); // Notice: Input field's onfocus handler will move focus to txtPrimary if this is the last selection's right side input field - on mobile it might redirect focus to the arrow icon to avoid bringing up the virtual keyboard
+			}
+		}
 	}
 
 	function forceFocusInput(input)
@@ -2267,30 +2308,6 @@ Fit.Controls.DropDown = function(ctlId)
 		focusInputOnMobile = orgFocusInputOnMobile;
 	}
 
-	/// <function container="Fit.Controls.DropDown" name="SearchModeOnFocus" access="public" returns="boolean">
-	/// 	<description>
-	/// 		Clear input and display "Search.." placeholder when control receives focus.
-	/// 		If SearchModeOnFocus is enabled, InputEnabled will also be enabled. Disabling
-	/// 		SearchModeOnFocus does not disable InputEnabled.
-	/// 	</description>
-	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables search mode on focus, False disables it </param>
-	/// </function>
-	this.SearchModeOnFocus = function(val)
-	{
-		Fit.Validation.ExpectBoolean(val, true);
-
-		if (Fit.Validation.IsSet(val) === true)
-		{
-			searchModeOnFocus = val;
-
-			if (me.InputEnabled() === false && val === true)
-			{
-				me.InputEnabled(true);
-			}
-		}
-
-		return searchModeOnFocus;
-	}
 
 	function setInputEditing(input, val, keepStateOnParent) // Input being edited "word wraps" to separate line
 	{
@@ -2879,7 +2896,7 @@ Fit.Controls.DropDown = function(ctlId)
 		}*/
 
 		// Make cursor move to beginning of input field if focused
-		if (me.Focused() === true)
+		if (Fit.Dom.GetFocused() === txtPrimary)
 		{
 			Fit.Dom.SetCaretPosition(txtPrimary, 0);
 		}
