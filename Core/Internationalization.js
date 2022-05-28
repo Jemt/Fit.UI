@@ -127,9 +127,12 @@ Fit.Internationalization.Locale = function(locale)
 		{
 			Fit.Internationalization._internal.Locale = key;
 
-			Fit.Array.ForEach(Fit.Internationalization._internal.OnChangeHandlers, function(onChangeHandler)
+			Fit.Array.ForEach(Fit.Array.Copy(Fit.Internationalization._internal.OnChangeHandlers), function(onChangeHandler)
 			{
-				onChangeHandler();
+				if (onChangeHandler._fitUiInternationalizationRemoved === undefined)
+				{
+					onChangeHandler();
+				}
 			});
 		}
 	}
@@ -255,6 +258,7 @@ Fit.Internationalization.OnLocaleChanged = function(cb)
 {
 	Fit.Validation.ExpectFunction(cb);
 	Fit.Array.Add(Fit.Internationalization._internal.OnChangeHandlers, cb);
+	delete cb._fitUiInternationalizationRemoved; // In case it was removed and added again
 }
 
 /// <function container="Fit.Internationalization" name="RemoveOnLocaleChanged" access="public" static="true">
@@ -265,4 +269,5 @@ Fit.Internationalization.RemoveOnLocaleChanged = function(cb)
 {
 	Fit.Validation.ExpectFunction(cb);
 	Fit.Array.Remove(Fit.Internationalization._internal.OnChangeHandlers, cb);
+	cb._fitUiInternationalizationRemoved = true; // In case it is removed while OnLocaleChanged is firing, in which case it should be ignored
 }
