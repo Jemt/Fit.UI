@@ -388,7 +388,7 @@ Fit.Controls.TreeView = function(ctlId)
 					var parent = me.GetDomElement();
 					while ((parent = parent.parentElement) !== null)
 					{
-						if (parent.tabIndex >= -1)
+						if (Fit.Dom.Attribute(parent, "tabindex") !== null) // We cannot check against parent.tabIndex as it defaults to -1 when not set
 						{
 							reclaimFocus = true;
 							break;
@@ -401,8 +401,21 @@ Fit.Controls.TreeView = function(ctlId)
 			{
 				if (reclaimFocus === true)
 				{
-					reclaimFocus = false; // MUST be set before calling FireOnFocusIn() as this changes focus and fires OnFocus for the document yet again
-					me._internal.FireOnFocusIn();
+					reclaimFocus = false; // MUST be set immediately as code below changes focus and fires OnFocus for the document yet again
+
+					// Fire PickerBase.OnFocusIn event - this causes DropDown to steal back focus - search for picker.OnFocusIn(..)
+					// DISABLED - depends on the knowledge of DropDown specific behaviour which we should not rely on! Now focusing
+					// root node instead (see below), which in turn also results in invocation of PickerBase.OnFocusIn since TreeView
+					// invokes this whenever it gains focus - search for this.OnFocus(function(sender)...
+					//me._internal.FireOnFocusIn();
+
+					// Focus was lost to an outer container with tabindex. Move focus back to control.
+					// We do not use me.Focused(true) since it returns focus to a previously focused
+					// node, which will cause scroll position to change.
+					// This will also fire the PickerBase.OnFocusIn event since TreeView fires this event
+					// whenever it gains focus. This allows e.g. DropDown to yet again move focus to its
+					// primary input field.
+					rootNode.GetDomElement().focus();
 				}
 			});
 		}

@@ -1008,6 +1008,12 @@ Fit.Controls.ControlBase = function(controlId)
 		Fit.Events.PreventDefault(e);
 	}
 
+	// NOTICE - IMPORTANT: Regarding invocation of onFocusIn and onFocusOut:
+	// We can't trust onFocusIn and onFocusOut to be fired in turn like in/out/in/out.
+	// Events might be fired like in/out/out/in/in like this example demonstrates:
+	// https://codepen.io/JemtDK/pen/abqRqNy?editors=0010
+	// More information in this issue: https://github.com/Jemt/Fit.UI/issues/164
+
 	function onFocusIn(e)
 	{
 		if (baseControlDisabled === true && Fit.Dom.GetFocused() !== me.GetDomElement())
@@ -1081,7 +1087,7 @@ Fit.Controls.ControlBase = function(controlId)
 		// onFocusOut.
 		// Notice that onFocusOut is triggered for an element losing
 		// focus before onFocusIn is triggered for an element gaining focus.
-		// See http://fiddle.jshell.net/2eha07qt/33 to understand how
+		// See https://jsfiddle.net/34q5n7xm/8/ to understand how
 		// onFocusIn/Out fires internally and how OnFocus and OnBlur
 		// fires externally.
 
@@ -1143,6 +1149,14 @@ Fit.Controls.ControlBase = function(controlId)
 
 		if (focusStateLocked === true)
 			return;
+
+		// Browsers might fire onFocusOut multiple times without firing onFocusIn in between.
+		// See issue for more information: https://github.com/Jemt/Fit.UI/issues/164
+		if (onBlurTimeout !== null)
+		{
+			clearTimeout(onBlurTimeout);
+			onBlurTimeout = null;
+		}
 
 		// See comments in onFocusIn(..)
 
