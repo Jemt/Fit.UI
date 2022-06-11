@@ -4155,10 +4155,10 @@ declare namespace Fit
 			Every new keystroke/change resets the timer. Debouncing can
 			improve performance when working with large amounts of data.
 			* @function DebounceOnChange
-			* @param {number} timeout - If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing.
+			* @param {number} [timeout=undefined] - If defined, timeout value (milliseconds) is updated - a value of -1 disables debouncing.
 			* @returns number
 			*/
-			public DebounceOnChange(timeout:number):number;
+			public DebounceOnChange(timeout?:number):number;
 			/**
 			* Get/set value indicating whether control is in Design Mode allowing for rich HTML content.
 			Notice that this control type requires dimensions (Width/Height) to be specified in pixels.
@@ -9665,6 +9665,20 @@ declare namespace Fit
 		* @returns Date
 		*/
 		public static Parse(strDate:string, format:string):__fitUiAliasDate;
+	}
+	/**
+	* Provides access to device information.
+	* @class [Fit.Device Device]
+	*/
+	class Device
+	{
+		// Properties defined by Fit.Device
+		/**
+		* Flag indicating whether user experience should be optimized for touch interaction.
+		* @member {boolean} OptimizeForTouch
+		* @static
+		*/
+		static OptimizeForTouch:boolean;
 	}
 	/**
 	* DOM (Document Object Model) manipulation and helper functionality.
