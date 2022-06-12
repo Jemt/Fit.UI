@@ -1,22 +1,3 @@
-Fit._internal.Controls.Input.Editor.Skin = "bootstrapck";
-Fit._internal.Controls.Input.Editor.Plugins = ["htmlwriter", "justify", "pastefromword", "resize", "base64image", "base64imagepaste", "dragresize"]; // Regarding base64imagepaste and dragresize: IE11 has native support for pasting images as base64 and IE8+ has native support for image resizing, so plugins are not in effect in IE, even when enabled
-Fit._internal.Controls.Input.Editor.Toolbar = [ {
-	name: "BasicFormatting",
-	items: [ "Bold", "Italic", "Underline" ]
-}, {
-	name: "Justify",
-	items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
-}, {
-	name: "Lists",
-	items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
-}, {
-	name: "Links",
-	items: [ "Link", "Unlink" ]
-}, {
-	name: "Insert",
-	items: [ "base64image" ]
-} ];
-
 Tests.Dimensions = function()
 {
 	var inp = null;
@@ -107,6 +88,23 @@ Tests.HtmlEditorDirtyAndValueState = function()
 		//      - With a clean editor or with an editor already holding a value
 		// Test count: 2 * 2 * 2 * values.length
 
+		var editorConfig =
+		{
+			Plugins:
+			{
+				Emojis: true,
+				Images:
+				{
+					Enabled: true,
+					EmbedType: "base64"
+				}
+			},
+			Toolbar:
+			{
+				Images: true
+			}
+		};
+
 		for (var i = 0 ; i < 2 ; i++)
 		{
 			var changeAsUser = i === 1;
@@ -122,7 +120,7 @@ Tests.HtmlEditorDirtyAndValueState = function()
 					Fit.Array.ForEach(values, function(val)
 					{
 						var inp = new Fit.Controls.Input();
-						inp.DesignMode(true);
+						inp.DesignMode(true, editorConfig);
 						inp.Render(dia.GetContentDomElement());
 
 						if (setValueBeforeTest === true)
@@ -162,7 +160,7 @@ Tests.HtmlEditorDirtyAndValueState = function()
 		}
 	}
 
-	this.PostponeVerification = 7500; // Allow HTML editors to fully load
+	this.PostponeVerification = 60000; // Allow HTML editors to fully load - if tests fail, try increasing this value - for some browsers 7.5 seconds is fine, other browsers require much more time
 
 	this.Assertions =
 	[

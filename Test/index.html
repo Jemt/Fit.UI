@@ -14,7 +14,9 @@
 	<style type="text/css">
 
 	/* Qunit scrolls page as results pour in - this behaviour might break tests temporarily manipulating the DOM */
-	html, body
+	/* DISABLED: No longer works due to scroll anchoring (https://stackoverflow.com/questions/42958463/stop-automatic-scrolling-on-page-content-change).
+	   Now resetting scrollTop every time a test case runs (search for scrollTop - multiple references) */
+	/*html, body
 	{
 		margin: 0px;
 		padding: 0px;
@@ -27,7 +29,7 @@
 		height: 100%;
 		width: 100%;
 		overflow: auto;
-	}
+	}*/
 
 	</style>
 
@@ -60,6 +62,8 @@
 
 		function executeTestCase(testId, testCase)
 		{
+			Fit.Dom.GetScrollDocument().scrollTop = 0;
+
 			QUnit.test(testCase.Description, function(assert)
 			{
 				if (testCase.ThrowsError === true)
@@ -89,6 +93,8 @@
 
 		function finalizeTest(testId, testCase, assert, assertCallback)
 		{
+			Fit.Dom.GetScrollDocument().scrollTop = 0;
+
 			Fit.Array.ForEach(testCase.Assertions, function(testAssert)
 			{
 				assert.strictEqual(testAssert.GetResult(), testAssert.Expected, testAssert.Message);
