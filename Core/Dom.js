@@ -150,6 +150,23 @@ Fit.Dom.GetInnerWidth = function(elm) // Backward compatibility
 // DOM
 // ==========================================================
 
+// This function should be used to access the parent element of an
+// object which can be a DOMNode (text node). Do NOT use .parentElement
+// for DOMNode objects as it is not supported by some browsers!
+Fit._internal.Dom.GetParentElement = function(node) // DOMNode (text node) or DOMElement (element)
+{
+	Fit.Validation.ExpectNode(node);
+
+	// Some browsers (e.g. IE8) only supports parentElement on elements (DOMElement), not on text
+	// nodes (DOMNode), so we use parentNode instead, which returns a DOMElement, Document, or null.
+	var parent = node.parentNode;
+
+	if (parent === document) // The document is not considered a parent element
+		return null;
+
+	return parent; // DOMElement or null
+}
+
 /// <function container="Fit.Dom" name="IsRooted" access="public" static="true" returns="boolean">
 /// 	<description> Returns True if element is rooted in document (appended to body), otherwise False </description>
 /// 	<param name="elm" type="DOMNode"> Element to check </param>
@@ -158,7 +175,7 @@ Fit.Dom.IsRooted = function(elm)
 {
 	Fit.Validation.ExpectNode(elm);
 
-	var parent = elm.parentElement;
+	var parent = Fit._internal.Dom.GetParentElement(elm); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 	while (parent !== null)
 	{
 		if (parent === document.body)
@@ -180,10 +197,12 @@ Fit.Dom.InsertBefore = function(target, newElm)
 	Fit.Validation.ExpectNode(target);
 	Fit.Validation.ExpectNode(newElm);
 
-	if (target.parentElement === null)
+	var parent = Fit._internal.Dom.GetParentElement(target); // Using GetParentElement(..) when argument might be a DOMNode (text node)
+
+	if (parent === null)
 		Fit.Validation.ThrowError("Unable to insert element - target is not rooted");
 
-	target.parentElement.insertBefore(newElm, target);
+	parent.insertBefore(newElm, target);
 }
 
 /// <function container="Fit.Dom" name="InsertAfter" access="public" static="true">
@@ -196,13 +215,15 @@ Fit.Dom.InsertAfter = function(target, newElm)
 	Fit.Validation.ExpectNode(target);
 	Fit.Validation.ExpectNode(newElm);
 
-	if (target.parentElement === null)
+	var parent = Fit._internal.Dom.GetParentElement(target); // Using GetParentElement(..) when argument might be a DOMNode (text node)
+
+	if (parent === null)
 		Fit.Validation.ThrowError("Unable to insert element - target is not rooted");
 
 	if (target.nextSibling)
-		target.parentElement.insertBefore(newElm, target.nextSibling);
+		parent.insertBefore(newElm, target.nextSibling);
 	else
-		target.parentElement.appendChild(newElm);
+		parent.appendChild(newElm);
 }
 
 /// <function container="Fit.Dom" name="InsertAt" access="public" static="true">
@@ -246,11 +267,12 @@ Fit.Dom.Replace = function(oldElm, newElm) // http://jsfiddle.net/Jemt/eu74o984/
 	Fit.Validation.ExpectNode(oldElm);
 	Fit.Validation.ExpectNode(newElm);
 
-	if (oldElm.parentElement === null)
+	var parent = Fit._internal.Dom.GetParentElement(oldElm); // Using GetParentElement(..) when argument might be a DOMNode (text node)
+
+	if (parent === null)
 		Fit.Validation.ThrowError("Unable to replace element - not rooted");
 
-	var container = oldElm.parentElement;
-	container.replaceChild(newElm, oldElm);
+	parent.replaceChild(newElm, oldElm);
 }
 
 /// <function container="Fit.Dom" name="Add" access="public" static="true">
@@ -276,21 +298,11 @@ Fit.Dom.Remove = function(elm)
 
 	// Remove element if mounted
 
-	if (elm.parentElement === undefined)
-	{
-		// Remove TextNode in IE
-		// https://developer.mozilla.org/en-US/docs/Web/API/Node/parentElement
-		// "On some browsers, the parentElement property is only defined on nodes that
-		//  are themselves an Element. In particular, it is not defined on text nodes."
+	var parent = Fit._internal.Dom.GetParentElement(elm); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 
-		if (elm.parentNode !== null) // Notice: might be null even though TextNode is added to a parent node, if entire document was cleared using document.body.innerHTML="";
-		{
-			elm.parentNode.removeChild(elm);
-		}
-	}
-	else if (elm.parentElement !== null)
+	if (parent !== null) // Notice (IE): might be null even if node is contained in a parent, if entire document was cleared using document.body.innerHTML="";
 	{
-		elm.parentElement.removeChild(elm);
+		parent.removeChild(elm);
 	}
 }
 
@@ -493,7 +505,7 @@ Fit.Dom.GetDepth = function(elm)
 	Fit.Validation.ExpectNode(elm);
 
 	var i = 0;
-	var parent = elm.parentElement;
+	var parent = Fit._internal.Dom.GetParentElement(elm); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 
 	while (parent)
 	{
@@ -514,7 +526,7 @@ Fit.Dom.Contained = function(container, elm)
 	Fit.Validation.ExpectDomElement(container);
 	Fit.Validation.ExpectNode(elm);
 
-	var parent = elm.parentElement;
+	var parent = Fit._internal.Dom.GetParentElement(elm); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 
 	while (parent)
 	{
@@ -546,10 +558,10 @@ Fit.Dom.IsVisible = function(elm)
 	{
 		// Check parent element if a Text element is passed
 
-		if (elm.parentElement === null)
-			return false; // Not rooted
+		elm = Fit._internal.Dom.GetParentElement(elm); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 
-		elm = elm.parentElement;
+		if (elm === null)
+			return false; // Not rooted
 	}
 
 	// Determine visibility quickly using offsetParent if possible.
@@ -604,7 +616,7 @@ Fit.Dom.GetConcealer = function(elm)
 		return null; // Element is not concealed - it is visible and rooted in DOM
 
 	if (elm.nodeType === 3)
-		elm = elm.parentElement; // Check parent element if a Text element is passed
+		elm = Fit._internal.Dom.GetParentElement(elm); // Check parent element if a Text element is passed - using GetParentElement(..) when argument might be a DOMNode (text node)
 
 	// Element is hidden or not rooted in DOM.
 	// Traverse DOM bottom-up to find container hiding element.
@@ -656,7 +668,7 @@ Fit.Dom.GetParentOfType = function(element, parentType)
 	Fit.Validation.ExpectNode(element);
 	Fit.Validation.ExpectStringValue(parentType);
 
-	var parent = element.parentElement;
+	var parent = Fit._internal.Dom.GetParentElement(element); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 
 	while (parent !== null)
 	{
@@ -679,7 +691,7 @@ Fit.Dom.Wrap = function(elementToWrap, container)
 	Fit.Validation.ExpectNode(elementToWrap);
 	Fit.Validation.ExpectDomElement(container);
 
-	var parent = elementToWrap.parentElement;
+	var parent = Fit._internal.Dom.GetParentElement(elementToWrap); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 	var nextSibling = elementToWrap.nextSibling;
 
 	container.appendChild(elementToWrap); // Causes elementToWrap to be removed from existing container
@@ -959,7 +971,7 @@ Fit.Dom.GetScrollPosition = function(elm)
 	var pos = { X: 0, Y: 0 };
 
 	if (elm.nodeType !== 1) // Text or Comment element which do not have scrollLeft and scrollTop properties
-		elm = elm.parentElement;
+		elm = Fit._internal.Dom.GetParentElement(elm); // Using GetParentElement(..) when argument might be a DOMNode (text node)
 
 	while (elm)
 	{
