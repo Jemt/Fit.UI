@@ -8323,11 +8323,11 @@ declare namespace Fit
 			/**
 			* Reload data from WebService.
 			* @function Reload
-			* @param {boolean} [keepSelections=undefined] - If defined, True will preserve selections, False will remove them (default).
+			* @param {boolean} [keepState=undefined] - If defined, True will preserve selections, expanded state, and focus state, False will not (default).
 			* @param {Fit.Controls.WSTreeViewTypeDefs.ReloadCallback<this>} [cb=undefined] - If defined, callback function is invoked when root nodes have been loaded
 			and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
 			*/
-			public Reload(keepSelections?:boolean, cb?:Fit.Controls.WSTreeViewTypeDefs.ReloadCallback<this>):void;
+			public Reload(keepState?:boolean, cb?:Fit.Controls.WSTreeViewTypeDefs.ReloadCallback<this>):void;
 			/**
 			* Get/set flag indicating whether WebService returns the complete hierarchy when
 			Select All is triggered (Instantly), or loads data for each level individually
