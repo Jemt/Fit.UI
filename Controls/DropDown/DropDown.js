@@ -843,13 +843,22 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				// User selected an item which is already selected
 
-				if (me.TextSelectionMode() === true)
+				// Only update input field if picker currently active is the one providing information about selection change.
+				// Pickers might load and select nodes async. which allows for picker to be changed. More specifically we could
+				// imagine a situation where Select All is triggered in a WSTreeView picker where nodes must first be fetched from
+				// the server. While waiting for data, the user enters a search string which changes the picker control to WSListView.
+				// Soon hereafter TreeView data is received and all nodes are selected, triggering OnItemSelectionChanged (here), in
+				// which case we do not want the search value to be cleared away.
+				if (picker === sender)
 				{
-					updateTextSelection(); // Make sure any search value is removed and text selection is restored
-				}
-				else
-				{
-					me.ClearInput(); // Make sure any search value is removed
+					if (me.TextSelectionMode() === true)
+					{
+						updateTextSelection(); // Make sure any search value is removed and text selection is restored
+					}
+					else
+					{
+						me.ClearInput(); // Make sure any search value is removed
+					}
 				}
 			}
 

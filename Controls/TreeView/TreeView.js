@@ -181,6 +181,16 @@ Fit.Controls.TreeView = function(ctlId)
 			GetTreeView: function()
 			{
 				return me;
+			},
+			Dissociate: function(node)
+			{
+				Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
+
+				if (node === activeNode)
+				{
+					Fit.Dom.Data(activeNode.GetDomElement(), "active", null);
+					activeNode = null;
+				}
 			}
 		}
 
@@ -256,7 +266,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 			if (ev.keyCode === 13) // Enter
 			{
-				if (node.Selectable() === true)
+				if (node.Selectable() === true && me.Enabled() === true)
 				{
 					node.Selected(true);
 				}
@@ -289,7 +299,7 @@ Fit.Controls.TreeView = function(ctlId)
 
 			if (ev.keyCode === 32) // Spacebar (toggle selection)
 			{
-				if (node.Selectable() === true)
+				if (node.Selectable() === true && me.Enabled() === true)
 					toggleNodeSelection(node);
 
 				Fit.Events.PreventDefault(ev);
@@ -1007,7 +1017,11 @@ Fit.Controls.TreeView = function(ctlId)
 	this.SetActiveNode = function(node)
 	{
 		Fit.Validation.ExpectInstance(node, Fit.Controls.TreeViewNode);
-		focusNode(node); // Will highlight node if TreeView is used as picker, otherwise focus node
+
+		if (node.GetTreeView() === me)
+		{
+			focusNode(node); // Will highlight node if TreeView is used as picker, otherwise focus node
+		}
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="GetNodeAbove" access="public" returns="Fit.Controls.TreeViewNode | null">
@@ -1602,9 +1616,41 @@ Fit.Controls.TreeView = function(ctlId)
 		// nodes, in which case user may have closed dropdown while waiting for data,
 		// resulting in node no longer being visible to focus.
 		// We use offsetParent further down which is only available for elements in
-		// the render tree - "visible" elements.
+		// the render tree - "visible" elements. Furthermore scroll position cannot be
+		// determined when control is not visible (part of render tree).
 		if (Fit.Dom.IsVisible(node.GetDomElement()) === false)
 		{
+			if (isPicker === true)
+			{
+				// Picker is invisible, but we would still like active node to
+				// be set so keyboard navigation uses this as offset, rather than
+				// starting from the top again. Therefore, if node passed is visible
+				// in the hierarcy (not hidden behind collapsed nodes), then use it.
+
+				nodeIsVisibleInHierarchy = true;
+
+				var parent = node;
+				while ((parent = parent.GetParent()) !== null)
+				{
+					if (parent.Expanded() === false)
+					{
+						nodeIsVisibleInHierarchy = false;
+						break;
+					}
+				}
+
+				if (nodeIsVisibleInHierarchy === true)
+				{
+					if (isNodeSet(activeNode) === true)
+					{
+						Fit.Dom.Data(activeNode.GetDomElement(), "active", null);
+					}
+
+					activeNode = node;
+					Fit.Dom.Data(activeNode.GetDomElement(), "active", "true");
+				}
+			}
+
 			return;
 		}
 
@@ -1692,6 +1738,12 @@ Fit.Controls.TreeView = function(ctlId)
 
 	function isNodeSet(node) // Used to check whether activeNode is set and that it has not been disposed
 	{
+		// TODO: It does not seem that isNodeSet(..) serves a purpose anymore.
+		// Since the introduction of Dissociate on treeViewNodeInterface, activeNode
+		// is nullified whenever a node is either removed or disposed. Theoretically
+		// a disposed node could be set via SetActiveNode(..), but we don't need to
+		// guard against incorrect usecases like that.
+		// The use of isNodeSet(activeNode) can probably be replaced by: activeNode !== null
 		return (node !== null && node.GetDomElement() !== null); // GetDomElement() returns null if node has been disposed
 	}
 
@@ -2121,9 +2173,16 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			if (val === true)
-				elmLi.focus();
+			{
+				if (Fit.Dom.IsVisible(elmLi) === true)
+				{
+					elmLi.focus();
+				}
+			}
 			else if (Fit.Dom.GetFocused() === elmLi)
+			{
 				elmLi.blur();
+			}
 		}
 
 		return (Fit.Dom.GetFocused() === elmLi);
@@ -2364,6 +2423,8 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 
 					n.GetDomElement()._internal.TreeView = null; // Make sure removed node cannot update TreeView anymore
 				});
+
+				tv.Dissociate(node);
 
 				if (fireOnChange === true)
 					tv.FireOnChange();

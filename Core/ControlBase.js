@@ -578,10 +578,10 @@ Fit.Controls.ControlBase = function(controlId)
 				Fit.Array.ForEach(dom.querySelectorAll(disableSelector), function(elm)
 				{
 					elm.disabled = elm._fitDisabled;
-					delete elm._fitDisabled;
+					elm._fitDisabled = undefined;
 
 					elm.readOnly = elm._fitReadOnly;
-					delete elm._fitReadOnly;
+					elm._fitReadOnly = undefined;
 				});
 
 				// Allow focusable elements to gain focus again
@@ -591,7 +591,7 @@ Fit.Controls.ControlBase = function(controlId)
 					if (elm._fitTabIndex !== undefined)
 					{
 						elm.tabIndex = elm._fitTabIndex;
-						delete elm._fitTabIndex;
+						elm._fitTabIndex = undefined;
 					}
 
 					return elm.children;
@@ -987,6 +987,61 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Array.Add(onBlurHandlers, cb);
+	}
+
+	// ============================================
+	// Protected
+	// ============================================
+
+	this._internal = (this._internal ? this._internal : {});
+
+	// Disable control but keep it focused if already focused, so OnBlur doesn't fire
+	this._internal.DisableAndKeepFocus = function()
+	{
+		if (me.Focused() === true)
+		{
+			// Disable control.
+			// Disabling the control removes focus from it. OnBlur will fire in a moment (async.
+			// via onFocusOut which fires immediately). We prevent OnBlur from firing below.
+			me.Enabled(false);
+
+			// Enabled(false) above scheduled OnBlur for execution since onFocusOut fires immediately, and since control is
+			// now disabled, reassigning focus below will not cancel upcoming OnBlur event invocation. Therefore we cancel it here.
+			clearTimeout(onBlurTimeout);
+			onBlurTimeout = null;
+
+			// Assign focus to control's outer container to keep focus and prevents OnBlur from firing.
+			// After this point we have prevented OnBlur from firing. However, OnBlur will still fire if
+			// focus is removed from the outer container, which is the intended behaviour. If this happens,
+			// focus will not be restored back to the control when it is enabled again via restore function below.
+			var dom = me.GetDomElement();
+			var orgTabIndex = Fit.Dom.Attribute(dom, "tabindex");
+			Fit.Dom.Attribute(dom, "tabindex", "-1");
+			dom.focus({ preventScroll: true });
+
+			// Return restore function
+			return function()
+			{
+				me.Enabled(true);
+
+				// Move focus from outer container back to control's intended focus target,
+				// but only if user did not remove focus from control while control was disabled.
+				if (hasFocus === true)
+				{
+					me.Focused(true);
+				}
+
+				Fit.Dom.Attribute(dom, "tabindex", orgTabIndex);
+			};
+		}
+		else
+		{
+			// Disable control
+			me.Enabled(false);
+
+			// Return restore function
+			return function() { me.Enabled(true); };
+		}
 	}
 
 	// ============================================

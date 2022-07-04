@@ -267,6 +267,28 @@ Fit.Controls.WSDropDown = function(ctlId)
 				me.SetPicker(tree);
 		});
 
+		// Keep both pickers up to date when selections are changed. Otherwise only
+		// the active picker receives changes immediately. WSTreeView.Reload(keepState = true)
+		// is dependant upon selection state being up to date.
+		// Imagine a scenario where WSTreeView.Reload(true) is called every time a selection
+		// is changed in the DropDown control. If an item is removed while the WSListView picker
+		// is active, WSTreeView will reload via OnChange, but since WSTreeView.Reload(..) is called
+		// with keepState=true, it will restore the selection we just removed while WSListView was active.
+		// The code below resolves this by ensuring all pickers are always current on selection state.
+
+		var updateItemSelectionTree = tree.UpdateItemSelection;
+		var updateItemSelectionList = list.UpdateItemSelection;
+
+		var updateItemSelectionOverride = function(value, selected, programmaticallyChanged)
+		{
+			updateItemSelectionTree(value, selected, programmaticallyChanged);
+			updateItemSelectionList(value, selected, programmaticallyChanged);
+		};
+
+		// UpdateItemSelection(..) is called by host control to update the picker's selections
+		tree.UpdateItemSelection = updateItemSelectionOverride;
+		list.UpdateItemSelection = updateItemSelectionOverride;
+
 		// Create action menu
 
 		var skipUpdateActionMenuOnChange = false;
@@ -733,7 +755,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			{
 				// Focus input on mobile, even if DropDown was opened using
 				// the arrow icon - this will bring up the virtual keyboard.
-				this._internal.ForceFocusMobile();
+				me._internal.ForceFocusMobile();
 			}
 
 			return;
