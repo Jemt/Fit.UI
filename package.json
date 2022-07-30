@@ -4,11 +4,11 @@
   "description": "Fit.UI is an object oriented JavaScript based UI framework for building rich web applications",
   "main": "index.js",
   "devDependencies": {
-    "concurrently": "^6.1.0",
-    "http-server": "^0.12.3",
+    "concurrently": "^7.3.0",
+    "http-server": "^14.1.1",
     "opn": "^6.0.0",
-    "uglify-js": "^3.13.6",
-    "uglifycss": "0.0.29"
+    "uglify-js": "^3.16.3",
+    "uglifycss": "^0.0.29"
   },
   "scripts": {
     "test": "cd build && ./Build umd minify && cd .. && concurrently \"node node_modules/http-server/bin/http-server\" \"sleep 1 && ./node_modules/opn/xdg-open http://localhost:8080/Test\"",
@@ -22,7 +22,9 @@
     "UI",
     "UX",
     "Interface",
-    "Controls"
+    "Controls",
+	"Forms",
+	"Editing"
   ],
   "author": "Jimmy Thomsen",
   "license": "SEE LICENSE IN LICENSE FILE",
