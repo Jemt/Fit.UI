@@ -23,7 +23,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var hideLinesForFlatData = true;
 	var dataRequested = false;		// Flag indicating whether TreeView data has been requested or not - determines whether a call to ensureTreeViewData() actually loads data or not
 	var dataLoading = false;		// Flag indicating whether TreeView data is currently being loaded by WSDropDown internals (awaiting response) - will not be True when user expand nodes to load children, or when invoking e.g. dd.GetTreeView.Reload()
-	var nodesPopulated = false;		// Flag indicating whether TreeView root nodes have been populated - contrary to dataLoading this flag is set when a potentially partial portion of the data has been loaded
+	//var nodesPopulated = false;	// Flag indicating whether TreeView root nodes have been populated - contrary to dataLoading this flag is set when a potentially partial portion of the data has been loaded
 	var requestCount = 0;			// Counter to keep track of nodes for which data is currently being loaded, no matter how it was being loaded (via WSDropDown internals, programmatically on WSTreeView from external code, or by user expanding nodes)
 	var onDataLoadedCallback = [];
 	var suppressTreeOnOpen = false;
@@ -173,27 +173,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		});
 		tree.OnPopulated(function(sender, eventArgs)
 		{
-			nodesPopulated = true;
-
-			// If no data is returned and DropDown is in TextSelectionMode, the user will
-			// not be able to remove objects from the DropDown, unless SelectionModeToggle
-			// is true. Therefore we allow for items to be removed using an action menu.
-			// EDIT: Now displays action menu in both Visual and Text Selection Mode for consistency.
-
-			if (useActionMenuForced === false)
-			{
-				useActionMenu = tree.GetChildren().length === 0;
-			}
-
-			if (/*me.TextSelectionMode() === true &&*/ useActionMenu === true)
-			{
-				updateActionMenu();
-
-				if (useActionMenuAfterLoad === true || tree.GetChildren().length === 0)
-				{
-					me.SetPicker(actionMenu);
-				}
-			}
+			//nodesPopulated = true;
 
 			// Helper lines
 
@@ -494,7 +474,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 
 		dataLoading = true;
-		nodesPopulated = false;
+		//nodesPopulated = false;
 
 		var ensure = function()
 		{
@@ -511,6 +491,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 				autoUpdatedSelections = me.UpdateSelected();
 
 				dataLoading = false;
+
+				// Switch to action menu if no data was received. Must
+				// be called after dataLoading is set since function
+				// calls updateActionMenu(..) which relies on this flag.
+				showActionMenuIfNoDataReceivedOrOnFirstInteractionIfEnabled();
 
 				if (Fit.Validation.IsSet(cb) === true)
 				{
@@ -621,6 +606,13 @@ Fit.Controls.WSDropDown = function(ctlId)
 		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
 		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
 
+		// Update action menu
+
+		// Update action menu in case "Show available options" has been disabled, which
+		// will be the case if the previous request returned no data. We need it enabled if
+		// action menu is enabled - otherwise the user won't be able to request updated data.
+		updateActionMenu();
+
 		// Cancel pending search operation if scheduled
 
 		cancelSearch();
@@ -684,11 +676,15 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 			if (useActionMenuForced === false)
 			{
-				// Use action menu if there is no data to display
+				// Use action menu if there is no data to display, which makes it impossible to remove
+				// selected items in TextSelectionMode - unless DropDown.SelectionModeToggle is enabled,
+				// which lets the user switch to Visual Selection Mode with each item displaying a delete button.
+				// But we want a consistent behaviour, so we use the action menu for both Text and Visual Selection Mode.
 
 				if (val === true)
 				{
-					useActionMenu = nodesPopulated === false || tree.GetChildren().length === 0;
+					var isWaitingForData = dataRequested === false || dataLoading === true;
+					useActionMenu = isWaitingForData === true || tree.GetChildren().length === 0;
 				}
 				else
 				{
@@ -832,6 +828,23 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return useActionMenu;
 	}
 
+	/// <function container="Fit.Controls.WSDropDown" name="ResetActionMenu" access="public">
+	/// 	<description>
+	/// 		Reset action menu so it automatically determines whether to show up or not
+	/// 		when DropDown control is opened/re-opened, based on rules outlined in the
+	/// 		description for UseActionMenu(..).
+	/// 		This is useful if calling ClearData(..) and one wants to make sure the TreeView
+	/// 		data is immediately made visible once ready, rather than showing the action menu
+	/// 		if it was previously shown.
+	/// 	</description>
+	/// </function>
+	this.ResetActionMenu = function()
+	{
+		useActionMenuForced = false;
+		useActionMenu = false;
+		useActionMenuAfterLoad = true;
+	}
+
 	// See documentation on ControlBase
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
@@ -845,7 +858,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = nodesPopulated = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading /*= nodesPopulated*/ = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -972,11 +985,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 		if (dataRequested === false)
 		{
 			dataLoading = true;
-			nodesPopulated = false;
+			//nodesPopulated = false;
 
 			tree.Reload(true, function(sender)
 			{
 				dataLoading = false;
+
+				// Switch to action menu if no data was received. Must
+				// be called after dataLoading is set since function
+				// calls updateActionMenu(..) which relies on this flag.
+				showActionMenuIfNoDataReceivedOrOnFirstInteractionIfEnabled();
 
 				/*if (Fit.Validation.IsSet(cb) === true)
 				{
@@ -985,6 +1003,29 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 				fireOnDataLoaded();
 			});
+		}
+	}
+
+	function showActionMenuIfNoDataReceivedOrOnFirstInteractionIfEnabled()
+	{
+		// If no data is returned and DropDown is in TextSelectionMode, the user will
+		// not be able to remove objects from the DropDown, unless SelectionModeToggle
+		// is true. Therefore we allow for items to be removed using an action menu.
+		// EDIT: Now displays action menu in both Visual and Text Selection Mode for consistency.
+
+		if (useActionMenuForced === false)
+		{
+			useActionMenu = tree.GetChildren().length === 0;
+		}
+
+		if (/*me.TextSelectionMode() === true &&*/ useActionMenu === true)
+		{
+			updateActionMenu();
+
+			if (useActionMenuAfterLoad === true || tree.GetChildren().length === 0)
+			{
+				me.SetPicker(actionMenu);
+			}
 		}
 	}
 
@@ -1060,11 +1101,13 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		if (treeViewEnabled === true)
 		{
-			if (nodesPopulated === false || tree.GetChildren().length > 0)
+			var isWaitingForData = dataRequested === false || dataLoading === true;
+
+			if (isWaitingForData === true || tree.GetChildren().length > 0)
 			{
 				actionMenu.AddItem(showAllIcon + translations.ShowAllOptions, "ShowAll");
 			}
-			else //if (nodesPopulated === true && tree.GetChildren().length === 0)
+			else
 			{
 				actionMenu.AddItem(showAllIcon + "<i>" + translations.NoneAvailable + "</i>", "ShowAllNoneFound");
 			}
