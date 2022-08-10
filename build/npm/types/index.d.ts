@@ -6953,6 +6953,33 @@ declare namespace Fit
 			*/
 			public AutoUpdateSelected(cb?:Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback<this>):void;
 			/**
+			* Automatically update title of selected items based on data from WebService.
+			Contrary to UpdateSelected(), AutoUpdateSelected() automatically loads all
+			data from the associated WebService before updating the selected items, but
+			only if one or more items are selected.
+			The callback function is invoked when selected items have been updated.
+			The following arguments are passed to function:
+			- Sender (WSDropDown)
+			- An array of updated items, each with a Title (string), Value (string), and Exists (boolean) property.
+			Notice that items that no longer exists in picker's data, will NOT automatically be removed.
+			To obtain all items with the most current state (both updated and unmodified selections), use;
+			dropdown.AutoUpdateSelected(function(sender, updated) { console.log("All selected", dropdown.GetSelections()); });
+			For additiona details see UpdateSelected().
+			* @function AutoUpdateSelected
+			* @param {Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback<this>} [cb=undefined] - Optional callback function invoked when selected items have been updated.
+			*/
+			public AutoUpdateSelected(cb?:Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback<this>):void;
+			/**
+			* Call this function to make control reload data when needed,
+			ensuring that the user will see the most recent values available.
+			Operation may be postponed if data is currently loading from WebService.
+			Use callback to pick up execution once data has been cleared.
+			Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+			* @function ClearData
+			* @param {Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>} [cb=undefined] - If defined, callback is invoked when data is cleared.
+			*/
+			public ClearData(cb?:Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>):void;
+			/**
 			* Call this function to make control reload data when needed,
 			ensuring that the user will see the most recent values available.
 			Operation may be postponed if data is currently loading from WebService.
@@ -6969,6 +6996,18 @@ declare namespace Fit
 			*/
 			public GetListView():Fit.Controls.WSListView;
 			/**
+			* Get WSListView control used to display data in a flat list view.
+			* @function GetListView
+			* @returns Fit.Controls.WSListView
+			*/
+			public GetListView():Fit.Controls.WSListView;
+			/**
+			* Get WSTreeView control used to display data in a hierarchical tree view.
+			* @function GetTreeView
+			* @returns Fit.Controls.WSTreeView
+			*/
+			public GetTreeView():Fit.Controls.WSTreeView;
+			/**
 			* Get WSTreeView control used to display data in a hierarchical tree view.
 			* @function GetTreeView
 			* @returns Fit.Controls.WSTreeView
@@ -6982,6 +7021,22 @@ declare namespace Fit
 			* @returns string | null
 			*/
 			public JsonpCallback(val?:string | null):string | null;
+			/**
+			* Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
+			Often this argument is simply "callback". Passing Null disables JSONP communication again.
+			* @function JsonpCallback
+			* @param {string | null} [val=undefined] - If defined, enables JSONP and updates JSONP callback argument.
+			* @returns string | null
+			*/
+			public JsonpCallback(val?:string | null):string | null;
+			/**
+			* Get/set flag indicating whether searchable ListView is enabled or not.
+			The value provided also determines the value for InputEnabled and vice versa.
+			* @function ListViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables ListView and search capability (default), False disables it.
+			* @returns boolean
+			*/
+			public ListViewEnabled(val?:boolean):boolean;
 			/**
 			* Get/set flag indicating whether searchable ListView is enabled or not.
 			The value provided also determines the value for InputEnabled and vice versa.
@@ -7005,6 +7060,36 @@ declare namespace Fit
 			* @param {Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>} cb - Event handler function.
 			*/
 			public OnAbort(cb:Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>):void;
+			/**
+			* Add event handler fired if data request is canceled.
+			Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+			- Data: JSON data received from WebService (Null in this particular case).
+			* @function OnAbort
+			* @param {Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>} cb - Event handler function.
+			*/
+			public OnAbort(cb:Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>):void;
+			/**
+			* Add event handler fired when data is being requested.
+			Request can be canceled by returning False.
+			Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance.
+			* @function OnRequest
+			* @param {Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler<this>} cb - Event handler function.
+			*/
+			public OnRequest(cb:Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler<this>):void;
 			/**
 			* Add event handler fired when data is being requested.
 			Request can be canceled by returning False.
@@ -7037,12 +7122,70 @@ declare namespace Fit
 			*/
 			public OnResponse(cb:Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>):void;
 			/**
+			* Add event handler fired when data is received,
+			allowing for data transformation to occure before
+			picker control is populated. Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+			- Data: JSON data received from WebService.
+			* @function OnResponse
+			* @param {Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>} cb - Event handler function.
+			*/
+			public OnResponse(cb:Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>):void;
+			/**
+			* Reset action menu so it automatically determines whether to show up or not
+			when DropDown control is opened/reopened, based on rules outlined in the
+			description for UseActionMenu(..).
+			This is useful if calling ClearData(..) and one wants to make sure the TreeView
+			data is immediately made visible once ready, rather than showing the action menu
+			if it was previously shown.
+			* @function ResetActionMenu
+			*/
+			public ResetActionMenu():void;
+			/**
+			* Reset action menu so it automatically determines whether to show up or not
+			when DropDown control is opened/re-opened, based on rules outlined in the
+			description for UseActionMenu(..).
+			This is useful if calling ClearData(..) and one wants to make sure the TreeView
+			data is immediately made visible once ready, rather than showing the action menu
+			if it was previously shown.
+			* @function ResetActionMenu
+			*/
+			public ResetActionMenu():void;
+			/**
 			* Get/set value indicating whether TreeView control is enabled or not.
 			* @function TreeViewEnabled
 			* @param {boolean} [val=undefined] - If defined, True enables TreeView (default), False disables it.
 			* @returns boolean
 			*/
 			public TreeViewEnabled(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether TreeView control is enabled or not.
+			* @function TreeViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables TreeView (default), False disables it.
+			* @returns boolean
+			*/
+			public TreeViewEnabled(val?:boolean):boolean;
+			/**
+			* Get/set URL to WebService responsible for providing data to drop down.
+			WebService must deliver data in the following JSON format:
+			[
+			     { Title: "Test 1", Value: "1001", Selectable: true, Selected: true, Children: [] },
+			     { Title: "Test 2", Value: "1002", Selectable: false, Selected: false, Children: [] }
+			]
+			Only Value is required. Children is a collection of nodes with the same format as described above.
+			HasChildren:boolean may be set to indicate that children are available server side and that WebService
+			should be called to load these children when the given node is expanded.
+			* @function Url
+			* @param {string} [wsUrl=undefined] - If defined, updates WebService URL (e.g. http://server/ws/data.asxm/GetData).
+			* @returns string
+			*/
+			public Url(wsUrl?:string):string;
 			/**
 			* Get/set URL to WebService responsible for providing data to drop down.
 			WebService must deliver data in the following JSON format:
@@ -7076,6 +7219,855 @@ declare namespace Fit
 			* @param {boolean} [val=undefined] - If defined, True enables the action menu, False disables it.
 			*/
 			public UseActionMenu(val?:boolean):void;
+			/**
+			* Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items.
+			If this property is not explicitly set, it will automatically be changed by the control depending on data and other settings.
+			The action menu will be enabled if TreeViewEnabled is set to False, as it would otherwise not show anything unless the user
+			enters a search value. If TreeViewEnabled is True but no data is provided to the TreeView control upon request, the action menu
+			is also enabled.
+			If the control does not have any selections, InputEnabled (or its alias ListViewEnabled) is True, and TreeViewEnabled is False,
+			no picker will be displayed since the action menu would only display the "Search for options" item - but it should already
+			be obvious to the user that searching is required due to the placeholder displaying "Search.." by default.
+			Likewise, if TreeViewEnabled is True and InputEnabled (or its alias ListViewEnabled) is False, and no selections are made,
+			the action menu would only display "Show available options". In this case the TreeView will be displayed instead,
+			even if UseActionMenu has explicitely been set to True.
+			The behaviour described is in place to make sure the action menu is only displayed when it makes sense, since it introduces
+			and extra step (click) required by the user to access data.
+			* @function UseActionMenu
+			* @param {boolean} [val=undefined] - If defined, True enables the action menu, False disables it.
+			*/
+			public UseActionMenu(val?:boolean):void;
+			/**
+			* Create instance of WSDropDown control.
+			* @function WSDropDown
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
+			/**
+			* Create instance of WSDropDown control.
+			* @function WSDropDown
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
+			// Functions defined by Fit.Controls.DropDown
+			/**
+			* Add selection to control.
+			* @function AddSelection
+			* @param {string} title - Item title.
+			* @param {string} value - Item value.
+			* @param {boolean} [valid=true] - Flag indicating whether selection is valid or not. Invalid selections are highlighted and
+			not included when selections are retrived using Value() function, and not considered when
+			IsDirty() is called to determine whether control value has been changed by user.
+			GetSelections(true) can be used to retrive all items, including invalid selections.
+			*/
+			public AddSelection(title:string, value:string, valid?:boolean):void;
+			/**
+			* Clear text field.
+			* @function ClearInput
+			*/
+			public ClearInput():void;
+			/**
+			* Clear selections.
+			* @function ClearSelections
+			*/
+			public ClearSelections():void;
+			/**
+			* Close drop down menu.
+			* @function CloseDropDown
+			*/
+			public CloseDropDown():void;
+			/**
+			* Get/set value indicating whether boundary/collision detection is enabled or not (off by default).
+			This may cause drop down to open upwards if sufficient space is not available below control.
+			If control is contained in a scrollable parent, this will be considered the active viewport,
+			and as such define the active boundaries - unless relativeToViewport is set to True, in which
+			case the actual browser viewport will be used.
+			* @function DetectBoundaries
+			* @param {boolean} [val=undefined] - If defined, True enables collision detection, False disables it (default).
+			* @param {boolean} [relativeToViewport=false] - If defined, True results in viewport being considered the container to which available space is determined.
+			This also results in DropDown menu being positioned with position:fixed, allowing it to escape a container
+			with overflow (e.g. overflow:auto|hidden|scroll). Be aware though that this does not work reliably in combination
+			with CSS animation and CSS transform as it creates a new stacking context to which position:fixed becomes relative.
+			A value of False (default) results in available space being determined relative to the boundaries of the
+			control's scroll parent. The DropDown menu will stay within its container and not overflow it.
+			* @returns boolean
+			*/
+			public DetectBoundaries(val?:boolean, relativeToViewport?:boolean):boolean;
+			/**
+			* Get/set max height of drop down - returns object with Value (number) and Unit (string) properties.
+			* @function DropDownMaxHeight
+			* @param {number} [value=undefined] - If defined, max height is updated to specified value. A value of -1 forces picker to fit height to content.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=undefined] - If defined, max height is updated to specified CSS unit, otherwise px is assumed.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public DropDownMaxHeight(value?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Get/set max width of drop down - returns object with Value (number) and Unit (string) properties.
+			* @function DropDownMaxWidth
+			* @param {number} [value=undefined] - If defined, max width is updated to specified value. A value of -1 forces drop down to use control width.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=undefined] - If defined, max width is updated to specified CSS unit, otherwise px is assumed.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public DropDownMaxWidth(value?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Get item currently highlighted in picker control.
+			Returns an object with Title (string), Value (string),
+			and Valid (boolean) properties if found, otherwise Null.
+			* @function GetHighlighted
+			* @returns Fit.Controls.DropDownTypeDefs.DropDownItem | null
+			*/
+			public GetHighlighted():Fit.Controls.DropDownTypeDefs.DropDownItem | null;
+			/**
+			* Get input value.
+			* @function GetInputValue
+			* @returns string
+			*/
+			public GetInputValue():string;
+			/**
+			* Get picker control used to add items to drop down control.
+			* @function GetPicker
+			* @returns Fit.Controls.PickerBase
+			*/
+			public GetPicker():Fit.Controls.PickerBase;
+			/**
+			* Get selected item by value - returns object with Title (string), Value (string), and Valid (boolean) properties if found, otherwise Null is returned.
+			* @function GetSelectionByValue
+			* @param {string} val - Value of selected item to retrive.
+			* @returns Fit.Controls.DropDownTypeDefs.DropDownItem | null
+			*/
+			public GetSelectionByValue(val:string):Fit.Controls.DropDownTypeDefs.DropDownItem | null;
+			/**
+			* Get selected items - returned array contain objects with Title (string), Value (string), and Valid (boolean) properties.
+			* @function GetSelections
+			* @param {boolean} [includeInvalid=false] - Flag indicating whether invalid selection should be included or not.
+			* @returns Fit.Controls.DropDownTypeDefs.DropDownItem[]
+			*/
+			public GetSelections(includeInvalid?:boolean):Fit.Controls.DropDownTypeDefs.DropDownItem[];
+			/**
+			* Make DropDown highlight first selectable item when opened.
+			* @function HighlightFirst
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public HighlightFirst(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether input is enabled.
+			* @function InputEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables input, False disables it.
+			* @returns boolean
+			*/
+			public InputEnabled(val?:boolean):boolean;
+			/**
+			* Get/set mouse over text shown for invalid selections.
+			* @function InvalidSelectionMessage
+			* @param {string} [msg=undefined] - If defined, error message for invalid selections are set.
+			* @returns string
+			*/
+			public InvalidSelectionMessage(msg?:string):string;
+			/**
+			* Get flag indicating whether drop down is open or not.
+			* @function IsDropDownOpen
+			* @returns boolean
+			*/
+			public IsDropDownOpen():boolean;
+			/**
+			* Get/set flag indicating whether control allows for multiple selections.
+			* @function MultiSelectionMode
+			* @param {boolean} [val=undefined] - If defined, True enables multi selection mode, False disables it.
+			* @returns boolean
+			*/
+			public MultiSelectionMode(val?:boolean):boolean;
+			/**
+			* Add event handler fired when drop down menu is closed.
+			Function receives one argument: Sender (Fit.Controls.DropDown).
+			* @function OnClose
+			* @param {Fit.Controls.DropDownTypeDefs.InteractionEventHandler<this>} cb - Event handler function.
+			*/
+			public OnClose(cb:Fit.Controls.DropDownTypeDefs.InteractionEventHandler<this>):void;
+			/**
+			* Add event handler fired when input value is changed.
+			Function receives two arguments:
+			Sender (Fit.Controls.DropDown) and Value (string).
+			* @function OnInputChanged
+			* @param {Fit.Controls.DropDownTypeDefs.InputChangedEventHandler<this>} cb - Event handler function.
+			*/
+			public OnInputChanged(cb:Fit.Controls.DropDownTypeDefs.InputChangedEventHandler<this>):void;
+			/**
+			* Add event handler fired when drop down menu is opened.
+			Function receives one argument: Sender (Fit.Controls.DropDown).
+			* @function OnOpen
+			* @param {Fit.Controls.DropDownTypeDefs.InteractionEventHandler<this>} cb - Event handler function.
+			*/
+			public OnOpen(cb:Fit.Controls.DropDownTypeDefs.InteractionEventHandler<this>):void;
+			/**
+			* Add event handler fired when text is pasted into input field.
+			Function receives two arguments:
+			Sender (Fit.Controls.DropDown) and Value (string).
+			Return False to cancel event and change, and prevent OnInputChanged from firing.
+			* @function OnPaste
+			* @param {Fit.Controls.DropDownTypeDefs.PasteEventHandler<this>} cb - Event handler function.
+			*/
+			public OnPaste(cb:Fit.Controls.DropDownTypeDefs.PasteEventHandler<this>):void;
+			/**
+			* Open drop down menu.
+			* @function OpenDropDown
+			*/
+			public OpenDropDown():void;
+			/**
+			* Make DropDown restore scroll position and previously highlighted item when reopened.
+			* @function PersistView
+			* @param {boolean} [val=undefined] - If set, True enables feature, False disables it (default).
+			* @returns boolean
+			*/
+			public PersistView(val?:boolean):boolean;
+			/**
+			* Get/set value used as a placeholder on supported browsers, to indicate expected value or action.
+			* @function Placeholder
+			* @param {string} [val=undefined] - If defined, value is set as placeholder.
+			* @returns string
+			*/
+			public Placeholder(val?:string):string;
+			/**
+			* Remove selected item by value.
+			* @function RemoveSelection
+			* @param {string} value - Value of selected item to remove.
+			*/
+			public RemoveSelection(value:string):void;
+			/**
+			* Rename title of selected item by its value.
+			* @function RenameSelection
+			* @param {string} val - Value of selected item to rename.
+			* @param {string} newTitle - New item title.
+			*/
+			public RenameSelection(val:string, newTitle:string):void;
+			/**
+			* Clear input and display "Search.." placeholder when control receives focus.
+			If SearchModeOnFocus is enabled, InputEnabled will also be enabled. Disabling
+			SearchModeOnFocus does not disable InputEnabled.
+			* @function SearchModeOnFocus
+			* @param {boolean} [val=undefined] - If defined, True enables search mode on focus, False disables it.
+			* @returns boolean
+			*/
+			public SearchModeOnFocus(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control allow user to toggle Selection Mode (Visual or Text).
+			* @function SelectionModeToggle
+			* @param {boolean} [val=undefined] - If defined, True enables toggle button, False disables it.
+			* @returns boolean
+			*/
+			public SelectionModeToggle(val?:boolean):boolean;
+			/**
+			* Set value of text field which is automatically cleared the first time control
+			receives focus. Notice that this function should be called after AddSelection(..),
+			since adding selections causes the value of the text field to be cleared.
+			* @function SetInputValue
+			* @param {string} val - New value for text field.
+			*/
+			public SetInputValue(val:string):void;
+			/**
+			* Set picker control used to add items to drop down control.
+			* @function SetPicker
+			* @param {Fit.Controls.PickerBase | null} pickerControl - Picker control extending from PickerBase.
+			*/
+			public SetPicker(pickerControl:Fit.Controls.PickerBase | null):void;
+			/**
+			* Get/set flag indicating whether to use Text Selection Mode (true) or Visual Selection Mode (false).
+			Visual Selection Mode is the default way selected items are displayed, but it may result in control
+			changing dimensions as items are added/removed. Text Selection Mode prevents this and gives the
+			user a traditional DropDown control instead.
+			* @function TextSelectionMode
+			* @param {boolean} [val=undefined] - If defined, True enables Text Selection Mode, False disables it (Visual Selection Mode).
+			* @param {Fit.Controls.DropDownTypeDefs.SelectionToStringCallback<this>} [cb=undefined] - If defined, function will be called with DropDown being passed as an argument when selection text
+			needs to be updated. Function is expected to return a string representation of the selected items.
+			* @returns boolean
+			*/
+			public TextSelectionMode(val?:boolean, cb?:Fit.Controls.DropDownTypeDefs.SelectionToStringCallback<this>):boolean;
+			/**
+			* Update title of selected items based on data in associated picker control.
+			An array of updated items are returned. Each object has the following properties:
+			- Title: string (Updated title)
+			- Value: string (Unique item value)
+			- Exists: boolean (True if item still exists, False if not)
+			This is useful if selections are stored in a database, and
+			available items may have their titles changed over time. Invoking
+			this function will ensure that the selection displayed to the user
+			reflects the actual state of data in the picker control. Be aware
+			that this function can only update selected items if a picker has been
+			associated (see SetPicker(..)), and it contains the data from which
+			selected items are to be updated.
+			Items that no longer exists in picker's data will not automatically
+			be removed.
+			* @function UpdateSelected
+			* @returns Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]
+			*/
+			public UpdateSelected():Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[];
+			// Functions defined by Fit.Controls.ControlBase
+			/**
+			* Add CSS class to DOMElement representing control.
+			* @function AddCssClass
+			* @param {string} val - CSS class to add.
+			*/
+			public AddCssClass(val:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control.
+			* @function AddValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Function receiving an instance of the control.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function.
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against.
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails.
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
+			/**
+			* Get/set value indicating whether control is always considered dirty. This
+			comes in handy when programmatically changing a value of a control on behalf
+			of the user. Some applications may choose to only save values from dirty controls.
+			* @function AlwaysDirty
+			* @param {boolean} [val=undefined] - If defined, Always Dirty is enabled/disabled.
+			* @returns boolean
+			*/
+			public AlwaysDirty(val?:boolean):boolean;
+			/**
+			* Set flag indicating whether control should post back changes automatically when value is changed.
+			* @function AutoPostBack
+			* @param {boolean} [val=undefined] - If defined, True enables auto post back, False disables it.
+			* @returns boolean
+			*/
+			public AutoPostBack(val?:boolean):boolean;
+			/**
+			* Clear control value.
+			* @function Clear
+			*/
+			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
+			* @function Focused
+			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
+			* @returns boolean
+			*/
+			public Focused(value?:boolean):boolean;
+			/**
+			* Check whether CSS class is found on DOMElement representing control.
+			* @function HasCssClass
+			* @param {string} val - CSS class to check for.
+			* @returns boolean
+			*/
+			public HasCssClass(val:string):boolean;
+			/**
+			* Get/set control height - returns object with Value and Unit properties.
+			* @function Height
+			* @param {number} [val=undefined] - If defined, control height is updated to specified value. A value of -1 resets control height.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=px] - If defined, control height is updated to specified CSS unit.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public Height(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Get value indicating whether user has changed control value.
+			* @function IsDirty
+			* @returns boolean
+			*/
+			public IsDirty():boolean;
+			/**
+			* Get value indicating whether control value is valid.
+			Control value is considered invalid if control is required, but no value is set,
+			or if control value does not match regular expression set using SetValidationExpression(..).
+			* @function IsValid
+			* @returns boolean
+			*/
+			public IsValid():boolean;
+			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated using Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled.
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
+			* Register OnBlur event handler which is invoked when control loses focus.
+			* @function OnBlur
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnBlur(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Register OnChange event handler which is invoked when control value is changed either programmatically or by user.
+			* @function OnChange
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnChange(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Register OnFocus event handler which is invoked when control gains focus.
+			* @function OnFocus
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnFocus(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Remove all validation rules.
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
+			* Remove CSS class from DOMElement representing control.
+			* @function RemoveCssClass
+			* @param {string} val - CSS class to remove.
+			*/
+			public RemoveCssClass(val:string):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control.
+			* @function RemoveValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Validation function registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value.
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Get/set value indicating whether control is required to be set.
+			* @function Required
+			* @param {boolean} [val=undefined] - If defined, control required feature is enabled/disabled.
+			* @returns boolean
+			*/
+			public Required(val?:boolean):boolean;
+			/**
+			* Get/set scope to which control belongs - this is used to validate multiple
+			controls at once using Fit.Controls.ValidateAll(scope) or Fit.Controls.DirtyCheckAll(scope).
+			* @function Scope
+			* @param {string} [val=undefined] - If defined, control scope is updated.
+			* @returns string
+			*/
+			public Scope(val?:string):string;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
+			* @function SetValidationCallback
+			* @param {Function | null} cb - Function receiving control value - must return True if value is valid, otherwise False.
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator.
+			*/
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
+			* @function SetValidationExpression
+			* @param {RegExp | null} regEx - Regular expression to validate against.
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator.
+			*/
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
+			* @function SetValidationHandler
+			* @param {Function | null} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
+			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
+			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
+			value. The intention with UserValue(..) is to mimic the behaviour of what the user can do with the user interface control.
+			For picker controls the value format is equivalent to the one dictated by the Value(..) function.
+			* @function UserValue
+			* @param {string} [val=undefined] - If defined, value is inserted into control.
+			* @returns string
+			*/
+			public UserValue(val?:string):string;
+			/**
+			* Get/set control value.
+			For controls supporting multiple selections: Set value by providing a string in one the following formats:
+			title1=val1[;title2=val2[;title3=val3]] or val1[;val2[;val3]].
+			If Title or Value contains reserved characters (semicolon or equality sign), these most be URIEncoded.
+			Selected items are returned in the first format described, also with reserved characters URIEncoded.
+			Providing a new value to this function results in OnChange being fired.
+			* @function Value
+			* @param {string} [val=undefined] - If defined, value is inserted into control.
+			* @param {boolean} [preserveDirtyState=false] - If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+			If dirty state is reset (default), the control value will be compared against the value passed,
+			to determine whether it has been changed by the user or not, when IsDirty() is called.
+			* @returns string
+			*/
+			public Value(val?:string, preserveDirtyState?:boolean):string;
+			/**
+			* Get/set value indicating whether control is visible.
+			* @function Visible
+			* @param {boolean} [val=undefined] - If defined, control visibility is updated.
+			* @returns boolean
+			*/
+			public Visible(val?:boolean):boolean;
+			/**
+			* Get/set control width - returns object with Value and Unit properties.
+			* @function Width
+			* @param {number} [val=undefined] - If defined, control width is updated to specified value. A value of -1 resets control width.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=px] - If defined, control width is updated to specified CSS unit.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+			     // Add control specific dispose logic here
+			     base(); // Call Dispose on Component
+			});.
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control.
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID.
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified.
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element.
+			*/
+			public Render(toElement?:HTMLElement):void;
+		}
+		/**
+		* WebService enabled Drop Down Menu control allowing for single and multi selection.
+		Supports data selection using any control extending from Fit.Controls.PickerBase.
+		This control is extending from Fit.Controls.DropDown.
+		* @class [Fit.Controls.WSDropDown WSDropDown]
+		*/
+		class WSDropDown
+		{
+			// Functions defined by Fit.Controls.WSDropDown
+			/**
+			* Automatically update title of selected items based on data from WebService.
+			Contrary to UpdateSelected(), AutoUpdateSelected() automatically loads all
+			data from the associated WebService before updating the selected items, but
+			only if one or more items are selected.
+			The callback function is invoked when selected items have been updated.
+			The following arguments are passed to function:
+			- Sender (WSDropDown)
+			- An array of updated items, each with a Title (string), Value (string), and Exists (boolean) property.
+			Notice that items that no longer exists in picker's data, will NOT automatically be removed.
+			To obtain all items with the most current state (both updated and unmodified selections), use;
+			dropdown.AutoUpdateSelected(function(sender, updated) { console.log("All selected", dropdown.GetSelections()); });
+			For additiona details see UpdateSelected().
+			* @function AutoUpdateSelected
+			* @param {Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback<this>} [cb=undefined] - Optional callback function invoked when selected items have been updated.
+			*/
+			public AutoUpdateSelected(cb?:Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback<this>):void;
+			/**
+			* Automatically update title of selected items based on data from WebService.
+			Contrary to UpdateSelected(), AutoUpdateSelected() automatically loads all
+			data from the associated WebService before updating the selected items, but
+			only if one or more items are selected.
+			The callback function is invoked when selected items have been updated.
+			The following arguments are passed to function:
+			- Sender (WSDropDown)
+			- An array of updated items, each with a Title (string), Value (string), and Exists (boolean) property.
+			Notice that items that no longer exists in picker's data, will NOT automatically be removed.
+			To obtain all items with the most current state (both updated and unmodified selections), use;
+			dropdown.AutoUpdateSelected(function(sender, updated) { console.log("All selected", dropdown.GetSelections()); });
+			For additiona details see UpdateSelected().
+			* @function AutoUpdateSelected
+			* @param {Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback<this>} [cb=undefined] - Optional callback function invoked when selected items have been updated.
+			*/
+			public AutoUpdateSelected(cb?:Fit.Controls.WSDropDownTypeDefs.AutoUpdateSelectedCallback<this>):void;
+			/**
+			* Call this function to make control reload data when needed,
+			ensuring that the user will see the most recent values available.
+			Operation may be postponed if data is currently loading from WebService.
+			Use callback to pick up execution once data has been cleared.
+			Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+			* @function ClearData
+			* @param {Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>} [cb=undefined] - If defined, callback is invoked when data is cleared.
+			*/
+			public ClearData(cb?:Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>):void;
+			/**
+			* Call this function to make control reload data when needed,
+			ensuring that the user will see the most recent values available.
+			Operation may be postponed if data is currently loading from WebService.
+			Use callback to pick up execution once data has been cleared.
+			Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+			* @function ClearData
+			* @param {Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>} [cb=undefined] - If defined, callback is invoked when data is cleared.
+			*/
+			public ClearData(cb?:Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>):void;
+			/**
+			* Get WSListView control used to display data in a flat list view.
+			* @function GetListView
+			* @returns Fit.Controls.WSListView
+			*/
+			public GetListView():Fit.Controls.WSListView;
+			/**
+			* Get WSListView control used to display data in a flat list view.
+			* @function GetListView
+			* @returns Fit.Controls.WSListView
+			*/
+			public GetListView():Fit.Controls.WSListView;
+			/**
+			* Get WSTreeView control used to display data in a hierarchical tree view.
+			* @function GetTreeView
+			* @returns Fit.Controls.WSTreeView
+			*/
+			public GetTreeView():Fit.Controls.WSTreeView;
+			/**
+			* Get WSTreeView control used to display data in a hierarchical tree view.
+			* @function GetTreeView
+			* @returns Fit.Controls.WSTreeView
+			*/
+			public GetTreeView():Fit.Controls.WSTreeView;
+			/**
+			* Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
+			Often this argument is simply "callback". Passing Null disables JSONP communication again.
+			* @function JsonpCallback
+			* @param {string | null} [val=undefined] - If defined, enables JSONP and updates JSONP callback argument.
+			* @returns string | null
+			*/
+			public JsonpCallback(val?:string | null):string | null;
+			/**
+			* Get/set name of JSONP callback argument. Assigning a value will enable JSONP communication.
+			Often this argument is simply "callback". Passing Null disables JSONP communication again.
+			* @function JsonpCallback
+			* @param {string | null} [val=undefined] - If defined, enables JSONP and updates JSONP callback argument.
+			* @returns string | null
+			*/
+			public JsonpCallback(val?:string | null):string | null;
+			/**
+			* Get/set flag indicating whether searchable ListView is enabled or not.
+			The value provided also determines the value for InputEnabled and vice versa.
+			* @function ListViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables ListView and search capability (default), False disables it.
+			* @returns boolean
+			*/
+			public ListViewEnabled(val?:boolean):boolean;
+			/**
+			* Get/set flag indicating whether searchable ListView is enabled or not.
+			The value provided also determines the value for InputEnabled and vice versa.
+			* @function ListViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables ListView and search capability (default), False disables it.
+			* @returns boolean
+			*/
+			public ListViewEnabled(val?:boolean):boolean;
+			/**
+			* Add event handler fired if data request is canceled.
+			Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+			- Data: JSON data received from WebService (Null in this particular case).
+			* @function OnAbort
+			* @param {Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>} cb - Event handler function.
+			*/
+			public OnAbort(cb:Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>):void;
+			/**
+			* Add event handler fired if data request is canceled.
+			Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+			- Data: JSON data received from WebService (Null in this particular case).
+			* @function OnAbort
+			* @param {Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>} cb - Event handler function.
+			*/
+			public OnAbort(cb:Fit.Controls.WSDropDownTypeDefs.RequestAbortedEventHandler<this>):void;
+			/**
+			* Add event handler fired when data is being requested.
+			Request can be canceled by returning False.
+			Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance.
+			* @function OnRequest
+			* @param {Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler<this>} cb - Event handler function.
+			*/
+			public OnRequest(cb:Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler<this>):void;
+			/**
+			* Add event handler fired when data is being requested.
+			Request can be canceled by returning False.
+			Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance.
+			* @function OnRequest
+			* @param {Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler<this>} cb - Event handler function.
+			*/
+			public OnRequest(cb:Fit.Controls.WSDropDownTypeDefs.CancelableRequestEventHandler<this>):void;
+			/**
+			* Add event handler fired when data is received,
+			allowing for data transformation to occure before
+			picker control is populated. Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+			- Data: JSON data received from WebService.
+			* @function OnResponse
+			* @param {Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>} cb - Event handler function.
+			*/
+			public OnResponse(cb:Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>):void;
+			/**
+			* Add event handler fired when data is received,
+			allowing for data transformation to occure before
+			picker control is populated. Function receives two arguments:
+			Sender (Fit.Controls.WSDropDown) and EventArgs object.
+			EventArgs object contains the following properties:
+			- Sender: Fit.Controls.WSDropDown instance
+			- Picker: Picker causing WebService data request (WSTreeView or WSListView instance)
+			- Node: Fit.Controls.TreeViewNode instance if requesting TreeView children, Null if requesting root nodes
+			- Search: Search value if entered by user
+			- Request: Fit.Http.JsonpRequest or Fit.Http.JsonRequest instance
+			- Data: JSON data received from WebService.
+			* @function OnResponse
+			* @param {Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>} cb - Event handler function.
+			*/
+			public OnResponse(cb:Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>):void;
+			/**
+			* Reset action menu so it automatically determines whether to show up or not
+			when DropDown control is opened/reopened, based on rules outlined in the
+			description for UseActionMenu(..).
+			This is useful if calling ClearData(..) and one wants to make sure the TreeView
+			data is immediately made visible once ready, rather than showing the action menu
+			if it was previously shown.
+			* @function ResetActionMenu
+			*/
+			public ResetActionMenu():void;
+			/**
+			* Reset action menu so it automatically determines whether to show up or not
+			when DropDown control is opened/re-opened, based on rules outlined in the
+			description for UseActionMenu(..).
+			This is useful if calling ClearData(..) and one wants to make sure the TreeView
+			data is immediately made visible once ready, rather than showing the action menu
+			if it was previously shown.
+			* @function ResetActionMenu
+			*/
+			public ResetActionMenu():void;
+			/**
+			* Get/set value indicating whether TreeView control is enabled or not.
+			* @function TreeViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables TreeView (default), False disables it.
+			* @returns boolean
+			*/
+			public TreeViewEnabled(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether TreeView control is enabled or not.
+			* @function TreeViewEnabled
+			* @param {boolean} [val=undefined] - If defined, True enables TreeView (default), False disables it.
+			* @returns boolean
+			*/
+			public TreeViewEnabled(val?:boolean):boolean;
+			/**
+			* Get/set URL to WebService responsible for providing data to drop down.
+			WebService must deliver data in the following JSON format:
+			[
+			     { Title: "Test 1", Value: "1001", Selectable: true, Selected: true, Children: [] },
+			     { Title: "Test 2", Value: "1002", Selectable: false, Selected: false, Children: [] }
+			]
+			Only Value is required. Children is a collection of nodes with the same format as described above.
+			HasChildren:boolean may be set to indicate that children are available server side and that WebService
+			should be called to load these children when the given node is expanded.
+			* @function Url
+			* @param {string} [wsUrl=undefined] - If defined, updates WebService URL (e.g. http://server/ws/data.asxm/GetData).
+			* @returns string
+			*/
+			public Url(wsUrl?:string):string;
+			/**
+			* Get/set URL to WebService responsible for providing data to drop down.
+			WebService must deliver data in the following JSON format:
+			[
+			     { Title: "Test 1", Value: "1001", Selectable: true, Selected: true, Children: [] },
+			     { Title: "Test 2", Value: "1002", Selectable: false, Selected: false, Children: [] }
+			]
+			Only Value is required. Children is a collection of nodes with the same format as described above.
+			HasChildren:boolean may be set to indicate that children are available server side and that WebService
+			should be called to load these children when the given node is expanded.
+			* @function Url
+			* @param {string} [wsUrl=undefined] - If defined, updates WebService URL (e.g. http://server/ws/data.asxm/GetData).
+			* @returns string
+			*/
+			public Url(wsUrl?:string):string;
+			/**
+			* Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items.
+			If this property is not explicitly set, it will automatically be changed by the control depending on data and other settings.
+			The action menu will be enabled if TreeViewEnabled is set to False, as it would otherwise not show anything unless the user
+			enters a search value. If TreeViewEnabled is True but no data is provided to the TreeView control upon request, the action menu
+			is also enabled.
+			If the control does not have any selections, InputEnabled (or its alias ListViewEnabled) is True, and TreeViewEnabled is False,
+			no picker will be displayed since the action menu would only display the "Search for options" item - but it should already
+			be obvious to the user that searching is required due to the placeholder displaying "Search.." by default.
+			Likewise, if TreeViewEnabled is True and InputEnabled (or its alias ListViewEnabled) is False, and no selections are made,
+			the action menu would only display "Show available options". In this case the TreeView will be displayed instead,
+			even if UseActionMenu has explicitely been set to True.
+			The behaviour described is in place to make sure the action menu is only displayed when it makes sense, since it introduces
+			and extra step (click) required by the user to access data.
+			* @function UseActionMenu
+			* @param {boolean} [val=undefined] - If defined, True enables the action menu, False disables it.
+			*/
+			public UseActionMenu(val?:boolean):void;
+			/**
+			* Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items.
+			If this property is not explicitly set, it will automatically be changed by the control depending on data and other settings.
+			The action menu will be enabled if TreeViewEnabled is set to False, as it would otherwise not show anything unless the user
+			enters a search value. If TreeViewEnabled is True but no data is provided to the TreeView control upon request, the action menu
+			is also enabled.
+			If the control does not have any selections, InputEnabled (or its alias ListViewEnabled) is True, and TreeViewEnabled is False,
+			no picker will be displayed since the action menu would only display the "Search for options" item - but it should already
+			be obvious to the user that searching is required due to the placeholder displaying "Search.." by default.
+			Likewise, if TreeViewEnabled is True and InputEnabled (or its alias ListViewEnabled) is False, and no selections are made,
+			the action menu would only display "Show available options". In this case the TreeView will be displayed instead,
+			even if UseActionMenu has explicitely been set to True.
+			The behaviour described is in place to make sure the action menu is only displayed when it makes sense, since it introduces
+			and extra step (click) required by the user to access data.
+			* @function UseActionMenu
+			* @param {boolean} [val=undefined] - If defined, True enables the action menu, False disables it.
+			*/
+			public UseActionMenu(val?:boolean):void;
+			/**
+			* Create instance of WSDropDown control.
+			* @function WSDropDown
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
 			/**
 			* Create instance of WSDropDown control.
 			* @function WSDropDown
@@ -7600,6 +8592,22 @@ declare namespace Fit
 			*/
 			type AutoUpdateSelectedCallback<TypeOfThis> = (sender:TypeOfThis, updatedItems:Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]) => void;
 			/**
+			* AutoUpdateSelected callback.
+			* @template TypeOfThis
+			* @callback AutoUpdateSelectedCallback
+			* @param {TypeOfThis} sender - Instance of control.
+			* @param {Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]} updatedItems - Updated items.
+			*/
+			type AutoUpdateSelectedCallback<TypeOfThis> = (sender:TypeOfThis, updatedItems:Fit.Controls.DropDownTypeDefs.UpdatedDropDownItem[]) => void;
+			/**
+			* Cancelable request event handler.
+			* @template TypeOfThis
+			* @callback CancelableRequestEventHandler
+			* @param {TypeOfThis} sender - Instance of control.
+			* @param {Fit.Controls.WSDropDownTypeDefs.RequestEventArgs<TypeOfThis>} eventArgs - Event arguments.
+			*/
+			type CancelableRequestEventHandler<TypeOfThis> = (sender:TypeOfThis, eventArgs:Fit.Controls.WSDropDownTypeDefs.RequestEventArgs<TypeOfThis>) => void;
+			/**
 			* Cancelable request event handler.
 			* @template TypeOfThis
 			* @callback CancelableRequestEventHandler
@@ -7615,6 +8623,13 @@ declare namespace Fit
 			*/
 			type ClearDataCallback<TypeOfThis> = (sender:TypeOfThis) => void;
 			/**
+			* Event handler.
+			* @template TypeOfThis
+			* @callback ClearDataCallback
+			* @param {TypeOfThis} sender - Instance of control.
+			*/
+			type ClearDataCallback<TypeOfThis> = (sender:TypeOfThis) => void;
+			/**
 			* Aborted request handler.
 			* @template TypeOfThis
 			* @callback RequestAbortedEventHandler
@@ -7622,6 +8637,22 @@ declare namespace Fit
 			* @param {Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs<TypeOfThis>} eventArgs - Event arguments.
 			*/
 			type RequestAbortedEventHandler<TypeOfThis> = (sender:TypeOfThis, eventArgs:Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs<TypeOfThis>) => void;
+			/**
+			* Aborted request handler.
+			* @template TypeOfThis
+			* @callback RequestAbortedEventHandler
+			* @param {TypeOfThis} sender - Instance of control.
+			* @param {Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs<TypeOfThis>} eventArgs - Event arguments.
+			*/
+			type RequestAbortedEventHandler<TypeOfThis> = (sender:TypeOfThis, eventArgs:Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs<TypeOfThis>) => void;
+			/**
+			* Response event handler.
+			* @template TypeOfThis
+			* @callback ResponseEventHandler
+			* @param {TypeOfThis} sender - Instance of control.
+			* @param {Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs<TypeOfThis>} eventArgs - Event arguments.
+			*/
+			type ResponseEventHandler<TypeOfThis> = (sender:TypeOfThis, eventArgs:Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs<TypeOfThis>) => void;
 			/**
 			* Response event handler.
 			* @template TypeOfThis
@@ -7643,7 +8674,17 @@ declare namespace Fit
 				* @member {null} Data
 				*/
 				Data:null;
+				/**
+				* JSON data received from web service.
+				* @member {null} Data
+				*/
+				Data:null;
 				// Properties defined by Fit.Controls.WSDropDownTypeDefs.RequestEventArgs
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
 				/**
 				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
 				* @member {Fit.Controls.TreeViewNode | null} Node
@@ -7655,6 +8696,16 @@ declare namespace Fit
 				*/
 				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
 				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
 				* Instance of JsonpRequest or JsonRequest.
 				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
 				*/
@@ -7664,6 +8715,86 @@ declare namespace Fit
 				* @member {string} Search
 				*/
 				Search:string;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
+			}
+			/**
+			* Aborted request event arguments.
+			* @class [Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs AbortedRequestEventArgs]
+			* @template TypeOfThis
+			*/
+			class AbortedRequestEventArgs<TypeOfThis>
+			{
+				// Properties defined by Fit.Controls.WSDropDownTypeDefs.AbortedRequestEventArgs
+				/**
+				* JSON data received from web service.
+				* @member {null} Data
+				*/
+				Data:null;
+				/**
+				* JSON data received from web service.
+				* @member {null} Data
+				*/
+				Data:null;
+				// Properties defined by Fit.Controls.WSDropDownTypeDefs.RequestEventArgs
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
+				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
 				/**
 				* Instance of control.
 				* @member {TypeOfThis} Sender
@@ -7684,6 +8815,16 @@ declare namespace Fit
 				*/
 				Node:Fit.Controls.TreeViewNode | null;
 				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
+				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
 				* Instance of picker control causing web service request.
 				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
 				*/
@@ -7694,10 +8835,84 @@ declare namespace Fit
 				*/
 				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
 				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
 				* Search value if entered by user.
 				* @member {string} Search
 				*/
 				Search:string;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
+			}
+			/**
+			* Request event arguments.
+			* @class [Fit.Controls.WSDropDownTypeDefs.RequestEventArgs RequestEventArgs]
+			* @template TypeOfThis
+			*/
+			class RequestEventArgs<TypeOfThis>
+			{
+				// Properties defined by Fit.Controls.WSDropDownTypeDefs.RequestEventArgs
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
+				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
 				/**
 				* Instance of control.
 				* @member {TypeOfThis} Sender
@@ -7717,7 +8932,17 @@ declare namespace Fit
 				* @member {Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[]} Data
 				*/
 				Data:Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[];
+				/**
+				* JSON data received from web service.
+				* @member {Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[]} Data
+				*/
+				Data:Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[];
 				// Properties defined by Fit.Controls.WSDropDownTypeDefs.RequestEventArgs
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
 				/**
 				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
 				* @member {Fit.Controls.TreeViewNode | null} Node
@@ -7729,6 +8954,16 @@ declare namespace Fit
 				*/
 				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
 				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
 				* Instance of JsonpRequest or JsonRequest.
 				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
 				*/
@@ -7738,6 +8973,86 @@ declare namespace Fit
 				* @member {string} Search
 				*/
 				Search:string;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
+			}
+			/**
+			* Response event arguments.
+			* @class [Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs ResponseEventArgs]
+			* @template TypeOfThis
+			*/
+			class ResponseEventArgs<TypeOfThis>
+			{
+				// Properties defined by Fit.Controls.WSDropDownTypeDefs.ResponseEventArgs
+				/**
+				* JSON data received from web service.
+				* @member {Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[]} Data
+				*/
+				Data:Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[];
+				/**
+				* JSON data received from web service.
+				* @member {Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[]} Data
+				*/
+				Data:Fit.Controls.WSListViewTypeDefs.JsonItem[] | Fit.Controls.WSTreeViewTypeDefs.JsonItem[];
+				// Properties defined by Fit.Controls.WSDropDownTypeDefs.RequestEventArgs
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
+				/**
+				* Instance of TreeViewNode for which chilren are being requested, Null if root nodes are being requested, or if WSListView triggered request.
+				* @member {Fit.Controls.TreeViewNode | null} Node
+				*/
+				Node:Fit.Controls.TreeViewNode | null;
+				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of picker control causing web service request.
+				* @member {Fit.Controls.WSTreeView | Fit.Controls.WSListView} Picker
+				*/
+				Picker:Fit.Controls.WSTreeView | Fit.Controls.WSListView;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
+				* Instance of JsonpRequest or JsonRequest.
+				* @member {Fit.Http.JsonpRequest | Fit.Http.JsonRequest} Request
+				*/
+				Request:Fit.Http.JsonpRequest | Fit.Http.JsonRequest;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Search value if entered by user.
+				* @member {string} Search
+				*/
+				Search:string;
+				/**
+				* Instance of control.
+				* @member {TypeOfThis} Sender
+				*/
+				Sender:TypeOfThis;
 				/**
 				* Instance of control.
 				* @member {TypeOfThis} Sender
