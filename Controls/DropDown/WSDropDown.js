@@ -247,6 +247,12 @@ Fit.Controls.WSDropDown = function(ctlId)
 				me.SetPicker(tree);
 		});
 
+		// Make sure synchronization events are wired immedately. These events ensure that changes to selected
+		// items, done through the picker controls programmatically, are synchronized back to the DropDown control.
+		me.SetPicker(list);
+		me.SetPicker(tree);
+		me.SetPicker(null); // Make sure no picker remains rooted as some controls (WSTreeView) loads data when rooted (using synthetic #rooted event)
+
 		// Keep both pickers up to date when selections are changed. Otherwise only
 		// the active picker receives changes immediately. WSTreeView.Reload(keepState = true)
 		// is dependant upon selection state being up to date.
@@ -416,6 +422,76 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// ============================================
 	// Public
 	// ============================================
+
+	this.AddSelection = Fit.Core.CreateOverride(this.AddSelection, function(title, value, valid)
+	{
+		Fit.Validation.ExpectString(title);
+		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectBoolean(valid, true);
+
+		base(title, value, valid);
+
+		// Keep TreeView up to date with selection state
+
+		if (me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			// Selection just added might originate from a call to WSDropDown.Value(..), so the node might not have been loaded yet,
+			// which is why we can't expect it to be available via tree.GetChild(value, true). Therefore we use tree.SetNodeSelection(..) to
+			// update selection state since this will add the selection regardless of the node existing or not (using preselections).
+
+			tree.SetNodeSelection(value, true);
+		}
+	});
+
+	this.RemoveSelection = Fit.Core.CreateOverride(this.RemoveSelection, function(value)
+	{
+		Fit.Validation.ExpectString(value);
+
+		base(value);
+
+		// Keep TreeView up to date with selection state
+
+		if (me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			// Selection just remove might originate from a call to WSDropDown.Value(..), so the node might not have been loaded yet,
+			// which is why we can't expect it to be available via tree.GetChild(value, true). Therefore we use tree.SetNodeSelection(..) to
+			// update selection state since this will remove the selection regardless of the node existing or not (using preselections).
+
+			tree.SetNodeSelection(value, false);
+		}
+	});
+
+	this.Value = Fit.Core.CreateOverride(this.Value, function(value)
+	{
+		Fit.Validation.ExpectString(value, true);
+
+		var val = base(value);
+
+		// Keep TreeView up to date with selection state
+
+		if (Fit.Validation.IsSet(value) === true && me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			// Nodes just set might not have been loaded yet, so we can't expect them to be available via tree.GetChild(nodeValue, true).
+			// Therefore we use tree.SetSelections(..) to update selection state since this will set the selections regardless of the
+			// nodes existing or not (using preselections).
+
+			tree.SetSelections(me.GetSelections());
+		}
+
+		return val;
+	});
+
+	this.ClearSelections = Fit.Core.CreateOverride(this.ClearSelections, function()
+	{
+		base();
+
+		// Keep TreeView up to date with selection state
+
+		if (me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			tree.Clear();
+		}
+	});
 
 	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="AutoUpdateSelectedCallback">
 	/// 	<description> AutoUpdateSelected callback </description>

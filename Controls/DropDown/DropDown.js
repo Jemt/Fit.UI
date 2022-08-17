@@ -769,7 +769,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// Allow picker to select items in case selections have already been set in drop down
 
 		suppressOnItemSelectionChanged = true;
-		picker.SetSelections(me.GetSelections());
+		picker.SetSelections(me.GetSelections()); // #167: This can be very slow for huge selections (thousands of selected nodes)
 		suppressOnItemSelectionChanged = false;
 
 		// Set picker MaxHeight

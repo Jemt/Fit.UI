@@ -617,7 +617,8 @@ Fit.Controls.WSTreeView = function(ctlId)
 			var highlightedNode = keepState === true && me.GetHighlighted() !== null ? me.GetHighlighted().Value : null;	// Highlighted noded - when WSTreeView is used as a picker control
 
 			// Preserve selection if instructed to.
-			// Nodes will automatatically be selected again once data has been loaded.
+			// Nodes will automatatically be selected again using preselections
+			// once data has been populated. This happens in the getData(..) function.
 
 			var selected = me.Selected();
 			var newPreselection = {};
@@ -629,6 +630,13 @@ Fit.Controls.WSTreeView = function(ctlId)
 					newPreselection[node.Value()] = {Title: node.Title(), Value: node.Value()};
 				});
 			}
+			else
+			{
+				// Clear control if selection is not preserved. This ensures that events such as
+				// OnSelect and OnSelected (PickerBase) and OnChange fires for nodes currently selected,
+				// which in turn updates a host control using WSTreeView as a picker control.
+				me.Clear();
+			}
 
 			// Preserve scroll position in case user scrolled view while data was loading. Calling node.Focused(true)
 			// or SetActiveNode(..) further down will not only focus or highlight node, but also scroll it into view.
@@ -636,19 +644,13 @@ Fit.Controls.WSTreeView = function(ctlId)
 			var scrollParent = scrollbars.Vertical.Enabled === true || scrollbars.Horizontal.Enabled === true ? me.GetDomElement() : Fit.Dom.GetScrollParent(me.GetDomElement());
 			var scrollPositionToRestore = keepState === true ? { Top: scrollParent.scrollTop, Left: scrollParent.scrollLeft } : null;
 
-			// Remove nodes - OnChange is fired further down if selection is not preserved (keepState)
+			// Remove nodes
 			me._internal.ExecuteWithNoOnChange(function()
 			{
 				me.RemoveAllChildren(true); // True to dispose objects - also clears selections, including preselections
 			});
 
 			preSelected = newPreselection;
-
-			// Fire OnChange if selection was cleared (not preserved)
-			if (Fit.Array.Count(selected) > 0 && Fit.Array.Count(newPreselection) === 0)
-			{
-				me._internal.FireOnChange();
-			}
 
 			// Restore expanded state (createNodeFromJson reads Expanded property from JSON children).
 			// NOTICE: Nodes with remote children (HasChildren is true) will NOT be expanded, even if
@@ -839,7 +841,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 				// Add nodes not loaded yet to preselections
 
-				var values = val.split(";");
+				var values = val !== "" ? val.split(";") : [];
 
 				Fit.Array.ForEach(values, function(nodeVal)
 				{
@@ -887,6 +889,39 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		return value;
 	});
+
+	/// <function container="Fit.Controls.WSTreeView" name="SetNodeSelection" access="public">
+	/// 	<description>
+	/// 		Allows for a node's selection state to be set even if node has not been loaded yet
+	/// 	</description>
+	/// 	<param name="value" type="string"> Node value </param>
+	/// 	<param name="selected" type="boolean"> Node selection state </param>
+	/// </function>
+	this.SetNodeSelection = function(value, selected)
+	{
+		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectBoolean(selected);
+
+		var node = me.GetChild(value, true);
+
+		if (node !== null)
+		{
+			node.Selected(selected); // Will fire OnChange
+		}
+		else
+		{
+			if (selected === true && preSelected[value] === undefined)
+			{
+				preSelected[value] = { Title: "[pre-selection]", Value: value };
+				me._internal.FireOnChange();
+			}
+			else if (selected === false && preSelected[value] !== undefined)
+			{
+				delete preSelected[value];
+				me._internal.FireOnChange();
+			}
+		}
+	}
 
 	/// <function container="Fit.Controls.WSTreeView" name="Selected" access="public" returns="Fit.Controls.TreeViewNode[]">
 	/// 	<description>
