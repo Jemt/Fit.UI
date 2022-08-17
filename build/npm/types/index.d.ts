@@ -8361,6 +8361,13 @@ declare namespace Fit
 			*/
 			public Selected(val?:Fit.Controls.TreeViewNode[]):Fit.Controls.TreeViewNode[];
 			/**
+			* Allows for a node's selection state to be set even if node has not been loaded yet.
+			* @function SetNodeSelection
+			* @param {string} value - Node value.
+			* @param {boolean} selected - Node selection state.
+			*/
+			public SetNodeSelection(value:string, selected:boolean):void;
+			/**
 			* Get/set URL to WebService responsible for providing data to TreeView.
 			WebService must deliver data in the following JSON format:
 			[
