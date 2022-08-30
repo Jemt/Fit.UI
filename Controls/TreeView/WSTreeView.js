@@ -627,7 +627,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 			{
 				Fit.Array.ForEach(selected, function(node)
 				{
-					newPreselection[node.Value()] = {Title: node.Title(), Value: node.Value()};
+					newPreselection[node.Value()] = createPreSelectionNode(node.Title(), node.Value());
 				});
 			}
 			else
@@ -861,7 +861,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 					if (me.GetChild(preSel.Value, true) === null)
 					{
-						preSelected[preSel.Value] = preSel;
+						preSelected[preSel.Value] = createPreSelectionNode(preSel.Title, preSel.Value);
 
 						if (preserveDirtyState !== true)
 						{
@@ -912,7 +912,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		{
 			if (selected === true && preSelected[value] === undefined)
 			{
-				preSelected[value] = { Title: "[pre-selection]", Value: value };
+				preSelected[value] = createPreSelectionNode("[pre-selection]", value);
 				me._internal.FireOnChange();
 			}
 			else if (selected === false && preSelected[value] !== undefined)
@@ -927,11 +927,11 @@ Fit.Controls.WSTreeView = function(ctlId)
 	/// 	<description>
 	/// 		Fit.Controls.TreeView.Selected override:
 	/// 		Get/set selected nodes.
-	/// 		Notice for getter: Nodes not loaded yet (preselections) are NOT valid nodes associated with TreeView.
-	/// 		Therefore most functions will not work. Preselection nodes can be identified by their title:
-	/// 		if (node.Title() === "[pre-selection]") console.log("This is a preselection node");
-	/// 		Only the following getter functions can be used for preselection nodes:
-	/// 		node.Title(), node.Value(), node.Selected()
+	/// 		Notice for getter: Nodes not loaded yet (preselections) are NOT associated with TreeView.
+	/// 		They are there to indicate a selection that has not yet occurred since the data has not yet been loaded.
+	/// 		Changing properties of these nodes (e.g. node.Expanded(boolean) or node.Selected(boolean)) will not have any effect on the TreeView.
+	/// 		Such nodes can be identified using GetTreeView(): if (node.GetTreeView() === null) console.log("This is a preselection node");
+	/// 		The following functions can be used to get node information: node.Title() and node.Value().
 	/// 	</description>
 	/// 	<param name="val" type="Fit.Controls.TreeViewNode[]" default="undefined"> If defined, provided nodes are selected </param>
 	/// </function>
@@ -984,7 +984,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 			{
 				if (me.GetChild(node.Value(), true) === null)
 				{
-					preSelected[node.Value()] = {Title: node.Title(), Value: node.Value()};
+					preSelected[node.Value()] = createPreSelectionNode(node.Title(), node.Value());
 					Fit.Array.Add(orgSelected, node.Value());
 					fireOnChange = true;
 				}
@@ -1005,8 +1005,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 		// Add preselections - they are considered part of value
 		Fit.Array.ForEach(preSelected, function(preSelVal)
 		{
-			var preSel = preSelected[preSelVal];
-			Fit.Array.Add(nodes, new Fit.Controls.TreeViewNode(preSel.Title, preSel.Value)); // Invalid nodes! E.g. node.Selected(true) and node.GetTreeView() will not work since node has no association with TreeView
+			Fit.Array.Add(nodes, preSelected[preSelVal]);
 		});
 
 		return nodes;
@@ -1088,7 +1087,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 			Fit.Validation.ExpectString(item.Title);
 			Fit.Validation.ExpectString(item.Value);
 
-			preSelected[item.Value] = {Title: item.Title, Value: item.Value};
+			preSelected[item.Value] = createPreSelectionNode(item.Title, item.Value);
 		});
 
 		// Remove values from preselections if already loaded
@@ -1120,7 +1119,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			if (selected === true && preSelected[itemValue] === undefined)
 			{
-				preSelected[itemValue] = {Title: "[pre-selection]", Value: itemValue};
+				preSelected[itemValue] = createPreSelectionNode("[pre-selection]", itemValue);
 				me._internal.FireOnChange();
 			}
 			else if (selected === false && preSelected[itemValue] !== undefined)
@@ -1571,6 +1570,18 @@ Fit.Controls.WSTreeView = function(ctlId)
 		});
 
 		return child;
+	}
+
+	function createPreSelectionNode(title, value)
+	{
+		Fit.Validation.ExpectString(title);
+		Fit.Validation.ExpectString(value);
+
+		var node = new Fit.Controls.TreeViewNode(title, value);
+		node.Selectable(true);
+		node.Selected(true);
+
+		return node;
 	}
 
 	function nodeFullyLoaded(node) // Check whether all children has been loaded

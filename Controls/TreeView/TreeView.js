@@ -1881,6 +1881,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	Fit.Validation.ExpectString(nodeValue);
 
 	var me = this;
+	var nodeTitle = null;
 	var elmLi = null;
 	var elmUl = null;
 	var cmdToggle = null;
@@ -1932,12 +1933,13 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			lblTitle.innerHTML = val;
+			nodeTitle = Fit.String.StripHtml(val); // Get rid of HTML formatting for return value
 
 			// Make sure any contained links do not receive focus when navigating TreeView with Tab/Shift+Tab
 			Fit.Array.ForEach(lblTitle.getElementsByTagName("a"), function(link) { link.tabIndex = -1; });
 		}
 
-		return Fit.Dom.Text(lblTitle); // Using inner text to get rid of HTML formatting
+		return nodeTitle;
 	}
 
 	/// <function container="Fit.Controls.TreeViewNode" name="Value" access="public" returns="string">
@@ -1945,7 +1947,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	/// </function>
 	this.Value = function()
 	{
-		return decode(Fit.Dom.Data(elmLi, "value")); // Read only - value has been used on parent node as index (childrenIndexed)
+		return nodeValue; // Read only - value has been used on parent node as index (childrenIndexed)
 	}
 
 	/// <function container="Fit.Controls.TreeViewNode" name="Expanded" access="public" returns="boolean">
@@ -2530,7 +2532,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		}
 
 		// Dispose private members
-		me = elmLi = elmUl = cmdToggle = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = behavioralNodeCallback = null;
+		me = nodeTitle = elmLi = elmUl = cmdToggle = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = behavioralNodeCallback = null;
 	}
 
 	/// <function container="Fit.Controls.TreeViewNode" name="GetDomElement" access="public" returns="DOMElement">
@@ -2558,11 +2560,11 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		});
 	}
 
-	function decode(str)
+	/*function decode(str)
 	{
 		Fit.Validation.ExpectString(str);
 		return decodeURIComponent(str); // Turn string back to original value
-	}
+	}*/
 
 	function encode(str)
 	{
