@@ -8350,11 +8350,11 @@ declare namespace Fit
 			/**
 			* Fit.Controls.TreeView.Selected override:
 			Get/set selected nodes.
-			Notice for getter: Nodes not loaded yet (preselections) are NOT valid nodes associated with TreeView.
-			Therefore most functions will not work. Preselection nodes can be identified by their title:
-			if (node.Title() === "[pre-selection]") console.log("This is a preselection node");
-			Only the following getter functions can be used for preselection nodes:
-			node.Title(), node.Value(), node.Selected().
+			Notice for getter: Nodes not loaded yet (preselections) are NOT associated with TreeView.
+			They are there to indicate a selection that has not yet occurred since the data has not yet been loaded.
+			Changing properties of these nodes (e.g. node.Expanded(boolean) or node.Selected(boolean)) will not have any effect on the TreeView.
+			Such nodes can be identified using GetTreeView(): if (node.GetTreeView() === null) console.log("This is a preselection node");
+			The following functions can be used to get node information: node.Title() and node.Value().
 			* @function Selected
 			* @param {Fit.Controls.TreeViewNode[]} [val=undefined] - If defined, provided nodes are selected.
 			* @returns Fit.Controls.TreeViewNode[]
