@@ -1933,7 +1933,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		if (Fit.Validation.IsSet(val) === true)
 		{
 			lblTitle.innerHTML = val;
-			nodeTitle = Fit.String.StripHtml(val); // Get rid of HTML formatting for return value
+			nodeTitle = Fit.Dom.Text(lblTitle); // Get rid of HTML formatting for return value
 
 			// Make sure any contained links do not receive focus when navigating TreeView with Tab/Shift+Tab
 			Fit.Array.ForEach(lblTitle.getElementsByTagName("a"), function(link) { link.tabIndex = -1; });
