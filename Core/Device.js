@@ -51,11 +51,4 @@ Fit.Device =
 	{
 		Fit.Device.OptimizeForTouch = true;
 	}
-	// Else, determine whether to optimize the user experience for touch on hybrid devices.
-	// Only optimize for touch in this case if device's primary pointer is NOT high precision (mouse).
-	// When a high precision pointer device is the primary pointer, then we prefer a desktop like experience.
-	else if (Fit.Device.HasTouch === true && window.matchMedia && matchMedia("pointer:fine").matches === false)
-	{
-		Fit.Device.OptimizeForTouch = true;
-	}
 })();
