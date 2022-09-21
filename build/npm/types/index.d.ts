@@ -9691,6 +9691,18 @@ declare namespace Fit
 	{
 		// Properties defined by Fit.Device
 		/**
+		* Flag indicating whether device has a mouse (or another type of precision pointer) attached.
+		* @member {boolean} HasMouse
+		* @static
+		*/
+		static HasMouse:boolean;
+		/**
+		* Flag indicating whether device has touch support.
+		* @member {boolean} HasTouch
+		* @static
+		*/
+		static HasTouch:boolean;
+		/**
 		* Flag indicating whether user experience should be optimized for touch interaction.
 		* @member {boolean} OptimizeForTouch
 		* @static
