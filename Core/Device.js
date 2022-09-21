@@ -5,7 +5,10 @@ Fit.Device =
 {
 	// Assuming ordinary desktop device by default - touch support is determined further down
 
+	/// <member container="Fit.Device" name="HasMouse" static="true" type="boolean"> Flag indicating whether device has a mouse (or another type of precision pointer) attached </member>
 	HasMouse: true,
+
+	/// <member container="Fit.Device" name="HasTouch" static="true" type="boolean"> Flag indicating whether device has touch support </member>
 	HasTouch: false,
 
 	/// <member container="Fit.Device" name="OptimizeForTouch" static="true" type="boolean"> Flag indicating whether user experience should be optimized for touch interaction </member>
@@ -44,6 +47,8 @@ Fit.Device =
 	// Detect lack of high precision pointer device (mouse).
 	// If pointer queries are not supported, then assume a mouse is not present if touch capabilities are detected, which
 	// will be the case on old touch devices (e.g. Safari v. 8 and below on iOS or Chrome v. 40 and below on Android).
+	// IMPORTANT: any-pointer:fine will match on an iPad with a pen attached (and possibily other devices with pens
+	// as well) since a pen is a fine precision pointer. In this case HasMouse will therefore become (remain) True!
 	if ((pointerQueriesSupported === true && matchMedia("(any-pointer:fine)").matches === false) ||
 		(pointerQueriesSupported === false && Fit.Device.HasTouch === true))
 	{
