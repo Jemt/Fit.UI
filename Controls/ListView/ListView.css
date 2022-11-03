@@ -1,5 +1,6 @@
 div.FitUiControlListView
 {
+	position: relative; /* Make container positioned to allow use of offsetTop for selectable items */
 	overflow-y: auto;
 	overflow-x: hidden;
 }
@@ -19,6 +20,13 @@ div.FitUiControlListView[data-device="Desktop"] > div:hover
 div.FitUiControlListView > div[data-active="true"]
 {
 	background-color: #EAEAEA; /*#A9D8E8*/
+}
+
+div.FitUiControlListView > div > div.FitUiControlListViewItemDescription
+{
+	font-size: 0.85em;
+	color: gray;
+	white-space: normal;
 }
 
 div.FitUiControlListView:focus

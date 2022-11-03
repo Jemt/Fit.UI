@@ -15,6 +15,7 @@ Fit.Controls.ListView = function(controlId)
 
 	var me = this;
 	var list = me.GetDomElement();
+	var items = {}; // {[key:string]: { Title: string, Value: string, DomElement: Element }}
 	var active = null;
 	var persistView = false;
 	var scrollPositionTop = 0;
@@ -78,7 +79,7 @@ Fit.Controls.ListView = function(controlId)
 
 			// Fire OnChanging and OnChange events
 
-			var item = convertItemElementToObject(elm);
+			var item = getItem(getItemValueFromElement(elm));
 			var selectionCanceled = fireOnSelectHandlers(item) === false;
 
 			// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
@@ -168,15 +169,48 @@ Fit.Controls.ListView = function(controlId)
 
 	/// <function container="Fit.Controls.ListView" name="AddItem" access="public">
 	/// 	<description> Add item to ListView </description>
-	/// 	<param name="title" type="string"> Item title </param>
-	/// 	<param name="value" type="string"> Item value </param>
+	/// 	<param name="itemTitle" type="string"> Item title </param>
+	/// 	<param name="itemValue" type="string"> Item value </param>
 	/// </function>
-	this.AddItem = function(title, value)
+	/// <function container="Fit.Controls.ListView" name="AddItem" access="public">
+	/// 	<description> Add item to ListView </description>
+	/// 	<param name="item" type="{ Title: string, Value: string, Description?: string }"> Item to add </param>
+	/// </function>
+	this.AddItem = function(itemTitle, itemValue)
 	{
+		var title = "";
+		var value = "";
+		var description = undefined;
+
+		if (arguments.length === 1)
+		{
+			var item = arguments[0];
+
+			Fit.Validation.ExpectObject(item);
+
+			title = item.Title;
+			value = item.Value;
+			description = item.Description;
+		}
+		else
+		{
+			title = itemTitle;
+			value = itemValue;
+		}
+
 		Fit.Validation.ExpectString(title);
 		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectString(description, true);
 
 		var entry = document.createElement("div");
+
+		items[value] = { Title: title, Value: value, DomElement: entry };
+
+		if (Fit.Validation.IsSet(description) === true)
+		{
+			title += "<div class='FitUiControlListViewItemDescription'>" + item.Description + "</div>";
+		}
+
 		entry.innerHTML = title;
 		Fit.Dom.Data(entry, "value", encode(value));
 		Fit.Dom.Data(entry, "active", "false");
@@ -197,15 +231,7 @@ Fit.Controls.ListView = function(controlId)
 	this.GetItem = function(value)
 	{
 		Fit.Validation.ExpectString(value);
-
-		var itemElm = getItemElement(value);
-
-		if (itemElm !== null)
-		{
-			return convertItemElementToObject(itemElm);
-		}
-
-		return null;
+		return getItem(value);
 	}
 
 	/// <function container="Fit.Controls.ListView" name="GetItems" access="public" returns="Fit.Controls.ListViewTypeDefs.ListViewItem[]">
@@ -213,14 +239,7 @@ Fit.Controls.ListView = function(controlId)
 	/// </function>
 	this.GetItems = function()
 	{
-		var items = [];
-
-		Fit.Array.ForEach(list.children, function(child)
-		{
-			Fit.Array.Add(items, convertItemElementToObject(child));
-		});
-
-		return items;
+		return getItems();
 	}
 
 	/// <function container="Fit.Controls.ListView" name="HasItem" access="public" returns="boolean">
@@ -230,7 +249,7 @@ Fit.Controls.ListView = function(controlId)
 	this.HasItem = function(value)
 	{
 		Fit.Validation.ExpectString(value);
-		return getItemElement(value) !== null;
+		return items[value] !== undefined;
 	}
 
 	/// <function container="Fit.Controls.ListView" name="RemoveItem" access="public">
@@ -241,13 +260,14 @@ Fit.Controls.ListView = function(controlId)
 	{
 		Fit.Validation.ExpectString(value);
 
-		var item = getItemElement(value);
+		var item = items[value] || null;
 
 		if (item !== null)
 		{
-			Fit.Dom.Remove(item);
+			Fit.Dom.Remove(item.DomElement);
+			delete items[value];
 
-			if (item === active)
+			if (item.DomElement === active)
 			{
 				active = null;
 			}
@@ -260,6 +280,7 @@ Fit.Controls.ListView = function(controlId)
 	this.RemoveItems = function()
 	{
 		list.innerHTML = "";
+		items = {};
 		setActive(null);
 	}
 
@@ -277,11 +298,11 @@ Fit.Controls.ListView = function(controlId)
 	{
 		Fit.Validation.ExpectString(val);
 
-		var itemElm = getItemElement(val);
+		var item = items[val] || null;
 
-		if (itemElm !== null)
+		if (item !== null)
 		{
-			setActive(itemElm);
+			setActive(item.DomElement);
 		}
 	}
 
@@ -314,7 +335,7 @@ Fit.Controls.ListView = function(controlId)
 
 				if (active !== null)
 				{
-					var item = convertItemElementToObject(active);
+					var item = getItem(getItemValueFromElement(active));
 					var selectionCanceled = fireOnSelectHandlers(item) === false;
 
 					// Notice: We always pass False as current selection state to OnItemSelectionChanging since ListView does
@@ -339,7 +360,7 @@ Fit.Controls.ListView = function(controlId)
 	{
 		if (active !== null)
 		{
-			return convertItemElementToObject(active);
+			return getItem(getItemValueFromElement(active));
 		}
 
 		return null;
@@ -449,7 +470,7 @@ Fit.Controls.ListView = function(controlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 
-		me = list = active = persistView = scrollPositionTop = highlightFirst = firstWasHighlighted = isIe8 = onSelectHandlers = onSelectedHandlers = null;
+		me = list = items = active = persistView = scrollPositionTop = highlightFirst = firstWasHighlighted = isIe8 = onSelectHandlers = onSelectedHandlers = null;
 	});
 
 	// ============================================
@@ -473,28 +494,28 @@ Fit.Controls.ListView = function(controlId)
 	// Private
 	// ============================================
 
-	function getItemElement(value)
+	function getItem(value)
 	{
 		Fit.Validation.ExpectString(value);
-
-		var found = null;
-
-		Fit.Array.ForEach(list.children, function(child)
-		{
-			if (decode(Fit.Dom.Data(child, "value")) === value)
-			{
-				found = child;
-				return false;
-			}
-		});
-
-		return found;
+		return (items[value] && { Title: items[value].Title, Value: items[value].Value }) || null;
 	}
 
-	function convertItemElementToObject(elm)
+	function getItems()
+	{
+		var returnItems = [];
+
+		Fit.Array.ForEach(items, function(itemValue)
+		{
+			Fit.Array.Add(returnItems, getItem(itemValue));
+		});
+
+		return returnItems;
+	}
+
+	function getItemValueFromElement(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm);
-		return { Title: Fit.Dom.Text(elm), Value: decode(Fit.Dom.Data(elm, "value")) }; // Using Text(..) to get rid of HTML formatting
+		return decode(Fit.Dom.Data(elm, "value"));
 	}
 
 	function setActive(elm, suppressScrollIntoView)
@@ -513,7 +534,7 @@ Fit.Controls.ListView = function(controlId)
 
 			if (suppressScrollIntoView !== true)
 			{
-				list.scrollTop = active.offsetHeight * Fit.Dom.GetIndex(active); // Alternative to active.scrollIntoView(true) which unfortunately also scrolls main view
+				list.scrollTop = active.offsetTop; // Alternative to active.scrollIntoView(true) which unfortunately also scrolls main view - scrollable container must be positioned for offsetTop to work properly!
 				repaint();
 			}
 		}
