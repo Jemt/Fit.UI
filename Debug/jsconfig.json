@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"target": "ES3",
+		"checkJs": true,
+		"strictNullChecks": true,
+		"noImplicitAny": true
+	},
+	"typeAcquisition": {
+		"include": ["fit-ui"]
+	}
+}

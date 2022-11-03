@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"target": "ES3",
+		"checkJs": false,
+		"strictNullChecks": false,
+		"noImplicitAny": false
+	},
+	"exclude": ["node_modules", "build"]
+}
