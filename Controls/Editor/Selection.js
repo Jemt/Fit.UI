@@ -17,6 +17,10 @@ Fit._internal.Controls.Editor.Selection = function(editable, selectionWithinEdit
 	// might fail. For instance getSelection().getRangeAt(0) will throw an error.
 	// We can use `getSelection().type === "None"` to detect lack of a selection.
 
+	// ============================================
+	// Init
+	// ============================================
+
 	function init()
 	{
 		if (me.IsSupported() === true)
@@ -55,6 +59,10 @@ Fit._internal.Controls.Editor.Selection = function(editable, selectionWithinEdit
 			});
 		}
 	}
+
+	// ============================================
+	// Public
+	// ============================================
 
 	this.IsSupported = function()
 	{
@@ -334,6 +342,10 @@ Fit._internal.Controls.Editor.Selection = function(editable, selectionWithinEdit
 
 		SelectionType = me = globalSelectionChangeHandlerId = validSelection = onSelectionHandlers = null;
 	}
+
+	// ============================================
+	// Private
+	// ============================================
 
 	function isSelectionCollapsed(sel)
 	{

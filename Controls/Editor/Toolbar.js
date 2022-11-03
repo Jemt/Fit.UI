@@ -160,6 +160,10 @@ Fit._internal.Controls.Editor.Toolbar = function(locale, editable, selection, li
 		}
 	}
 
+	// ============================================
+	// Init
+	// ============================================
+
 	function init()
 	{
 		toolbar = document.createElement("div");
@@ -226,6 +230,95 @@ Fit._internal.Controls.Editor.Toolbar = function(locale, editable, selection, li
 	// ============================================
 	// Public
 	// ============================================
+
+	// https://stackoverflow.com/questions/71916923/open-safari-context-menu-below-text-selection
+	this.Show = function()
+	{
+		if (supported === false)
+		{
+			return;
+		}
+
+		// Update toolbar buttons
+
+		updateToolbarButtons();
+
+		// Reset position
+
+		toolbar.style.left = "";
+		toolbar.style.top = "";
+		toolbar.style.display = "";
+
+		// Position above selected text (position:absolute - relative to editor control)
+
+		var container = editable.offsetParent; // Parent to which toolbar is relatively positioned (control container which has position:relative)
+		var containerDistanceFromViewPortTop = container.offsetTop - document.documentElement.scrollTop;
+		var containerDistanceFromViewPortLeft = container.offsetLeft - document.documentElement.scrollLeft;
+
+		var rect = selection.GetPosition(); // Selection's position in viewport
+		rect.Top = rect.Top - containerDistanceFromViewPortTop;
+		rect.Left = rect.Left - containerDistanceFromViewPortLeft;
+
+		var rectTop = rect.Top;
+		var rectCenter = rect.Left + (rect.Width / 2);
+
+		// Position above selected text (position:relative - relative to viewport)
+
+		// DISABLED: Used with position:relative which doesn't work on iOS
+		/*var rect = selection.GetPosition(); // Selection's position in viewport
+		var rectTop = rect.Top;
+		var rectCenter = rect.Left + (rect.Width / 2);*/
+
+		// Set toolbar position
+
+		toolbar.style.left = Math.floor(rectCenter - (toolbar.offsetWidth / 2)) + "px";
+		toolbar.style.top = Math.floor(rectTop - toolbar.offsetHeight) + "px";
+
+		// Adjust position if toolbar is outside viewport (position:absolute - relative to editor control)
+
+		var toolbarViewPortPosition = Fit.Dom.GetBoundingPosition(toolbar);
+
+		if (toolbarViewPortPosition.Y < 0) // Push down if above viewport top
+		{
+			toolbar.style.top = (parseInt(toolbar.style.top) + Math.ceil(Math.abs(toolbarViewPortPosition.Y))) + "px";
+		}
+		if (toolbarViewPortPosition.X < 0) // Push right if outside of viewport's left side
+		{
+			toolbar.style.left = (parseInt(toolbar.style.left) + Math.ceil(Math.abs(toolbarViewPortPosition.X))) + "px";
+		}
+		if (toolbarViewPortPosition.X + toolbar.offsetWidth > Fit.Browser.GetViewPortDimensions().Width) // Push left if outside of viewport's right side
+		{
+			var exceeds = toolbarViewPortPosition.X + toolbar.offsetWidth - Fit.Browser.GetViewPortDimensions().Width;
+			toolbar.style.left = Math.floor(parseInt(toolbar.style.left) - exceeds) + "px";
+		}
+
+		// Adjust position if toolbar is outside viewport (position:relative - relative to viewport)
+
+		// DISABLED: Used with position:relative which doesn't work on iOS
+		/*if (parseInt(toolbar.style.top) < 0)
+		{
+			toolbar.style.top = "0px";
+		}
+		if (parseInt(toolbar.style.left) < 0)
+		{
+			toolbar.style.left = "0px";
+		}
+		if (parseInt(toolbar.style.left) + toolbar.offsetWidth > Fit.Browser.GetViewPortDimensions().Width)
+		{
+			var exceeds = (parseInt(toolbar.style.left) + toolbar.offsetWidth) - Fit.Browser.GetViewPortDimensions().Width;
+			toolbar.style.left = Math.floor(parseInt(toolbar.style.left) - exceeds) + "px";
+		}*/
+	}
+
+	this.Hide = function()
+	{
+		if (supported === false)
+		{
+			return;
+		}
+
+		toolbar.style.display = "none";
+	}
 
 	this.GetDomElement = function()
 	{
@@ -516,95 +609,6 @@ Fit._internal.Controls.Editor.Toolbar = function(locale, editable, selection, li
 				button.DomElement.ontouchstart = null;
 			}
 		});
-	}
-
-	// https://stackoverflow.com/questions/71916923/open-safari-context-menu-below-text-selection
-	this.Show = function()
-	{
-		if (supported === false)
-		{
-			return;
-		}
-
-		// Update toolbar buttons
-
-		updateToolbarButtons();
-
-		// Reset position
-
-		toolbar.style.left = "";
-		toolbar.style.top = "";
-		toolbar.style.display = "";
-
-		// Position above selected text (position:absolute - relative to editor control)
-
-		var container = editable.offsetParent; // Parent to which toolbar is relatively positioned (control container which has position:relative)
-		var containerDistanceFromViewPortTop = container.offsetTop - document.documentElement.scrollTop;
-		var containerDistanceFromViewPortLeft = container.offsetLeft - document.documentElement.scrollLeft;
-
-		var rect = selection.GetPosition(); // Selection's position in viewport
-		rect.Top = rect.Top - containerDistanceFromViewPortTop;
-		rect.Left = rect.Left - containerDistanceFromViewPortLeft;
-
-		var rectTop = rect.Top;
-		var rectCenter = rect.Left + (rect.Width / 2);
-
-		// Position above selected text (position:relative - relative to viewport)
-
-		// DISABLED: Used with position:relative which doesn't work on iOS
-		/*var rect = selection.GetPosition(); // Selection's position in viewport
-		var rectTop = rect.Top;
-		var rectCenter = rect.Left + (rect.Width / 2);*/
-
-		// Set toolbar position
-
-		toolbar.style.left = Math.floor(rectCenter - (toolbar.offsetWidth / 2)) + "px";
-		toolbar.style.top = Math.floor(rectTop - toolbar.offsetHeight) + "px";
-
-		// Adjust position if toolbar is outside viewport (position:absolute - relative to editor control)
-
-		var toolbarViewPortPosition = Fit.Dom.GetBoundingPosition(toolbar);
-
-		if (toolbarViewPortPosition.Y < 0) // Push down if above viewport top
-		{
-			toolbar.style.top = (parseInt(toolbar.style.top) + Math.ceil(Math.abs(toolbarViewPortPosition.Y))) + "px";
-		}
-		if (toolbarViewPortPosition.X < 0) // Push right if outside of viewport's left side
-		{
-			toolbar.style.left = (parseInt(toolbar.style.left) + Math.ceil(Math.abs(toolbarViewPortPosition.X))) + "px";
-		}
-		if (toolbarViewPortPosition.X + toolbar.offsetWidth > Fit.Browser.GetViewPortDimensions().Width) // Push left if outside of viewport's right side
-		{
-			var exceeds = toolbarViewPortPosition.X + toolbar.offsetWidth - Fit.Browser.GetViewPortDimensions().Width;
-			toolbar.style.left = Math.floor(parseInt(toolbar.style.left) - exceeds) + "px";
-		}
-
-		// Adjust position if toolbar is outside viewport (position:relative - relative to viewport)
-
-		// DISABLED: Used with position:relative which doesn't work on iOS
-		/*if (parseInt(toolbar.style.top) < 0)
-		{
-			toolbar.style.top = "0px";
-		}
-		if (parseInt(toolbar.style.left) < 0)
-		{
-			toolbar.style.left = "0px";
-		}
-		if (parseInt(toolbar.style.left) + toolbar.offsetWidth > Fit.Browser.GetViewPortDimensions().Width)
-		{
-			var exceeds = (parseInt(toolbar.style.left) + toolbar.offsetWidth) - Fit.Browser.GetViewPortDimensions().Width;
-			toolbar.style.left = Math.floor(parseInt(toolbar.style.left) - exceeds) + "px";
-		}*/
-	}
-
-	this.Hide = function()
-	{
-		if (supported === false)
-		{
-			return;
-		}
-
-		toolbar.style.display = "none";
 	}
 
 	init();

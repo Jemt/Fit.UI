@@ -306,6 +306,25 @@ Fit.Controls.Editor = function(ctlId)
 	// ============================================
 
 	// See documentation on ControlBase
+	this.Enabled = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val === false)
+			{
+				hideToolbar(); // Hide toolbar in case editor is being disabled while editing (e.g. after a certain amount of time - could be an exam/test)
+			}
+
+			me._internal.Data("enabled", val.toString());
+			editable.contentEditable = val.toString(); // It's a string (https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/contentEditable)
+		}
+
+		return editable.isContentEditable;
+	}
+
+	// See documentation on ControlBase
 	this.Focused = function(focus)
 	{
 		Fit.Validation.ExpectBoolean(focus, true);
@@ -394,6 +413,28 @@ Fit.Controls.Editor = function(ctlId)
 		me.Value("");
 	}
 
+	// See documentation on ControlBase
+	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+	{
+		selection && selection.Dispose();
+		toolbar && toolbar.Dispose();
+		linkDialog.Dispose();
+
+		onChangeInvocator.Cancel();
+		Fit.Internationalization.RemoveOnLocaleChanged(localize);
+		Fit.Events.RemoveHandler(document, globalKeyDownEventId);
+		Fit.Events.RemoveHandler(document, globalKeyUpEventId);
+		Fit.Events.RemoveHandler(document, globalScrollEventId);
+		Fit.Events.RemoveHandler(editable, localScrollEventId);
+
+		showToolbarMode = showToolbarOnClick = me = editable = selection = toolbar = linkDialog = filter = locale = prevVal = orgVal = valueCache = placeholder = onChangeInvocator = globalKeyDownEventId = globalKeyUpEventId = globalScrollEventId = localScrollEventId = null;
+		base();
+	});
+
+	// ============================================
+	// Public
+	// ============================================
+
 	/// <function container="Fit.Controls.Editor" name="SpellCheck" access="public" returns="boolean">
 	/// 	<description>
 	/// 		Get/set value which determines whether the browser's built-in spell checker is enabled for the editor or not.
@@ -428,47 +469,6 @@ Fit.Controls.Editor = function(ctlId)
 		}
 
 		return me._internal.Data("styleless") === "true";
-	}
-
-	// See documentation on ControlBase
-	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
-	{
-		selection && selection.Dispose();
-		toolbar && toolbar.Dispose();
-		linkDialog.Dispose();
-
-		onChangeInvocator.Cancel();
-		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		Fit.Events.RemoveHandler(document, globalKeyDownEventId);
-		Fit.Events.RemoveHandler(document, globalKeyUpEventId);
-		Fit.Events.RemoveHandler(document, globalScrollEventId);
-		Fit.Events.RemoveHandler(editable, localScrollEventId);
-
-		showToolbarMode = showToolbarOnClick = me = editable = selection = toolbar = linkDialog = filter = locale = prevVal = orgVal = valueCache = placeholder = onChangeInvocator = globalKeyDownEventId = globalKeyUpEventId = globalScrollEventId = localScrollEventId = null;
-		base();
-	});
-
-	// ============================================
-	// Public
-	// ============================================
-
-	// See documentation on ControlBase
-	this.Enabled = function(val)
-	{
-		Fit.Validation.ExpectBoolean(val, true);
-
-		if (Fit.Validation.IsSet(val) === true)
-		{
-			if (val === false)
-			{
-				hideToolbar(); // Hide toolbar in case editor is being disabled while editing (e.g. after a certain amount of time - could be an exam/test)
-			}
-
-			me._internal.Data("enabled", val.toString());
-			editable.contentEditable = val.toString(); // It's a string (https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/contentEditable)
-		}
-
-		return editable.isContentEditable;
 	}
 
 	/// <function container="Fit.Controls.Editor" name="Placeholder" access="public" returns="string">
