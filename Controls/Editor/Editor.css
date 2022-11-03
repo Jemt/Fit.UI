@@ -1,0 +1,130 @@
+/****************************************************************/
+/*** Editor *****************************************************/
+/****************************************************************/
+
+div.FitUiControlEditor
+{
+	min-height: 2em;
+}
+
+div.FitUiControlEditor div[contenteditable]
+{
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
+
+/* Browser tweaks */
+
+div.FitUiControlEditor div[contenteditable]:focus
+{
+	outline: none;
+}
+
+/* Editor styles - look and feel */
+
+div.FitUiControlEditor[data-styleless="false"]
+{
+	border: 0.065em solid #BBBBBB;
+}
+
+div.FitUiControlEditor[data-styleless="false"] div[contenteditable]
+{
+	padding: 0.325em; /* Will affect height of empty editable div when focused - must not cause control height to exceed 2em (default control height)! */
+}
+
+/* Validation - error indicator */
+
+div.FitUiControlEditor[data-enabled="true"][data-valid="false"]
+{
+	outline: none;
+	border-color: red;
+}
+
+/* Placeholder */
+
+div.FitUiControlEditor[data-enabled="true"] div[contenteditable][data-placeholder]:before
+{
+	content: attr(data-placeholder);
+	position: absolute; /* Take out of flow so it doesn't affect editor size in case the editor contain line break(s) only */
+}
+div.FitUiControlEditor[data-enabled="true"][data-styleless="false"] div[contenteditable][data-placeholder]:before
+{
+	top: 0.4em;
+}
+
+/* Enabled/disabled state */
+
+div.FitUiControlEditor[data-enabled="true"]
+{
+	cursor: text;
+}
+
+div.FitUiControlEditor[data-enabled="false"][data-styleless="true"]
+{
+	color: inherit; /* Undo disabled styling from Styles.css */
+}
+
+/* Content styles */
+
+/* Show pointer cursor when hovering links while command button (CTRL/CMD) is held down */
+div.FitUiControlEditor[data-enabled="true"] div[contenteditable][data-command-button-active="true"] a:hover
+{
+	cursor: pointer;
+}
+
+/****************************************************************/
+/*** Toolbar ****************************************************/
+/****************************************************************/
+
+div.FitUiControlEditor div.FitUiControlEditorToolbar
+{
+	display: inline-block;
+	background: white;
+	position: absolute;
+	line-height: 2em;
+	box-shadow: 0em 0em 0.25em silver;
+	white-space: nowrap;
+	cursor: default;
+}
+
+div.FitUiControlEditor span.FitUiControlEditorToolbarButton
+{
+	border-radius: 0.2em;
+	width: 2em;
+	line-height: 2em;
+	text-align: center;
+	margin: 0.25em;
+	cursor: pointer;
+}
+div.FitUiControlEditor span.FitUiControlEditorToolbarButton:hover
+{
+	background-color: rgb(232, 232, 232);
+}
+div.FitUiControlEditor span.FitUiControlEditorToolbarButton[data-activated="true"]
+{
+	background-color: orange;
+}
+div.FitUiControlEditor span.FitUiControlEditorToolbarButton[data-activated="true"]:hover
+{
+	background-color: #FFCC6E;
+}
+
+div.FitUiControlEditor span.FitUiControlEditorToolbarButtonHeader-h1:after,
+div.FitUiControlEditor span.FitUiControlEditorToolbarButtonHeader-h2:after,
+div.FitUiControlEditor span.FitUiControlEditorToolbarButtonHeader-h3:after
+{
+	content: "1";
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-size: 0.6em;
+	position: absolute;
+	top: 0.75em;
+}
+div.FitUiControlEditor span.FitUiControlEditorToolbarButtonHeader-h2:after
+{
+	content: "2";
+}
+div.FitUiControlEditor span.FitUiControlEditorToolbarButtonHeader-h3:after
+{
+	content: "3";
+}
