@@ -449,6 +449,21 @@ Fit.Validation.ExpectInstance = function(val, instanceType, allowNotSet)
 	Fit.Validation.ThrowError("Unsupported object type passed");
 }
 
+/// <function container="Fit.Validation" name="ExpectEnum" access="public" static="true">
+/// 	<description> Throws error if passed value is not contained in enum </description>
+/// 	<param name="val" type="object"> Enum value to validate </param>
+/// 	<param name="enumType" type="object"> Enum type </param>
+/// 	<param name="allowNotSet" type="boolean" default="false"> Set True to allow enum value to be Null or Undefined </param>
+/// </function>
+Fit.Validation.ExpectEnum = function(val, enumType, allowNotSet)
+{
+	if (allowNotSet === true && (val === undefined || val === null))
+		return;
+
+	if (typeof(enumType[val]) !== "string")
+		Fit.Validation.ThrowError("Unsupported enum value passed");
+}
+
 /// <function container="Fit.Validation" name="ExpectIsSet" access="public" static="true">
 /// 	<description> Throws error if passed object is either Null or Undefined </description>
 /// 	<param name="val" type="object"> Object to validate </param>
