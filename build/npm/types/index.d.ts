@@ -2019,10 +2019,10 @@ declare namespace Fit
 			The function works the same as the Value function, expect it
 			accepts and returns a Date object instead of a string.
 			* @function Date
-			* @param {Date} [val=undefined] - If defined, date is selected.
-			* @returns Date
+			* @param {Date | null} [val=undefined] - If defined, date is selected.
+			* @returns Date | null
 			*/
-			public Date(val?:__fitUiAliasDate):__fitUiAliasDate;
+			public Date(val?:__fitUiAliasDate | null):__fitUiAliasDate | null;
 			/**
 			* Create instance of DatePicker control.
 			* @function DatePicker

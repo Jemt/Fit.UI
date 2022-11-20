@@ -495,13 +495,13 @@ Fit.Controls.DatePicker = function(ctlId)
 	// Public
 	// ============================================
 
-	/// <function container="Fit.Controls.DatePicker" name="Date" access="public" returns="Date">
+	/// <function container="Fit.Controls.DatePicker" name="Date" access="public" returns="Date | null">
 	/// 	<description>
 	/// 		Get/set control value.
 	/// 		The function works the same as the Value function, expect it
 	/// 		accepts and returns a Date object instead of a string.
 	/// 	</description>
-	/// 	<param name="val" type="Date" default="undefined"> If defined, date is selected </param>
+	/// 	<param name="val" type="Date | null" default="undefined"> If defined, date is selected </param>
 	/// </function>
 	this.Date = function(val)
 	{
