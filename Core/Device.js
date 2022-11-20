@@ -5,7 +5,10 @@ Fit.Device =
 {
 	// Assuming ordinary desktop device by default - touch support is determined further down
 
+	/// <member container="Fit.Device" name="HasMouse" static="true" type="boolean"> Flag indicating whether device has a mouse (or another type of precision pointer) attached </member>
 	HasMouse: true,
+
+	/// <member container="Fit.Device" name="HasTouch" static="true" type="boolean"> Flag indicating whether device has touch support </member>
 	HasTouch: false,
 
 	/// <member container="Fit.Device" name="OptimizeForTouch" static="true" type="boolean"> Flag indicating whether user experience should be optimized for touch interaction </member>
@@ -21,6 +24,8 @@ Fit.Device =
 	// maxTouchPoints				Chrome 35+	IE 11+	Safari 13+		https://developer.mozilla.org/en-US/docs/Web/API/Navigator/maxTouchPoints
 	// Pointer media queries		Chrome 41+	Edge12	Safari 9+		https://developer.mozilla.org/en-US/docs/Web/CSS/@media/pointer
 
+	var pointerQueriesSupported = window.matchMedia && (window.matchMedia("(any-pointer:coarse)").matches === true || window.matchMedia("(any-pointer:fine)").matches === true);
+
 	// Older touch enabled browsers such as IE11 running on early hybrid devices like Surface tablets, will not have
 	// OptimizeForTouch become true because IE11 does not support pointer media queries (e.g. pointer:fine). Furthermore such
 	// devices detached from mouse and keyboard (tablet mode) will not have HasMouse become false, also due to the lack of pointer
@@ -28,12 +33,6 @@ Fit.Device =
 	// If such devices are required to work with Fit.UI with a touch optimized experience, the UI should allow the user to configure
 	// the desired experience, which must ensure that the Fit.Device flags are set appropriately after Fit.UI has loaded, but before
 	// any widgets or controls are created.
-
-	// Detect lack of high precision pointer device (mouse)
-	if (window.matchMedia && matchMedia("(pointer:fine)").matches === false) // Will not detect e.g. IE11 in "tablet mode" - see comment above
-	{
-		Fit.Device.HasMouse = false;
-	}
 
 	// Detect touch support using fairly new maxTouchPoints property (Safari 13+) if possible. If not, then try alternatives.
 	// Some browsers on modern devices with support for both touch and mouse returns false for ("ontouchstart" in window),
@@ -45,16 +44,20 @@ Fit.Device =
 		Fit.Device.HasTouch = true;
 	}
 
-	// Determine whether user experience should be optimized for touch.
-	// Obviously we should optimize for touch if touch is supported and no mouse is present.
-	if (Fit.Device.HasTouch === true && Fit.Device.HasMouse === false)
+	// Detect lack of high precision pointer device (mouse).
+	// If pointer queries are not supported, then assume a mouse is not present if touch capabilities are detected, which
+	// will be the case on old touch devices (e.g. Safari v. 8 and below on iOS or Chrome v. 40 and below on Android).
+	// IMPORTANT: any-pointer:fine will match on an iPad with a pen attached (and possibily other devices with pens
+	// as well) since a pen is a fine precision pointer. In this case HasMouse will therefore become (remain) True!
+	if ((pointerQueriesSupported === true && matchMedia("(any-pointer:fine)").matches === false) ||
+		(pointerQueriesSupported === false && Fit.Device.HasTouch === true))
 	{
-		Fit.Device.OptimizeForTouch = true;
+		Fit.Device.HasMouse = false;
 	}
-	// Else, determine whether to optimize the user experience for touch on hybrid devices.
-	// Only optimize for touch in this case if device's primary pointer is NOT high precision (mouse).
-	// When a high precision pointer device is the primary pointer, then we prefer a desktop like experience.
-	else if (Fit.Device.HasTouch === true && window.matchMedia && matchMedia("pointer:fine").matches === false)
+
+	// Determine whether user experience should be optimized for touch
+	if ((pointerQueriesSupported === true && matchMedia("(pointer:coarse)").matches === true) ||				// Optimize for touch if this is the primary pointing device
+		(pointerQueriesSupported === false && Fit.Device.HasTouch === true && Fit.Device.HasMouse === false))	// Optimize for touch if this is supported and no mouse is detected
 	{
 		Fit.Device.OptimizeForTouch = true;
 	}

@@ -2019,10 +2019,10 @@ declare namespace Fit
 			The function works the same as the Value function, expect it
 			accepts and returns a Date object instead of a string.
 			* @function Date
-			* @param {Date} [val=undefined] - If defined, date is selected.
-			* @returns Date
+			* @param {Date | null} [val=undefined] - If defined, date is selected.
+			* @returns Date | null
 			*/
-			public Date(val?:__fitUiAliasDate):__fitUiAliasDate;
+			public Date(val?:__fitUiAliasDate | null):__fitUiAliasDate | null;
 			/**
 			* Create instance of DatePicker control.
 			* @function DatePicker
@@ -7037,6 +7037,16 @@ declare namespace Fit
 			*/
 			public OnResponse(cb:Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>):void;
 			/**
+			* Reset action menu so it automatically determines whether to show up or not
+			when DropDown control is opened/re-opened, based on rules outlined in the
+			description for UseActionMenu(..).
+			This is useful if calling ClearData(..) and one wants to make sure the TreeView
+			data is immediately made visible once ready, rather than showing the action menu
+			if it was previously shown.
+			* @function ResetActionMenu
+			*/
+			public ResetActionMenu():void;
+			/**
 			* Get/set value indicating whether TreeView control is enabled or not.
 			* @function TreeViewEnabled
 			* @param {boolean} [val=undefined] - If defined, True enables TreeView (default), False disables it.
@@ -8323,11 +8333,11 @@ declare namespace Fit
 			/**
 			* Reload data from WebService.
 			* @function Reload
-			* @param {boolean} [keepSelections=undefined] - If defined, True will preserve selections, False will remove them (default).
+			* @param {boolean} [keepState=undefined] - If defined, True will preserve selections, expanded state, and focus state, False will not (default).
 			* @param {Fit.Controls.WSTreeViewTypeDefs.ReloadCallback<this>} [cb=undefined] - If defined, callback function is invoked when root nodes have been loaded
 			and populated - takes Sender (Fit.Controls.WSTreeView) as an argument.
 			*/
-			public Reload(keepSelections?:boolean, cb?:Fit.Controls.WSTreeViewTypeDefs.ReloadCallback<this>):void;
+			public Reload(keepState?:boolean, cb?:Fit.Controls.WSTreeViewTypeDefs.ReloadCallback<this>):void;
 			/**
 			* Get/set flag indicating whether WebService returns the complete hierarchy when
 			Select All is triggered (Instantly), or loads data for each level individually
@@ -8340,16 +8350,23 @@ declare namespace Fit
 			/**
 			* Fit.Controls.TreeView.Selected override:
 			Get/set selected nodes.
-			Notice for getter: Nodes not loaded yet (preselections) are NOT valid nodes associated with TreeView.
-			Therefore most functions will not work. Preselection nodes can be identified by their title:
-			if (node.Title() === "[pre-selection]") console.log("This is a preselection node");
-			Only the following getter functions can be used for preselection nodes:
-			node.Title(), node.Value(), node.Selected().
+			Notice for getter: Nodes not loaded yet (preselections) are NOT associated with TreeView.
+			They are there to indicate a selection that has not yet occurred since the data has not yet been loaded.
+			Changing properties of these nodes (e.g. node.Expanded(boolean) or node.Selected(boolean)) will not have any effect on the TreeView.
+			Such nodes can be identified using GetTreeView(): if (node.GetTreeView() === null) console.log("This is a preselection node");
+			The following functions can be used to get node information: node.Title() and node.Value().
 			* @function Selected
 			* @param {Fit.Controls.TreeViewNode[]} [val=undefined] - If defined, provided nodes are selected.
 			* @returns Fit.Controls.TreeViewNode[]
 			*/
 			public Selected(val?:Fit.Controls.TreeViewNode[]):Fit.Controls.TreeViewNode[];
+			/**
+			* Allows for a node's selection state to be set even if node has not been loaded yet.
+			* @function SetNodeSelection
+			* @param {string} value - Node value.
+			* @param {boolean} selected - Node selection state.
+			*/
+			public SetNodeSelection(value:string, selected:boolean):void;
 			/**
 			* Get/set URL to WebService responsible for providing data to TreeView.
 			WebService must deliver data in the following JSON format:
@@ -9673,6 +9690,18 @@ declare namespace Fit
 	class Device
 	{
 		// Properties defined by Fit.Device
+		/**
+		* Flag indicating whether device has a mouse (or another type of precision pointer) attached.
+		* @member {boolean} HasMouse
+		* @static
+		*/
+		static HasMouse:boolean;
+		/**
+		* Flag indicating whether device has touch support.
+		* @member {boolean} HasTouch
+		* @static
+		*/
+		static HasTouch:boolean;
 		/**
 		* Flag indicating whether user experience should be optimized for touch interaction.
 		* @member {boolean} OptimizeForTouch

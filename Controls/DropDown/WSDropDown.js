@@ -23,7 +23,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var hideLinesForFlatData = true;
 	var dataRequested = false;		// Flag indicating whether TreeView data has been requested or not - determines whether a call to ensureTreeViewData() actually loads data or not
 	var dataLoading = false;		// Flag indicating whether TreeView data is currently being loaded by WSDropDown internals (awaiting response) - will not be True when user expand nodes to load children, or when invoking e.g. dd.GetTreeView.Reload()
-	var nodesPopulated = false;		// Flag indicating whether TreeView root nodes have been populated - contrary to dataLoading this flag is set when a potentially partial portion of the data has been loaded
+	//var nodesPopulated = false;	// Flag indicating whether TreeView root nodes have been populated - contrary to dataLoading this flag is set when a potentially partial portion of the data has been loaded
 	var requestCount = 0;			// Counter to keep track of nodes for which data is currently being loaded, no matter how it was being loaded (via WSDropDown internals, programmatically on WSTreeView from external code, or by user expanding nodes)
 	var onDataLoadedCallback = [];
 	var suppressTreeOnOpen = false;
@@ -173,27 +173,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		});
 		tree.OnPopulated(function(sender, eventArgs)
 		{
-			nodesPopulated = true;
-
-			// If no data is returned and DropDown is in TextSelectionMode, the user will
-			// not be able to remove objects from the DropDown, unless SelectionModeToggle
-			// is true. Therefore we allow for items to be removed using an action menu.
-			// EDIT: Now displays action menu in both Visual and Text Selection Mode for consistency.
-
-			if (useActionMenuForced === false)
-			{
-				useActionMenu = tree.GetChildren().length === 0;
-			}
-
-			if (/*me.TextSelectionMode() === true &&*/ useActionMenu === true)
-			{
-				updateActionMenu();
-
-				if (useActionMenuAfterLoad === true || tree.GetChildren().length === 0)
-				{
-					me.SetPicker(actionMenu);
-				}
-			}
+			//nodesPopulated = true;
 
 			// Helper lines
 
@@ -266,6 +246,34 @@ Fit.Controls.WSDropDown = function(ctlId)
 			if (me.GetPicker() !== tree)
 				me.SetPicker(tree);
 		});
+
+		// Make sure synchronization events are wired immedately. These events ensure that changes to selected
+		// items, done through the picker controls programmatically, are synchronized back to the DropDown control.
+		me.SetPicker(list);
+		me.SetPicker(tree);
+		me.SetPicker(null); // Make sure no picker remains rooted as some controls (WSTreeView) loads data when rooted (using synthetic #rooted event)
+
+		// Keep both pickers up to date when selections are changed. Otherwise only
+		// the active picker receives changes immediately. WSTreeView.Reload(keepState = true)
+		// is dependant upon selection state being up to date.
+		// Imagine a scenario where WSTreeView.Reload(true) is called every time a selection
+		// is changed in the DropDown control. If an item is removed while the WSListView picker
+		// is active, WSTreeView will reload via OnChange, but since WSTreeView.Reload(..) is called
+		// with keepState=true, it will restore the selection we just removed while WSListView was active.
+		// The code below resolves this by ensuring all pickers are always current on selection state.
+
+		var updateItemSelectionTree = tree.UpdateItemSelection;
+		var updateItemSelectionList = list.UpdateItemSelection;
+
+		var updateItemSelectionOverride = function(value, selected, programmaticallyChanged)
+		{
+			updateItemSelectionTree(value, selected, programmaticallyChanged);
+			updateItemSelectionList(value, selected, programmaticallyChanged);
+		};
+
+		// UpdateItemSelection(..) is called by host control to update the picker's selections
+		tree.UpdateItemSelection = updateItemSelectionOverride;
+		list.UpdateItemSelection = updateItemSelectionOverride;
 
 		// Create action menu
 
@@ -415,6 +423,76 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// Public
 	// ============================================
 
+	this.AddSelection = Fit.Core.CreateOverride(this.AddSelection, function(title, value, valid)
+	{
+		Fit.Validation.ExpectString(title);
+		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectBoolean(valid, true);
+
+		base(title, value, valid);
+
+		// Keep TreeView up to date with selection state
+
+		if (me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			// Selection just added might originate from a call to WSDropDown.Value(..), so the node might not have been loaded yet,
+			// which is why we can't expect it to be available via tree.GetChild(value, true). Therefore we use tree.SetNodeSelection(..) to
+			// update selection state since this will add the selection regardless of the node existing or not (using preselections).
+
+			tree.SetNodeSelection(value, true);
+		}
+	});
+
+	this.RemoveSelection = Fit.Core.CreateOverride(this.RemoveSelection, function(value)
+	{
+		Fit.Validation.ExpectString(value);
+
+		base(value);
+
+		// Keep TreeView up to date with selection state
+
+		if (me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			// Selection just remove might originate from a call to WSDropDown.Value(..), so the node might not have been loaded yet,
+			// which is why we can't expect it to be available via tree.GetChild(value, true). Therefore we use tree.SetNodeSelection(..) to
+			// update selection state since this will remove the selection regardless of the node existing or not (using preselections).
+
+			tree.SetNodeSelection(value, false);
+		}
+	});
+
+	this.Value = Fit.Core.CreateOverride(this.Value, function(value)
+	{
+		Fit.Validation.ExpectString(value, true);
+
+		var val = base(value);
+
+		// Keep TreeView up to date with selection state
+
+		if (Fit.Validation.IsSet(value) === true && me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			// Nodes just set might not have been loaded yet, so we can't expect them to be available via tree.GetChild(nodeValue, true).
+			// Therefore we use tree.SetSelections(..) to update selection state since this will set the selections regardless of the
+			// nodes existing or not (using preselections).
+
+			tree.SetSelections(me.GetSelections());
+		}
+
+		return val;
+	});
+
+	this.ClearSelections = Fit.Core.CreateOverride(this.ClearSelections, function()
+	{
+		base();
+
+		// Keep TreeView up to date with selection state
+
+		if (me.GetPicker() !== tree) // DropDown (from which WSDropDown inherits) automatically updates the picker's selection state, but it can only do so for the active picker of course - make sure TreeView's selection state is kept up to date
+		{
+			tree.Clear();
+		}
+	});
+
 	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="AutoUpdateSelectedCallback">
 	/// 	<description> AutoUpdateSelected callback </description>
 	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
@@ -472,7 +550,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 
 		dataLoading = true;
-		nodesPopulated = false;
+		//nodesPopulated = false;
 
 		var ensure = function()
 		{
@@ -489,6 +567,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 				autoUpdatedSelections = me.UpdateSelected();
 
 				dataLoading = false;
+
+				// Switch to action menu if no data was received. Must
+				// be called after dataLoading is set since function
+				// calls updateActionMenu(..) which relies on this flag.
+				showActionMenuIfNoDataReceivedOrOnFirstInteractionIfEnabled();
 
 				if (Fit.Validation.IsSet(cb) === true)
 				{
@@ -599,6 +682,13 @@ Fit.Controls.WSDropDown = function(ctlId)
 		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
 		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
 
+		// Update action menu
+
+		// Update action menu in case "Show available options" has been disabled, which
+		// will be the case if the previous request returned no data. We need it enabled if
+		// action menu is enabled - otherwise the user won't be able to request updated data.
+		updateActionMenu();
+
 		// Cancel pending search operation if scheduled
 
 		cancelSearch();
@@ -662,11 +752,15 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 			if (useActionMenuForced === false)
 			{
-				// Use action menu if there is no data to display
+				// Use action menu if there is no data to display, which makes it impossible to remove
+				// selected items in TextSelectionMode - unless DropDown.SelectionModeToggle is enabled,
+				// which lets the user switch to Visual Selection Mode with each item displaying a delete button.
+				// But we want a consistent behaviour, so we use the action menu for both Text and Visual Selection Mode.
 
 				if (val === true)
 				{
-					useActionMenu = nodesPopulated === false || tree.GetChildren().length === 0;
+					var isWaitingForData = dataRequested === false || dataLoading === true;
+					useActionMenu = isWaitingForData === true || tree.GetChildren().length === 0;
 				}
 				else
 				{
@@ -733,7 +827,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 			{
 				// Focus input on mobile, even if DropDown was opened using
 				// the arrow icon - this will bring up the virtual keyboard.
-				this._internal.ForceFocusMobile();
+				me._internal.ForceFocusMobile();
 			}
 
 			return;
@@ -810,6 +904,23 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return useActionMenu;
 	}
 
+	/// <function container="Fit.Controls.WSDropDown" name="ResetActionMenu" access="public">
+	/// 	<description>
+	/// 		Reset action menu so it automatically determines whether to show up or not
+	/// 		when DropDown control is opened/re-opened, based on rules outlined in the
+	/// 		description for UseActionMenu(..).
+	/// 		This is useful if calling ClearData(..) and one wants to make sure the TreeView
+	/// 		data is immediately made visible once ready, rather than showing the action menu
+	/// 		if it was previously shown.
+	/// 	</description>
+	/// </function>
+	this.ResetActionMenu = function()
+	{
+		useActionMenuForced = false;
+		useActionMenu = false;
+		useActionMenuAfterLoad = true;
+	}
+
 	// See documentation on ControlBase
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
@@ -823,7 +934,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading = nodesPopulated = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading /*= nodesPopulated*/ = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -950,11 +1061,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 		if (dataRequested === false)
 		{
 			dataLoading = true;
-			nodesPopulated = false;
+			//nodesPopulated = false;
 
 			tree.Reload(true, function(sender)
 			{
 				dataLoading = false;
+
+				// Switch to action menu if no data was received. Must
+				// be called after dataLoading is set since function
+				// calls updateActionMenu(..) which relies on this flag.
+				showActionMenuIfNoDataReceivedOrOnFirstInteractionIfEnabled();
 
 				/*if (Fit.Validation.IsSet(cb) === true)
 				{
@@ -963,6 +1079,29 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 				fireOnDataLoaded();
 			});
+		}
+	}
+
+	function showActionMenuIfNoDataReceivedOrOnFirstInteractionIfEnabled()
+	{
+		// If no data is returned and DropDown is in TextSelectionMode, the user will
+		// not be able to remove objects from the DropDown, unless SelectionModeToggle
+		// is true. Therefore we allow for items to be removed using an action menu.
+		// EDIT: Now displays action menu in both Visual and Text Selection Mode for consistency.
+
+		if (useActionMenuForced === false)
+		{
+			useActionMenu = tree.GetChildren().length === 0;
+		}
+
+		if (/*me.TextSelectionMode() === true &&*/ useActionMenu === true)
+		{
+			updateActionMenu();
+
+			if (useActionMenuAfterLoad === true || tree.GetChildren().length === 0)
+			{
+				me.SetPicker(actionMenu);
+			}
 		}
 	}
 
@@ -1038,11 +1177,13 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		if (treeViewEnabled === true)
 		{
-			if (nodesPopulated === false || tree.GetChildren().length > 0)
+			var isWaitingForData = dataRequested === false || dataLoading === true;
+
+			if (isWaitingForData === true || tree.GetChildren().length > 0)
 			{
 				actionMenu.AddItem(showAllIcon + translations.ShowAllOptions, "ShowAll");
 			}
-			else //if (nodesPopulated === true && tree.GetChildren().length === 0)
+			else
 			{
 				actionMenu.AddItem(showAllIcon + "<i>" + translations.NoneAvailable + "</i>", "ShowAllNoneFound");
 			}

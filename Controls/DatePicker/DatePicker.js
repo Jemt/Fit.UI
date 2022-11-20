@@ -231,6 +231,23 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				input.onchange();
 			}
+
+			if (Fit.Device.HasMouse === true)
+			{
+				// This might be an iPad with a pen (precision pointer) attached, or a PC/laptop with a touch screen
+				// attached, where touch is considered the primary input method and mouse/pen the secondary input method.
+
+				// Using OnMouseDown event below since OnClick on iOS/Safari 15.6.1 prevents native calendar
+				// widget from showing, and OnMouseUp sometimes causes calendar widget to stop emerging on screen.
+				// Both mouse and touch events fire, even on pure touch devices.
+				inputMobile.onmousedown = function(e)
+				{
+					// NOTICE: On traditional desktop browsers Show() only works if the native
+					// showPicker() function is supported: https://github.com/Jemt/Fit.UI/issues/169
+					me.Show();
+				}
+			}
+
 			me._internal.AddDomElement(inputMobile);
 		}
 
@@ -478,13 +495,13 @@ Fit.Controls.DatePicker = function(ctlId)
 	// Public
 	// ============================================
 
-	/// <function container="Fit.Controls.DatePicker" name="Date" access="public" returns="Date">
+	/// <function container="Fit.Controls.DatePicker" name="Date" access="public" returns="Date | null">
 	/// 	<description>
 	/// 		Get/set control value.
 	/// 		The function works the same as the Value function, expect it
 	/// 		accepts and returns a Date object instead of a string.
 	/// 	</description>
-	/// 	<param name="val" type="Date" default="undefined"> If defined, date is selected </param>
+	/// 	<param name="val" type="Date | null" default="undefined"> If defined, date is selected </param>
 	/// </function>
 	this.Date = function(val)
 	{
@@ -813,7 +830,12 @@ Fit.Controls.DatePicker = function(ctlId)
 				}
 				Fit.Dom.InsertAfter(input, inputTime);
 
-				if (isMobile === true)
+				// Use native time picker on mobile devices (where touch is the primary pointing method).
+				// However, do not do so on a hybrid device with support for both touch and mouse/pen.
+				// On a device with a precision pointer, we most likely want to be able to accurately
+				// place the text cursor in the time portion of the control to correct or enter a value
+				// using the keyboard (psysical keyboard or virtual on-screen keyboard).
+				if (isMobile === true && Fit.Device.HasMouse === false)
 				{
 					inputTimeMobile = document.createElement("input");
 					inputTimeMobile.type = "time";
@@ -834,12 +856,13 @@ Fit.Controls.DatePicker = function(ctlId)
 			{
 				Fit.Dom.Remove(inputTime);
 
-				if (isMobile === true)
+				if (inputTimeMobile !== null)
 				{
 					Fit.Dom.Remove(inputTimeMobile);
 				}
 
 				inputTime = null;
+				inputTimeMobile = null;
 				prevTimeVal = "";
 
 				me._internal.FireOnChange(); // Disabling Time causes Value() and Date() to return Date without timestamp - invoke event listeners
@@ -914,8 +937,15 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 		else
 		{
-			me.Focused(false);
-			me.Focused(true);
+			if (inputMobile.showPicker !== undefined) // Chrome 99+, Safari 16+, Firefox 101+, Edge 99+
+			{
+				inputMobile.showPicker();
+			}
+			else // This will bring up calendar widget in older browsers on mobile devices - doesn't work on desktop browsers running on hybrid computers (laptops with a touch screen)
+			{
+				me.Focused(false);
+				me.Focused(true);
+			}
 		}
 	}
 

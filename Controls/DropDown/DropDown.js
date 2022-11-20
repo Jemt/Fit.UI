@@ -166,67 +166,70 @@ Fit.Controls.DropDown = function(ctlId)
 
 		// Make drop down close when user clicks outside of control
 
-		if (isMobile === false)
+		postpone(function() // Postpone to prevent drop down from closing if created and auto opened during OnClick/OnTouchStart (https://github.com/Jemt/Fit.UI/issues/170)
 		{
-			var eventId = Fit.Events.AddHandler(document, "click", function(e)
+			if (isMobile === false)
 			{
-				var target = Fit.Events.GetTarget(e);
-
-				if (target !== document.documentElement && target !== document.body && Fit.Dom.IsRooted(target) === false)
+				var eventId = Fit.Events.AddHandler(document, "click", function(e)
 				{
-					return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
-				}
+					var target = Fit.Events.GetTarget(e);
 
-				if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
-				{
-					me.CloseDropDown();
-				}
-			});
-			Fit.Array.Add(closeHandlers, eventId);
-		}
-		else
-		{
-			// OnClick does not work reliably on mobile (at least not on iOS 9 and 10), so using touch events instead
+					if (target !== document.documentElement && target !== document.body && Fit.Dom.IsRooted(target) === false)
+					{
+						return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
+					}
 
-			var coords = null;
-			var eventId = -1;
-
-			eventId = Fit.Events.AddHandler(document, "touchstart", function(e)
+					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+					{
+						me.CloseDropDown();
+					}
+				});
+				Fit.Array.Add(closeHandlers, eventId);
+			}
+			else
 			{
-				var target = Fit.Events.GetTarget(e);
+				// OnClick does not work reliably on mobile (at least not on iOS 9 and 10), so using touch events instead
 
-				coords = null;
+				var coords = null;
+				var eventId = -1;
 
-				if (target !== document.documentElement && target !== document.body && Fit.Dom.IsRooted(target) === false)
+				eventId = Fit.Events.AddHandler(document, "touchstart", function(e)
 				{
-					return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
-				}
+					var target = Fit.Events.GetTarget(e);
 
-				if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+					coords = null;
+
+					if (target !== document.documentElement && target !== document.body && Fit.Dom.IsRooted(target) === false)
+					{
+						return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
+					}
+
+					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+					{
+						coords = Fit.Events.GetPointerState().Coordinates.Document;
+					}
+				});
+				Fit.Array.Add(closeHandlers, eventId);
+
+				eventId = Fit.Events.AddHandler(document, "touchend", function(e)
 				{
-					coords = Fit.Events.GetPointerState().Coordinates.Document;
-				}
-			});
-			Fit.Array.Add(closeHandlers, eventId);
+					if (coords === null)
+						return;
 
-			eventId = Fit.Events.AddHandler(document, "touchend", function(e)
-			{
-				if (coords === null)
-					return;
+					// Determine whether user moved finger (e.g. to scroll page) in which case we do not want to close the menu
 
-				// Determine whether user moved finger (e.g. to scroll page) in which case we do not want to close the menu
+					var curCoords = Fit.Events.GetPointerState().Coordinates.Document;
+					var moved = (Math.abs(coords.X - curCoords.X) > 10 || Math.abs(coords.Y - curCoords.Y) > 10); // Must be moved at least 10px left/right or up/down
 
-				var curCoords = Fit.Events.GetPointerState().Coordinates.Document;
-				var moved = (Math.abs(coords.X - curCoords.X) > 10 || Math.abs(coords.Y - curCoords.Y) > 10); // Must be moved at least 10px left/right or up/down
-
-				if (moved === false)
-				{
-					me.CloseDropDown();
-					me.Focused(false);
-				}
-			});
-			Fit.Array.Add(closeHandlers, eventId);
-		}
+					if (moved === false)
+					{
+						me.CloseDropDown();
+						me.Focused(false);
+					}
+				});
+				Fit.Array.Add(closeHandlers, eventId);
+			}
+		});
 
 		// Make drop down close if focus is lost on mobile
 		// which happens when onscreen keyboard is closed.
@@ -258,7 +261,7 @@ Fit.Controls.DropDown = function(ctlId)
 				if (Fit.Browser.GetBrowser() === "MSIE" || Fit.Browser.GetBrowser() === "Edge")
 				{
 					txtPrimary.readOnly = false; // ReadOnly set to true to make text-overflow:ellipsis work
-					setTimeout(function() { txtPrimary.blur(); txtPrimary.focus(); }, 0); // Change to ReadOnly is not applied immediately unless blurred and re-focused
+					postpone(function() { txtPrimary.blur(); txtPrimary.focus(); }); // Change to ReadOnly is not applied immediately unless blurred and re-focused
 				}
 
 				clearTextSelectionOnInputChange = true;
@@ -769,7 +772,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// Allow picker to select items in case selections have already been set in drop down
 
 		suppressOnItemSelectionChanged = true;
-		picker.SetSelections(me.GetSelections());
+		picker.SetSelections(me.GetSelections()); // #167: This can be very slow for huge selections (thousands of selected nodes)
 		suppressOnItemSelectionChanged = false;
 
 		// Set picker MaxHeight
@@ -843,13 +846,22 @@ Fit.Controls.DropDown = function(ctlId)
 			{
 				// User selected an item which is already selected
 
-				if (me.TextSelectionMode() === true)
+				// Only update input field if picker currently active is the one providing information about selection change.
+				// Pickers might load and select nodes async. which allows for picker to be changed. More specifically we could
+				// imagine a situation where Select All is triggered in a WSTreeView picker where nodes must first be fetched from
+				// the server. While waiting for data, the user enters a search string which changes the picker control to WSListView.
+				// Soon hereafter TreeView data is received and all nodes are selected, triggering OnItemSelectionChanged (here), in
+				// which case we do not want the search value to be cleared away.
+				if (picker === sender)
 				{
-					updateTextSelection(); // Make sure any search value is removed and text selection is restored
-				}
-				else
-				{
-					me.ClearInput(); // Make sure any search value is removed
+					if (me.TextSelectionMode() === true)
+					{
+						updateTextSelection(); // Make sure any search value is removed and text selection is restored
+					}
+					else
+					{
+						me.ClearInput(); // Make sure any search value is removed
+					}
 				}
 			}
 
@@ -1854,7 +1866,7 @@ Fit.Controls.DropDown = function(ctlId)
 		{
 			var orgValue = txt.value;
 
-			setTimeout(function() // Timeout to queue event to have pasted value available
+			postpone(function() // Timeout to queue event to have pasted value available
 			{
 				/*if (me.TextSelectionMode() === true && txt.value === prevTextSelection)
 				{
@@ -1897,7 +1909,7 @@ Fit.Controls.DropDown = function(ctlId)
 						prevValue = txt.value;
 					}
 				}
-			}, 0);
+			});
 
 			clearTextSelectionOnInputChange = false;
 		}
@@ -2990,6 +3002,20 @@ Fit.Controls.DropDown = function(ctlId)
 
 		if (picker !== null)
 			picker._internal.FireOnHide();
+	}
+
+	function postpone(cb, timeout)
+	{
+		Fit.Validation.ExpectFunction(cb);
+		Fit.Validation.ExpectInteger(timeout, true)
+
+		setTimeout(function()
+		{
+			if (me !== null) // Make sure control has not been disposed
+			{
+				cb();
+			}
+		}, timeout || 0);
 	}
 
 	init();

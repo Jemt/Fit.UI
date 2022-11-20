@@ -57,6 +57,12 @@ Stacking context, Z-index:
 	color: silver;
 }
 
+/* Do not show outline when temporarily holding focus while disabled (See ControlBase._internal.DisableAndKeepFocus()) */
+.FitUiControl[data-enabled="false"]:focus
+{
+	outline: none;
+}
+
 /* Validation error (value validation) */
 .FitUiControl[data-enabled="true"][data-valid="false"]
 {
