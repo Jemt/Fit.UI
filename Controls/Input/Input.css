@@ -233,21 +233,27 @@ div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="moono-lisa"
 	vertical-align: top !important; /* Using !mportant since CKEditor styles load on demand after Fit.UI styles */
 }
 
-/* Override: The bootstrapck skin has too little spacing in the bottom part of its chrome when the bottom panel (with the resize handle) is not present */
-div.FitUiControlInput[data-resizable="disabled"] .cke_chrome[data-skin="bootstrapck"] /* cke_chrome is a <div> on modern browsers, a <span> in IE */
-{
-	padding: 0px 3px 3px 3px;
-}
+/* Make sure padding works properly at all times for bootstrapck skin (e.g. when hiding toolbar or when toolbar is positioning at the bottom) */
 
-/* Override: Add missing spacing to editor chrome when toolbar is hidden or positioned at the bottom */
-div.FitUiControlInput[data-designmode="true"][data-toolbar="false"] .cke_chrome[data-skin="bootstrapck"],
-div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"] .cke_chrome[data-skin="bootstrapck"]
+/* Override: Normalize padding for editor chrome ("editor frame") */
+div.FitUiControlInput[data-designmode="true"] .cke_chrome[data-skin="bootstrapck"] /* cke_chrome is a <div> on modern browsers, a <span> in IE */
 {
-	padding-top: 3px;
+	padding: 3px;
 }
-div.FitUiControlInput[data-designmode="true"][data-toolbar="false"][data-toolbar-position="bottom"] .cke_chrome[data-skin="bootstrapck"]
+/* Override: Remove padding-top from toolbar when placed at the top of the editor, as it results in too much spacing at the top */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"] .cke_chrome[data-skin="bootstrapck"] .cke_top
 {
-	padding-bottom: 3px;
+	padding-top: 0px;
+}
+/* Override: Remove margin-bottom from button groups when toolbar is positioned at the bottom of the editor, as it results in too much spacing at the bottom */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"] .cke_chrome[data-skin="bootstrapck"] .cke_toolgroup
+{
+	margin-bottom: 0px;
+}
+/* Override: Fix padding at the bottom of the editor when it is resizable - only necessary when toolbar is positioned at the top of the editor */
+div.FitUiControlInput[data-designmode="true"][data-toolbar-position="top"][data-resizable="enabled"] .cke_chrome[data-skin="bootstrapck"] .cke_bottom
+{
+	padding: 0px;
 }
 
 /* CKEditor - bottom panel, resize handle, and information panel */
@@ -305,7 +311,7 @@ div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][da
 {
 	position: absolute;
 	margin: 0px;
-	bottom: 3px;
+	bottom: 0px;
 	right: -3px;
 }
 /* Position resize handle (moono-lisa skin) */
@@ -403,7 +409,8 @@ div.FitUiControlInput[data-designmode="true"] .cke_chrome a[data-tag-id]
 
 /* Links in CKEditor */
 
-div.FitUiControlInput[data-designmode="true"] [contenteditable="true"][data-command-button-active="true"] a:hover
+div.FitUiControlInput[data-designmode="true"] [contenteditable="true"][data-command-button-active="true"] a:hover,
+div.FitUiControlInput[data-designmode="true"][data-toolbar="false"] [contenteditable="true"] a:hover
 {
 	cursor: pointer;
 }

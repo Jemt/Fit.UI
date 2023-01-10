@@ -2534,7 +2534,7 @@ Fit.Controls.Input = function(ctlId)
 					{
 						mouseOver && Fit.Dom.Data(designEditorDom.Editable, "command-button-active", null);
 					});
-					Fit.Events.AddHandler(designEditorDom.Editable, "click", function(e)
+					Fit.Events.AddHandler(designEditorDom.Editable, "mousedown", function(e) // Using OnMouseDown to make sure click is registered before control gains focus if not already focused (using me.Focused() in event handler)
 					{
 						var target = Fit.Events.GetTarget(e);
 
@@ -2552,20 +2552,25 @@ Fit.Controls.Input = function(ctlId)
 							{
 								window.open(target.href, "_blank");
 							}
-							else if (me.Enabled() === false)
+							else
 							{
-								var popupCode = Fit.Dom.Data(target, "cke-pa-onclick");
+								var editorInactive = me.Focused() === false && designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.HideWhenInactive === true;
 
-								if (popupCode !== null) // Popup window link - example code: window.open(this.href, "name", "options"); return false;
+								if (me.Enabled() === false || editorInactive === true)
 								{
-									popupCode = popupCode.replace("this.href", "'" + target.href + "'"); // Insert link URL
-									popupCode = popupCode.replace("return false;", ""); // Remove return statement which is illegal in eval(..)
+									var popupCode = Fit.Dom.Data(target, "cke-pa-onclick");
 
-									eval(popupCode);
-								}
-								else
-								{
-									window.open(target.href, Fit.Dom.Attribute(target, "target") || "_self");
+									if (popupCode !== null) // Popup window link - example code: window.open(this.href, "name", "options"); return false;
+									{
+										popupCode = popupCode.replace("this.href", "'" + target.href + "'"); // Insert link URL
+										popupCode = popupCode.replace("return false;", ""); // Remove return statement which is illegal in eval(..)
+
+										eval(popupCode);
+									}
+									else
+									{
+										window.open(target.href, editorInactive === true ? "_blank" : Fit.Dom.Attribute(target, "target") || "_self");
+									}
 								}
 							}
 						}
@@ -3292,6 +3297,8 @@ Fit.Controls.Input = function(ctlId)
 			// Hide toolbar
 
 			toolbarContainer.style.display = "none";
+
+			me._internal.Data("toolbar", "false");
 
 			// Make editable area adjust to take up space previously consumed by toolbar
 			updateSize === true && suppressUpdateEditorSize !== true && updateDesignEditorSize();
