@@ -12913,6 +12913,7 @@ declare namespace Fit
 
 type __fitUiAliasArray = Array<any>;
 type __fitUiAliasDate = Date;
+type __fitUiAliasRequest = Request;
 type __fitUiAliasMath = Math;
 type __fitUiAliasString = String;
 
