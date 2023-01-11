@@ -2732,6 +2732,14 @@ Fit.Controls.Input = function(ctlId)
 									}
 								}
 
+								// Hide status bar in emoji dialog
+								var emojiFrame = emojiPanel.querySelector("iframe");
+								var emojiContent = emojiFrame && emojiFrame.contentDocument;
+								var emojiContentBlock = emojiContent && emojiContent.querySelector(".cke_emoji-outer_emoji_block");
+								var emojiContentStatus = emojiContent && emojiContent.querySelector(".cke_emoji-status_bar");
+								emojiContentBlock && (emojiContentBlock.style.height = "220px");
+								emojiContentStatus && (emojiContentStatus.style.display = "none");
+
 								var checkClosedId = setInterval(function()
 								{
 									// Invoke cleanup function regularly to make sure
