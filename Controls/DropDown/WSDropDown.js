@@ -852,7 +852,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return tree;
 	}
 
-	/// <function container="Fit.Controls.WSDropDown" name="UseActionMenu" access="public">
+	/// <function container="Fit.Controls.WSDropDown" name="UseActionMenu" access="public" returns="boolean">
 	/// 	<description>
 	/// 		Get/set value indicating whether control uses the built-in action menu to ease addition and removal of items.
 	/// 		If this property is not explicitly set, it will automatically be changed by the control depending on data and other settings.
@@ -919,6 +919,16 @@ Fit.Controls.WSDropDown = function(ctlId)
 		useActionMenuForced = false;
 		useActionMenu = false;
 		useActionMenuAfterLoad = true;
+	}
+
+	/// <function container="Fit.Controls.WSDropDown" name="UpdateActionMenu" access="public">
+	/// 	<description>
+	/// 		Update action menu to make it reflect availablity of data in TreeView
+	/// 	</description>
+	/// </function>
+	this.UpdateActionMenu = function() // Comes in handy if TreeView data is reloaded/manipulated (accessible via GetTreeView()) which DropDown won't know about
+	{
+		updateActionMenu();
 	}
 
 	// See documentation on ControlBase
@@ -1156,7 +1166,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 	function updateActionMenu()
 	{
-		if (useActionMenu === false)
+		// Do not update unless needed. Notice that useActionMenu can be changed while action menu is active
+		// by calling ResetActionMenu(), e.g. during OnChange when removing an item using the action menu.
+		// See https://github.com/Jemt/Fit.UI/issues/179
+		if (useActionMenu === false && me.GetPicker() !== actionMenu)
 		{
 			return;
 		}
