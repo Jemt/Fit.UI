@@ -6958,10 +6958,11 @@ declare namespace Fit
 			Operation may be postponed if data is currently loading from WebService.
 			Use callback to pick up execution once data has been cleared.
 			Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+			To make sure data reloads immediate, please use ReloadData(..) instead.
 			* @function ClearData
-			* @param {Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>} [cb=undefined] - If defined, callback is invoked when data is cleared.
+			* @param {Fit.Controls.WSDropDownTypeDefs.DataCallback<this>} [cb=undefined] - If defined, callback is invoked when data is cleared.
 			*/
-			public ClearData(cb?:Fit.Controls.WSDropDownTypeDefs.ClearDataCallback<this>):void;
+			public ClearData(cb?:Fit.Controls.WSDropDownTypeDefs.DataCallback<this>):void;
 			/**
 			* Get WSListView control used to display data in a flat list view.
 			* @function GetListView
@@ -7036,6 +7037,16 @@ declare namespace Fit
 			* @param {Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>} cb - Event handler function.
 			*/
 			public OnResponse(cb:Fit.Controls.WSDropDownTypeDefs.ResponseEventHandler<this>):void;
+			/**
+			* Call this function to make control reload data immediately,
+			ensuring that the user will see the most recent values available.
+			Use callback to pick up execution once data has been loaded.
+			Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+			To have data reload when needed (lazy loading), please use ClearData(..) instead.
+			* @function ReloadData
+			* @param {Fit.Controls.WSDropDownTypeDefs.DataCallback<this>} [cb=undefined] - If defined, callback is invoked when data has been loaded.
+			*/
+			public ReloadData(cb?:Fit.Controls.WSDropDownTypeDefs.DataCallback<this>):void;
 			/**
 			* Reset action menu so it automatically determines whether to show up or not
 			when DropDown control is opened/re-opened, based on rules outlined in the
@@ -7626,10 +7637,10 @@ declare namespace Fit
 			/**
 			* Event handler.
 			* @template TypeOfThis
-			* @callback ClearDataCallback
+			* @callback DataCallback
 			* @param {TypeOfThis} sender - Instance of control.
 			*/
-			type ClearDataCallback<TypeOfThis> = (sender:TypeOfThis) => void;
+			type DataCallback<TypeOfThis> = (sender:TypeOfThis) => void;
 			/**
 			* Aborted request handler.
 			* @template TypeOfThis
