@@ -646,7 +646,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return list.JsonpCallback();
 	}
 
-	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="ClearDataCallback">
+	/// <function container="Fit.Controls.WSDropDownTypeDefs" name="DataCallback">
 	/// 	<description> Event handler </description>
 	/// 	<param name="sender" type="$TypeOfThis"> Instance of control </param>
 	/// </function>
@@ -658,13 +658,20 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		Operation may be postponed if data is currently loading from WebService.
 	/// 		Use callback to pick up execution once data has been cleared.
 	/// 		Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+	/// 		To make sure data reloads immediate, please use ReloadData(..) instead.
 	/// 	</description>
-	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.ClearDataCallback" default="undefined">
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.DataCallback" default="undefined">
 	/// 		If defined, callback is invoked when data is cleared
 	/// 	</param>
 	/// </function>
 	this.ClearData = function(cb)
 	{
+		clearData(true, cb);
+	}
+
+	function clearData(allowImmediateReload, cb)
+	{
+		Fit.Validation.ExpectBoolean(allowImmediateReload);
 		Fit.Validation.ExpectFunction(cb, true);
 
 		// Postpone if WebService operation is currently running
@@ -702,10 +709,38 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		// Immediately load TreeView data if DropDown is open and TreeView is active picker
 
-		if (me.IsDropDownOpen() === true && me.GetPicker() === tree)
+		if (allowImmediateReload === true && me.IsDropDownOpen() === true && me.GetPicker() === tree)
 		{
 			ensureTreeViewData(); // Will not load anything if callback above triggered data load, e.g. by calling AutoUpdateSelected(..)
 		}
+	}
+
+	/// <function container="Fit.Controls.WSDropDown" name="ReloadData" access="public">
+	/// 	<description>
+	/// 		Call this function to make control reload data immediately,
+	/// 		ensuring that the user will see the most recent values available.
+	/// 		Use callback to pick up execution once data has been loaded.
+	/// 		Sender (Fit.Controls.WSDropDown) is passed to callback as an argument.
+	/// 		To have data reload when needed (lazy loading), please use ClearData(..) instead.
+	/// 	</description>
+	/// 	<param name="cb" type="Fit.Controls.WSDropDownTypeDefs.DataCallback" default="undefined">
+	/// 		If defined, callback is invoked when data has been loaded
+	/// 	</param>
+	/// </function>
+	this.ReloadData = function(cb)
+	{
+		// Clear data - this will update action menu to make sure "Show avilable options" is shown
+
+		clearData(false, function() // false = prevent clearData(..) from reloading data
+		{
+			// Reload data. The action menu will once again be updated if no data is received
+			// to make sure "Show available options" is replaced by "List with options is empty".
+
+			ensureTreeViewData(function()
+			{
+				cb && cb(me);
+			});
+		});
 	}
 
 	this.MultiSelectionMode = Fit.Core.CreateOverride(this.MultiSelectionMode, function(val)
@@ -1064,9 +1099,9 @@ Fit.Controls.WSDropDown = function(ctlId)
 	// Private
 	// ============================================
 
-	function ensureTreeViewData(/*cb*/)
+	function ensureTreeViewData(cb)
 	{
-		//Fit.Validation.ExpectFunction(cb, true);
+		Fit.Validation.ExpectFunction(cb, true);
 
 		if (dataRequested === false)
 		{
@@ -1082,10 +1117,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 				// calls updateActionMenu(..) which relies on this flag.
 				showActionMenuIfNoDataReceivedOrOnFirstInteractionIfEnabled();
 
-				/*if (Fit.Validation.IsSet(cb) === true)
+				if (Fit.Validation.IsSet(cb) === true)
 				{
 					cb(me);
-				}*/
+				}
 
 				fireOnDataLoaded();
 			});
