@@ -666,7 +666,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// </function>
 	this.ClearData = function(cb)
 	{
-		clearData(true, cb);
+		clearData(true, true, cb);
 	}
 
 	/// <function container="Fit.Controls.WSDropDown" name="ReloadData" access="public">
@@ -683,15 +683,11 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// </function>
 	this.ReloadData = function(cb)
 	{
-		// Clear data - this will update action menu to make sure "Show avilable options" is shown
-
-		clearData(false, function() // false = prevent clearData(..) from reloading data
+		clearData(false, false, function() // false 1 = prevent clearData(..) from reloading data, false 2 = prevent action menu from updating to avoid flickering - done when data has been reloaded
 		{
-			// Reload data. The action menu will once again be updated if no data is received
-			// to make sure "Show available options" is replaced by "List with options is empty".
-
 			ensureTreeViewData(function()
 			{
+				updateActionMenu();
 				cb && cb(me);
 			});
 		});
@@ -1081,9 +1077,10 @@ Fit.Controls.WSDropDown = function(ctlId)
 		}
 	}
 
-	function clearData(allowImmediateReload, cb)
+	function clearData(allowImmediateReload, refreshActionMenu, cb)
 	{
 		Fit.Validation.ExpectBoolean(allowImmediateReload);
+		Fit.Validation.ExpectBoolean(refreshActionMenu);
 		Fit.Validation.ExpectFunction(cb, true);
 
 		// Postpone if WebService operation is currently running
@@ -1106,7 +1103,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		// Update action menu in case "Show available options" has been disabled, which
 		// will be the case if the previous request returned no data. We need it enabled if
 		// action menu is enabled - otherwise the user won't be able to request updated data.
-		updateActionMenu();
+		refreshActionMenu && updateActionMenu();
 
 		// Cancel pending search operation if scheduled
 
