@@ -669,52 +669,6 @@ Fit.Controls.WSDropDown = function(ctlId)
 		clearData(true, cb);
 	}
 
-	function clearData(allowImmediateReload, cb)
-	{
-		Fit.Validation.ExpectBoolean(allowImmediateReload);
-		Fit.Validation.ExpectFunction(cb, true);
-
-		// Postpone if WebService operation is currently running
-
-		if (requestCount > 0)
-		{
-			// Data is currently loading - postpone by adding request to process queue
-			onDataLoaded(function() { me.ClearData(cb); });
-			return;
-		}
-
-		// Clear data/cache/state
-
-		hideLinesForFlatData = true;	// Make TreeView hide helper lines if nodes received have no children
-		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
-		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
-
-		// Update action menu
-
-		// Update action menu in case "Show available options" has been disabled, which
-		// will be the case if the previous request returned no data. We need it enabled if
-		// action menu is enabled - otherwise the user won't be able to request updated data.
-		updateActionMenu();
-
-		// Cancel pending search operation if scheduled
-
-		cancelSearch();
-
-		// Invoke callback
-
-		if (Fit.Validation.IsSet(cb) === true)
-		{
-			cb(me);
-		}
-
-		// Immediately load TreeView data if DropDown is open and TreeView is active picker
-
-		if (allowImmediateReload === true && me.IsDropDownOpen() === true && me.GetPicker() === tree)
-		{
-			ensureTreeViewData(); // Will not load anything if callback above triggered data load, e.g. by calling AutoUpdateSelected(..)
-		}
-	}
-
 	/// <function container="Fit.Controls.WSDropDown" name="ReloadData" access="public">
 	/// 	<description>
 	/// 		Call this function to make control reload data immediately,
@@ -1124,6 +1078,52 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 				fireOnDataLoaded();
 			});
+		}
+	}
+
+	function clearData(allowImmediateReload, cb)
+	{
+		Fit.Validation.ExpectBoolean(allowImmediateReload);
+		Fit.Validation.ExpectFunction(cb, true);
+
+		// Postpone if WebService operation is currently running
+
+		if (requestCount > 0)
+		{
+			// Data is currently loading - postpone by adding request to process queue
+			onDataLoaded(function() { me.ClearData(cb); });
+			return;
+		}
+
+		// Clear data/cache/state
+
+		hideLinesForFlatData = true;	// Make TreeView hide helper lines if nodes received have no children
+		dataRequested = false;			// Make data in TreeView reload via ensureTreeViewData() when DropDown is opened
+		autoUpdatedSelections = null;	// Remove cached result from AutoUpdateSelected(..) used when multiple calls to the function is made
+
+		// Update action menu
+
+		// Update action menu in case "Show available options" has been disabled, which
+		// will be the case if the previous request returned no data. We need it enabled if
+		// action menu is enabled - otherwise the user won't be able to request updated data.
+		updateActionMenu();
+
+		// Cancel pending search operation if scheduled
+
+		cancelSearch();
+
+		// Invoke callback
+
+		if (Fit.Validation.IsSet(cb) === true)
+		{
+			cb(me);
+		}
+
+		// Immediately load TreeView data if DropDown is open and TreeView is active picker
+
+		if (allowImmediateReload === true && me.IsDropDownOpen() === true && me.GetPicker() === tree)
+		{
+			ensureTreeViewData(); // Will not load anything if callback above triggered data load, e.g. by calling AutoUpdateSelected(..)
 		}
 	}
 
