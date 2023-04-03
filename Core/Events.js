@@ -628,17 +628,19 @@ Fit.Events.GetModifierKeys = function()
 
 /// <container name="Fit.EventTypeDefs.PointerState">
 /// 	<description> Pointer state </description>
-/// 	<member name="Buttons" type="{ Primary: boolean, Secondary: boolean, Touch: boolean, Target: DOMElement | null }"> Pointer buttons currently activated </member>
+/// 	<member name="Buttons" type="{ Primary: boolean, Secondary: boolean, Touch: boolean }"> Pointer buttons currently activated </member>
 /// 	<member name="Coordinates" type="{ ViewPort: Fit.TypeDefs.Position, Document: Fit.TypeDefs.Position }"> Pointer position within viewport and document, which might have been scrolled </member>
+/// 	<member name="Target" type="DOMElement | null"> Pointer target </member>
 /// </container>
 
 /// <function container="Fit.Events" name="GetPointerState" access="public" static="true" returns="Fit.EventTypeDefs.PointerState">
 /// 	<description>
 /// 		Get object containing information about pointer.
 /// 		Object contains the following properties:
-/// 		Buttons.Primary/Secondary: Is True if given button is being held down
-/// 		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport
-/// 		Coordinates.Document.X/Y: Mouse coordinates within document which might have been scrolled
+/// 		Target: Is the DOMElement affected by click/touch.
+/// 		Buttons.Primary/Secondary: Is True if given button is being held down.
+/// 		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport.
+/// 		Coordinates.Document.X/Y: Mouse coordinates within document which might have been scrolled.
 /// 	</description>
 /// </function>
 Fit.Events.GetPointerState = function()
@@ -837,28 +839,43 @@ Fit.Events.AddHandler(document, "touchstart", true, function(e)
 	var scrollPos = Fit.Dom.GetScrollPosition(document.body); // Object with integer values returned
 	Fit._internal.Events.Mouse.Coordinates.Document.X = Fit._internal.Events.Mouse.Coordinates.ViewPort.X + scrollPos.X;
 	Fit._internal.Events.Mouse.Coordinates.Document.Y = Fit._internal.Events.Mouse.Coordinates.ViewPort.Y + scrollPos.Y;
+
+	Fit._internal.Events.Mouse.Target = Fit.Events.GetTarget(ev);
 });
 Fit.Events.AddHandler(document, "touchend", true, function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
-	Fit._internal.Events.Mouse.Buttons.Touch = false;
+	// Postpone reset to allow touchend handlers registered to fire in bubbling phase,
+	// as well as OnClick handlers which might fire on touch devices, to access pointer state.
+	setTimeout(function()
+	{
+		Fit._internal.Events.Mouse.Buttons.Touch = false;
 
-	/*Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
-	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
-	Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
-	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;*/
+		/*Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
+		Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
+		Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
+		Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;*/
+
+		Fit._internal.Events.Mouse.Target = null;
+	}, 0);
 });
 Fit.Events.AddHandler(document, "touchcancel", true, function(e)
 {
 	var ev = Fit.Events.GetEvent(e);
 
-	Fit._internal.Events.Mouse.Buttons.Touch = false;
+	// Postpone reset to allow touchcancel handlers registered to fire in bubbling phase to access pointer state
+	setTimeout(function()
+	{
+		Fit._internal.Events.Mouse.Buttons.Touch = false;
 
-	/*Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
-	Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
-	Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
-	Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;*/
+		/*Fit._internal.Events.Mouse.Coordinates.ViewPort.X = -1;
+		Fit._internal.Events.Mouse.Coordinates.ViewPort.Y = -1;
+		Fit._internal.Events.Mouse.Coordinates.Document.X = -1;
+		Fit._internal.Events.Mouse.Coordinates.Document.Y = -1;*/
+
+		Fit._internal.Events.Mouse.Target = null;
+	}, 0);
 });
 Fit.Events.AddHandler(document, "touchmove", function(e)
 {
