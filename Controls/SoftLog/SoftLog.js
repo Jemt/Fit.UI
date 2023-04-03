@@ -179,6 +179,14 @@ Fit.Controls.SoftLog = function(controlId)
 		txt.scrollTop = 999999;
 	}
 
+	/// <function container="Fit.Controls.SoftLog" name="Clear" access="public">
+	/// 	<description> Clear log </description>
+	/// </function>
+	this.Clear = function()
+	{
+		txt.value = "";
+	}
+
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		if (orgConsoleLog !== null)
