@@ -1460,14 +1460,14 @@ Fit.Controls.Dialog.Alert = function(content, cb)
 	baseDialog.Dialog.Open();
 	baseDialog.ConfirmButton.Focused(true);
 
-	var interface =
+	var diaApi =
 	{
 		Dismiss: function() { baseDialog.Dismiss(); },
 		Confirm: function() { baseDialog.ConfirmButton.Click(); },
 		Cancel: function() { baseDialog.ConfirmButton.Click(); } // An alert dialog has no cancel button so we trigger the OK button instead which in turn triggers the callback which is consistent with the behaviour of Prompt and Confirm
 	};
 
-	return interface;
+	return diaApi;
 }
 
 /// <function container="Fit.Controls.DialogTypeDefs" name="ConfirmCallback">
@@ -1492,14 +1492,14 @@ Fit.Controls.Dialog.Confirm = function(content, cb)
 	baseDialog.Dialog.Open();
 	baseDialog.ConfirmButton.Focused(true);
 
-	var interface =
+	var diaApi =
 	{
 		Dismiss: function() { baseDialog.Dismiss(); },
 		Confirm: function() { baseDialog.ConfirmButton.Click(); },
 		Cancel: function() { baseDialog.CancelButton.Click(); }
 	};
 
-	return interface;
+	return diaApi;
 }
 
 /// <function container="Fit.Controls.DialogTypeDefs" name="PromptCallback">
@@ -1571,12 +1571,12 @@ Fit.Controls.Dialog.Prompt = function(content, defaultValue, cb)
 	baseDialog.Dialog.Open();
 	txt.Focused(true);
 
-	var interface =
+	var diaApi =
 	{
 		Dismiss: function() { baseDialog.Dismiss(); },
 		Confirm: function() { baseDialog.ConfirmButton.Click(); },
 		Cancel: function() { baseDialog.CancelButton.Click(); }
 	};
 
-	return interface;
+	return diaApi;
 }
