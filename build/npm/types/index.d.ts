@@ -5690,6 +5690,11 @@ declare namespace Fit
 			*/
 			public CatchUncaughtExceptions(val?:boolean):boolean;
 			/**
+			* Clear log.
+			* @function Clear
+			*/
+			public Clear():void;
+			/**
 			* Get/set control height - returns object with Value and Unit properties.
 			* @function Height
 			* @param {number} [val=undefined] - If defined, control height is updated to specified value. A value of -1 resets control height.
@@ -10348,8 +10353,9 @@ declare namespace Fit
 		/**
 		* Get object containing information about pointer.
 		Object contains the following properties:
-		Buttons.Primary/Secondary: Is True if given button is being held down
-		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport
+		Target: Is the DOMElement affected by click/touch.
+		Buttons.Primary/Secondary: Is True if given button is being held down.
+		Coordinates.ViewPort.X/Y: Mouse coordinates within viewport.
 		Coordinates.Document.X/Y: Mouse coordinates within document which might have been scrolled.
 		* @function GetPointerState
 		* @static
@@ -12131,14 +12137,19 @@ declare namespace Fit
 			// Properties defined by Fit.EventTypeDefs.PointerState
 			/**
 			* Pointer buttons currently activated.
-			* @member {{ Primary: boolean, Secondary: boolean, Touch: boolean, Target: HTMLElement | null }} Buttons
+			* @member {{ Primary: boolean, Secondary: boolean, Touch: boolean }} Buttons
 			*/
-			Buttons:{ Primary: boolean, Secondary: boolean, Touch: boolean, Target: HTMLElement | null };
+			Buttons:{ Primary: boolean, Secondary: boolean, Touch: boolean };
 			/**
 			* Pointer position within viewport and document, which might have been scrolled.
 			* @member {{ ViewPort: Fit.TypeDefs.Position, Document: Fit.TypeDefs.Position }} Coordinates
 			*/
 			Coordinates:{ ViewPort: Fit.TypeDefs.Position, Document: Fit.TypeDefs.Position };
+			/**
+			* Pointer target.
+			* @member {HTMLElement | null} Target
+			*/
+			Target:HTMLElement | null;
 		}
 	}
 	/**
