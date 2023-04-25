@@ -6941,6 +6941,14 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.WSDropDown
 			/**
+			* Get/set locale used to sort action menu alphabetically - returns null (default) if not enabled.
+			Localized sorting is not supported on legacy browsers, which will fall back to sorting based on
+			each character's position in the computer's character table.
+			* @function ActionMenuSortingLocale
+			* @returns string | null
+			*/
+			public ActionMenuSortingLocale():string | null;
+			/**
 			* Automatically update title of selected items based on data from WebService.
 			Contrary to UpdateSelected(), AutoUpdateSelected() automatically loads all
 			data from the associated WebService before updating the selected items, but
