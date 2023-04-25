@@ -896,6 +896,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	/// 		Localized sorting is not supported on legacy browsers, which will fall back to sorting based on
 	/// 		each character's position in the computer's character table.
 	/// 	</description>
+	/// 	<param name="val" type="string | null" default="undefined"> If defined, sorting is updated to use provided locale - null disables sorting </param>
 	/// </function>
 	this.ActionMenuSortingLocale = function(val)
 	{

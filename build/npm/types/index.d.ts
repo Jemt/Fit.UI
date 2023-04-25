@@ -221,7 +221,7 @@ declare namespace Fit
 		or Null (or nothing) to stop further processing.
 		* @returns boolean
 		*/
-		public static CustomRecurse(arr:FileList, callback:(obj:File) => FileList | File[] | null | void):boolean;
+		public static CustomRecurse(arr:FileList, callback:(obj:__fitUiAliasFile) => __fitUiAliasFileList | File[] | null | void):boolean;
 		/**
 		* Iterates through objects in collection and passes each object to provided callback.
 		Callback is expected to return any children supposed to be iterated too, or Null
@@ -303,7 +303,7 @@ declare namespace Fit
 		Return False from callback to break loop.
 		* @returns boolean
 		*/
-		public static ForEach(arr:FileList, callback:(obj:File) => boolean | void):boolean;
+		public static ForEach(arr:FileList, callback:(obj:__fitUiAliasFile) => boolean | void):boolean;
 		/**
 		* Iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether iteration was carried through (True) or interrupted (False).
@@ -448,7 +448,7 @@ declare namespace Fit
 		* @param {(obj:File) => string} callback - Callback returning string representation of objects passed from collection in turn.
 		* @returns string
 		*/
-		public static Join(arr:FileList, separator:string, callback:(obj:File) => string):string;
+		public static Join(arr:FileList, separator:string, callback:(obj:__fitUiAliasFile) => string):string;
 		/**
 		* Join objects from a collection into a string.
 		* @function Join
@@ -549,7 +549,7 @@ declare namespace Fit
 		Return False from callback to break loop.
 		* @returns boolean
 		*/
-		public static Recurse(arr:FileList, childrenProperty:string, callback:(obj:File) => boolean | void):boolean;
+		public static Recurse(arr:FileList, childrenProperty:string, callback:(obj:__fitUiAliasFile) => boolean | void):boolean;
 		/**
 		* Recursively iterates through objects in collection and passes each object to the provided callback function.
 		Returns boolean indicating whether recursion was carried through (True) or interrupted (False).
@@ -4096,7 +4096,7 @@ declare namespace Fit
 				* Native JS File object representing file data - returns Null on browsers not supporting the File API.
 				* @member {File | null} FileObject
 				*/
-				FileObject:File | null;
+				FileObject:__fitUiAliasFile | null;
 				/**
 				* Get image preview for supported file types - returns Null on browsers not supporting the File API.
 				* @member {Fit.Controls.FilePickerTypeDefs.GetImagePreview} GetImagePreview
@@ -6945,9 +6945,10 @@ declare namespace Fit
 			Localized sorting is not supported on legacy browsers, which will fall back to sorting based on
 			each character's position in the computer's character table.
 			* @function ActionMenuSortingLocale
+			* @param {string | null} [val=undefined] - If defined, sorting is updated to use provided locale - null disables sorting.
 			* @returns string | null
 			*/
-			public ActionMenuSortingLocale():string | null;
+			public ActionMenuSortingLocale(val?:string | null):string | null;
 			/**
 			* Automatically update title of selected items based on data from WebService.
 			Contrary to UpdateSelected(), AutoUpdateSelected() automatically loads all
@@ -12948,6 +12949,7 @@ declare namespace Fit
 }
 
 type __fitUiAliasArray = Array<any>;
+type __fitUiAliasFile = File;
 type __fitUiAliasDate = Date;
 type __fitUiAliasRequest = Request;
 type __fitUiAliasMath = Math;
