@@ -34,6 +34,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var useActionMenu = false;
 	var useActionMenuForced = false;
 	var useActionMenuAfterLoad = true;
+	var useActionMenuSortingLocale = null;
 	var treeViewEnabled = true;
 	var orgPlaceholder = this.Placeholder;
 	var customPlaceholderSet = false;
@@ -889,6 +890,26 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return useActionMenu;
 	}
 
+	/// <function container="Fit.Controls.WSDropDown" name="ActionMenuSortingLocale" access="public" returns="string | null">
+	/// 	<description>
+	/// 		Get/set locale used to sort action menu alphabetically - returns null (default) if not enabled.
+	/// 		Localized sorting is not supported on legacy browsers, which will fall back to sorting based on
+	/// 		each character's position in the computer's character table.
+	/// 	</description>
+	/// </function>
+	this.ActionMenuSortingLocale = function(val)
+	{
+		Fit.Validation.ExpectString(val !== null ? val : "", true);
+
+		if (Fit.Validation.IsSet(val) === true || val === null)
+		{
+			useActionMenuSortingLocale = val;
+			updateActionMenu();
+		}
+
+		return useActionMenuSortingLocale;
+	}
+
 	/// <function container="Fit.Controls.WSDropDown" name="ResetActionMenu" access="public">
 	/// 	<description>
 	/// 		Reset action menu so it automatically determines whether to show up or not
@@ -1237,6 +1258,27 @@ Fit.Controls.WSDropDown = function(ctlId)
 		if (addRemoveAll === true)
 		{
 			actionMenu.AddItem(delIcon + translations.RemoveAll, "RemoveAll");
+		}
+
+		if (useActionMenuSortingLocale !== null)
+		{
+			if ("".localeCompare)
+			{
+				selectedItems = selectedItems.sort(function(a, b)
+				{
+					return a.Title.localeCompare(b.Title, useActionMenuSortingLocale);
+				});
+			}
+			else
+			{
+				selectedItems = selectedItems.sort(function(a, b)
+				{
+					var titleA = a.Title.toLowerCase();
+					var titleB = b.Title.toLowerCase();
+
+					return titleA === titleB ? 0 : titleA > titleB ? 1 : -1;
+				});
+			}
 		}
 
 		Fit.Array.ForEach(selectedItems, function(item)
