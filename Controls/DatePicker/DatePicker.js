@@ -919,20 +919,23 @@ Fit.Controls.DatePicker = function(ctlId)
 		{
 			initializeOnDemand(function()
 			{
-				var focused = Fit.Dom.GetFocused();
+				if (Fit.Dom.IsRooted(me.GetDomElement()) === true)
+				{
+					var focused = Fit.Dom.GetFocused();
 
-				datepicker.datepicker("show");
+					datepicker.datepicker("show"); // Fails if not rooted in DOM
 
-				// Allow light dismissable panels/callouts to prevent close/dismiss
-				// when interacting with calendar widget hosted outside of panels/callouts,
-				// by detecting the presence of a data-disable-light-dismiss="true" attribute.
-				var calendarWidget = document.getElementById("fitui-datepicker-div");
-				Fit.Dom.Data(calendarWidget, "disable-light-dismiss", "true");
+					// Allow light dismissable panels/callouts to prevent close/dismiss
+					// when interacting with calendar widget hosted outside of panels/callouts,
+					// by detecting the presence of a data-disable-light-dismiss="true" attribute.
+					var calendarWidget = document.getElementById("fitui-datepicker-div");
+					Fit.Dom.Data(calendarWidget, "disable-light-dismiss", "true");
 
-				moveCalenderWidgetLocally();
+					moveCalenderWidgetLocally();
 
-				if (focused === inputTime)
-					inputTime.focus();
+					if (focused === inputTime)
+						inputTime.focus();
+				}
 			});
 		}
 		else
