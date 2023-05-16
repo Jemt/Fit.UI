@@ -809,10 +809,10 @@ function Parser()
 	{
 		var generics = [];
 
-		var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)/g; // Also found in getTypes(..) along with an explaination - make changes both places!
+		var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)($| |\[|\)|,|\}|\+)/g; // Also found in getTypes(..) along with an explaination - make changes both places!
 		var match = null;
 
-		while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type
+		while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type, match[3] = type match terminator
 		{
 			var container = getContainerByName(match[2]); // Null if not a container
 
@@ -943,16 +943,17 @@ function Parser()
 			// implementation, it's of no big deal, but it does create inconsistency with the HTML documentation.
 			// In any event, using types as parameter names is bad practice.
 
-			// Capture names of all types - all names come after a starting paranthesis, a space, a colon (function argument type),
-			// equal-or-greater-than arrow (function return type), or a pipe, and can optionally start with a dollar sign if it is a generic type.
+			// Capture names of all types - all type names come after a starting paranthesis, a space, a colon (function argument type),
+			// equal-or-greater-than arrow (function return type), a plus (which in XML documentation is used for intersection types
+			// that are later (further down) replaced by an ampersand), or a pipe, and can optionally start with a dollar sign if it is a generic type.
 
-			var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)/g; // Also found in getGenericsUsageFromDtoOrCallback(..) - make changes both places!
+			var regex = /(^|\(| |\||:|=>|\+)(\$?[\w\.]+)($| |\[|\)|,|\}|\+)/g; // Also found in getGenericsUsageFromDtoOrCallback(..) - make changes both places! - https://regex101.com/r/DRQdqL/1
 			var match = null;
 			var newType = type; // Perform replacement on copy of string to avoid affecting regex matching which keeps an internal index of where to continue with next search
 
-			while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type
+			while ((match = regex.exec(type)) !== null) // match[0] = full match, match[1] = character before name of type, match[2] = name of type, match[3] = type match terminator
 			{
-				newType = newType.replace(match[0], match[1] + getType(match[2], resolveAlias));
+				newType = newType.replace(match[0], match[1] + getType(match[2], resolveAlias) + match[3]);
 			}
 
 			return newType.replace(/\+/g, "&"); // In XML documentation we use + to specify intersection types (e.g.: TypeA + TypeB => TypeA & TypeB)
