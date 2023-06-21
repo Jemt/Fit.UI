@@ -919,11 +919,11 @@ Fit.Controls.DatePicker = function(ctlId)
 		{
 			initializeOnDemand(function()
 			{
-				if (Fit.Dom.IsRooted(me.GetDomElement()) === true)
+				if (Fit.Dom.IsVisible(me.GetDomElement()) === true)
 				{
 					var focused = Fit.Dom.GetFocused();
 
-					datepicker.datepicker("show"); // Fails if not rooted in DOM
+					datepicker.datepicker("show"); // Fails if not visible (part of render tree)
 
 					// Allow light dismissable panels/callouts to prevent close/dismiss
 					// when interacting with calendar widget hosted outside of panels/callouts,
