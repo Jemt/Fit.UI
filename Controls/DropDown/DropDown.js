@@ -42,6 +42,8 @@ Fit.Controls.DropDown = function(ctlId)
 	var persistView = false;					// Flag indicating whether picker controls should remember and restore its scroll position and highlighted item when reopened
 	var highlightFirst = false;					// Flag indicating whether picker controls should focus its first node automatically when opened
 	var searchModeOnFocus = false;				// Flag indicating whether control goes into search mode when it is focused (search mode clears input field and displays "search.." placeholder)
+	var onScrollElement = null;					// Holds control's scroll parent when drop down is open
+	var onScrollEventId = -1;					// Holds ID of OnScroll event handler registered when drop down is open
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -241,6 +243,43 @@ Fit.Controls.DropDown = function(ctlId)
 			if (isMobile === true)
 			{
 				me.CloseDropDown();
+			}
+		});
+
+		// Make drop down close if scroll parent is scrolled
+
+		me.OnOpen(function()
+		{
+			postpone(function() // Postpone to avoid auto closing drop down if browser scrolls control into view when it receives focus
+			{
+				if (me.IsDropDownOpen() === true) // Might have been closed while waiting
+				{
+					onScrollElement = Fit.Dom.GetScrollParent(me.GetDomElement());
+
+					if (onScrollElement === document.documentElement)
+					{
+						onScrollElement = window;
+					}
+
+					if (onScrollElement !== null)
+					{
+						onScrollEventId = Fit.Events.AddHandler(onScrollElement, "scroll", function(e)
+						{
+							me.CloseDropDown();
+						});
+					}
+				}
+			});
+		});
+
+		me.OnClose(function()
+		{
+			if (onScrollElement !== null)
+			{
+				Fit.Events.RemoveHandler(onScrollElement, onScrollEventId);
+
+				onScrollElement = null;
+				onScrollEventId = -1;
 			}
 		});
 
@@ -568,7 +607,12 @@ Fit.Controls.DropDown = function(ctlId)
 			itemDropZones[key].Dispose();
 		});
 
-		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = searchModeOnFocus = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
+		if (onScrollElement !== null)
+		{
+			Fit.Events.RemoveHandler(onScrollElement, onScrollEventId);
+		}
+
+		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = searchModeOnFocus = onScrollElement = onScrollEventId = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
