@@ -5,7 +5,7 @@ Fit.Internationalization._internal.AddSystemLocalization(
 	// All locales inherit from en. All country specific overrides inherit
 	// from their primary locale (e.g. de_AT inherits from de).
 	// English (en) MUST be defined!
-	
+
 	"en": // US
 	{
 		Formatting:
@@ -55,6 +55,20 @@ Fit.Internationalization._internal.AddSystemLocalization(
 		Translations:
 		{
 			Required				: "Feld ist erforderlich"
+		}
+	},
+	"no":
+	{
+		Formatting:
+		{
+			DecimalSeparator		: ",",
+			ThousandsSeparator		: ".",
+			DateFormat				: "DD-MM-YYYY",
+			ClockHours				: 24
+		},
+		Translations:
+		{
+			Required				: "Feltet er påkrevd"
 		}
 	}
 });

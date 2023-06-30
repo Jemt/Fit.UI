@@ -2072,7 +2072,7 @@ Fit.Controls.Input = function(ctlId)
 			return;
 		}
 
-		var langSupport = ["da", "de", "en"];
+		var langSupport = ["da", "de", "en", "no"];
 		var localeCode = Fit.Internationalization.Locale().length === 2 ? Fit.Internationalization.Locale() : Fit.Internationalization.Locale().substring(0, 2);
 		var lang = Fit.Array.Contains(langSupport, localeCode) === true ? localeCode : "en";
 		var plugins = [];

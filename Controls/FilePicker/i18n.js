@@ -26,5 +26,12 @@ Fit.Internationalization.AddLocalization(Fit.Controls.FilePicker,
 		"SelectFiles": "Dateien auswählen",
 		"DropFile": "Zieh deine Datei hierher und lege sie ab, oder",
 		"DropFiles": "Zieh deine Dateien hierher und lege sie ab, oder"
+	},
+	"no":
+	{
+		"SelectFile": "Velg fil",
+		"SelectFiles": "Velg filer",
+		"DropFile": "Dra og slipp fil her, eller",
+		"DropFiles": "Dra og slipp filer her, eller"
 	}
 });

@@ -51,6 +51,21 @@
 				Remove					: "Entfernen",
 				NoneAvailable			: "Liste der Optionen ist leer"
 			}
+		},
+		"no":
+		{
+			Translations:
+			{
+				InvalidSelection		: "Ugyldig valg",
+
+				// WSDropDown
+				Search					: "Søk..",
+				SearchMore				: "Søk etter alternativer",
+				ShowAllOptions			: "Vis alle tilgjengelige alternativer",
+				RemoveAll				: "Fjern alle valgte",
+				Remove					: "Fjern",
+				NoneAvailable			: "Ingen alternativer tilgjengelig"
+			}
 		}
 	}
 	Fit.Internationalization.AddLocalization(Fit.Controls.DropDown, locale);

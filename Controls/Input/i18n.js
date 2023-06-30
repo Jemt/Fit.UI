@@ -29,5 +29,13 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 		"Cancel": "Abbrechen",
 		"CancelConfirmTitle": "Änderungen verwerfen?",
 		"CancelConfirmDescription": "Möchten Sie die Änderungen wirklich verwerfen?"
+	},
+	"no":
+	{
+		"Detach": "Åpne i dialog",
+		"Ok": "OK",
+		"Cancel": "Avbryt",
+		"CancelConfirmTitle": "Avbryt endringer?",
+		"CancelConfirmDescription": "Er du sikker på at du vil avbryte endringene?"
 	}
 });

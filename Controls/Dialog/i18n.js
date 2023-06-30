@@ -20,5 +20,10 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Dialog,
 	{
 		"Ok" : "OK",
 		"Cancel" : "Abbrechen"
+	},
+	"no":
+	{
+		"Ok" : "OK",
+		"Cancel" : "Avbryt"
 	}
 });
