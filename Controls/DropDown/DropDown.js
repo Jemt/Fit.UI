@@ -1686,7 +1686,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// NOTICE: WSDropDown also calls RevealItemInView(..) when
 		// root nodes have been populated.
 
-		if (me.MultiSelectionMode() === false && me.GetSelections().length === 1)
+		if (me.GetPicker() !== null && me.MultiSelectionMode() === false && me.GetSelections().length === 1)
 		{
 			me.GetPicker().RevealItemInView(me.GetSelections()[0].Value);
 		}
