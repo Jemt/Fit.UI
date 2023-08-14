@@ -1230,10 +1230,16 @@ Fit.Controls.Input = function(ctlId)
 	/// 	</member>
 	/// </container>
 
+	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsTablesConfig">
+	/// 	<description> Configuration for table plugins </description>
+	/// 	<member name="Enabled" type="boolean"> Flag indicating whether to enable table plugins or not (defaults to False) </member>
+	/// </container>
+
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigPlugins">
 	/// 	<description> Additional plugins enabled in DesignMode </description>
 	/// 	<member name="Emojis" type="boolean" default="undefined"> Plugin(s) related to emoji support (defaults to False) </member>
-	/// 	<member name="Images" type="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig" default="undefined"> Plugin(s) related to support for images (defaults to False) </member>
+	/// 	<member name="Images" type="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig" default="undefined"> Plugin(s) related to support for images (not enabled by default) </member>
+	/// 	<member name="Tables" type="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsTablesConfig" default="undefined"> Plugin(s) related to support for tables (not enabled by default) </member>
 	/// </container>
 
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigToolbar">
@@ -2102,6 +2108,33 @@ Fit.Controls.Input = function(ctlId)
 
 		// Add toolbar buttons
 
+		if (config.Plugins && config.Plugins.Tables && config.Plugins.Tables.Enabled === true && isIe8 === false)
+		{
+			// The CustomInvisibleGroup group allows us to add features without exposing them in the UI.
+			// VERY IMPORTANT: It MUST be the very first group added so it can reliably be hidden using CSS
+			// in Input.css (span.cke_toolbar:first-child)
+			Fit.Array.Add(toolbar,
+			{
+				name: "CustomInvisibleGroup",
+				items: [ "Table" ] // Just enabling the "table" plugin is not sufficient - it is the addition of the button that whitelist table elements: https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/table/plugin.js#L21C4-L21C18
+			});
+
+			Fit.Events.AddHandler(me.GetDomElement(), "contextmenu", true, function(e) // Capture phase (true argument) not supported by IE8
+			{
+				Fit.Events.StopPropagation(e); // Suppress CKEditor's context menu (required by the table plugin) which removes focus from control
+			});
+
+			Fit.Events.AddHandler(me.GetDomElement(), "keydown", true, function(e) // Capture phase (true argument) not supported by IE8
+			{
+				var ev = Fit.Events.GetEvent(e);
+
+				if ((ev.shiftKey === true && ev.keyCode === 121) || ev.keyCode === 93) // SHIFT + F10 or Windows ContextMenu key
+				{
+					Fit.Events.StopPropagation(e); // Suppress CKEditor's context menu (required by the table plugin) which removes focus from control
+				}
+			});
+		}
+
 		if (!config.Toolbar || config.Toolbar.Formatting !== false)
 		{
 			Fit.Array.Add(toolbar,
@@ -2193,6 +2226,218 @@ Fit.Controls.Input = function(ctlId)
 				{
 					name: "DetachableEditor",
 					items: ["Detach"/*, "TestButton"*/]
+				});
+			}
+
+			if (config.Plugins && config.Plugins.Tables && config.Plugins.Tables.Enabled === true)
+			{
+				var isTable = function(element)
+				{
+					var isTable = false;
+					var elm = element;
+
+					while (elm !== me.GetDomElement())
+					{
+						if (elm.tagName === "TABLE")
+						{
+							isTable = true;
+							break;
+						}
+
+						elm = elm.parentElement;
+					}
+
+					return isTable;
+				};
+
+				var openTableDialog = function()
+				{
+					me.Focused(true); // Make sure OnFocus is fired
+					me._internal.FocusStateLocked(true);
+
+					var dia = new Fit.Controls.Dialog();
+					var txtCols = new Fit.Controls.Input();
+					var txtRows = new Fit.Controls.Input();
+					var cmdOk = new Fit.Controls.Button();
+					var cmdCancel = new Fit.Controls.Button();
+
+					var dispose = function()
+					{
+						dia.Dispose(); // Automatically disposes associated OK and Cancel buttons
+						txtCols.Dispose();
+						txtRows.Dispose();
+
+						me.Focused(true); // Make sure focus is returned to editor
+						me._internal.FocusStateLocked(false);
+					};
+
+					dia.Title(locale.CreateTable);
+					dia.Width(20, "em");
+					dia.Modal(true);
+
+					var lblCols = document.createElement("div");
+					lblCols.innerHTML = locale.NumberOfColumns;
+					dia.GetContentDomElement().appendChild(lblCols);
+
+					txtCols.Value("3");
+					txtCols.Width(100, "%");
+					txtCols.AddValidationRule(/^\d+$/);
+					txtCols.LazyValidation(true);
+					dia.GetContentDomElement().appendChild(txtCols.GetDomElement());
+
+					var lblRows = document.createElement("div");
+					lblRows.innerHTML = locale.NumberOfRows;
+					lblRows.style.marginTop = "1.5em";
+					dia.GetContentDomElement().appendChild(lblRows);
+
+					txtRows.Value("3");
+					txtRows.Width(100, "%");
+					txtRows.AddValidationRule(/^\d+$/);
+					txtRows.LazyValidation(true);
+					dia.GetContentDomElement().appendChild(txtRows.GetDomElement());
+
+					cmdOk.Title(locale.Ok);
+					cmdOk.Type(Fit.Controls.ButtonType.Success);
+					cmdOk.OnClick(function(sender)
+					{
+						if (txtCols.IsValid() === false)
+						{
+							txtCols.Focused(true);
+							return;
+						}
+
+						if (txtRows.IsValid() === false)
+						{
+							txtRows.Focused(true);
+							return;
+						}
+
+						var rows = parseInt(txtRows.Value());
+						var cols = parseInt(txtCols.Value());
+
+						if (rows * cols > 2000)
+						{
+							Fit.Controls.Dialog.Alert(locale.CreateTableTooLarge);
+							return;
+						}
+
+						if (rows > 0 && cols > 0)
+						{
+							var row = "<tr>";
+							for (var i = 0 ; i < cols ; i++)
+							{
+								row += "<td></td>";
+							}
+							row += "</tr>";
+
+							var table = "<table border='1'>";
+							for (var i = 0 ; i < rows ; i++)
+							{
+								table += row;
+							}
+							table += "</table>";
+
+							designEditor.insertHtml(table);
+						}
+
+						dispose();
+					});
+					dia.AddButton(cmdOk);
+
+					cmdCancel.Title(locale.Cancel);
+					cmdCancel.Type(Fit.Controls.ButtonType.Danger);
+					cmdCancel.OnClick(function(sender)
+					{
+						dispose();
+					});
+					dia.AddButton(cmdCancel);
+
+					Fit.Events.AddHandler(dia.GetContentDomElement(), "keydown", function(e)
+					{
+						var ev = Fit.Events.GetEvent(e);
+
+						if (ev.keyCode === 13) // ENTER
+						{
+							cmdOk.Click();
+							Fit.Events.PreventDefault(ev); // Prevent insertion of line break into cell to which focus is returned
+						}
+						else if (ev.keyCode === 27) // ESC
+						{
+							cmdCancel.Click();
+						}
+					});
+
+					dia.Open();
+					txtCols.Focused(true);
+				};
+
+				var showTableContextMenu = function()
+				{
+					me.Focused(true); // Make sure OnFocus is fired
+					me._internal.FocusStateLocked(true);
+
+					var ctx = new Fit.Controls.ContextMenu();
+					ctx.OnSelect(function(sender, item)
+					{
+						designEditor.execCommand(item.Value()); // Returns focus to editor
+						ctx.Hide(); // Fires OnHide which disposes ContextMenu
+					});
+					ctx.OnHide(function(sender) // Fires when Hide() is called or if ContextMenu is dismissed by clicking away from it
+					{
+						me._internal.FocusStateLocked(false);
+
+						if (me.Focused() === false) // If focus was removed by clicking away from context menu and editor, then fire OnBlur
+						{
+							me._internal.FireOnBlur();
+						}
+
+						setTimeout(ctx.Dispose, 0); // Using setTimeout because ContextMenu cannot be disposed during the OnHide event
+					});
+
+					var items =
+					{
+						//"tableProperties": { Title: "Egenskaber for tabel", Icon: "cog" },
+						"rowInsertBefore": { Title: locale.InsertRowAbove, Icon: "arrow-up" },
+						"rowInsertAfter": { Title: locale.InsertRowBelow, Icon: "arrow-down" },
+						"rowDelete": { Title: locale.DeleteRow, Icon: "eraser" },
+						"columnInsertBefore": { Title: locale.InsertColumnBefore, Icon: "arrow-left" },
+						"columnInsertAfter": { Title: locale.InsertColumnAfter, Icon: "arrow-right" },
+						"columnDelete": { Title: locale.DeleteColumn, Icon: "eraser" },
+						"tableDelete": { Title: locale.DeleteTable, Icon: "trash" }
+					};
+
+					Fit.Array.ForEach(items, function(command)
+					{
+						var iconHtml = "<span class='fa fa-" + items[command].Icon + "' style='width: 1.5em; text-align: center; margin-right: 0.25em;'></span>";
+						ctx.AddChild(new Fit.Controls.ContextMenuItem(iconHtml + items[command].Title, command));
+					});
+
+					ctx.Show();
+					ctx.GetDomElement().style.zIndex = 99999999; // Hack to make sure it remains above detached HTML editor dialog
+				};
+
+				Fit.Array.Add(customButtons,
+				{
+					Label: locale.TableTools,
+					Command: "CustomGenericTableButton",
+					Icon: Fit.GetUrl() + "/Controls/Input/" + (window.devicePixelRatio === 2 ? "table-highres.png" : "table.png"),
+					Callback: function(args)
+					{
+						if (isTable(args.Editor.getSelection().getStartElement().$) === false)
+						{
+							openTableDialog();
+						}
+						else
+						{
+							showTableContextMenu();
+						}
+					}
+				});
+
+				Fit.Array.Add(customToolbarGroups,
+				{
+					name: "CustomTableButtons",
+					items: ["CustomGenericTableButton"]
 				});
 			}
 
@@ -2451,6 +2696,7 @@ Fit.Controls.Input = function(ctlId)
 			uiColor: Fit._internal.Controls.Input.Editor.Skin === "moono-lisa" || Fit._internal.Controls.Input.Editor.Skin === null ? "#FFFFFF" : undefined,
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			extraAllowedContent: "a[data-tag-type,data-tag-id,data-tag-data,data-tag-context]", // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-extraAllowedContent
+			disallowedContent: "table[align,cellpadding,cellspacing,summary]{*};tr[*]{*}(*);th[*]{*}(*);td[*]{*}(*)", // Undo most from allowedContent in table plugin (keep table border): https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/table/plugin.js#L21C21-L21C102
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
 			readOnly: me.Enabled() === false,

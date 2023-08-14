@@ -46,7 +46,7 @@ Fit.Controls.ContextMenu = function(controlId)
 
 			if (ev.keyCode === 27) // Escape
 			{
-				me.Hide();
+				// me.Hide(); // Moved below prevFocused.focus() to allow OnHide handlers to reliably react on current focus state
 
 				// Return focus to previously focused element
 				if (prevFocused !== null)
@@ -54,6 +54,8 @@ Fit.Controls.ContextMenu = function(controlId)
 					prevFocused.focus();
 					prevFocused = null;
 				}
+
+				me.Hide();
 
 				return;
 			}
@@ -134,6 +136,8 @@ Fit.Controls.ContextMenu = function(controlId)
 			{
 				if (node.Selectable() === true)
 					node.Selected(true);
+
+				Fit.Events.PreventDefault(ev); // Prevent insertion of a line break in an editor if focus is returned to such OnSelect
 
 				return;
 			}

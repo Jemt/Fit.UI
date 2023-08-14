@@ -183,6 +183,12 @@ div.FitUiControlInput[data-designmode="true"] .cke_editable[data-placeholder]:be
 	margin: 1em 0em;
 }
 
+/* Make sure user can place cursor in table cells by ensuring a minimum width */
+div.FitUiControlInput[data-designmode="true"] .cke_editable td
+{
+	min-width: 0.5em;
+}
+
 /* CKEditor - moono-lisa skin overrides */
 
 /* Apply rounded corners */
@@ -325,7 +331,7 @@ div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][da
 	right: 2px;
 }
 
-/* Make editor toolbar sticky if enabled  */
+/* Make editor toolbar sticky if enabled */
 @supports (position: sticky)
 {
 	div.FitUiControlInput[data-designmode="true"][data-toolbar-sticky="true"][data-toolbar-position="top"] .cke_top
@@ -338,6 +344,13 @@ div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][da
 		position: sticky;
 		bottom: 0px;
 	}
+}
+
+/* Hide first button group in toolbar which is used to hide features that
+   only work when their commands are enabled (e.g. the table plugin). */
+div.FitUiControlInput[data-designmode="true"] span.cke_toolbar:first-child
+{
+	display: none;
 }
 
 /* Editor information panel at the bottom of editor (moono-lisa skin) */
