@@ -4603,11 +4603,6 @@ declare namespace Fit
 				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig} [Images=undefined]
 				*/
 				Images?:Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig;
-				/**
-				* Plugin(s) related to support for tables (not enabled by default).
-				* @member {Fit.Controls.InputTypeDefs.DesignModeConfigPluginsTablesConfig} [Tables=undefined]
-				*/
-				Tables?:Fit.Controls.InputTypeDefs.DesignModeConfigPluginsTablesConfig;
 			}
 			/**
 			* Configuration for image plugins.
@@ -4807,6 +4802,11 @@ declare namespace Fit
 				* @member {boolean} [Sticky=undefined]
 				*/
 				Sticky?:boolean;
+				/**
+				* Enable table button (defaults to false).
+				* @member {boolean} [Tables=undefined]
+				*/
+				Tables?:boolean;
 			}
 			/**
 			* Detachable configuration.
