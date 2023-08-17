@@ -170,6 +170,34 @@ Fit.Controls.Input = function(ctlId)
 			}
 		});
 
+		// Suppress CKEditor's ContextMenu to open the browser's own ContextMenu,
+		// unless right-clicking in a table, in which case we need access to the table tools.
+		Fit.Events.AddHandler(me.GetDomElement(), "contextmenu", true, function(e) // Capture phase (true argument) not supported by IE8 - too bad, IE8 users will have to use the browser's Edit menu at the top to cut/copy/paste
+		{
+			if (me.DesignMode() === true)
+			{
+				var ev = Fit.Events.GetEvent(e);
+				var target = Fit.Events.GetTarget(ev);
+
+				if (isTable(target) === false)
+				{
+					Fit.Events.StopPropagation(ev); // Suppress CKEditor's context menu (required by the table plugin)
+				}
+			}
+		});
+		Fit.Events.AddHandler(me.GetDomElement(), "keydown", true, function(e) // Capture phase (true argument) not supported by IE8
+		{
+			if (me.DesignMode() === true)
+			{
+				var ev = Fit.Events.GetEvent(e);
+
+				if ((ev.shiftKey === true && ev.keyCode === 121) || ev.keyCode === 93) // SHIFT + F10 or Windows ContextMenu key
+				{
+					Fit.Events.StopPropagation(ev); // Suppress CKEditor's context menu (required by the table plugin)
+				}
+			}
+		});
+
 		try
 		{
 			// We rely on the .buttons property to optimize resizing for textarea (MultiLine mode).
@@ -1239,7 +1267,6 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<description> Additional plugins enabled in DesignMode </description>
 	/// 	<member name="Emojis" type="boolean" default="undefined"> Plugin(s) related to emoji support (defaults to False) </member>
 	/// 	<member name="Images" type="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsImagesConfig" default="undefined"> Plugin(s) related to support for images (not enabled by default) </member>
-	/// 	<member name="Tables" type="Fit.Controls.InputTypeDefs.DesignModeConfigPluginsTablesConfig" default="undefined"> Plugin(s) related to support for tables (not enabled by default) </member>
 	/// </container>
 
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigToolbar">
@@ -1250,6 +1277,7 @@ Fit.Controls.Input = function(ctlId)
 	/// 	<member name="Links" type="boolean" default="undefined"> Enable links (defaults to True) </member>
 	/// 	<member name="Emojis" type="boolean" default="undefined"> Enable emoji button (defaults to False) </member>
 	/// 	<member name="Images" type="boolean" default="undefined"> Enable image button (defaults to false) </member>
+	/// 	<member name="Tables" type="boolean" default="undefined"> Enable table button (defaults to false) </member>
 	/// 	<member name="Detach" type="boolean" default="undefined"> Enable detach button (defaults to false) </member>
 	/// 	<member name="Position" type="'Top' | 'Bottom'" default="undefined"> Toolbar position (defaults to Top) </member>
 	/// 	<member name="Sticky" type="boolean" default="undefined"> Make toolbar stick to edge of scroll container on supported browsers when scrolling (defaults to False) </member>
@@ -2108,33 +2136,6 @@ Fit.Controls.Input = function(ctlId)
 
 		// Add toolbar buttons
 
-		if (config.Plugins && config.Plugins.Tables && config.Plugins.Tables.Enabled === true && isIe8 === false)
-		{
-			// The CustomInvisibleGroup group allows us to add features without exposing them in the UI.
-			// VERY IMPORTANT: It MUST be the very first group added so it can reliably be hidden using CSS
-			// in Input.css (span.cke_toolbar:first-child)
-			Fit.Array.Add(toolbar,
-			{
-				name: "CustomInvisibleGroup",
-				items: [ "Table" ] // Just enabling the "table" plugin is not sufficient - it is the addition of the button that whitelist table elements: https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/table/plugin.js#L21C4-L21C18
-			});
-
-			Fit.Events.AddHandler(me.GetDomElement(), "contextmenu", true, function(e) // Capture phase (true argument) not supported by IE8
-			{
-				Fit.Events.StopPropagation(e); // Suppress CKEditor's context menu (required by the table plugin) which removes focus from control
-			});
-
-			Fit.Events.AddHandler(me.GetDomElement(), "keydown", true, function(e) // Capture phase (true argument) not supported by IE8
-			{
-				var ev = Fit.Events.GetEvent(e);
-
-				if ((ev.shiftKey === true && ev.keyCode === 121) || ev.keyCode === 93) // SHIFT + F10 or Windows ContextMenu key
-				{
-					Fit.Events.StopPropagation(e); // Suppress CKEditor's context menu (required by the table plugin) which removes focus from control
-				}
-			});
-		}
-
 		if (!config.Toolbar || config.Toolbar.Formatting !== false)
 		{
 			Fit.Array.Add(toolbar,
@@ -2185,6 +2186,11 @@ Fit.Controls.Input = function(ctlId)
 				Fit.Array.Add(insert, "base64image");
 			}
 
+			if (config.Toolbar.Tables === true)
+			{
+				Fit.Array.Add(insert, "Table");
+			}
+
 			if (insert.length > 0)
 			{
 				Fit.Array.Add(toolbar,
@@ -2226,218 +2232,6 @@ Fit.Controls.Input = function(ctlId)
 				{
 					name: "DetachableEditor",
 					items: ["Detach"/*, "TestButton"*/]
-				});
-			}
-
-			if (config.Plugins && config.Plugins.Tables && config.Plugins.Tables.Enabled === true)
-			{
-				var isTable = function(element)
-				{
-					var isTable = false;
-					var elm = element;
-
-					while (elm !== me.GetDomElement())
-					{
-						if (elm.tagName === "TABLE")
-						{
-							isTable = true;
-							break;
-						}
-
-						elm = elm.parentElement;
-					}
-
-					return isTable;
-				};
-
-				var openTableDialog = function()
-				{
-					me.Focused(true); // Make sure OnFocus is fired
-					me._internal.FocusStateLocked(true);
-
-					var dia = new Fit.Controls.Dialog();
-					var txtCols = new Fit.Controls.Input();
-					var txtRows = new Fit.Controls.Input();
-					var cmdOk = new Fit.Controls.Button();
-					var cmdCancel = new Fit.Controls.Button();
-
-					var dispose = function()
-					{
-						dia.Dispose(); // Automatically disposes associated OK and Cancel buttons
-						txtCols.Dispose();
-						txtRows.Dispose();
-
-						me.Focused(true); // Make sure focus is returned to editor
-						me._internal.FocusStateLocked(false);
-					};
-
-					dia.Title(locale.CreateTable);
-					dia.Width(20, "em");
-					dia.Modal(true);
-
-					var lblCols = document.createElement("div");
-					lblCols.innerHTML = locale.NumberOfColumns;
-					dia.GetContentDomElement().appendChild(lblCols);
-
-					txtCols.Value("3");
-					txtCols.Width(100, "%");
-					txtCols.AddValidationRule(/^\d+$/);
-					txtCols.LazyValidation(true);
-					dia.GetContentDomElement().appendChild(txtCols.GetDomElement());
-
-					var lblRows = document.createElement("div");
-					lblRows.innerHTML = locale.NumberOfRows;
-					lblRows.style.marginTop = "1.5em";
-					dia.GetContentDomElement().appendChild(lblRows);
-
-					txtRows.Value("3");
-					txtRows.Width(100, "%");
-					txtRows.AddValidationRule(/^\d+$/);
-					txtRows.LazyValidation(true);
-					dia.GetContentDomElement().appendChild(txtRows.GetDomElement());
-
-					cmdOk.Title(locale.Ok);
-					cmdOk.Type(Fit.Controls.ButtonType.Success);
-					cmdOk.OnClick(function(sender)
-					{
-						if (txtCols.IsValid() === false)
-						{
-							txtCols.Focused(true);
-							return;
-						}
-
-						if (txtRows.IsValid() === false)
-						{
-							txtRows.Focused(true);
-							return;
-						}
-
-						var rows = parseInt(txtRows.Value());
-						var cols = parseInt(txtCols.Value());
-
-						if (rows * cols > 2000)
-						{
-							Fit.Controls.Dialog.Alert(locale.CreateTableTooLarge);
-							return;
-						}
-
-						if (rows > 0 && cols > 0)
-						{
-							var row = "<tr>";
-							for (var i = 0 ; i < cols ; i++)
-							{
-								row += "<td></td>";
-							}
-							row += "</tr>";
-
-							var table = "<table border='1'>";
-							for (var i = 0 ; i < rows ; i++)
-							{
-								table += row;
-							}
-							table += "</table>";
-
-							designEditor.insertHtml(table);
-						}
-
-						dispose();
-					});
-					dia.AddButton(cmdOk);
-
-					cmdCancel.Title(locale.Cancel);
-					cmdCancel.Type(Fit.Controls.ButtonType.Danger);
-					cmdCancel.OnClick(function(sender)
-					{
-						dispose();
-					});
-					dia.AddButton(cmdCancel);
-
-					Fit.Events.AddHandler(dia.GetContentDomElement(), "keydown", function(e)
-					{
-						var ev = Fit.Events.GetEvent(e);
-
-						if (ev.keyCode === 13) // ENTER
-						{
-							cmdOk.Click();
-							Fit.Events.PreventDefault(ev); // Prevent insertion of line break into cell to which focus is returned
-						}
-						else if (ev.keyCode === 27) // ESC
-						{
-							cmdCancel.Click();
-						}
-					});
-
-					dia.Open();
-					txtCols.Focused(true);
-				};
-
-				var showTableContextMenu = function()
-				{
-					me.Focused(true); // Make sure OnFocus is fired
-					me._internal.FocusStateLocked(true);
-
-					var ctx = new Fit.Controls.ContextMenu();
-					ctx.OnSelect(function(sender, item)
-					{
-						designEditor.execCommand(item.Value()); // Returns focus to editor
-						ctx.Hide(); // Fires OnHide which disposes ContextMenu
-					});
-					ctx.OnHide(function(sender) // Fires when Hide() is called or if ContextMenu is dismissed by clicking away from it
-					{
-						me._internal.FocusStateLocked(false);
-
-						if (me.Focused() === false) // If focus was removed by clicking away from context menu and editor, then fire OnBlur
-						{
-							me._internal.FireOnBlur();
-						}
-
-						setTimeout(ctx.Dispose, 0); // Using setTimeout because ContextMenu cannot be disposed during the OnHide event
-					});
-
-					var items =
-					{
-						//"tableProperties": { Title: "Egenskaber for tabel", Icon: "cog" },
-						"rowInsertBefore": { Title: locale.InsertRowAbove, Icon: "arrow-up" },
-						"rowInsertAfter": { Title: locale.InsertRowBelow, Icon: "arrow-down" },
-						"rowDelete": { Title: locale.DeleteRow, Icon: "eraser" },
-						"columnInsertBefore": { Title: locale.InsertColumnBefore, Icon: "arrow-left" },
-						"columnInsertAfter": { Title: locale.InsertColumnAfter, Icon: "arrow-right" },
-						"columnDelete": { Title: locale.DeleteColumn, Icon: "eraser" },
-						"tableDelete": { Title: locale.DeleteTable, Icon: "trash" }
-					};
-
-					Fit.Array.ForEach(items, function(command)
-					{
-						var iconHtml = "<span class='fa fa-" + items[command].Icon + "' style='width: 1.5em; text-align: center; margin-right: 0.25em;'></span>";
-						ctx.AddChild(new Fit.Controls.ContextMenuItem(iconHtml + items[command].Title, command));
-					});
-
-					ctx.Show();
-					ctx.GetDomElement().style.zIndex = 99999999; // Hack to make sure it remains above detached HTML editor dialog
-				};
-
-				Fit.Array.Add(customButtons,
-				{
-					Label: locale.TableTools,
-					Command: "CustomGenericTableButton",
-					Icon: Fit.GetUrl() + "/Controls/Input/" + (window.devicePixelRatio === 2 ? "table-highres.png" : "table.png"),
-					Callback: function(args)
-					{
-						if (isTable(args.Editor.getSelection().getStartElement().$) === false)
-						{
-							openTableDialog();
-						}
-						else
-						{
-							showTableContextMenu();
-						}
-					}
-				});
-
-				Fit.Array.Add(customToolbarGroups,
-				{
-					name: "CustomTableButtons",
-					items: ["CustomGenericTableButton"]
 				});
 			}
 
@@ -2690,13 +2484,32 @@ Fit.Controls.Input = function(ctlId)
 			}*/
 		};
 
+		// How disallowedContent works is described here: https://ckeditor.com/docs/ckeditor4/latest/guide/dev_disallowed_content.html
+		// How the rules work is covered in more details here: https://ckeditor.com/docs/ckeditor4/latest/guide/dev_allowed_content_rules.html
+		// Format in short: element[allowed/disallowed attributes]{allowed/disallowed styles}(allowed/disallowed classes)
+		// Allowed and disallowed elements, attributes, styles, and classes can be revealed runtime using:
+		//     CKEDITOR.instances['<Instance ID>'].filter.allowedContent
+		//     CKEDITOR.instances['<Instance ID>'].filter.disallowedContent
+		// Use the following code to check whether given content is allowed or not based on allowedContent and disallowedContent:
+		//     CKEDITOR.instances['<Instance ID>'].filter.check("element[attributes]{styles}(classes)");
+		// Be aware that disallowing e.g. border* works even though e.g. check("td{border}") returns true, incorrectly indicating that it is allowed.
+		// Being more specific using e.g. check("td{border-style}") causes it to return false as expected, correctly indicating that it is not allowed.
+		var disallowedContent = "";
+
+		// Undo from allowedContent in table plugin: https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/table/plugin.js#L21C21-L21C102
+		//disallowedContent += (disallowedContent !== "" ? ";" : "") + "table[align,cellpadding,cellspacing]{*}"; // Remove all attributes except border and summary
+
+		// Undo from allowedContent in tabletools plugin: https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/tabletools/plugin.js#L820
+		// and from table plugin: https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/table/plugin.js#L24C1-L25C1
+		//disallowedContent += (disallowedContent !== "" ? ";" : "") + "td th{background-color,border*,height,vertical-align,white-space,width}"; // Remove all CSS properties except text-align - retains all attributes (colspan, rowspan)
+
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
 			toolbarLocation: designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Position === "Bottom" ? "bottom" : "top",
 			uiColor: Fit._internal.Controls.Input.Editor.Skin === "moono-lisa" || Fit._internal.Controls.Input.Editor.Skin === null ? "#FFFFFF" : undefined,
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
 			extraAllowedContent: "a[data-tag-type,data-tag-id,data-tag-data,data-tag-context]", // https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-extraAllowedContent
-			disallowedContent: "table[align,cellpadding,cellspacing,summary]{*};tr[*]{*}(*);th[*]{*}(*);td[*]{*}(*)", // Undo most from allowedContent in table plugin (keep table border): https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/table/plugin.js#L21C21-L21C102
+			disallowedContent: disallowedContent,
 			language: lang,
 			disableNativeSpellChecker: me.CheckSpelling() === false,
 			readOnly: me.Enabled() === false,
@@ -3044,6 +2857,16 @@ Fit.Controls.Input = function(ctlId)
 						}
 					}*/
 
+					// Remove buggy cut/copy/paste operations from ContextMenu.
+					// Related issue: https://github.com/ckeditor/ckeditor4/issues/469
+					// NOTICE: ContextMenu will not show up when empty - it won't
+					// even open the browser's own ContextMenu in this case. We work
+					// around this by suppressing CKEditor's ContextMenu using the
+					// "contextmenu" event registered in init().
+					designEditor.removeMenuItem("cut");
+					designEditor.removeMenuItem("copy");
+					designEditor.removeMenuItem("paste");
+
 					// Make editor assume configured width and height.
 					// Notice that using config.width and config.height
 					// (https://ckeditor.com/docs/ckeditor4/latest/features/size.html)
@@ -3329,6 +3152,76 @@ Fit.Controls.Input = function(ctlId)
 
 						Fit._internal.Controls.Input.ActiveEditorForDialog = me;	// Editor instance is needed when OnHide event is fired for dialog on global CKEditor instance
 						Fit._internal.Controls.Input.ActiveDialogForEditor = null;	// Dialog instance associated with editor will be set when dialog's OnShow event fires
+					}
+				},
+				menuShow: function(ev) // Fires when CKEditor's ContextMenu is opened, and when any sub menus are opened
+				{
+					me._internal.FocusStateLocked(true);
+
+					if (designEditor.contextMenu.onHide === undefined) // Configure ContextMenu on first use - ContextMenu is shared amoung all editor instances
+					{
+						var ctxElm = ev.data[0].element.$;
+
+						Fit.Events.AddHandler(ctxElm, "mousedown", true, function(e) // Capture phase (true argument) not supported by IE8 - too bad
+						{
+							Fit.Events.Stop(e); // Do not trigger click on ContextMenu's border as it triggers onHide and moves focus to <body> rather than editor
+						});
+
+						var returningFocus = false;
+
+						designEditor.contextMenu.onHide = function()
+						{
+							// Quirks and noteworthy details related to CKEditor's ContextMenu and its onHide callback:
+							// - ContextMenu is an iFrame which holds focus while open, and fires onHide when it lose focus.
+							//   It's actually multiple iframes - one for the root items, and one for the sub items.
+							// - ContextMenu is still visible when OnHide fires, and it still holds focus if an element within was clicked with the mouse or selected with the keyboard.
+							// - When an item in the ContextMenu is triggered, it returns focus to the editor after OnHide has fired.
+							// - When ContextMenu is dismissed (by clicking outside of ContextMenu or by pressing ESC), it moves focus to <body>, which causes Input.Onblur to fire unless suppressed.
+							//   Once hidden, focus is moved to the element clicked with the mouse, or to the editor if the ContextMenu was dismissed using ESC.
+							// - If the user clicks on the border of the ContextMenu, it doesn't return focus to the editor after temporarily focusing <body>.
+							// - The onHide callback fires one time when ContextMenu is dismissed but twice when an item is selected/clicked (see me._internal.FocusStateLocked() check).
+							// - The onHide callback is invoked before changes are made in editor, and before dialogs are opened.
+							// - Manually re-focusing the editor (me.Focused(true)) during the execution of onHide sometimes result in immediate invocation of onHide again (mitigated using returningFocus check).
+							// - ContextMenu is shared amoung all instances of CKEditor.
+							// - Sometimes the first right-click triggers the browser's own ContextMenu rather than CKEditor's ContextMenu.
+							// - The onHide callback is undocumented API - perhaps for good reasons.
+
+							if (me._internal.FocusStateLocked() === false || returningFocus === true) // Skip redundant invocation - sometimes fired twice (see quirks documented above)
+							{
+								return;
+							}
+
+							var focusedElement = Fit.Dom.GetFocused();
+							var contextMenuHasFocus = focusedElement.tagName === "IFRAME" && focusedElement.className.indexOf("cke_panel_frame") !== -1;
+
+							if (contextMenuHasFocus === true) // ContextMenu has focus if use triggered one of the items
+							{
+								// Make sure focus is returned before focus state is unlocked - otherwise OnFocus will be fired when editor finish modification and returns focus to editor.
+								// Calling Focused(true) when triggering a ContextMenu item sometimes causes onHide to fire again immediately - this is the case if triggering e.g. Table properties, but not when triggering e.g. Paste or Delete cell.
+								returningFocus = true;
+								me.Focused(true);
+								returningFocus = false;
+							}
+							else // ContextMenu does not have focus - user probably clicked in editor or outside of editor to dismiss it
+							{
+								if (Fit.Dom.GetFocused() === document.body) // ContextMenu returns focus to body when dismissed, even when clicking in editor
+								{
+									me.Focused(true); // Return focus to editor to prevent Input.OnBlur from firing - once onHide has finished, CKEditor will focus the area clicked - and contrary to Focused(true) above, this does not cause onHide to immediately fire again
+								}
+								else // If something else (e.g. another control) has been given focus, then don't steal back focus, but fire OnBlur instead
+								{
+									me._internal.FireOnBlur();
+								}
+							}
+
+							me._internal.FocusStateLocked(false);
+						};
+
+						designEditor.contextMenu.onHide._fitUiCallback = true;
+					}
+					else if (designEditor.contextMenu.onHide._fitUiCallback !== true) // Make sure we detect if another plugin starts using the onHide callback
+					{
+						throw "Unexpected use of ContextMenu.onHide event!";
 					}
 				}
 			}
@@ -3965,6 +3858,27 @@ Fit.Controls.Input = function(ctlId)
 		{
 			Fit.Dom.Data(img, "cke-saved-src", null);
 		});
+	}
+
+	function isTable(element)
+	{
+		Fit.Validation.ExpectElement(element);
+
+		var isTable = false;
+		var elm = element;
+
+		while (elm !== me.GetDomElement())
+		{
+			if (elm.tagName === "TABLE")
+			{
+				isTable = true;
+				break;
+			}
+
+			elm = elm.parentElement;
+		}
+
+		return isTable;
 	}
 
 	function revertToSingleLineIfNecessary()

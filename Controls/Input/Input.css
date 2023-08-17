@@ -183,10 +183,28 @@ div.FitUiControlInput[data-designmode="true"] .cke_editable[data-placeholder]:be
 	margin: 1em 0em;
 }
 
-/* Make sure user can place cursor in table cells by ensuring a minimum width */
+/* Table plugins: Make sure user can place cursor in table cells by ensuring a minimum width */
 div.FitUiControlInput[data-designmode="true"] .cke_editable td
 {
 	min-width: 0.5em;
+}
+
+/* Table plugins: Styles used when multiple table cells are selected.
+   Overrides styling from Resources/CKEditor/plugins/tableselection/styles/tableselection.css */
+div.FitUiControlInput[data-designmode="true"] .cke_table-faked-selection
+{
+	background: lightgray !important; /* Using !important in case cells have inline background color applied */
+	color: #333333;
+}
+div.FitUiControlInput[data-designmode="true"] .cke_editable:focus .cke_table-faked-selection
+{
+	background: #D4E7F5 !important; /* Using !important in case cells have inline background color applied */
+	color: #333333;
+}
+div.FitUiControlInput[data-designmode="true"] .cke_table-faked-selection a,
+div.FitUiControlInput[data-designmode="true"] .cke_editable:focus .cke_table-faked-selection a
+{
+	color: #333333;
 }
 
 /* CKEditor - moono-lisa skin overrides */
@@ -344,13 +362,6 @@ div.FitUiControlInput[data-designmode="true"][data-toolbar-position="bottom"][da
 		position: sticky;
 		bottom: 0px;
 	}
-}
-
-/* Hide first button group in toolbar which is used to hide features that
-   only work when their commands are enabled (e.g. the table plugin). */
-div.FitUiControlInput[data-designmode="true"] span.cke_toolbar:first-child
-{
-	display: none;
 }
 
 /* Editor information panel at the bottom of editor (moono-lisa skin) */
