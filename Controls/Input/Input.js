@@ -1646,8 +1646,17 @@ Fit.Controls.Input = function(ctlId)
 						// Naturally 'me' will always be a reference to the first control that opened a given dialog.
 						CKEDITOR.on("dialogDefinition", function(e) // OnDialogDefinition fires only once
 						{
-							//var dialogName = e.data.name;
-							var dialog = e.data.definition.dialog;
+							var dialogName = e.data.name;
+							var dialogDef = e.data.definition;
+
+							if (dialogName === "table")
+							{
+								// Remove default table width (500px).
+								// Allow table width to adjust to content.
+								dialogDef.getContents("info").get("txtWidth").default = "";
+							}
+
+							var dialog = dialogDef.dialog;
 
 							dialog.on("show", function(ev)
 							{
