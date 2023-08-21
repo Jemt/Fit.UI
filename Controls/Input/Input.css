@@ -189,6 +189,22 @@ div.FitUiControlInput[data-designmode="true"] .cke_editable td
 	min-width: 0.5em;
 }
 
+/* Table plugins: Show an outline if table borders are disabled */
+div.FitUiControlInput[data-designmode="true"] .cke_editable table:not([border]),
+div.FitUiControlInput[data-designmode="true"] .cke_editable table[border="0"]
+{
+	border-collapse: collapse;
+}
+div.FitUiControlInput[data-designmode="true"] .cke_editable table:not([border]),
+div.FitUiControlInput[data-designmode="true"] .cke_editable table:not([border]) th,
+div.FitUiControlInput[data-designmode="true"] .cke_editable table:not([border]) td,
+div.FitUiControlInput[data-designmode="true"] .cke_editable table[border="0"],
+div.FitUiControlInput[data-designmode="true"] .cke_editable table[border="0"] th,
+div.FitUiControlInput[data-designmode="true"] .cke_editable table[border="0"] td
+{
+	border: 1px dashed silver;
+}
+
 /* Table plugins: Styles used when multiple table cells are selected.
    Overrides styling from Resources/CKEditor/plugins/tableselection/styles/tableselection.css */
 div.FitUiControlInput[data-designmode="true"] .cke_table-faked-selection
