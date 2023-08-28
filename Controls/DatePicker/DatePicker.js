@@ -276,7 +276,16 @@ Fit.Controls.DatePicker = function(ctlId)
 			}
 		}
 
-		return Fit.Array.Contains([input, inputTime, inputMobile, inputTimeMobile], Fit.Dom.GetFocused()) === true;
+		var hasFocus = Fit.Array.Contains([input, inputTime, inputMobile, inputTimeMobile], Fit.Dom.GetFocused()) === true;
+
+		if (hasFocus === false && isMobile === false)
+		{
+			// Make sure Focused() returns true while interacting with calendar widget - https://github.com/Jemt/Fit.UI/issues/194
+			var calendarWidget = document.getElementById("fitui-datepicker-div"); // Null if not loaded yet
+			hasFocus = calendarWidget !== null && calendarWidget.style.display === "block" && calendarWidget._associatedFitUiControl === me.GetId();
+		}
+
+		return hasFocus;
 	}
 
 	/// <function container="Fit.Controls.DatePicker" name="Value" access="public" returns="string">
@@ -925,10 +934,12 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					datepicker.datepicker("show"); // Fails if not visible (part of render tree)
 
+					var calendarWidget = document.getElementById("fitui-datepicker-div");
+					calendarWidget._associatedFitUiControl = me.GetId();
+
 					// Allow light dismissable panels/callouts to prevent close/dismiss
 					// when interacting with calendar widget hosted outside of panels/callouts,
 					// by detecting the presence of a data-disable-light-dismiss="true" attribute.
-					var calendarWidget = document.getElementById("fitui-datepicker-div");
 					Fit.Dom.Data(calendarWidget, "disable-light-dismiss", "true");
 
 					moveCalenderWidgetLocally();
@@ -1082,7 +1093,7 @@ Fit.Controls.DatePicker = function(ctlId)
 			onSelect: function(dateText, dp) // Notice: jQuery UI DatePicker no longer fires input.OnChange when OnSelect is registered
 			{
 				startDate = null;
-				me.Focused(true);
+				input.focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused
 				input.onchange();
 			},
 			beforeShow: function(elm, dp)
