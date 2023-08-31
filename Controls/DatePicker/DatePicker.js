@@ -1035,9 +1035,6 @@ Fit.Controls.DatePicker = function(ctlId)
 
 			Fit.Loader.ExecuteScript(Fit.GetUrl() + "/Resources/JqueryUI-1.11.4.custom/external/jquery/jquery.js?cacheKey=" + Fit.GetVersion().Version, function(src)
 			{
-				if (me === null)
-					return; // Control was disposed while waiting for jQuery to load
-
 				jquery = $;
 				Fit._internal.Controls.DatePicker.jQuery = $; // jQuery instance is shared between multiple instances of DatePicker
 				$.noConflict(true);
