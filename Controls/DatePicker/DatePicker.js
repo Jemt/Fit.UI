@@ -1075,6 +1075,12 @@ Fit.Controls.DatePicker = function(ctlId)
 			defaultDate: null,
 			onChangeMonthYear: function(year, month, dp) // Fires when changing year/month but also when simply opening calendar widget
 			{
+				// Retain focus when changing month or year using calendar
+				// widget, which causes its DOM to be removed and replaced.
+				// Focus is later returned to DatePicker, but not in time for
+				// OnFocusOut. Related issue: https://github.com/Jemt/Fit.UI/issues/194
+				input.focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused.
+
 				if (open === true) // Remember which year and month the user navigated to
 				{
 					try
@@ -1121,6 +1127,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					return false; // Do not display - wait for locale to load
 				}
+
+				// Retain focus when interacting with calendar widget.
+				// Focus is later returned to DatePicker, but not in time for
+				// OnFocusOut. Related issue: https://github.com/Jemt/Fit.UI/issues/194
+				jquery(dp.dpDiv).attr("tabindex", "-1");
 
 				// Update settings in case they were changed
 
