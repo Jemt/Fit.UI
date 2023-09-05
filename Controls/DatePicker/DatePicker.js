@@ -28,6 +28,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	var weeks = false;			// Whether to display week numbers or not
 	var jquery = undefined;		// jQuery instance
 	var datepicker = null;		// jQuery UI calendar widget
+	var datepickerElm = null;	// jQuery UI calendar widget element (remains null until shown for the first time - element shared among all DatePicker instances)
 	var startDate = null;		// Which year/month to display in calendar widget if view needs to be restored (related to restoreView variable)
 	var open = false;			// Whether calendar widget is currently open
 	var focused = false;		// Whether control is currently focused
@@ -281,7 +282,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		if (hasFocus === false && isMobile === false)
 		{
 			// Make sure Focused() returns true while interacting with calendar widget - https://github.com/Jemt/Fit.UI/issues/194
-			var calendarWidget = document.getElementById("fitui-datepicker-div"); // Null if not loaded yet
+			var calendarWidget = datepickerElm; // Null if not loaded yet
 			hasFocus = calendarWidget !== null && calendarWidget.style.display === "block" && calendarWidget._associatedFitUiControl === me.GetId();
 		}
 
@@ -496,7 +497,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = input = inputTime = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = placeholderDate = placeholderTime = weeks = jquery = datepicker = startDate = open = focused = restoreView = updateCalConf = detectBoundaries = detectBoundariesRelToViewPort = isMobile = inputMobile = inputTimeMobile = null;
+		me = input = inputTime = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = placeholderDate = placeholderTime = weeks = jquery = datepicker = datepickerElm = startDate = open = focused = restoreView = updateCalConf = detectBoundaries = detectBoundariesRelToViewPort = isMobile = inputMobile = inputTimeMobile = null;
 		base();
 	});
 
@@ -934,7 +935,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					datepicker.datepicker("show"); // Fails if not visible (part of render tree)
 
-					var calendarWidget = document.getElementById("fitui-datepicker-div");
+					var calendarWidget = datepickerElm;
 					calendarWidget._associatedFitUiControl = me.GetId();
 
 					// Allow light dismissable panels/callouts to prevent close/dismiss
@@ -1101,6 +1102,8 @@ Fit.Controls.DatePicker = function(ctlId)
 			},
 			beforeShow: function(elm, dp)
 			{
+				datepickerElm = dp.dpDiv[0] || null;
+
 				// Load locale if not already loaded
 
 				if (datepicker.jq.datepicker.regional[locale] === null)
@@ -1220,7 +1223,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 	function moveCalenderWidgetLocally()
 	{
-		if (Fit._internal.ControlBase.ReduceDocumentRootPollution !== true)
+		if (me._internal.ReduceDocumentRootPollution !== true && Fit._internal.ControlBase.ReduceDocumentRootPollution !== true)
 		{
 			return;
 		}
@@ -1235,7 +1238,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		// For more details see https://github.com/Jemt/Fit.UI/issues/116
 
 		var selfDom = me.GetDomElement();
-		var calendarWidget = document.getElementById("fitui-datepicker-div");
+		var calendarWidget = datepickerElm;
 
 		Fit.Dom.InsertAfter(selfDom, calendarWidget);
 
@@ -1300,12 +1303,12 @@ Fit.Controls.DatePicker = function(ctlId)
 
 	function moveCalenderWidgetGlobally() // Undo everything done in moveCalenderWidgetLocally()
 	{
-		if (Fit._internal.ControlBase.ReduceDocumentRootPollution !== true)
+		if (me._internal.ReduceDocumentRootPollution !== true && Fit._internal.ControlBase.ReduceDocumentRootPollution !== true)
 		{
 			return;
 		}
 
-		var calendarWidget = document.getElementById("fitui-datepicker-div");
+		var calendarWidget = datepickerElm;
 		Fit.Dom.Add(document.body, calendarWidget);
 
 		calendarWidget.style.position = ""; // "absolute"
