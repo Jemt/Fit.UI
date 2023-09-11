@@ -44,6 +44,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var searchModeOnFocus = false;				// Flag indicating whether control goes into search mode when it is focused (search mode clears input field and displays "search.." placeholder)
 	var onScrollElement = null;					// Holds control's scroll parent when drop down is open
 	var onScrollEventId = -1;					// Holds ID of OnScroll event handler registered when drop down is open
+	var cancelEventRegistrationOnOpen = null;	// Holds function reference which cancels event registration if no longer needed (related to onScrollElement and onScrollEventId)
 
 	var onInputChangedHandlers = [];			// Invoked when input value is changed - takes two arguments (sender (this), text value)
 	var onPasteHandlers = [];					// Invoked when a value is pasted - takes two arguments (sender (this), text value)
@@ -250,30 +251,37 @@ Fit.Controls.DropDown = function(ctlId)
 
 		me.OnOpen(function()
 		{
-			postpone(function() // Postpone to avoid auto closing drop down if browser scrolls control into view when it receives focus
+			cancelEventRegistrationOnOpen = postpone(function() // Postpone to avoid auto closing drop down if browser scrolls control into view when it receives focus
 			{
-				if (me.IsDropDownOpen() === true) // Might have been closed while waiting
+				cancelEventRegistrationOnOpen = null;
+
+				onScrollElement = Fit.Dom.GetScrollParent(me.GetDomElement());
+
+				if (onScrollElement === document.documentElement)
 				{
-					onScrollElement = Fit.Dom.GetScrollParent(me.GetDomElement());
+					onScrollElement = window;
+				}
 
-					if (onScrollElement === document.documentElement)
+				if (onScrollElement !== null)
+				{
+					onScrollEventId = Fit.Events.AddHandler(onScrollElement, "scroll", function(e)
 					{
-						onScrollElement = window;
-					}
-
-					if (onScrollElement !== null)
-					{
-						onScrollEventId = Fit.Events.AddHandler(onScrollElement, "scroll", function(e)
-						{
-							me.CloseDropDown();
-						});
-					}
+						me.CloseDropDown();
+					});
 				}
 			});
 		});
 
 		me.OnClose(function()
 		{
+			// Cancel postponed operation in case dropdown is opened and closed multiple times to
+			// avoid multiple OnScroll event registrations (https://github.com/Jemt/Fit.UI/issues/195).
+			if (cancelEventRegistrationOnOpen !== null)
+			{
+				cancelEventRegistrationOnOpen();
+				cancelEventRegistrationOnOpen = null;
+			}
+
 			if (onScrollElement !== null)
 			{
 				Fit.Events.RemoveHandler(onScrollElement, onScrollEventId);
@@ -612,7 +620,7 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Events.RemoveHandler(onScrollElement, onScrollEventId);
 		}
 
-		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = searchModeOnFocus = onScrollElement = onScrollEventId = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
+		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = searchModeOnFocus = onScrollElement = onScrollEventId = cancelEventRegistrationOnOpen = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
@@ -3053,13 +3061,15 @@ Fit.Controls.DropDown = function(ctlId)
 		Fit.Validation.ExpectFunction(cb);
 		Fit.Validation.ExpectInteger(timeout, true)
 
-		setTimeout(function()
+		var toId = setTimeout(function()
 		{
 			if (me !== null) // Make sure control has not been disposed
 			{
 				cb();
 			}
 		}, timeout || 0);
+
+		return function() { clearTimeout(toId); };
 	}
 
 	init();
