@@ -31,4 +31,7 @@ CKEDITOR.editorConfig = function( config ) {
 
 	// Dialog windows are also simplified.
 	config.removeDialogTabs = 'link:advanced';
+
+	// Disable version checking - fails due to CORS
+	config.versionCheck = false;
 };

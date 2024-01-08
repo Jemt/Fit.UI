@@ -14,12 +14,15 @@ fi
 mkdir dist
 mkdir -p dist/Controls/Input
 mkdir -p dist/Controls/TreeView
+mkdir -p dist/Resources
 
 cp Fit.UI*.js dist/
 cp Fit.UI*.css dist/
 cp ../Controls/Input/*.png dist/Controls/Input
 cp ../Controls/TreeView/*.png dist/Controls/TreeView
-cp -R ../Resources dist/
+cp -R ../Resources/CKEditor dist/Resources/CKEditor
+cp -R ../Resources/FontAwesome dist/Resources/FontAwesome
+cp -R ../Resources/JqueryUI-1.11.4.custom dist/Resources/JqueryUI-1.11.4.custom
 cp SimpleDocs.html dist/Documentation.html
 
 # Create ZIP package
