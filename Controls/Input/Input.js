@@ -14,9 +14,10 @@ Fit.Controls.Input = function(ctlId)
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
-	var orgVal = "";	// Holds initial value used to determine IsDirty state
-	var preVal = "";	// Holds latest change made by user - used to determine whether OnChange needs to be fired
+	var orgVal = "";			// Holds initial value used to determine IsDirty state
+	var preVal = "";			// Holds latest change made by user - used to determine whether OnChange needs to be fired
 	var input = null;
+	var changeObserverId = -1;	// Holds interval ID to observer function for controls (e.g. color picker) not continuously firing OnChange when value is changed
 	var cmdResize = null;
 	var designEditor = null;
 	var designEditorDom = null; // DOM elements within CKEditor which we rely on - some <div> elements become <span> elements in older browsers
@@ -155,11 +156,25 @@ Fit.Controls.Input = function(ctlId)
 		{
 			restoreHiddenToolbarInDesignEditor();	// Make toolbar appear if currently hidden
 			//updateDesignEditorPlaceholder(true);	// Clear placeholder text
+
+			if (me.Type() === "Color") // Color picker does not continuously fire OnChange when changing color - fix that using an observer function
+			{
+				changeObserverId = setInterval(function()
+				{
+					input.onkeyup();
+				}, 100);
+			}
 		});
 		me.OnBlur(function(sender)
 		{
 			restoreDesignEditorButtons();			// Restore (enable) editor's toolbar buttons in case they were temporarily disabled
 			updateDesignEditorPlaceholder();		// Show placeholder text if control value is empty
+
+			if (changeObserverId !== -1)
+			{
+				clearInterval(changeObserverId);
+				changeObserverId = -1;
+			}
 		});
 
 		Fit.Events.AddHandler(me.GetDomElement(), "paste", true, function(e)
@@ -674,6 +689,11 @@ Fit.Controls.Input = function(ctlId)
 			destroyDesignEditorInstance(); // Destroys editor and stops related mutation observers, timers, etc.
 		}
 
+		if (changeObserverId !== -1)
+		{
+			clearInterval(changeObserverId);
+		}
+
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
 		/*if (designEditorUpdateSizeDebouncer !== -1)
@@ -719,7 +739,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached = designEditorClearPlaceholder = designEditorCleanEditableDom = designEditorGlobalKeyDownEventId = designEditorGlobalKeyUpEventId /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
+		me = orgVal = preVal = input = changeObserverId = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached = designEditorClearPlaceholder = designEditorCleanEditableDom = designEditorGlobalKeyDownEventId = designEditorGlobalKeyUpEventId /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
 
 		base();
 	});
