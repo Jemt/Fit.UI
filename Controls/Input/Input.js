@@ -437,6 +437,8 @@ Fit.Controls.Input = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
+			val = me.Type() === "Color" ? val.toUpperCase() : val;
+
 			var fireOnChange = (me.Value() !== val);
 
 			orgVal = (preserveDirtyState !== true ? val : orgVal);
@@ -560,7 +562,7 @@ Fit.Controls.Input = function(ctlId)
 			return curVal;
 		}
 
-		return input.value;
+		return me.Type() === "Color" ? input.value.toUpperCase() : input.value;
 	}
 
 	// See documentation on ControlBase
@@ -3921,8 +3923,9 @@ Fit.Controls.Input = function(ctlId)
 	function fireOnChange()
 	{
 		var newVal = me.Value();
+		var compareValue = me.Type() === "Color" ? preVal.toUpperCase() : preVal; // Value() returns uppercase value for color picker - preVal might be in lower case if assigned before input type was changed
 
-		if (newVal !== preVal)
+		if (newVal !== compareValue)
 		{
 			// DISABLED: No longer necessary with the introduction of designEditorDirty which ensures
 			// that we get the initial value set from Value(), unless changed by the user using the editor.
