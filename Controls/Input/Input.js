@@ -303,7 +303,7 @@ Fit.Controls.Input = function(ctlId)
 			//return designEditorDetached.GetFocused();
 		}
 
-		elm = input;
+		let elm = input;
 
 		if (me.DesignMode() === true)
 		{
