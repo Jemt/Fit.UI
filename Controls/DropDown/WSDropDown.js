@@ -35,6 +35,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 	var useActionMenuForced = false;
 	var useActionMenuAfterLoad = true;
 	var useActionMenuSortingLocale = null;
+	var useActionMenuHtmlAllowed = false;
 	var treeViewEnabled = true;
 	var orgPlaceholder = this.Placeholder;
 	var customPlaceholderSet = false;
@@ -281,6 +282,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 		var skipUpdateActionMenuOnChange = false;
 
 		actionMenu = new Fit.Controls.ListView(me.GetId() + "__ActionsListView");
+		actionMenu.HtmlAllowed(true);
 		actionMenu.OnSelect(function(sender, item) // Using OnSelect instead of OnItemSelectionChanging since DropDown fires OnItemSelectionChanging when selection is changed, which would result in OnItemSelectionChanging being executed multiple times
 		{
 			if (item.Value === "SearchMore")
@@ -706,6 +708,21 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return base(val);
 	});
 
+	this.HtmlAllowed = Fit.Core.CreateOverride(this.HtmlAllowed, function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			tree.HtmlAllowed(val);
+			list.HtmlAllowed(val);
+			me.ActionMenuHtmlAllowed(val);
+			base(val);
+		}
+
+		return base();
+	});
+
 	this.InputEnabled = Fit.Core.CreateOverride(this.InputEnabled, function(val)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
@@ -911,6 +928,23 @@ Fit.Controls.WSDropDown = function(ctlId)
 		return useActionMenuSortingLocale;
 	}
 
+	/// <function container="Fit.Controls.WSDropDown" name="ActionMenuHtmlAllowed" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether HTML is allowed (shown) in selected items in action menu </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables support for HTML, False disables it </param>
+	/// </function>
+	this.ActionMenuHtmlAllowed = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== useActionMenuHtmlAllowed)
+		{
+			useActionMenuHtmlAllowed = val;
+			updateActionMenu();
+		}
+
+		return useActionMenuHtmlAllowed;
+	}
+
 	/// <function container="Fit.Controls.WSDropDown" name="ResetActionMenu" access="public">
 	/// 	<description>
 	/// 		Reset action menu so it automatically determines whether to show up or not
@@ -951,7 +985,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading /*= nodesPopulated*/ = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading /*= nodesPopulated*/ = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = useActionMenuSortingLocale = useActionMenuHtmlAllowed = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
 
 		base();
 	});
@@ -1284,7 +1318,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Array.ForEach(selectedItems, function(item)
 		{
-			actionMenu.AddItem((addRemoveAll === true ? " &nbsp; &nbsp; &nbsp; " : "") + delIcon + translations.Remove + " " + item.Title, "Remove:" + item.Value);
+			actionMenu.AddItem((addRemoveAll === true ? " &nbsp; &nbsp; &nbsp; " : "") + delIcon + translations.Remove + " " + (useActionMenuHtmlAllowed === false ? Fit.String.StripHtml(item.Title) : item.Title), "Remove:" + item.Value); // HTML might be allowed in DropDown control but not in ActionMenu, so we strip it away to avoid HTML code in selections
 		});
 	}
 

@@ -20,6 +20,7 @@ Fit.Controls.ListView = function(controlId)
 	var scrollPositionTop = 0;
 	var highlightFirst = false;
 	var firstWasHighlighted = false;
+	var htmlAllowed = false;
 	var isIe8 = (Fit.Browser.GetInfo().Name === "MSIE" && Fit.Browser.GetInfo().Version === 8);
 
 	var onSelectHandlers = [];
@@ -166,6 +167,36 @@ Fit.Controls.ListView = function(controlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.ListView" name="HtmlAllowed" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether HTML is allowed (shown) in ListView items </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables support for HTML, False disables it </param>
+	/// </function>
+	this.HtmlAllowed = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && htmlAllowed !== val)
+		{
+			htmlAllowed = val;
+
+			// Update view
+
+			Fit.Array.ForEach(list.children, function(entry)
+			{
+				if (val === false)
+				{
+					Fit.Dom.Text(entry, Fit.String.StripHtml(entry._orgTitle));
+				}
+				else
+				{
+					entry.innerHTML = entry._orgTitle;
+				}
+			});
+		}
+
+		return htmlAllowed;
+	}
+
 	/// <function container="Fit.Controls.ListView" name="AddItem" access="public">
 	/// 	<description> Add item to ListView </description>
 	/// 	<param name="title" type="string"> Item title </param>
@@ -177,7 +208,17 @@ Fit.Controls.ListView = function(controlId)
 		Fit.Validation.ExpectString(value);
 
 		var entry = document.createElement("div");
-		entry.innerHTML = title;
+		entry._orgTitle = title;
+
+		if (me.HtmlAllowed() === false)
+		{
+			Fit.Dom.Text(entry, Fit.String.StripHtml(title));
+		}
+		else
+		{
+			entry.innerHTML = title;
+		}
+
 		Fit.Dom.Data(entry, "value", encode(value));
 		Fit.Dom.Data(entry, "active", "false");
 
@@ -449,7 +490,7 @@ Fit.Controls.ListView = function(controlId)
 			me.Destroy(true); // PickerBase.Destroy()
 		}
 
-		me = list = active = persistView = scrollPositionTop = highlightFirst = firstWasHighlighted = isIe8 = onSelectHandlers = onSelectedHandlers = null;
+		me = list = active = persistView = scrollPositionTop = highlightFirst = firstWasHighlighted = htmlAllowed = isIe8 = onSelectHandlers = onSelectedHandlers = null;
 	});
 
 	// ============================================
@@ -494,7 +535,7 @@ Fit.Controls.ListView = function(controlId)
 	function convertItemElementToObject(elm)
 	{
 		Fit.Validation.ExpectDomElement(elm);
-		return { Title: Fit.Dom.Text(elm), Value: decode(Fit.Dom.Data(elm, "value")) }; // Using Text(..) to get rid of HTML formatting
+		return { Title: elm._orgTitle, Value: decode(Fit.Dom.Data(elm, "value")) };
 	}
 
 	function setActive(elm, suppressScrollIntoView)

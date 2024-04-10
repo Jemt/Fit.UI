@@ -343,7 +343,10 @@ Fit.String.StripHtml = function(str)
 {
 	Fit.Validation.ExpectString(str);
 
-	return str.replace(/(<([^>]+)>)/g, "");
+	return str.replace(/<\/?[a-zA-Z][^>]*>/g, "");
+
+	// Disabled - a value such as "A < B > C" will have "< B >" removed which is not desirable
+	//return str.replace(/(<([^>]+)>)/g, "");
 
 	// Disabled - whitespaces are not preserved!
 	/*var span = document.createElement("span");

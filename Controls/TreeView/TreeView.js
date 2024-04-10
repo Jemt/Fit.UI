@@ -85,6 +85,7 @@ Fit.Controls.TreeView = function(ctlId)
 		me._internal.Data("multiselect", "false");
 		me._internal.Data("wordwrap", "false");
 		me._internal.Data("picker", "false");
+		me._internal.Data("htmlallowed", "false");
 
 		// Create internal root node to hold children
 
@@ -506,6 +507,31 @@ Fit.Controls.TreeView = function(ctlId)
 		}
 
 		return (me._internal.Data("wordwrap") === "true");
+	}
+
+	/// <function container="Fit.Controls.TreeView" name="HtmlAllowed" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether HTML is allowed (shown) in TreeView nodes </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables support for HTML, False disables it </param>
+	/// </function>
+	this.HtmlAllowed = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			me._internal.Data("htmlallowed", val.toString());
+
+			// Update view for all nodes recursively
+
+			var nodes = rootNode.GetChildren();
+
+			Fit.Array.ForEach(nodes, function(node)
+			{
+				node.HtmlAllowed(val, true); // Recursive
+			});
+		}
+
+		return (me._internal.Data("htmlallowed") === "true");
 	}
 
 	/// <function container="Fit.Controls.TreeView" name="Selectable" access="public" returns="boolean">
@@ -1870,15 +1896,23 @@ Fit.Controls.TreeView = function(ctlId)
 	init();
 }
 
+/// <container name="Fit.Controls.TreeViewNodeOptions">
+/// 	<description> Options for TreeViewNode </description>
+/// 	<member name="HtmlAllowed" type="boolean" default="undefined"> Value indicating whether HTML is allowed (shown) in TreeView node </member>
+/// </container>
+
 /// <function container="Fit.Controls.TreeViewNode" name="TreeViewNode" access="public">
 /// 	<description> Create instance of TreeViewNode </description>
 /// 	<param name="displayTitle" type="string"> Node title </param>
 /// 	<param name="nodeValue" type="string"> Node value </param>
+/// 	<param name="options" type="Fit.Controls.TreeViewNodeOptions" default="undefined"> Optional options </param>
 /// </function>
-Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
+Fit.Controls.TreeViewNode = function(displayTitle, nodeValue, options)
 {
 	Fit.Validation.ExpectString(displayTitle);
 	Fit.Validation.ExpectString(nodeValue);
+	Fit.Validation.ExpectObject(options, true);
+	Fit.Validation.ExpectBoolean((options || {}).HtmlAllowed, true);
 
 	var me = this;
 	var nodeTitle = null;
@@ -1891,6 +1925,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	var childrenArray = [];
 	var lastChild = null;
 	var behavioralNodeCallback = null;
+	var htmlAllowed = options && options.HtmlAllowed === true || false;
 
 	// ============================================
 	// Init
@@ -1922,6 +1957,36 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.TreeViewNode" name="HtmlAllowed" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether HTML is allowed (shown) in TreeView node </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables support for HTML, False disables it </param>
+	/// 	<param name="recursive" type="boolean" default="undefined"> If defined, True applies change recursively to children </param>
+	/// </function>
+	this.HtmlAllowed = function(val, recursive)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+		Fit.Validation.ExpectBoolean(recursive, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			htmlAllowed = val;
+
+			// Update view - optionally update children recursively
+
+			me.Title(me.Title());
+
+			if (recursive === true)
+			{
+				Fit.Array.ForEach(childrenArray, function(child)
+				{
+					child.HtmlAllowed(val, true);
+				});
+			}
+		}
+
+		return htmlAllowed;
+	}
+
 	/// <function container="Fit.Controls.TreeViewNode" name="Title" access="public" returns="string">
 	/// 	<description> Get/set node title </description>
 	/// 	<param name="val" type="string" default="undefined"> If defined, node title is updated </param>
@@ -1932,11 +1997,19 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			lblTitle.innerHTML = val;
-			nodeTitle = Fit.Dom.Text(lblTitle); // Get rid of HTML formatting for return value
+			nodeTitle = val;
 
-			// Make sure any contained links do not receive focus when navigating TreeView with Tab/Shift+Tab
-			Fit.Array.ForEach(lblTitle.getElementsByTagName("a"), function(link) { link.tabIndex = -1; });
+			if (htmlAllowed === false)
+			{
+				Fit.Dom.Text(lblTitle, Fit.String.StripHtml(val));
+			}
+			else
+			{
+				lblTitle.innerHTML = val;
+
+				// Make sure any contained links do not receive focus when navigating TreeView with Tab/Shift+Tab
+				Fit.Array.ForEach(lblTitle.getElementsByTagName("a"), function(link) { link.tabIndex = -1; });
+			}
 		}
 
 		return nodeTitle;
@@ -2532,7 +2605,7 @@ Fit.Controls.TreeViewNode = function(displayTitle, nodeValue)
 		}
 
 		// Dispose private members
-		me = nodeTitle = elmLi = elmUl = cmdToggle = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = behavioralNodeCallback = null;
+		me = nodeTitle = elmLi = elmUl = cmdToggle = chkSelect = lblTitle = childrenIndexed = childrenArray = lastChild = behavioralNodeCallback = htmlAllowed = null;
 	}
 
 	/// <function container="Fit.Controls.TreeViewNode" name="GetDomElement" access="public" returns="DOMElement">

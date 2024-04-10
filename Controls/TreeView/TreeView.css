@@ -158,6 +158,12 @@ div.FitUiControlTreeView li ul li > span
 	cursor: pointer;
 }
 
+div.FitUiControlTreeView[data-htmlallowed="true"] li ul li > span
+{
+	display: inline-block;
+	line-height: normal;
+}
+
 /* Indent node title if checkboxes are enabled.
    Notice: Node title is ALWAYS indented if TreeView is in Multi Selection mode, to make sure node titles are always vertically aligned
            if some nodes have checkboxes, and some do not. It looks odd If all checkboxes are disabled, though, since it leaves a big gap.

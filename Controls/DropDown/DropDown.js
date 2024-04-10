@@ -18,6 +18,7 @@ Fit.Controls.DropDown = function(ctlId)
 	var itemCollection = {};					// Indexed collection for selected items (for fast lookup)
 	var itemCollectionOrdered = [];				// Ordered item collection (item order can be changed using drag and drop)
 	var itemDropZones = {};						// Indexed collection of dropzones used to enable item dragging/dropping
+	var htmlAllowed = false;					// Flag indicating whether HTML is allowed (shown) in selected items
 	var placeholder = "";						// Placeholder value displayed when no selection is made
 	var arrow = null;							// Arrow button used to open/close drop down menu
 	var txtPrimary = null;						// Primary input (search) field initially available
@@ -620,12 +621,35 @@ Fit.Controls.DropDown = function(ctlId)
 			Fit.Events.RemoveHandler(onScrollElement, onScrollEventId);
 		}
 
-		me = itemContainer = itemCollection = itemDropZones = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = searchModeOnFocus = onScrollElement = onScrollEventId = cancelEventRegistrationOnOpen = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
+		me = itemContainer = itemCollection = itemCollectionOrdered = itemDropZones = htmlAllowed = placeholder = arrow = txtPrimary = txtActive = txtEnabled = dropDownMenu = picker = orgSelections = invalidMessage = invalidMessageChanged = initialFocus = maxHeight = maxWidth = prevValue = focusAssigned = closeHandlers = dropZone = isMobile = focusInputOnMobile = detectBoundaries = detectBoundariesRelToViewPort = persistView = highlightFirst = searchModeOnFocus = onScrollElement = onScrollEventId = cancelEventRegistrationOnOpen = onInputChangedHandlers = onPasteHandlers = onOpenHandlers = onCloseHandlers = suppressUpdateItemSelectionState = suppressOnItemSelectionChanged = clearTextSelectionOnInputChange = prevTextSelection = textSelectionCallback = cmdToggleTextMode = null;
 
 		base();
 	});
 
 	// Misc. options
+
+	/// <function container="Fit.Controls.DropDown" name="HtmlAllowed" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether HTML is allowed (shown) in selected items </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables support for HTML, False disables it </param>
+	/// </function>
+	this.HtmlAllowed = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && htmlAllowed !== val)
+		{
+			htmlAllowed = val;
+
+			// Update view - RenameSelection(..) will enable/disable HTML depending on htmlAllowed (set above)
+
+			Fit.Array.ForEach(itemCollectionOrdered, function(item)
+			{
+				me.RenameSelection(item.Value, item.Title);
+			});
+		}
+
+		return htmlAllowed;
+	}
 
 	/// <function container="Fit.Controls.DropDown" name="Placeholder" access="public" returns="string">
 	/// 	<description> Get/set value used as a placeholder on supported browsers, to indicate expected value or action </description>
@@ -1103,9 +1127,8 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 
 		// Add title and delete button to title box
-		var titleWithoutHtml = Fit.String.StripHtml(title);
-		var textNode = document.createTextNode(titleWithoutHtml);
-		Fit.Dom.Add(item, textNode);
+		var titleNode = me.HtmlAllowed() === false ? document.createTextNode(Fit.String.StripHtml(title)) : Fit.Dom.CreateElement(title);
+		Fit.Dom.Add(item, titleNode);
 		Fit.Dom.Add(item, cmdDelete);
 
 		// Add elements to item container
@@ -1126,7 +1149,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 		itemContainer.insertBefore(container, before);
 
-		var itemObject = createItemObject(titleWithoutHtml, value, valid !== false, item, textNode); //convertItemElementToItemObject(item);
+		var itemObject = createItemObject(title, value, valid !== false, item, titleNode); //convertItemElementToItemObject(item);
 		itemCollection[itemObject.Value] = itemObject;
 		itemCollectionOrdered.push(itemObject);
 
@@ -1290,14 +1313,19 @@ Fit.Controls.DropDown = function(ctlId)
 
 		var selection = itemCollection[val] || null;
 
-		if (selection !== null && selection.Title !== newTitle)
+		if (selection !== null)
 		{
-			var titleWithoutHtml = Fit.String.StripHtml(newTitle);
+			var orgTitle = selection.Title;
+			var newTitleNode = me.HtmlAllowed() === false ? document.createTextNode(Fit.String.StripHtml(newTitle)) : Fit.Dom.CreateElement(newTitle);
 
-			Fit.Dom.Text(selection.TextNode, titleWithoutHtml);
-			selection.Title = titleWithoutHtml;
+			Fit.Dom.Replace(selection.TitleNode, newTitleNode);
+			selection.Title = newTitle;
+			selection.TitleNode = newTitleNode;
 
-			fireOnChange();
+			if (orgTitle !== newTitle)
+			{
+				fireOnChange();
+			}
 		}
 	}
 
@@ -1500,7 +1528,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			if (pickerItem !== null)
 			{
-				updateSelectionElementTitleByValue(selected.Value, Fit.String.StripHtml(pickerItem.Title));
+				me.RenameSelection(selected.Value, pickerItem.Title);
 
 				Fit.Array.Add(updated, { Title: pickerItem.Title, Value: selected.Value, Exists: true });
 			}
@@ -2248,35 +2276,21 @@ Fit.Controls.DropDown = function(ctlId)
 		return txt;
 	}
 
-	function createItemObject(title, value, valid, domElement, textNode)
+	function createItemObject(title, value, valid, domElement, titleNode)
 	{
-		Fit.Validation.ExpectString(title); // NOTICE: Title with any HTML stripped away!
+		Fit.Validation.ExpectString(title);
 		Fit.Validation.ExpectString(value);
 		Fit.Validation.ExpectBoolean(valid);
 		Fit.Validation.ExpectDomElement(domElement);
-		Fit.Validation.ExpectTextNode(textNode);
+		Fit.Validation.ExpectNode(titleNode); // TextNode if HtmlAllowed() is false, DOMElement if HtmlAllowed() is true
 
-		return { Title: title, Value: value, Valid: valid, DomElement: domElement, TextNode: textNode };
+		return { Title: title, Value: value, Valid: valid, DomElement: domElement, TitleNode: titleNode };
 	}
 	/*function convertItemElementToItemObject(itemElm)
 	{
 		Fit.Validation.ExpectDomElement(itemElm);
 		return { Title: Fit.Dom.Text(itemElm), Value: decode(Fit.Dom.Data(itemElm, "value")), Valid: Fit.Dom.HasClass(itemElm, "FitUiControlDropDownInvalid") === false, DomElement: itemElm };
 	}*/
-
-	function updateSelectionElementTitleByValue(value, newTitle)
-	{
-		Fit.Validation.ExpectString(value);
-		Fit.Validation.ExpectString(newTitle); // NOTICE: Title with any HTML stripped away!
-
-		var item = itemCollection[value] || null;
-
-		if (item !== null)
-		{
-			item.Title = newTitle;
-			item.DomElement.childNodes[0].nodeValue = newTitle;
-		}
-	}
 
 	/*function getFirstSelectionElement()
 	{
@@ -2917,7 +2931,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 			Fit.Array.ForEach(selections, function(selection)
 			{
-				text += (text !== "" ? ", " : "") + selection.Title;
+				text += (text !== "" ? ", " : "") + Fit.String.StripHtml(selection.Title); // Selected items might contain HTML if HtmlAllowed() is true
 			});
 
 			if (me.MultiSelectionMode() === true && selections.length > 0)

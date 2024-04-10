@@ -1520,7 +1520,7 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 		// Convert JSON to TreeView node, including all contained children
 
-		var child = new Fit.Controls.TreeViewNode((jsonNode.Title ? jsonNode.Title : jsonNode.Value), jsonNode.Value);
+		var child = new Fit.Controls.TreeViewNode((jsonNode.Title ? jsonNode.Title : jsonNode.Value), jsonNode.Value, { HtmlAllowed: me.HtmlAllowed() });
 
 		if (jsonNode.Selectable !== undefined)
 			child.Selectable((jsonNode.Selectable === true)); // Node will obtain Selectable state from TreeView unless explicitly set here
