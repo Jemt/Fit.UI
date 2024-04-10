@@ -3123,6 +3123,13 @@ declare namespace Fit
 			*/
 			public HighlightFirst(val?:boolean):boolean;
 			/**
+			* Get/set value indicating whether HTML is allowed (shown) in selected items.
+			* @function HtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @returns boolean
+			*/
+			public HtmlAllowed(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether input is enabled.
 			* @function InputEnabled
 			* @param {boolean} [val=undefined] - If defined, True enables input, False disables it.
@@ -5058,6 +5065,13 @@ declare namespace Fit
 			*/
 			public HasItem(value:string):boolean;
 			/**
+			* Get/set value indicating whether HTML is allowed (shown) in ListView items.
+			* @function HtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @returns boolean
+			*/
+			public HtmlAllowed(val?:boolean):boolean;
+			/**
 			* Create instance of ListView control.
 			* @function ListView
 			* @param {string} [controlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
@@ -5904,6 +5918,13 @@ declare namespace Fit
 			*/
 			public GetNodeFocused():Fit.Controls.TreeViewNode | null;
 			/**
+			* Get/set value indicating whether HTML is allowed (shown) in TreeView nodes.
+			* @function HtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @returns boolean
+			*/
+			public HtmlAllowed(val?:boolean):boolean;
+			/**
 			* Get/set value indicating whether keyboard navigation is enabled.
 			* @function KeyboardNavigation
 			* @param {boolean} [val=undefined] - If defined, True enables keyboard navigation, False disables it.
@@ -6548,6 +6569,14 @@ declare namespace Fit
 			*/
 			public HasCheckbox():boolean;
 			/**
+			* Get/set value indicating whether HTML is allowed (shown) in TreeView node.
+			* @function HtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @param {boolean} [recursive=undefined] - If defined, True applies change recursively to children.
+			* @returns boolean
+			*/
+			public HtmlAllowed(val?:boolean, recursive?:boolean):boolean;
+			/**
 			* Returns True if this is a behavioral node, otherwise False - see SetBehavioralNodeCallback for more details.
 			* @function IsBehavioralNode
 			* @returns boolean
@@ -6600,14 +6629,28 @@ declare namespace Fit
 			* @function TreeViewNode
 			* @param {string} displayTitle - Node title.
 			* @param {string} nodeValue - Node value.
+			* @param {Fit.Controls.TreeViewNodeOptions} [options=undefined] - Optional options.
 			*/
-			constructor(displayTitle:string, nodeValue:string);
+			constructor(displayTitle:string, nodeValue:string, options?:Fit.Controls.TreeViewNodeOptions);
 			/**
 			* Get node value.
 			* @function Value
 			* @returns string
 			*/
 			public Value():string;
+		}
+		/**
+		* Options for TreeViewNode.
+		* @class [Fit.Controls.TreeViewNodeOptions TreeViewNodeOptions]
+		*/
+		class TreeViewNodeOptions
+		{
+			// Properties defined by Fit.Controls.TreeViewNodeOptions
+			/**
+			* Value indicating whether HTML is allowed (shown) in TreeView node.
+			* @member {boolean} [HtmlAllowed=undefined]
+			*/
+			HtmlAllowed?:boolean;
 		}
 		/**
 		* 
@@ -6959,6 +7002,13 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.WSDropDown
 			/**
+			* Get/set value indicating whether HTML is allowed (shown) in selected items in action menu.
+			* @function ActionMenuHtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @returns boolean
+			*/
+			public ActionMenuHtmlAllowed(val?:boolean):boolean;
+			/**
 			* Get/set locale used to sort action menu alphabetically - returns null (default) if not enabled.
 			Localized sorting is not supported on legacy browsers, which will fall back to sorting based on
 			each character's position in the computer's character table.
@@ -7242,6 +7292,13 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public HighlightFirst(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether HTML is allowed (shown) in selected items.
+			* @function HtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @returns boolean
+			*/
+			public HtmlAllowed(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether input is enabled.
 			* @function InputEnabled
@@ -7926,6 +7983,13 @@ declare namespace Fit
 			*/
 			public HasItem(value:string):boolean;
 			/**
+			* Get/set value indicating whether HTML is allowed (shown) in ListView items.
+			* @function HtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @returns boolean
+			*/
+			public HtmlAllowed(val?:boolean):boolean;
+			/**
 			* Register event handler fired when item is being selected.
 			Selection can be canceled by returning False.
 			The following arguments are passed to event handler function:
@@ -8531,6 +8595,13 @@ declare namespace Fit
 			* @returns Fit.Controls.TreeViewNode | null
 			*/
 			public GetNodeFocused():Fit.Controls.TreeViewNode | null;
+			/**
+			* Get/set value indicating whether HTML is allowed (shown) in TreeView nodes.
+			* @function HtmlAllowed
+			* @param {boolean} [val=undefined] - If defined, True enables support for HTML, False disables it.
+			* @returns boolean
+			*/
+			public HtmlAllowed(val?:boolean):boolean;
 			/**
 			* Get/set value indicating whether keyboard navigation is enabled.
 			* @function KeyboardNavigation
