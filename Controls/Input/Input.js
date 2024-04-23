@@ -2920,6 +2920,11 @@ Fit.Controls.Input = function(ctlId)
 					// so the user will not see the chrome (borders) of the editor increase its height.
 					setTimeout(function()
 					{
+						if (me === null) // Might have been disposed while loading, e.g as part of "warm up" to load resources
+						{
+							return;
+						}
+
 						designEditorDom.OuterContainer.style.visibility = "visible";
 
 						// Because editor is hidden while initializing, startupFocus
