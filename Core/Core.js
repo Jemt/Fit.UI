@@ -642,7 +642,11 @@ Fit._internal.Core.EnsureStyles = function()
 {
 	// Find Base URL - e.g. http://server.com/libs/fitui
 
-	var src = document.scripts[document.scripts.length - 1].src;
+	// Trying to aquire Fit.UI script by ID first, as this is most reliable. Obtaining the last script from the
+	// scripts collection is less reliable as some browser extensions manipulate the collection while scripts are loading.
+	var script = document.querySelector("script#FitUI") || document.querySelector("script#fitui") || document.scripts[document.scripts.length - 1];
+
+	var src = script && script.src || null;
 
 	if (!src)
 	{
