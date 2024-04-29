@@ -807,7 +807,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 	// Controlling selections
 
-	/// <function container="Fit.Controls.DropDown" name="GetPicker" access="public" returns="Fit.Controls.PickerBase">
+	/// <function container="Fit.Controls.DropDown" name="GetPicker" access="public" returns="Fit.Controls.PickerBase | null">
 	/// 	<description> Get picker control used to add items to drop down control </description>
 	/// </function>
 	this.GetPicker = function()

@@ -3098,9 +3098,9 @@ declare namespace Fit
 			/**
 			* Get picker control used to add items to drop down control.
 			* @function GetPicker
-			* @returns Fit.Controls.PickerBase
+			* @returns Fit.Controls.PickerBase | null
 			*/
-			public GetPicker():Fit.Controls.PickerBase;
+			public GetPicker():Fit.Controls.PickerBase | null;
 			/**
 			* Get selected item by value - returns object with Title (string), Value (string), and Valid (boolean) properties if found, otherwise Null is returned.
 			* @function GetSelectionByValue
@@ -7268,9 +7268,9 @@ declare namespace Fit
 			/**
 			* Get picker control used to add items to drop down control.
 			* @function GetPicker
-			* @returns Fit.Controls.PickerBase
+			* @returns Fit.Controls.PickerBase | null
 			*/
-			public GetPicker():Fit.Controls.PickerBase;
+			public GetPicker():Fit.Controls.PickerBase | null;
 			/**
 			* Get selected item by value - returns object with Title (string), Value (string), and Valid (boolean) properties if found, otherwise Null is returned.
 			* @function GetSelectionByValue
