@@ -1353,6 +1353,14 @@ declare namespace Fit
 			*/
 			public SetValidationHandler(cb:Function | null):void;
 			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
+			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
 			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
@@ -1911,6 +1919,14 @@ declare namespace Fit
 			*/
 			public SetValidationHandler(cb:Function | null):void;
 			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
+			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
 			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
@@ -2323,6 +2339,14 @@ declare namespace Fit
 			otherwise Null or an empty string if the value is valid.
 			*/
 			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
 			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
@@ -3459,6 +3483,14 @@ declare namespace Fit
 			*/
 			public SetValidationHandler(cb:Function | null):void;
 			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
+			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
 			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
@@ -3983,6 +4015,14 @@ declare namespace Fit
 			*/
 			public SetValidationHandler(cb:Function | null):void;
 			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
+			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
 			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
@@ -4406,6 +4446,14 @@ declare namespace Fit
 			otherwise Null or an empty string if the value is valid.
 			*/
 			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
 			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
@@ -6414,6 +6462,14 @@ declare namespace Fit
 			*/
 			public SetValidationHandler(cb:Function | null):void;
 			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
+			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
 			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
@@ -7628,6 +7684,14 @@ declare namespace Fit
 			otherwise Null or an empty string if the value is valid.
 			*/
 			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
 			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
@@ -9085,6 +9149,14 @@ declare namespace Fit
 			otherwise Null or an empty string if the value is valid.
 			*/
 			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
 			/**
 			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
 			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
