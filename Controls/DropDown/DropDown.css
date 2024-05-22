@@ -322,15 +322,15 @@ div.FitUiControlDropDown[data-open="true"] div.FitUiControlDropDownPicker
 }
 
 /* Error indication */
-div.FitUiControlDropDown[data-enabled="true"][data-valid="false"]
+div.FitUiControlDropDown[data-enabled="true"][data-valid="false"][data-showinvalid="true"]
 {
 	outline: none;
 }
-div.FitUiControlDropDown[data-enabled="true"][data-valid="false"] div.FitUiControlDropDownItems
+div.FitUiControlDropDown[data-enabled="true"][data-valid="false"][data-showinvalid="true"] div.FitUiControlDropDownItems
 {
 	border-color: red;
 }
-div.FitUiControlDropDown[data-enabled="true"][data-valid="false"] div.FitUiControlDropDownPicker
+div.FitUiControlDropDown[data-enabled="true"][data-valid="false"][data-showinvalid="true"] div.FitUiControlDropDownPicker
 {
 	border-top-color: red;
 }

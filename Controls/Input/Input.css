@@ -58,12 +58,12 @@ div.FitUiControlInput input:first-child::-ms-clear
 }
 
 /* Error indication */
-div.FitUiControlInput[data-enabled="true"][data-valid="false"]
+div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"]
 {
 	outline: none;
 }
-div.FitUiControlInput[data-enabled="true"][data-valid="false"] input:first-child,
-div.FitUiControlInput[data-enabled="true"][data-valid="false"] textarea:first-child
+div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] input:first-child,
+div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] textarea:first-child
 {
 	border-color: red;
 }

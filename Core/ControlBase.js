@@ -248,6 +248,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationRuleError = null;
 	var lazyValidation = false;
 	var lazyValidationDisabled = false;
+	var hideValidationErrorOnChanging = true;
 	var hasValidated = false;
 	var blockAutoPostBack = false; // Used by AutoPostBack mechanism to prevent multiple postbacks, e.g on double click
 	var onChangeHandlers = [];
@@ -274,6 +275,7 @@ Fit.Controls.ControlBase = function(controlId)
 		me._internal.Data("valid", "true");
 		me._internal.Data("dirty", "false");
 		me._internal.Data("enabled", "true");
+		me._internal.Data("showinvalid", "true");
 
 		// Add hidden inputs which are automatically populated with
 		// control value and state information when control is updated.
@@ -332,6 +334,16 @@ Fit.Controls.ControlBase = function(controlId)
 				lazyValidationDisabled = true;
 				me._internal.Validate();
 			}
+
+			me._internal.Data("showinvalid", "true");
+		});
+
+		me.OnChange(function(sender)
+		{
+			if (hideValidationErrorOnChanging === true && me.Focused() === true)
+			{
+				me._internal.Data("showinvalid", "false");
+			}
 		});
 
 		Fit.Internationalization.OnLocaleChanged(localize);
@@ -372,7 +384,7 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = lazyValidationDisabled = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = lazyValidationDisabled = hideValidationErrorOnChanging = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
 		base();
 	});
 
@@ -943,11 +955,31 @@ Fit.Controls.ControlBase = function(controlId)
 			}
 			else
 			{
-				this._internal.Validate();
+				me._internal.Validate();
 			}
 		}
 
 		return lazyValidation;
+	}
+
+	/// <function container="Fit.Controls.ControlBase" name="ShowValidationErrorsOnChange" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get/set value indicating whether control immediately shows and
+	/// 		updates its validation error as the user changes the control value.
+	/// 	</description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables feature, False disables it </param>
+	/// </function>
+	this.ShowValidationErrorsOnChange = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true && val !== !hideValidationErrorOnChanging)
+		{
+			hideValidationErrorOnChanging = !val;
+			me._internal.Data("showinvalid", "true"); // Always start visible, then hide when changed if hideValidationErrorOnChanging is true
+		}
+
+		return !hideValidationErrorOnChanging;
 	}
 
 	// ============================================
