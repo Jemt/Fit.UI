@@ -2687,6 +2687,21 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.DialogEditor
 			/**
+			* Set callback function used to perform on-the-fly validation against control.
+			* @function AddValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Function receiving an instance of the control.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function.
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against.
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails.
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
+			/**
 			* Get/set value indicating whether control should have spell checking enabled (default) or disabled.
 			* @function CheckSpelling
 			* @param {boolean} [val=undefined] - If defined, true enables spell checking while false disables it.
@@ -2721,12 +2736,37 @@ declare namespace Fit
 			*/
 			public IsDirty():boolean;
 			/**
+			* Get value indicating whether control value is valid.
+			Control value is considered invalid if control is required, but no value is set,
+			or if control value does not match regular expression set using SetValidationExpression(..).
+			* @function IsValid
+			* @returns boolean
+			*/
+			public IsValid():boolean;
+			/**
 			* Get/set value used as a placeholder to indicate expected input on supported browsers.
 			* @function Placeholder
 			* @param {string} [val=undefined] - If defined, value is set as placeholder.
 			* @returns string
 			*/
 			public Placeholder(val?:string):string;
+			/**
+			* Remove all validation rules.
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control.
+			* @function RemoveValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Validation function registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value.
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
 			/**
 			* Get/set editor control value.
 			* @function Value
