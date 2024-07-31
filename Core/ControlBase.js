@@ -819,6 +819,8 @@ Fit.Controls.ControlBase = function(controlId)
 	/// </function>
 	this.RemoveValidationRule = function(validator) // Function or RegExp
 	{
+		Fit.Validation.ExpectIsSet(validator);
+
 		var found = null;
 
 		Fit.Array.ForEach(validationRules, function(rule)

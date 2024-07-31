@@ -6,6 +6,8 @@ Stacking context, Z-index:
  - Drop down				: 1000
  - Dialog					: 1200 - changed to 2001200 in Dialog.css if html[data-fitui-companion="fluent-ui"]
 	- Modal BG layer		: 1200 - changed to 2001200 in Dialog.css if html[data-fitui-companion="fluent-ui"]
+ - DialogEditor
+	- Error indicator		: 500 - changed to "auto" in DesignEditor.css to position below dialog's resize handle
  - Context menu				: 1300 (mounted in <body>)
  - Calendar					: 1300 (mounted in <body>, might be re-mounted next to control) - changed to 2000000 in DatePicker.css if html[data-fitui-companion="fluent-ui"]
  - Dragging					: 10000 (incremented by 1 every time draggable is being dragged) - changed to start from 2010000 in DragDrop.js if html[data-fitui-companion="fluent-ui"]
@@ -68,11 +70,11 @@ Stacking context, Z-index:
 {
 	outline: 0.065em solid red;
 }
-.FitUiControl[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-errormessage][data-focused="false"]:not(#LegacyIE):hover:before,
-.FitUiControl[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-errormessage][data-focused="true"]:not(#LegacyIE):before
+.FitUiControl[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-errormessage]:not(#LegacyIE):before
 {
 	/* Modern browsers - placed above control (requires support for transform) */
 
+	display: none;
 	content: attr(data-errormessage);
 	border-radius: 3px;
 	background-color: #FEFFDD;
@@ -92,6 +94,11 @@ Stacking context, Z-index:
 
 	/* Fix if control is aligned to the right */
 	text-align: left;
+}
+.FitUiControl[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-errormessage][data-focused="false"]:not(#LegacyIE):hover:before,
+.FitUiControl[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-errormessage][data-focused="true"]:not(#LegacyIE):before
+{
+	display: inline-block;
 }
 
 .FitUiControlLoadingIndicator

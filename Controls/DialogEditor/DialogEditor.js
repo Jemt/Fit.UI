@@ -31,7 +31,9 @@ Fit.Controls.DialogEditor = function(ctlId)
 		// The only downside to this is that ControlBase will not be able to update IsDirty
 		// and IsValid state in the control's data-dirty and data-valid DOM attributes.
 		// Control will always fire OnChange immediately when the editor lose focus though.
-		ed.DebounceOnChange(5000); // Only process OnChange every 5 seconds - we don't rely on OnChange or the data-dirty and data-valid attributes
+		// Notice that OnChange debouncing is reduced if validation rules are added. See
+		// implementation of AddValidationRule(..) further down.
+		ed.DebounceOnChange(5000); // Only process OnChange every 5 seconds
 
 		// me.Modal(true);
 		// me.Maximizable(true);
@@ -46,6 +48,19 @@ Fit.Controls.DialogEditor = function(ctlId)
 		me.Height(550);
 		me.MinimumHeight(15, "em");
 		me.MaximumHeight(100, "%");
+
+		me.OnDismiss(function(sender)
+		{
+			if (ed.IsValid() === false)
+			{
+				Fit.Controls.Dialog.Alert(Fit.Dom.Data(ed.GetDomElement(), "errormessage"), function()
+				{
+					me.Focused(true);
+				});
+
+				return false;
+			}
+		});
 	}
 
 	// ============================================
@@ -116,6 +131,18 @@ Fit.Controls.DialogEditor = function(ctlId)
 		return ed.IsDirty();
 	}
 
+	/// <function container="Fit.Controls.DialogEditor" name="IsValid" access="public" returns="boolean">
+	/// 	<description>
+	/// 		Get value indicating whether control value is valid.
+	/// 		Control value is considered invalid if control is required, but no value is set,
+	/// 		or if control value does not match regular expression set using SetValidationExpression(..).
+	/// 	</description>
+	/// </function>
+	this.IsValid = function()
+	{
+		return ed.IsValid();
+	}
+
 	/// <function container="Fit.Controls.DialogEditor" name="Enabled" access="public" returns="boolean">
 	/// 	<description> Get/set value indicating whether control is enabled or disabled </description>
 	/// 	<param name="val" type="boolean" default="undefined">
@@ -139,6 +166,55 @@ Fit.Controls.DialogEditor = function(ctlId)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 		return ed.Focused(val);
+	}
+
+	/// <function container="Fit.Controls.DialogEditor" name="AddValidationRule" access="public">
+	/// 	<description> Set callback function used to perform on-the-fly validation against control </description>
+	/// 	<param name="validator" type="Fit.Controls.ControlBaseTypeDefs.ValidationCallback">
+	/// 		Function receiving an instance of the control.
+	/// 		A value of False or a non-empty string with an
+	/// 		error message must be returned if value is invalid.
+	/// 	</param>
+	/// </function>
+	/// <function container="Fit.Controls.DialogEditor" name="AddValidationRule" access="public">
+	/// 	<description> Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function </description>
+	/// 	<param name="validator" type="RegExp"> Regular expression to validate value against </param>
+	/// 	<param name="errorMessage" type="string" default="undefined"> Optional error message displayed if value validation fails </param>
+	/// </function>
+	this.AddValidationRule = function(validator, errorMessage)
+	{
+		Fit.Validation.ExpectIsSet(validator);
+		Fit.Validation.ExpectString(errorMessage, true);
+
+		// Warning: Validating large HTML documents can be very expensive and hurt the
+		// user experience. Validation should only be enabled for content intended to be short.
+
+		ed.DebounceOnChange(500); // Reduce OnChange debouncing (initially set in constructor) - we want feedback almost immediately when validation rules are used
+		ed.ShowValidationErrorsOnChange(true); // When used in a dialog, we want feedback immediately as the user types, not when focus is lost, which is often when the dialog is closed
+
+		ed.AddValidationRule(validator, errorMessage);
+	}
+
+	/// <function container="Fit.Controls.DialogEditor" name="RemoveValidationRule" access="public">
+	/// 	<description> Remove validation function used to perform on-the-fly validation against control </description>
+	/// 	<param name="validator" type="Fit.Controls.ControlBaseTypeDefs.ValidationCallback"> Validation function registered using AddValidationRule(..) </param>
+	/// </function>
+	/// <function container="Fit.Controls.DialogEditor" name="RemoveValidationRule" access="public">
+	/// 	<description> Remove regular expression used to perform on-the-fly validation against control value </description>
+	/// 	<param name="validator" type="RegExp"> Regular expression registered using AddValidationRule(..) </param>
+	/// </function>
+	this.RemoveValidationRule = function(validator) // Function or RegExp
+	{
+		Fit.Validation.ExpectIsSet(validator);
+		ed.RemoveValidationRule(validator);
+	}
+
+	/// <function container="Fit.Controls.DialogEditor" name="RemoveAllValidationRules" access="public">
+	/// 	<description> Remove all validation rules </description>
+	/// </function>
+	this.RemoveAllValidationRules = function()
+	{
+		ed.RemoveAllValidationRules();
 	}
 
 	// ============================================

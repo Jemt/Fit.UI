@@ -63,7 +63,8 @@ div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid=
 	outline: none;
 }
 div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] input:first-child,
-div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] textarea:first-child
+div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] textarea:first-child,
+div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] .cke
 {
 	border-color: red;
 }

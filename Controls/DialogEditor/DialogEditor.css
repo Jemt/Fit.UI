@@ -13,3 +13,23 @@ div.FitUiControlDialogEditor .cke_wysiwyg_div
 {
 	padding: 0.5em 1.5em;
 }
+
+div.FitUiControlDialogEditor .FitUiControl[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-errormessage]:not(#LegacyIE):before
+{
+	display: inline-block;
+	-webkit-transform: none;
+	-moz-transform: none;
+	-ms-transform: none;
+	-o-transform: none;
+	transform: none;
+	margin-top: 0px;
+	z-index: auto; /* Position below dialog's resize handle */
+
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+}
+div.FitUiControlDialogEditor .FitUiControl[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-errormessage]:not(#LegacyIE) .cke_wysiwyg_div
+{
+	padding-bottom: 2em;
+}
