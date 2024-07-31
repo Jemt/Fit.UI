@@ -25,6 +25,11 @@ div.FitUiControlInput textarea:first-child
 	-webkit-appearance: none;
 	appearance: none;
 }
+div.FitUiControlInput[data-designmode="true"] .cke_chrome
+{
+	border: 0.065em solid #BBBBBB;
+	border-width: 1px\9;
+}
 
 /* Default height for ordinary multi line input control (textarea) */
 div.FitUiControlInput[data-multiline="true"][data-designmode="false"]
@@ -64,7 +69,7 @@ div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid=
 }
 div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] input:first-child,
 div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] textarea:first-child,
-div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"] .cke
+div.FitUiControlInput[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-designmode="true"] .cke_chrome
 {
 	border-color: red;
 }

@@ -4,7 +4,7 @@ div.FitUiControlDialogEditor div.FitUiControlDialogContent
 	overflow: hidden; /* Make sure scrollbars do not emerge when resizing dialog (reducing height) - editor has scrollbars */
 }
 
-div.FitUiControlDialogEditor .cke_chrome
+div.FitUiControlDialogEditor div.FitUiControlInput[data-designmode="true"] .cke_chrome
 {
 	border: none;
 }
