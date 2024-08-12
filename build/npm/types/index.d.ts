@@ -2031,6 +2031,13 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.DatePicker
 			/**
+			* Get/set calendar start date - this date is used when control has no value.
+			* @function CalendarStartDate
+			* @param {Date | null} [val=undefined] - If defined, provided date will serve as start date for calendar view.
+			* @returns Date | null
+			*/
+			public CalendarStartDate(val?:__fitUiAliasDate | null):__fitUiAliasDate | null;
+			/**
 			* Get/set control value.
 			The function works the same as the Value function, expect it
 			accepts and returns a Date object instead of a string.
