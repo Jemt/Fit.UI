@@ -84,7 +84,7 @@ Fit.Controls.SoftLog = function(controlId)
 						{
 							me.Log(arg.toString());
 						}
-						else if (arg === null || arg === undefined)
+						else if (arg === null || arg === undefined || arg instanceof Date)
 						{
 							me.Log(arg + "");
 						}
