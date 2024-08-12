@@ -14,26 +14,28 @@ Fit.Controls.DatePicker = function(ctlId)
 	Fit.Core.Extend(this, Fit.Controls.ControlBase).Apply(ctlId);
 
 	var me = this;
-	var input = null;			// Input field for date
-	var inputTime = null;		// Input field for time (Null if not enabled)
-	var orgVal = null;			// Date object containing control value set using Value(..) or Date(..) - used to determine Dirty state (holds both date and time portion)
-	var preVal = "";			// Previous valid date value as string (without time portion)
-	var prevTimeVal = "";		// Previous valid time value as string (without date portion)
-	var locale = "en";			// Default ("", "en", and "en-US" is the same) - see this.regional[""] decleration in jquery-ui.js
-	var localeEnforced = false;	// Whether locale was set by external code which takes precedence over locale set using Fit.Internationalization.Locale(..)
-	var format = "MM/DD/YYYY";	// Default format for "en" locale (specified using Fit.UI format - jQuery UI DataPicker uses "mm/dd/yy" - see this.regional[""] decleration in jquery-ui.js)
-	var formatEnforced = false;	// Whether format was set by external code which takes precedence over locale set using DatePicker.Locale(..) and Fit.Internationalization.Locale(..)
-	var placeholderDate = null;	// Placeholder value for date
-	var placeholderTime = null;	// Placeholder value for time
-	var weeks = false;			// Whether to display week numbers or not
-	var jquery = undefined;		// jQuery instance
-	var datepicker = null;		// jQuery UI calendar widget
-	var datepickerElm = null;	// jQuery UI calendar widget element (remains null until shown for the first time - element shared among all DatePicker instances)
-	var startDate = null;		// Which year/month to display in calendar widget if view needs to be restored (related to restoreView variable)
-	var open = false;			// Whether calendar widget is currently open
-	var focused = false;		// Whether control is currently focused
-	var restoreView = false;	// Whether to keep calendar widget on given year/month when temporarily closing and opening it again
-	var updateCalConf = true;	// Whether to set/update calendar widget settings - true on initial load
+	var input = null;							// Input field for date
+	var inputTime = null;						// Input field for time (Null if not enabled)
+	var orgVal = null;							// Date object containing control value set using Value(..) or Date(..) - used to determine Dirty state (holds both date and time portion)
+	var preVal = "";							// Previous valid date value as string (without time portion)
+	var prevTimeVal = "";						// Previous valid time value as string (without date portion)
+	var locale = "en";							// Default ("", "en", and "en-US" is the same) - see this.regional[""] decleration in jquery-ui.js
+	var localeEnforced = false;					// Whether locale was set by external code which takes precedence over locale set using Fit.Internationalization.Locale(..)
+	var format = "MM/DD/YYYY";					// Default format for "en" locale (specified using Fit.UI format - jQuery UI DataPicker uses "mm/dd/yy" - see this.regional[""] decleration in jquery-ui.js)
+	var formatEnforced = false;					// Whether format was set by external code which takes precedence over locale set using DatePicker.Locale(..) and Fit.Internationalization.Locale(..)
+	var placeholderDate = null;					// Placeholder value for date
+	var placeholderTime = null;					// Placeholder value for time
+	var weeks = false;							// Whether to display week numbers or not
+	var jquery = undefined;						// jQuery instance
+	var datepicker = null;						// jQuery UI calendar widget
+	var datepickerElm = null;					// jQuery UI calendar widget element (remains null until shown for the first time - element shared among all DatePicker instances)
+	var datePickerYears = "c-10:c+10";			// Calendar widget's year range (from current year, going 10 years back and 10 years forward)
+	var datepickerDate = null;					// Which date to display in the calendar widget when no date is selected - null or Date
+	var startDate = null;						// Which year/month to display in calendar widget if view needs to be restored (related to restoreView variable)
+	var open = false;							// Whether calendar widget is currently open
+	var focused = false;						// Whether control is currently focused
+	var restoreView = false;					// Whether to keep calendar widget on given year/month when temporarily closing and opening it again
+	var updateCalConf = true;					// Whether to set/update calendar widget settings - true on initial load
 	var detectBoundaries = false;				// Flag indicating whether calendar widget should detect viewport collision and open upwards when needed
 	var detectBoundariesRelToViewPort = false;	// Flag indicating whether calendar widget should be positioned relative to viewport (true) or scroll parent (false)
 
@@ -233,6 +235,14 @@ Fit.Controls.DatePicker = function(ctlId)
 				input.onchange();
 			}
 
+			me.OnChange(function(sender)
+			{
+				if (me.Value() === "") // Value reset
+				{
+					selectDateInMobileDatePicker(datepickerDate);
+				}
+			});
+
 			if (Fit.Device.HasMouse === true)
 			{
 				// This might be an iPad with a pen (precision pointer) attached, or a PC/laptop with a touch screen
@@ -287,6 +297,61 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 
 		return hasFocus;
+	}
+
+	/// <function container="Fit.Controls.DatePicker" name="CalendarStartDate" access="public" returns="Date | null">
+	/// 	<description>
+	/// 		Get/set calendar start date - this date is used when control has no value
+	/// 	</description>
+	/// 	<param name="val" type="Date | null" default="undefined">
+	/// 		If defined, provided date will serve as start date for calendar view
+	/// 	</param>
+	/// </function>
+	this.CalendarStartDate = function(val)
+	{
+		Fit.Validation.ExpectDate(val, true);
+
+		if (val !== undefined && val !== datepickerDate)
+		{
+			datepickerDate = val; // Used to select date in calendar widget, unless a specific date is selected in control
+
+			var applyDate = val || new Date();
+
+			if (isMobile === false)
+			{
+				var yearToday = (new Date()).getFullYear();
+				var yearsApart = Math.abs(yearToday - applyDate.getFullYear());
+				var yearRange = yearsApart < 10 ? 10 : yearsApart;
+
+				// A range of years relative to the current year (e.g. c-20:c+20) will continueusly adjust to the year selected
+				// by the user, while a fixed range (e.g. 2000:2040) will not allow the user to select 2040 to extend the list further.
+				// So, what happens when we apply the date 2040-08-01, is that we first expand the year range 2040-2024 = 16 years
+				// (assuming current year is 2024). Once the picker is opened, 2040 will programmatically be selected in the year picker,
+				// and the calendar widget will automatically adjust the list of years relative to the newly selected year, which is from
+				// 2040-16=2024 to 2040+16=2056.
+
+				datePickerYears = "c-" + (yearRange) + ":c+" + (yearRange);
+
+				// If currently open, close and reopen to update calendar widget
+
+				if (open === true)
+				{
+					updateCalConf = true;
+
+					me.Hide();
+					me.Show();
+				}
+			}
+			else
+			{
+				if (me.Value() === "")
+				{
+					selectDateInMobileDatePicker(applyDate);
+				}
+			}
+		}
+
+		return datepickerDate;
 	}
 
 	/// <function container="Fit.Controls.DatePicker" name="Value" access="public" returns="string">
@@ -1148,22 +1213,28 @@ Fit.Controls.DatePicker = function(ctlId)
 					datepicker.datepicker("option", datepicker.jq.datepicker.regional[locale]);
 					datepicker.datepicker("option", "dateFormat", getJqueryUiDatePickerFormat(me.Format()));
 					datepicker.datepicker("option", "showWeek", weeks);
+					datepicker.datepicker("option", "yearRange", datePickerYears);
+				}
+
+				if (me.Value() === "" && datepickerDate !== null) // Apply initial year and month selection
+				{
+					setTimeout(function() // Postpone - selectYearMonthInCalendarWidget(..) requires calendar widget to be mounted in DOM
+					{
+						var year = parseInt(Fit.Date.Format(datepickerDate, "YYYY"), 10);
+						var month = parseInt(Fit.Date.Format(datepickerDate, "M"), 10);
+
+						selectYearMonthInCalendarWidget(year, month);
+					}, 0);
 				}
 
 				if (startDate !== null && restoreView === true) // Restore year and month the user previously navigated to
 				{
-					setTimeout(function()
+					setTimeout(function() // Postpone - selectYearMonthInCalendarWidget(..) requires calendar widget to be mounted in DOM
 					{
-						var year = Fit.Date.Format(startDate, "YYYY");
-						var month = Fit.Date.Format(startDate, "M");
+						var year = parseInt(Fit.Date.Format(startDate, "YYYY"), 10);
+						var month = parseInt(Fit.Date.Format(startDate, "M"), 10);
 
-						var yearPicker = document.querySelector("select.fitui-datepicker-year");
-						yearPicker.value = year;
-						datepicker.jq(yearPicker).trigger("change");
-
-						var monthPicker = document.querySelector("select.fitui-datepicker-month");
-						monthPicker.value = (parseInt(month) - 1).toString();
-						datepicker.jq(monthPicker).trigger("change");
+						selectYearMonthInCalendarWidget(year, month);
 					}, 0);
 				}
 
@@ -1337,6 +1408,43 @@ Fit.Controls.DatePicker = function(ctlId)
 			return locales[lc];
 
 		return null;
+	}
+
+	function selectYearMonthInCalendarWidget(year, month)
+	{
+		Fit.Validation.ExpectInteger(year);
+		Fit.Validation.ExpectInteger(month);
+
+		var yearPicker = document.querySelector("select.fitui-datepicker-year");
+		yearPicker.value = year.toString();
+		datepicker.jq(yearPicker).trigger("change");
+
+		var monthPicker = document.querySelector("select.fitui-datepicker-month");
+		monthPicker.value = (month - 1).toString();
+		datepicker.jq(monthPicker).trigger("change");
+	}
+
+	function selectDateInMobileDatePicker(date)
+	{
+		Fit.Validation.ExpectDate(date);
+
+		// Fix necessary to apply new value while open/focused on iPadOS - otherwise
+		// value will not take effect until after picker has lost focus and regained
+		// focus. This will also make picker reopen on newer versions of iPhoneOS and
+		// iPadOS, but not on Android.
+		var focusFix = Fit.Dom.GetFocused() === inputMobile;
+
+		if (focusFix)
+		{
+			input.focus();
+		}
+
+		inputMobile.valueAsDate = date;
+
+		if (focusFix)
+		{
+			inputMobile.focus();
+		}
 	}
 
 	function getLocales()
