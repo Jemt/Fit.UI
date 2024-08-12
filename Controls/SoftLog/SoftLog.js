@@ -175,8 +175,12 @@ Fit.Controls.SoftLog = function(controlId)
 		trimLog(true);
 
 		txt.value += (txt.value !== "" ? "\n" : "") + time + ": " + msg.replace(/\r/g, "").replace(/\n/g, " ");
-		txt.scrollLeft = 0;
-		txt.scrollTop = 999999;
+
+		if (Fit.Dom.GetFocused() !== txt)
+		{
+			txt.scrollLeft = 0;
+			txt.scrollTop = 999999;
+		}
 	}
 
 	/// <function container="Fit.Controls.SoftLog" name="Clear" access="public">
