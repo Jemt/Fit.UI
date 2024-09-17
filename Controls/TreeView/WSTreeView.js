@@ -640,9 +640,9 @@ Fit.Controls.WSTreeView = function(ctlId)
 
 			// Preserve scroll position in case user scrolled view while data was loading. Calling node.Focused(true)
 			// or SetActiveNode(..) further down will not only focus or highlight node, but also scroll it into view.
-			var scrollbars = Fit.Dom.GetScrollBars(me.GetDomElement());
-			var scrollParent = scrollbars.Vertical.Enabled === true || scrollbars.Horizontal.Enabled === true ? me.GetDomElement() : Fit.Dom.GetScrollParent(me.GetDomElement());
-			var scrollPositionToRestore = keepState === true ? { Top: scrollParent.scrollTop, Left: scrollParent.scrollLeft } : null;
+			var scrollbars = Fit.Dom.GetScrollBars(me.GetDomElement()); // Scrollbars not enabled when no data is loaded to overflow own container
+			var scrollParent = scrollbars.Vertical.Enabled === true || scrollbars.Horizontal.Enabled === true ? me.GetDomElement() : Fit.Dom.GetScrollParent(me.GetDomElement()); // Null if data is not causing local scroll and if WSTreeView is not mounted in another scrollable container (likely within a parent with position:fixed)
+			var scrollPositionToRestore = scrollParent !== null && keepState === true ? { Top: scrollParent.scrollTop, Left: scrollParent.scrollLeft } : null;
 
 			// Remove nodes
 			me._internal.ExecuteWithNoOnChange(function()
