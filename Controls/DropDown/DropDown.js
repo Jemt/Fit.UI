@@ -2618,9 +2618,9 @@ Fit.Controls.DropDown = function(ctlId)
 				// container starts.
 				// https://github.com/Jemt/Fit.UI/issues/51
 
-				var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement());
+				var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement()); // Null if DropDown or a parent has position:fixed
 
-				if (scrollParent !== Fit.Dom.GetScrollDocument())
+				if (scrollParent !== null && scrollParent !== Fit.Dom.GetScrollDocument())
 				{
 					// Control is positioned within a container with scroll.
 					// Calculate position relative to viewport to determine
@@ -2649,10 +2649,10 @@ Fit.Controls.DropDown = function(ctlId)
 				// container ends.
 				// https://github.com/Jemt/Fit.UI/issues/51 (see re-open comment oct. 30, 2020)
 
-				var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement());
+				var scrollParent = Fit.Dom.GetScrollParent(me.GetDomElement()); // Null if DropDown or a parent has position:fixed
 				var alternativeTopPos = -1;
 
-				if (scrollParent !== Fit.Dom.GetScrollDocument())
+				if (scrollParent !== null && scrollParent !== Fit.Dom.GetScrollDocument())
 				{
 					// Control is positioned within a container with scroll.
 					// Calculate position relative to viewport to determine
