@@ -985,7 +985,7 @@ Fit.Controls.WSDropDown = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading /*= nodesPopulated*/ = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = useActionMenuSortingLocale = useActionMenuHtmlAllowed = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = null;
+		me = list = tree = actionMenu = search = forceNewSearch = hideLinesForFlatData = dataRequested = dataLoading /*= nodesPopulated*/ = requestCount = onDataLoadedCallback = suppressTreeOnOpen = timeOut = currentRequest = classes = autoUpdatedSelections = useActionMenu = useActionMenuForced = useActionMenuAfterLoad = useActionMenuSortingLocale = useActionMenuHtmlAllowed = treeViewEnabled = orgPlaceholder = customPlaceholderSet = translations = onRequestHandlers = onResponseHandlers = onAbortHandlers /*= onPopulatedHandlers*/ = null;
 
 		base();
 	});
