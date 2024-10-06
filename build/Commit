@@ -71,9 +71,9 @@ git status
 
 echo
 echo "All changed files will be added to stage and pushed to GIT."
-echo "You will be prompted to enter a commit message."
+echo "You will be prompted to enter a commit message. Commit is signed."
 echo "$ git add --update ../"
-echo "$ git commit -m title -m description"
+echo "$ git commit -m title -m description -s"
 echo "$ git push"
 echo "Press ENTER to continue or CTRL + C to cancel."
 read
@@ -85,7 +85,7 @@ read gitdescription
 
 if [[ $simulate == 0 ]] ; then
 	git add --update ../
-	git commit -m "$gittitle" -m "$gitdescription"
+	git commit -m "$gittitle" -m "$gitdescription" -s
 fi
 
 echo "Ready to push changes to GIT."

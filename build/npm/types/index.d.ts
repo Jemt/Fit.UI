@@ -2434,36 +2434,6 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.Dialog
 			/**
-			* Display alert dialog.
-			* @function Alert
-			* @static
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @static
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @static
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
-			/**
 			* Add button to dialog.
 			* @function AddButton
 			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button.
@@ -2655,6 +2625,36 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Display alert dialog.
+			* @function Alert
+			* @static
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @static
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @static
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -2782,36 +2782,6 @@ declare namespace Fit
 			*/
 			public Value(val?:string):string;
 			// Functions defined by Fit.Controls.Dialog
-			/**
-			* Display alert dialog.
-			* @function Alert
-			* @static
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @static
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @static
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			/**
 			* Add button to dialog.
 			* @function AddButton
@@ -2998,6 +2968,36 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Display alert dialog.
+			* @function Alert
+			* @static
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @static
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @static
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -9539,6 +9539,74 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Cookies
 		/**
+		* Create instance of cookie container isolated to either current path (default)
+		or a custom path, and optionally an alternative part of the domain (by default
+		cookies are available only on the current domain, while defining a domain makes
+		cookies available to that particular domain and subdomains).
+		* @function Cookies
+		*/
+		constructor();
+		/**
+		* Get/set portion of domain to which cookies are isolated.
+		* @function Domain
+		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
+		Null to unset it to make cookies available to current domain only (excluding subdomains).
+		* @returns string | null
+		*/
+		public Domain(val?:string | null):string | null;
+		/**
+		* Returns cookie value if found, otherwise Null.
+		* @function Get
+		* @param {string} name - Unique cookie name.
+		* @returns string | null
+		*/
+		public Get(name:string):string | null;
+		/**
+		* Get/set path to which cookies are isolated.
+		* @function Path
+		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
+		* @returns string
+		*/
+		public Path(val?:string):string;
+		/**
+		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
+		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
+		is completely transparent.
+		* @function Prefix
+		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
+		* @returns string | null
+		*/
+		public Prefix(val?:string):string | null;
+		/**
+		* Remove cookie.
+		* @function Remove
+		* @param {string} name - Unique cookie name.
+		*/
+		public Remove(name:string):void;
+		/**
+		* Get/set SameSite policy.
+		* @function SameSite
+		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
+		* @returns string | null
+		*/
+		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
+		/**
+		* Get/set Secure flag.
+		* @function Secure
+		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
+		* @returns boolean
+		*/
+		public Secure(val?:boolean):boolean;
+		/**
+		* Create or update cookie.
+		* @function Set
+		* @param {string} name - Unique cookie name.
+		* @param {string} value - Cookie value (cannot contain semicolon!).
+		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
+		no expiration time will cause it to expire when session ends.
+		*/
+		public Set(name:string, value:string, seconds?:number):void;
+		/**
 		* Returns cookie value if found, otherwise Null.
 		* @function Get
 		* @static
@@ -9608,74 +9676,6 @@ declare namespace Fit
 		* @param {Fit.CookiesDefs.Cookie} newCookie - New or updated cookie.
 		*/
 		public static Set(newCookie:Fit.CookiesDefs.Cookie):void;
-		/**
-		* Create instance of cookie container isolated to either current path (default)
-		or a custom path, and optionally an alternative part of the domain (by default
-		cookies are available only on the current domain, while defining a domain makes
-		cookies available to that particular domain and subdomains).
-		* @function Cookies
-		*/
-		constructor();
-		/**
-		* Get/set portion of domain to which cookies are isolated.
-		* @function Domain
-		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
-		Null to unset it to make cookies available to current domain only (excluding subdomains).
-		* @returns string | null
-		*/
-		public Domain(val?:string | null):string | null;
-		/**
-		* Returns cookie value if found, otherwise Null.
-		* @function Get
-		* @param {string} name - Unique cookie name.
-		* @returns string | null
-		*/
-		public Get(name:string):string | null;
-		/**
-		* Get/set path to which cookies are isolated.
-		* @function Path
-		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
-		* @returns string
-		*/
-		public Path(val?:string):string;
-		/**
-		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
-		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
-		is completely transparent.
-		* @function Prefix
-		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
-		* @returns string | null
-		*/
-		public Prefix(val?:string):string | null;
-		/**
-		* Remove cookie.
-		* @function Remove
-		* @param {string} name - Unique cookie name.
-		*/
-		public Remove(name:string):void;
-		/**
-		* Get/set SameSite policy.
-		* @function SameSite
-		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
-		* @returns string | null
-		*/
-		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
-		/**
-		* Get/set Secure flag.
-		* @function Secure
-		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
-		* @returns boolean
-		*/
-		public Secure(val?:boolean):boolean;
-		/**
-		* Create or update cookie.
-		* @function Set
-		* @param {string} name - Unique cookie name.
-		* @param {string} value - Cookie value (cannot contain semicolon!).
-		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
-		no expiration time will cause it to expire when session ends.
-		*/
-		public Set(name:string, value:string, seconds?:number):void;
 	}
 	/**
 	* Core features extending the capabilities of native JS.
@@ -10302,232 +10302,6 @@ declare namespace Fit
 		* @param {HTMLElement} container - Container to wrap element within.
 		*/
 		public static Wrap(elementToWrap:Node, container:HTMLElement):void;
-	}
-	/**
-	* 
-	* @class [Fit.EventManager EventManager]
-	*/
-	class EventManager
-	{
-		// Functions defined by Fit.EventManager
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"keydown" | "keyup" | "keypress"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackKeyboard} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"keydown" | "keyup" | "keypress", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackKeyboard):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackMouse} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackMouse):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"popstate"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackPopState} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"popstate", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackPopState):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"hashchange"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackHashChange} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"hashchange", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackHashChange):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"focus" | "focusin" | "focusout" | "blur"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackFocus} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"focus" | "focusin" | "focusout" | "blur", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackFocus):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"beforeunload"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"beforeunload", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"cut" | "copy" | "paste"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackClipboard} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"cut" | "copy" | "paste", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackClipboard):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"storage"} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackStorage} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"storage", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackStorage):void;
-		/**
-		* Registers handler for specified event on given DOMElement and returns Event ID.
-		* @function Add
-		* @param {HTMLElement} element - DOM element on to which event handler is registered.
-		* @param {"#rooted"} event - Event name.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackRooted} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:HTMLElement, event:"#rooted", eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackRooted):void;
-		/**
-		* Registers handler for specified event on given DOMElement and returns Event ID.
-		* @function Add
-		* @param {HTMLElement} element - DOM element on to which event handler is registered.
-		* @param {"#mutation"} event - Event name.
-		* @param {Fit.EventsTypeDefs.MutationObserverCallback} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:HTMLElement, event:"#mutation", eventFunction:Fit.EventsTypeDefs.MutationObserverCallback):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {string} event - Event name without the 'on' prefix.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackGeneric} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:string, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackGeneric):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"keydown" | "keyup" | "keypress"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackKeyboard} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"keydown" | "keyup" | "keypress", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackKeyboard):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackMouse} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"click" | "contextmenu" | "dblclick" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackMouse):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"popstate"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackPopState} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"popstate", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackPopState):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"hashchange"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackHashChange} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"hashchange", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackHashChange):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"focus" | "focusin" | "focusout" | "blur"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackFocus} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"focus" | "focusin" | "focusout" | "blur", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackFocus):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"beforeunload"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"beforeunload", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackBeforeUnload):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"cut" | "copy" | "paste"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackClipboard} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"cut" | "copy" | "paste", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackClipboard):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {"storage"} event - Event name without the 'on' prefix.
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackStorage} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:"storage", options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackStorage):void;
-		/**
-		* Registers handler for specified event on given DOMElement and returns Event ID.
-		* @function Add
-		* @param {HTMLElement} element - DOM element on to which event handler is registered.
-		* @param {"#rooted"} event - Event name.
-		* @param {{ Id?: string }} options - This argument is ignored for the specialized #rooted event.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackRooted} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:HTMLElement, event:"#rooted", options:{ Id?: string }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackRooted):void;
-		/**
-		* Registers handler for specified event on given DOMElement and returns Event ID.
-		* @function Add
-		* @param {HTMLElement} element - DOM element on to which event handler is registered.
-		* @param {"#mutation"} event - Event name.
-		* @param {{ Id?: String, Deep?: boolean }} options - This argument is ignored for the specialized #rooted event.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackRooted} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:HTMLElement, event:"#mutation", options:{ Id?: __fitUiAliasString, Deep?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackRooted):void;
-		/**
-		* Registers event handler for specified event on given EventTarget.
-		* @function Add
-		* @param {EventTarget} element - EventTarget (e.g. Window or DOMElement) on to which event handler is registered.
-		* @param {string} event - Event name without 'on' prefix (e.g. 'load', 'mouseover', 'click' etc.).
-		* @param {{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }} options - Set additional options - not guaranteed to be cross browser compatible!.
-		* @param {Fit.EventsTypeDefs.EventHandlerCallbackGeneric} eventFunction - JavaScript function to register.
-		*/
-		public Add(element:EventTarget, event:string, options:{ Id?: string, Capture?: boolean, Once?: boolean, Passive?: boolean }, eventFunction:Fit.EventsTypeDefs.EventHandlerCallbackGeneric):void;
-		/**
-		* Create instance of EventManager.
-		* @function EventManager
-		*/
-		constructor();
-		/**
-		* Move event handler by event ID to another DOMElement.
-		* @function Move
-		* @param {number} id - Event ID identifying handler to move.
-		* @param {HTMLElement} newElm - DOM element to which event handler is moved.
-		*/
-		public Move(id:number, newElm:HTMLElement):void;
-		/**
-		* Invoke event handler by event ID.
-		* @function Move
-		* @param {number} id - Event ID identifying handler to invoke.
-		* @param {any[]} [args=undefined] - Event handler arguments.
-		* @param {any} [thisArg=undefined] - The value 'this' resolves to within event handler.
-		*/
-		public Move(id:number, args?:any[], thisArg?:any):void;
-		/**
-		* Removes event handler by event ID.
-		* @function Remove
-		* @param {number} id - Event ID identifying handler to remove.
-		*/
-		public Remove(id:number):void;
-		/**
-		* Remove all event handlers registered.
-		* @function RemoveAll
-		*/
-		public RemoveAll():void;
 	}
 	/**
 	* Event handler functionality.
@@ -12367,13 +12141,6 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.DragDrop.Draggable
 			/**
-			* Get next z-index which will place an element above any draggable element.
-			* @function GetNextZindex
-			* @static
-			* @returns number
-			*/
-			public static GetNextZindex():number;
-			/**
 			* Bring draggable to front.
 			* @function BringToFront
 			*/
@@ -12434,6 +12201,13 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public ReturnFocus(val?:boolean):boolean;
+			/**
+			* Get next z-index which will place an element above any draggable element.
+			* @function GetNextZindex
+			* @static
+			* @returns number
+			*/
+			public static GetNextZindex():number;
 		}
 		/**
 		* 
