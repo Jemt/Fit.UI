@@ -386,7 +386,7 @@ Fit.Events.RemoveHandler = function()
 		var handler = ((element._internal && element._internal.Events && element._internal.Events.Handlers) ? element._internal.Events.Handlers[arguments[1]] : undefined);
 
 		if (handler === undefined)
-			Fit.Validation.Throw("No event handler with ID '" + arguments[0] + "' exists for this element");
+			Fit.Validation.ThrowError("No event handler with ID '" + arguments[1] + "' exists for this element");
 
 		if (handler === null)
 			return; // Already removed
@@ -1150,7 +1150,7 @@ Fit._internal.Events.CheckMutations = function()
 			// Re-throw error if observer failed
 
 			if (error !== null)
-				Fit.Validation.Throw(error);
+				Fit.Validation.ThrowError(error);
 		}
 	});
 
