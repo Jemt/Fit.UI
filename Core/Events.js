@@ -386,7 +386,7 @@ Fit.Events.RemoveHandler = function()
 		var handler = ((element._internal && element._internal.Events && element._internal.Events.Handlers) ? element._internal.Events.Handlers[arguments[1]] : undefined);
 
 		if (handler === undefined)
-			Fit.Validation.ThrowError("No event handler with ID '" + arguments[1] + "' exists for this element");
+			return; // Not found
 
 		if (handler === null)
 			return; // Already removed
@@ -416,6 +416,8 @@ Fit.Events.RemoveHandler = function()
 	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Once || true);
 	Fit.Validation.ExpectBoolean(useCaptureOrOptions && useCaptureOrOptions.Passive || true);
 	Fit.Validation.ExpectFunction(eventFunction);
+
+	// Remove event handler
 
 	if (event.toLowerCase() === "#rooted")
 	{
@@ -476,20 +478,28 @@ Fit.Events.RemoveHandler = function()
 		element.detachEvent("on" + event, eventFunction);
 	}
 
-	if (arguments.length === 2)
-	{
-		element._internal.Events.Handlers[arguments[1]] = null;
-	}
-	else
-	{
-		for (var i = 0 ; i < element._internal.Events.Handlers.length ; i++)
-		{
-			var handler = element._internal.Events.Handlers[i];
+	// Remove event handler information from element
 
-			if (handler !== null && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && Fit.Core.IsEqual(useCaptureOrOptions, handler.UseCaptureOrOptions) === true)
+	if (element._internal) // Missing if disposed through Component.Dispose() which removes the _internal property - nothing to clean up in this case
+	{
+		if (element._internal.Events) // Only defined if an event has been registered through Fit.Events.AddHandler(..)
+		{
+			if (arguments.length === 2)
 			{
-				element._internal.Events.Handlers[i] = null;
-				break;
+				element._internal.Events.Handlers[arguments[1]] = null;
+			}
+			else
+			{
+				for (var i = 0 ; i < element._internal.Events.Handlers.length ; i++)
+				{
+					var handler = element._internal.Events.Handlers[i];
+
+					if (handler !== null && event.toLowerCase() === handler.Event.toLowerCase() && eventFunction === handler.Handler && Fit.Core.IsEqual(useCaptureOrOptions, handler.UseCaptureOrOptions) === true)
+					{
+						element._internal.Events.Handlers[i] = null;
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -694,7 +704,7 @@ setInterval(function()
 
 	Fit.Array.ForEach(Fit._internal.Events.OnRootedHandlers, function(handler)
 	{
-		if (handler.Removed === true)
+		if (handler.Removed === true || handler.Element._internal === undefined) // Removed through RemoveHandler(..), or disposed through Component.Dispose() which removes the _internal property
 		{
 			Fit.Array.Add(remove, handler);
 			return; // Skip to next
