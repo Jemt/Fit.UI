@@ -77,6 +77,7 @@ div.fitui-datepicker
 {
 	margin-top: 1px;
 	z-index: 1300 !important; /* Using !important to override inline style */
+	box-shadow: 0px 0px 0.75em #D8D8D8;
 }
 
 /* Fluent UI compatibility */
@@ -98,12 +99,68 @@ div.fitui-datepicker-header
 	border: none;
 	border-bottom: 1px solid #E4E4E4;
 	border-radius: 0px;
-	background-color: #EAEAEA;
+	background-color: #F8F4F4;
+}
+
+div.fitui-datepicker-header a.fitui-datepicker-prev, /* Links in which arrow icons are found */
+div.fitui-datepicker-header a.fitui-datepicker-next
+{
+	top: 0.175em;
+}
+div.fitui-datepicker-header a.fitui-datepicker-prev
+{
+	border: 1px solid transparent;
+	left: 0.21em;
+}
+div.fitui-datepicker-header a.fitui-datepicker-prev-hover
+{
+	border-color: #D5D5D5;
+}
+div.fitui-datepicker-header a.fitui-datepicker-next
+{
+	border: 1px solid transparent;
+	right: 0.21em;
+}
+div.fitui-datepicker-header a.fitui-datepicker-next-hover
+{
+	border-color: #D5D5D5;
+}
+
+div.fitui-datepicker-header span.fitui-icon /* Arrow icons in header links */
+{
+	width: 100%;
+	height: 100%;
+	top: 50%;
+	transform: translateY(-50%);
+	left: 0;
+	margin-top: 0;
+	margin-left: 0;
+}
+div.fitui-datepicker-header span.fitui-icon.fitui-icon-circle-triangle-w, /* Left-side arrow icon */
+div.fitui-datepicker-header span.fitui-icon.fitui-icon-circle-triangle-e  /* Right-side arrow icon */
+{
+	background: none; /* Remove image icon */
+}
+div.fitui-datepicker-header span.fitui-icon.fitui-icon-circle-triangle-w:before, /* New font based left-side arrow icon */
+div.fitui-datepicker-header span.fitui-icon.fitui-icon-circle-triangle-e:before  /* New font based right-side arrow icon */
+{
+	font-family: "FontAwesome";
+	content: "\f053"; /* chevron left */
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: #333333;
+	text-indent: 0;
+}
+div.fitui-datepicker-header span.fitui-icon.fitui-icon-circle-triangle-e:before /* New font based right-side arrow icon */
+{
+	content: "\f054"; /* chevron right */
 }
 
 div.fitui-datepicker div.fitui-datepicker-title select /* Year/month pickers */
 {
-	margin: 1px;
+	margin: 0.2em;
 	padding: 0.05em 0.3em;
 	border: 1px solid #CECECE;
 
@@ -112,6 +169,7 @@ div.fitui-datepicker div.fitui-datepicker-title select /* Year/month pickers */
 	-webkit-appearance: none;
 	appearance: none;
 	border-radius: 2px;
+	background-color: white;
 }
 div.fitui-datepicker div.fitui-datepicker-title select::-ms-expand /* IE10+ */
 {
@@ -120,25 +178,26 @@ div.fitui-datepicker div.fitui-datepicker-title select::-ms-expand /* IE10+ */
 
 div.fitui-widget-content a.fitui-state-default /* Day cells */
 {
-	border-color: #E4E4E4;
+	border-color: transparent;
 	background: none;
+	padding: 0.5em;
 }
 div.fitui-widget-content a.fitui-state-default:hover
 {
 	background: #E6E6E6;
 }
 
-div.fitui-widget-content a.fitui-state-active /* Selected day */
-{
-	background: none;
-	color: #454545;
-	border-color: #E68383;
-}
-
 div.fitui-widget-content a.fitui-state-highlight /* Current day */
 {
 	color: #454545;
-	background-color: #D6EBFF;
+	background-color: #EDEDED;
+}
+
+div.fitui-widget-content a.fitui-state-active /* Selected day */
+{
+	background: #D2E8FF;
+	color: #454545;
+	border-color: #83BBE8;
 }
 
 /* Mobile */

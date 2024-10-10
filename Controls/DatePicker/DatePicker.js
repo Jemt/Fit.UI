@@ -1214,6 +1214,8 @@ Fit.Controls.DatePicker = function(ctlId)
 					datepicker.datepicker("option", "dateFormat", getJqueryUiDatePickerFormat(me.Format()));
 					datepicker.datepicker("option", "showWeek", weeks);
 					datepicker.datepicker("option", "yearRange", datePickerYears);
+					datepicker.datepicker("option", "showOtherMonths", true);
+					datepicker.datepicker("option", "selectOtherMonths", true);
 				}
 
 				if (me.Value() === "" && datepickerDate !== null) // Apply initial year and month selection
