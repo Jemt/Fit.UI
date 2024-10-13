@@ -91,6 +91,7 @@ html[data-fitui-companion="fluent-ui"] div.fitui-datepicker
 td.fitui-datepicker-week-col
 {
 	font-weight: bold;
+	text-align: center;
 }
 
 div.fitui-datepicker-header
@@ -112,6 +113,11 @@ div.fitui-datepicker-header a.fitui-datepicker-prev
 	border: 1px solid transparent;
 	left: 0.21em;
 }
+div.fitui-datepicker-rtl div.fitui-datepicker-header a.fitui-datepicker-prev /* Buttons are flipped - previous button in right side of calendar widget */
+{
+	left: auto;
+	right: 0.21em;
+}
 div.fitui-datepicker-header a.fitui-datepicker-prev-hover
 {
 	border-color: #D5D5D5;
@@ -120,6 +126,11 @@ div.fitui-datepicker-header a.fitui-datepicker-next
 {
 	border: 1px solid transparent;
 	right: 0.21em;
+}
+div.fitui-datepicker-rtl div.fitui-datepicker-header a.fitui-datepicker-next /* Buttons are flipped - next button in left side of calendar widget */
+{
+	right: auto;
+	left: 0.21em;
 }
 div.fitui-datepicker-header a.fitui-datepicker-next-hover
 {
