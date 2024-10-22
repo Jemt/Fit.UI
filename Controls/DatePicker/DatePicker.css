@@ -32,6 +32,22 @@ div.FitUiControlDatePicker input[type="text"]::-ms-clear
 	display: none;
 }
 
+/* Position trigger icon */
+div.FitUiControlDatePicker span
+{
+	position: absolute;
+	right: 0em;
+	top: 50%;
+	transform: translateY(-50%);
+	cursor: pointer;
+	padding: 0.5em;
+}
+div.FitUiControlDatePicker[data-time="true"] span
+{
+	right: auto;
+	left: 6em;
+}
+
 /* Date picker with Time picker */
 div.FitUiControlDatePicker[data-time="true"] input[type="text"]
 {
@@ -75,6 +91,7 @@ div.fitui-datepicker select:focus
 
 div.fitui-datepicker
 {
+	width: 18em;
 	margin-top: 1px;
 	z-index: 1300 !important; /* Using !important to override inline style */
 	box-shadow: 0px 0px 0.75em #D8D8D8;
@@ -181,6 +198,7 @@ div.fitui-datepicker div.fitui-datepicker-title select /* Year/month pickers */
 	appearance: none;
 	border-radius: 2px;
 	background-color: white;
+	color: #333333;
 }
 div.fitui-datepicker div.fitui-datepicker-title select::-ms-expand /* IE10+ */
 {
@@ -209,6 +227,30 @@ div.fitui-widget-content a.fitui-state-active /* Selected day */
 	background: #D2E8FF;
 	color: #454545;
 	border-color: #83BBE8;
+}
+
+/* Support for week selection */
+
+div.fitui-datepicker[data-select-week="true"] tbody tr:hover /* Highlight rows when hovered */
+{
+	background: #E4E4E4;
+}
+div.fitui-datepicker[data-select-week="true"] tbody td a:hover /* Disable highlighting when hovering day cells */
+{
+	background: none;
+}
+div.fitui-datepicker[data-select-week="true"] tbody tr:has(a.fitui-state-active) /* Highlight row that contains (has) selected day */
+{
+	background: #D2E8FF;
+}
+div.fitui-datepicker[data-select-week="true"] tbody tr:has(a.fitui-state-active) a.fitui-state-highlight /* Change highlight color of current day if contained in selected week */
+{
+	background: #B3D8FF;
+}
+div.fitui-datepicker[data-select-week="true"] tbody a.fitui-state-active /* Disable highlighting for selected day (sunday, monday, or saturday, depending on locale) */
+{
+	background: none;
+	border-color: transparent;
 }
 
 /* Mobile */

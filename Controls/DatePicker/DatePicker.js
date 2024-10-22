@@ -16,6 +16,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	var me = this;
 	var input = null;							// Input field for date
 	var inputTime = null;						// Input field for time (Null if not enabled)
+	var icon = null;							// Calendar icon which opens calendar widget without focusing input (which brings up virtual keyboard on touch devices)
 	var orgVal = null;							// Date object containing control value set using Value(..) or Date(..) - used to determine Dirty state (holds both date and time portion)
 	var preVal = "";							// Previous valid date value as string (without time portion)
 	var prevTimeVal = "";						// Previous valid time value as string (without date portion)
@@ -32,6 +33,8 @@ Fit.Controls.DatePicker = function(ctlId)
 	var datePickerYears = "c-10:c+10";			// Calendar widget's year range (from current year, going 10 years back and 10 years forward)
 	var datepickerDate = null;					// Which date to display in the calendar widget when no date is selected - null or Date
 	var startDate = null;						// Which year/month to display in calendar widget if view needs to be restored (related to restoreView variable)
+	var selectWeek = false;						// Whether to select an entire week when a day is selected
+	var middleOfWeek = null;					// Wednesday in selected week when selectWeek is enabled - used to select correct week when changing locale
 	var open = false;							// Whether calendar widget is currently open
 	var focused = false;						// Whether control is currently focused
 	var restoreView = false;					// Whether to keep calendar widget on given year/month when temporarily closing and opening it again
@@ -40,7 +43,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	var detectBoundariesRelToViewPort = false;	// Flag indicating whether calendar widget should be positioned relative to viewport (true) or scroll parent (false)
 
 	//var isMobile = Fit.Browser.GetInfo().IsMobile || (Fit.Browser.GetInfo().IsTouchEnabled && Fit.Browser.GetInfo().Name === "Safari"); // More recent versions of Safari on iPad identifies as a Mac computer by default ("Request desktop website" is enabled by default)
-	var isMobile = Fit.Device.OptimizeForTouch;
+	var isMobile = Fit.Device.OptimizeForTouch === true && Fit._internal.Controls.DatePicker.UseNativePickerOnTouch === true;
 	var inputMobile = null;		// Native date picker on mobile devices - value selected is synchronized to input field defined above (remains Null on desktop devices)
 	var inputTimeMobile = null;	// Native time picker on mobile devices - value selected is synchronized to inputTime field defined above (remains Null on desktop devices)
 
@@ -56,6 +59,12 @@ Fit.Controls.DatePicker = function(ctlId)
 		input.spellcheck = false;
 		input.placeholder = getDatePlaceholder();
 		input.tabIndex = ((isMobile === true) ? -1 : 0);
+
+		// Prevent jQuery UI from focusing input field when calendar is opened (brings up virtual keyboard on touch devices).
+		// https://github.com/Jemt/Fit.UI/blob/5e8f2183d75ae17ddb8086ebbe39025a7a7c98bb/Resources/JqueryUI-1.11.4.custom/jquery-ui.js#L1090
+		// => https://github.com/Jemt/Fit.UI/blob/5e8f2183d75ae17ddb8086ebbe39025a7a7c98bb/Resources/JqueryUI-1.11.4.custom/external/jquery/jquery.js#L5268
+		input._focus = input.focus;
+		input.focus = function() { console.debug("focus() disabled for this input field"); };
 
 		input.onkeydown = function(e)
 		{
@@ -77,6 +86,16 @@ Fit.Controls.DatePicker = function(ctlId)
 
 			if (input.value !== "" && curDateTime === null)
 				return; // Invalid value
+
+			if (selectWeek === true)
+			{
+				middleOfWeek = getMiddleOfWeek(curDateTime);
+
+				if (selectFirstDayOfWeek() === true) // Returns true if date was changed and OnChange was fired - will not change if date selected is start of week or within currently selected week
+				{
+					return; // OnChange fired from selectFirstDayOfWeek() above
+				}
+			}
 
 			var curDateStr = ((curDateTime !== null) ? Fit.Date.Format(curDateTime, me.Format()) : ""); // Not using Value() which includes time if enabled
 
@@ -131,7 +150,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		input.onclick = function()
 		{
-			me.Show();
+			// Open calendar widget when input is clicked on Desktop, or if TriggerIcon is disabled
+			if (Fit.Device.OptimizeForTouch === false || me.TriggerIcon() === false)
+			{
+				me.Show();
+			}
 		}
 
 		// Prevent OnFocus from firing when user interacts with calendar widget which
@@ -218,6 +241,20 @@ Fit.Controls.DatePicker = function(ctlId)
 		me._internal.AddDomElement(input);
 		me.AddCssClass("FitUiControlDatePicker");
 
+		icon = document.createElement("span");
+		icon.className = "fa fa-calendar";
+		icon.tabIndex = -1;
+		icon.onclick = function(e)
+		{
+			me.Show();
+
+			if (me.TriggerIcon() === false) // Focus input if icon is hidden
+			{
+				input._focus();
+			}
+		}
+		me._internal.AddDomElement(icon);
+
 		me._internal.Data("weeks", "false");
 		me._internal.Data("time", "false");
 
@@ -237,7 +274,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 			me.OnChange(function(sender)
 			{
-				if (me.Value() === "") // Value reset
+				if (me.Value() === "" && datepickerDate !== null) // Value reset
 				{
 					selectDateInMobileDatePicker(datepickerDate);
 				}
@@ -279,7 +316,14 @@ Fit.Controls.DatePicker = function(ctlId)
 		{
 			if (focus === true && me.Focused() === false)
 			{
-				((inputMobile === null) ? input : inputMobile).focus();
+				if (inputMobile === null)
+				{
+					input._focus();
+				}
+				else
+				{
+					inputMobile.focus();
+				}
 			}
 			else if (focus === false && me.Focused() === true)
 			{
@@ -372,6 +416,19 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
+			if (selectWeek === true && val !== "")
+			{
+				// Move date to start of week
+
+				var curDate = getDateFromString(val + (val.indexOf(":") === -1 ? " 00:00" : ""), inputTime !== null); // Returns null if val is empty or invalid
+				var startOfWeek = curDate && getStartOfWeek(curDate);
+
+				if (curDate !== null && curDate.getTime() !== startOfWeek.getTime())
+				{
+					val = Fit.Date.Format(startOfWeek, "YYYY-MM-DD" + (inputTime !== null ? " hh:mm" : ""));
+				}
+			}
+
 			var fireOnChange = (me.Value() !== val);
 			var wasOpen = open;
 
@@ -409,6 +466,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				if (inputTimeMobile !== null)
 					inputTimeMobile.value = inputTime.value;
+
+				if (selectWeek === true)
+				{
+					middleOfWeek = getMiddleOfWeek(date);
+				}
 			}
 			else
 			{
@@ -431,6 +493,11 @@ Fit.Controls.DatePicker = function(ctlId)
 
 				if (inputTimeMobile !== null)
 					inputTimeMobile.value = "";
+
+				if (selectWeek === true)
+				{
+					middleOfWeek = null;
+				}
 			}
 
 			if (wasOpen === true)
@@ -562,7 +629,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = input = inputTime = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = placeholderDate = placeholderTime = weeks = jquery = datepicker = datepickerElm = startDate = open = focused = restoreView = updateCalConf = detectBoundaries = detectBoundariesRelToViewPort = isMobile = inputMobile = inputTimeMobile = null;
+		me = input = inputTime = icon = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = placeholderDate = placeholderTime = weeks = jquery = datepicker = datepickerElm = startDate = selectWeek = middleOfWeek = open = focused = restoreView = updateCalConf = detectBoundaries = detectBoundariesRelToViewPort = isMobile = inputMobile = inputTimeMobile = null;
 		base();
 	});
 
@@ -587,7 +654,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		if (val !== undefined) // Allow Null
 		{
 			if (val !== null)
-				me.Value(val.getFullYear() + "-" + (val.getMonth() + 1) + "-" + val.getDate() + " " + val.getHours() + ":" + val.getMinutes());
+				me.Value(Fit.Date.Format(val, "YYYY-MM-DD hh:mm"));
 			else
 				me.Clear();
 		}
@@ -595,30 +662,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		// Get current value
 
 		var value = me.Value();
-		var date = null;
-
-		if (value !== "")
-		{
-			try
-			{
-				date = Fit.Date.Parse(value, "YYYY-MM-DD" + ((inputTime !== null) ? " hh:mm" : ""));
-			}
-			catch (err)
-			{
-			}
-		}
-
-		if (date !== null)
-		{
-			if (inputTime === null)
-			{
-				date.setHours(0);
-				date.setMinutes(0);
-			}
-
-			date.setSeconds(0);
-			date.setMilliseconds(0);
-		}
+		var date = getDateFromString(value, inputTime !== null);
 
 		return date;
 	}
@@ -654,6 +698,11 @@ Fit.Controls.DatePicker = function(ctlId)
 		{
 			localeEnforced = true;
 			setLocale(val);
+
+			if (selectWeek === true)
+			{
+				selectFirstDayOfWeek(middleOfWeek);
+			}
 		}
 
 		return locale;
@@ -729,6 +778,66 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 
 		return placeholderTime;
+	}
+
+	/// <function container="Fit.Controls.DatePicker" name="TriggerIcon" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether a DatePicker trigger icon is shown </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables trigger icon (default), False disables it </param>
+	/// </function>
+	this.TriggerIcon = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			// Using opacity to hide icon as this allows us to still focus it on touch devices,
+			// rather than focusing the input field, which will bring up the virtual keyboard.
+			icon.style.opacity = val === false ? "0" : "";
+		}
+
+		return icon.style.opacity === "";
+	}
+
+	/// <function container="Fit.Controls.DatePicker" name="SelectWeek" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether an entire week is selected, in which case the first day of the week is returned as control value </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True enables week selection, False disables it (default) </param>
+	/// </function>
+	this.SelectWeek = function(val)
+	{
+		Fit.Validation.ExpectBoolean(val, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val !== selectWeek)
+			{
+				var wasOpen = open;
+
+				// data-select-week attribute is added or removed when shared picker is opened,
+				// so we need to close it and reopen it, for change to take effect - see Show().
+
+				if (wasOpen === true)
+				{
+					restoreView = true;
+					me.Hide();
+				}
+
+				middleOfWeek = val === true ? getMiddleOfWeek(me.Date()) : null;
+				selectWeek = val;
+
+				if (val === true)
+				{
+					selectFirstDayOfWeek();
+				}
+
+				if (wasOpen === true)
+				{
+					me.Show();
+					restoreView = false;
+				}
+			}
+		}
+
+		return selectWeek;
 	}
 
 	this.WeekNumbers = function(val) // Not supported on mobile, and jQuery calendar is buggy: https://bugs.jqueryui.com/ticket/14907
@@ -1008,6 +1117,8 @@ Fit.Controls.DatePicker = function(ctlId)
 					// by detecting the presence of a data-disable-light-dismiss="true" attribute.
 					Fit.Dom.Data(calendarWidget, "disable-light-dismiss", "true");
 
+					Fit.Dom.Data(calendarWidget, "select-week", selectWeek ? "true" : "false");
+
 					moveCalenderWidgetLocally();
 
 					if (focused === inputTime)
@@ -1019,6 +1130,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		{
 			if (inputMobile.showPicker !== undefined) // Chrome 99+, Safari 16+, Firefox 101+, Edge 99+
 			{
+				inputMobile.focus(); // This is what opens the picker in Safari on touch devices
 				inputMobile.showPicker();
 			}
 			else // This will bring up calendar widget in older browsers on mobile devices - doesn't work on desktop browsers running on hybrid computers (laptops with a touch screen)
@@ -1125,6 +1237,39 @@ Fit.Controls.DatePicker = function(ctlId)
 		}
 	}
 
+	function getDateFromString(value, includeTime) // E.g. "2024-10-19" or "2024-10-19 16:38"
+	{
+		Fit.Validation.ExpectString(value);
+		Fit.Validation.ExpectBoolean(includeTime);
+
+		var date = null;
+
+		if (value !== "")
+		{
+			try
+			{
+				date = Fit.Date.Parse(value, "YYYY-MM-DD" + (value.indexOf(":") !== -1 ? " hh:mm" : ""));
+			}
+			catch (err)
+			{
+			}
+		}
+
+		if (date !== null)
+		{
+			if (includeTime === false)
+			{
+				date.setHours(0);
+				date.setMinutes(0);
+			}
+
+			date.setSeconds(0);
+			date.setMilliseconds(0);
+		}
+
+		return date;
+	}
+
 	function createDatePicker()
 	{
 		var jq = jquery;
@@ -1135,8 +1280,8 @@ Fit.Controls.DatePicker = function(ctlId)
 			showAnim: false,
 			showWeek: weeks, // Buggy - does not work if week starts on sunday: https://bugs.jqueryui.com/ticket/14907
 			//firstDay: 1,
-			changeMonth: true,
-			changeYear: true,
+			changeMonth: navigator.platform.toLowerCase().indexOf("iphone") === -1 ? true : false,	// We are unable to retain focus on iPhone due to this bug: https://bugs.webkit.org/show_bug.cgi?id=281525 - focus is always returned to <body> when a select value is changed
+			changeYear: navigator.platform.toLowerCase().indexOf("iphone") === -1 ? true : false,	// We are unable to retain focus on iPhone due to this bug: https://bugs.webkit.org/show_bug.cgi?id=281525 - focus is always returned to <body> when a select value is changed
 			dateFormat: getJqueryUiDatePickerFormat(me.Format()),
 			defaultDate: null,
 			onChangeMonthYear: function(year, month, dp) // Fires when changing year/month but also when simply opening calendar widget
@@ -1145,7 +1290,14 @@ Fit.Controls.DatePicker = function(ctlId)
 				// widget, which causes its DOM to be removed and replaced.
 				// Focus is later returned to DatePicker, but not in time for
 				// OnFocusOut. Related issue: https://github.com/Jemt/Fit.UI/issues/194
-				input.focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused.
+				if (Fit.Device.OptimizeForTouch === true && me.TriggerIcon() === true)
+				{
+					icon.focus(); // Focusing icon to prevent virtual keyboard from being shown on touch devices
+				}
+				else
+				{
+					input._focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused
+				}
 
 				if (open === true) // Remember which year and month the user navigated to
 				{
@@ -1162,7 +1314,16 @@ Fit.Controls.DatePicker = function(ctlId)
 			onSelect: function(dateText, dp) // Notice: jQuery UI DatePicker no longer fires input.OnChange when OnSelect is registered
 			{
 				startDate = null;
-				input.focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused
+
+				if (Fit.Device.OptimizeForTouch === true && me.TriggerIcon() === true)
+				{
+					icon.focus(); // Focusing icon to prevent virtual keyboard from being shown on touch devices
+				}
+				else
+				{
+					input._focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused
+				}
+
 				input.onchange();
 			},
 			beforeShow: function(elm, dp)
@@ -1259,7 +1420,9 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					me._internal.ExecuteWithNoOnChange(function()
 					{
-						me.Value(val);
+						var middleOfWeekBefore = middleOfWeek;
+						me.Value(val); // Changes middleOfWeek (restored below)
+						middleOfWeek = middleOfWeekBefore;
 					});
 				}
 			},
@@ -1284,7 +1447,7 @@ Fit.Controls.DatePicker = function(ctlId)
 				// with something else on the page.
 				// If the user decides to return focus to the control, it will not cause OnFocus to fire again,
 				// without firing OnBlur in-between, thanks to the 'focused' flag.
-				if (focused === true && Fit.Dom.GetFocused() !== input)
+				if (focused === true && Fit.Dom.GetFocused() !== input && Fit.Dom.GetFocused() !== icon)
 				{
 					me._internal.FireOnBlur();
 				}
@@ -1438,7 +1601,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		if (focusFix)
 		{
-			input.focus();
+			input._focus();
 		}
 
 		inputMobile.valueAsDate = date;
@@ -1447,6 +1610,145 @@ Fit.Controls.DatePicker = function(ctlId)
 		{
 			inputMobile.focus();
 		}
+	}
+
+	function getMiddleOfWeek(date)
+	{
+		Fit.Validation.ExpectDate(date, true);
+
+		if (!date)
+		{
+			return null;
+		}
+
+		var firstDay = getJqueryDateFormatFromLocale(locale).firstDay; // 0 = sunday, 1 = monday
+		var day = date.getDay(); // 0 = sunday, ... 6 = saturday
+
+		if (firstDay === 0) // Sunday is start of week
+		{
+			// S M T W T F S
+			// 0 1 2 3 4 5 6
+			//       ^
+			var daysFromWednesday = 3 - day; // 3 = wednesday
+
+			var middle = new Date(date.getTime());
+			middle.setDate(date.getDate() + daysFromWednesday);
+			return middle;
+		}
+		else if (firstDay === 1) // Monday is start of week
+		{
+			// Adjust day so it matches a calendar going from monday to sunday
+			// M T W T F S S
+			// 0 1 2 3 4 5 6
+			//     ^
+			day = day === 0 ? 6 : day - 1;		// 0 = monday, 6 = sunday
+			var daysFromWednesday = 2 - day;	// 2 = wednesday
+
+			var middle = new Date(date.getTime());
+			middle.setDate(date.getDate() + daysFromWednesday);
+			return middle;
+		}
+		else if (firstDay === 6) // Saturday is start of week (locale "fa" (Persian), ar-DZ (Arabic - Algeria))
+		{
+			// Adjust day so it matches a calendar going from saturday to friday
+			// S S M T W T F
+			// 0 1 2 3 4 5 6
+			//         ^
+			day = day === 0 ? 1 : day === 6 ? 0 : day + 1;	// 0 = saturday, 6 = friday
+			var daysFromWednesday = 4 - day;				// 4 = wednesday
+
+			var middle = new Date(date.getTime());
+			middle.setDate(date.getDate() + daysFromWednesday);
+			return middle;
+		}
+
+		throw "Unable to determine middle of week - locale with unsupported calendar"; // This should never happen
+	}
+
+	function getStartOfWeek(date)
+	{
+		Fit.Validation.ExpectDate(date);
+
+		var firstDay = getJqueryDateFormatFromLocale(locale).firstDay;
+
+		if (date.getDay() !== firstDay)
+		{
+			var selectedDay = date.getDay(); // 0 = sunday, ... 6 = saturday
+			var daysFromWeekStart = -1;
+
+			if (firstDay === 0) // Sunday is start of week
+			{
+				// S M T W T F S
+				// 0 1 2 3 4 5 6
+				daysFromWeekStart = selectedDay;
+			}
+			else if (firstDay === 1) // Monday is start of week
+			{
+				// M T W T F S S
+				// 1 2 3 4 5 6 0
+				daysFromWeekStart = date.getDay() === 0 ? 6 : date.getDay() - 1;
+			}
+			else if (firstDay === 6) // Saturday is start of week (locale "fa" (Persian), ar-DZ (Arabic - Algeria))
+			{
+				// S S M T W T F
+				// 6 0 1 2 3 4 5
+				daysFromWeekStart = date.getDay() === 6 ? 0 : date.getDay() + 1;
+			}
+
+			if (daysFromWeekStart === -1)
+			{
+				throw "Unable to determine number of days from week start - locale with unsupported calendar"; // This should never happen
+			}
+
+			var weekStart = new Date(date.getTime() - (daysFromWeekStart * (24 * 60 * 60 * 1000)));
+
+			// Prevent adjustment for summer/winter time - keep (restore) time
+			weekStart.setHours(date.getHours());
+			weekStart.setMinutes(date.getMinutes());
+
+			return weekStart;
+		}
+		else
+		{
+			return new Date(date.getTime()); // Return new instance like code above
+		}
+	}
+
+	function selectFirstDayOfWeek(forceDate)
+	{
+		Fit.Validation.ExpectDate(forceDate, true);
+
+		var curDateTime = forceDate || me.Date();
+		var startOfWeek = curDateTime && getStartOfWeek(curDateTime);
+
+		if (curDateTime !== null && curDateTime.getTime() !== startOfWeek.getTime())
+		{
+			var selectWeekStart = function()
+			{
+				var middleOfWeekBefore = middleOfWeek;
+				me.Date(startOfWeek); // Changes middleOfWeek (restored below) - also fires OnChange
+				middleOfWeek = middleOfWeekBefore;
+			};
+
+			if (Fit.Date.Format(startOfWeek, me.Format()) === preVal)
+			{
+				// New date is the same as the one previously selected, meaning user selected a day in the week already
+				// selected, resulting in start of week being selected again - OnChange should not fire in this case.
+				me._internal.ExecuteWithNoOnChange(function()
+				{
+					selectWeekStart();
+				});
+			}
+			else
+			{
+				// A new start of week selected - OnChange must fire
+				selectWeekStart();
+			}
+
+			return true; // Indicate that value was changed
+		}
+
+		return false; // Indicate that no change was made
 	}
 
 	function getLocales()
@@ -1474,7 +1776,8 @@ Fit.Controls.DatePicker = function(ctlId)
 		//    # });
 		// 4) Insert JSON written to console into variable below.
 
-		return {"":"mm/dd/yy","en":"mm/dd/yy","en-US":"mm/dd/yy","da":"dd-mm-yy","af":"dd/mm/yy","ar-DZ":"dd/mm/yy","ar":"dd/mm/yy","az":"dd.mm.yy","be":"dd.mm.yy","bg":"dd.mm.yy","bs":"dd.mm.yy","ca":"dd/mm/yy","cs":"dd.mm.yy","cy-GB":"dd/mm/yy","de":"dd.mm.yy","el":"dd/mm/yy","en-AU":"dd/mm/yy","en-GB":"dd/mm/yy","en-NZ":"dd/mm/yy","eo":"dd/mm/yy","es":"dd/mm/yy","et":"dd.mm.yy","eu":"yy-mm-dd","fa":"yy/mm/dd","fi":"d.m.yy","fo":"dd-mm-yy","fr-CA":"yy-mm-dd","fr-CH":"dd.mm.yy","fr":"dd/mm/yy","gl":"dd/mm/yy","he":"dd/mm/yy","hi":"dd/mm/yy","hr":"dd.mm.yy.","hu":"yy.mm.dd.","hy":"dd.mm.yy","id":"dd/mm/yy","is":"dd.mm.yy","it-CH":"dd.mm.yy","it":"dd/mm/yy","ja":"yy/mm/dd","ka":"dd-mm-yy","kk":"dd.mm.yy","km":"dd-mm-yy","ko":"yy. m. d.","ky":"dd.mm.yy","lb":"dd.mm.yy","lt":"yy-mm-dd","lv":"dd.mm.yy","mk":"dd.mm.yy","ml":"dd/mm/yy","ms":"dd/mm/yy","nb":"dd.mm.yy","nl-BE":"dd/mm/yy","nl":"dd-mm-yy","nn":"dd.mm.yy","no":"dd.mm.yy","pl":"dd.mm.yy","pt-BR":"dd/mm/yy","pt":"dd/mm/yy","rm":"dd/mm/yy","ro":"dd.mm.yy","ru":"dd.mm.yy","sk":"dd.mm.yy","sl":"dd.mm.yy","sq":"dd.mm.yy","sr":"dd.mm.yy","sr-SR":"dd.mm.yy","sv":"yy-mm-dd","ta":"dd/mm/yy","th":"dd/mm/yy","tj":"dd.mm.yy","tr":"dd.mm.yy","uk":"dd.mm.yy","vi":"dd/mm/yy","zh-CN":"yy-mm-dd","zh-HK":"dd-mm-yy","zh-TW":"yy/mm/dd"};
+		//return {"":"mm/dd/yy","en":"mm/dd/yy","en-US":"mm/dd/yy","da":"dd-mm-yy","af":"dd/mm/yy","ar-DZ":"dd/mm/yy","ar":"dd/mm/yy","az":"dd.mm.yy","be":"dd.mm.yy","bg":"dd.mm.yy","bs":"dd.mm.yy","ca":"dd/mm/yy","cs":"dd.mm.yy","cy-GB":"dd/mm/yy","de":"dd.mm.yy","el":"dd/mm/yy","en-AU":"dd/mm/yy","en-GB":"dd/mm/yy","en-NZ":"dd/mm/yy","eo":"dd/mm/yy","es":"dd/mm/yy","et":"dd.mm.yy","eu":"yy-mm-dd","fa":"yy/mm/dd","fi":"d.m.yy","fo":"dd-mm-yy","fr-CA":"yy-mm-dd","fr-CH":"dd.mm.yy","fr":"dd/mm/yy","gl":"dd/mm/yy","he":"dd/mm/yy","hi":"dd/mm/yy","hr":"dd.mm.yy.","hu":"yy.mm.dd.","hy":"dd.mm.yy","id":"dd/mm/yy","is":"dd.mm.yy","it-CH":"dd.mm.yy","it":"dd/mm/yy","ja":"yy/mm/dd","ka":"dd-mm-yy","kk":"dd.mm.yy","km":"dd-mm-yy","ko":"yy. m. d.","ky":"dd.mm.yy","lb":"dd.mm.yy","lt":"yy-mm-dd","lv":"dd.mm.yy","mk":"dd.mm.yy","ml":"dd/mm/yy","ms":"dd/mm/yy","nb":"dd.mm.yy","nl-BE":"dd/mm/yy","nl":"dd-mm-yy","nn":"dd.mm.yy","no":"dd.mm.yy","pl":"dd.mm.yy","pt-BR":"dd/mm/yy","pt":"dd/mm/yy","rm":"dd/mm/yy","ro":"dd.mm.yy","ru":"dd.mm.yy","sk":"dd.mm.yy","sl":"dd.mm.yy","sq":"dd.mm.yy","sr":"dd.mm.yy","sr-SR":"dd.mm.yy","sv":"yy-mm-dd","ta":"dd/mm/yy","th":"dd/mm/yy","tj":"dd.mm.yy","tr":"dd.mm.yy","uk":"dd.mm.yy","vi":"dd/mm/yy","zh-CN":"yy-mm-dd","zh-HK":"dd-mm-yy","zh-TW":"yy/mm/dd"};
+		return {"":{"format":"mm/dd/yy","firstDay":0},"en":{"format":"mm/dd/yy","firstDay":0},"en-US":{"format":"mm/dd/yy","firstDay":0},"af":{"format":"dd/mm/yy","firstDay":1},"ar-DZ":{"format":"dd/mm/yy","firstDay":6},"ar":{"format":"dd/mm/yy","firstDay":0},"az":{"format":"dd.mm.yy","firstDay":1},"be":{"format":"dd.mm.yy","firstDay":1},"bg":{"format":"dd.mm.yy","firstDay":1},"bs":{"format":"dd.mm.yy","firstDay":1},"ca":{"format":"dd/mm/yy","firstDay":1},"cs":{"format":"dd.mm.yy","firstDay":1},"cy-GB":{"format":"dd/mm/yy","firstDay":1},"da":{"format":"dd-mm-yy","firstDay":1},"de":{"format":"dd.mm.yy","firstDay":1},"el":{"format":"dd/mm/yy","firstDay":1},"en-AU":{"format":"dd/mm/yy","firstDay":1},"en-GB":{"format":"dd/mm/yy","firstDay":1},"en-NZ":{"format":"dd/mm/yy","firstDay":1},"eo":{"format":"dd/mm/yy","firstDay":0},"es":{"format":"dd/mm/yy","firstDay":1},"et":{"format":"dd.mm.yy","firstDay":1},"eu":{"format":"yy-mm-dd","firstDay":1},"fa":{"format":"yy/mm/dd","firstDay":6},"fi":{"format":"d.m.yy","firstDay":1},"fo":{"format":"dd-mm-yy","firstDay":1},"fr-CA":{"format":"yy-mm-dd","firstDay":0},"fr-CH":{"format":"dd.mm.yy","firstDay":1},"fr":{"format":"dd/mm/yy","firstDay":1},"gl":{"format":"dd/mm/yy","firstDay":1},"he":{"format":"dd/mm/yy","firstDay":0},"hi":{"format":"dd/mm/yy","firstDay":1},"hr":{"format":"dd.mm.yy.","firstDay":1},"hu":{"format":"yy.mm.dd.","firstDay":1},"hy":{"format":"dd.mm.yy","firstDay":1},"id":{"format":"dd/mm/yy","firstDay":0},"is":{"format":"dd.mm.yy","firstDay":0},"it-CH":{"format":"dd.mm.yy","firstDay":1},"it":{"format":"dd/mm/yy","firstDay":1},"ja":{"format":"yy/mm/dd","firstDay":0},"ka":{"format":"dd-mm-yy","firstDay":1},"kk":{"format":"dd.mm.yy","firstDay":1},"km":{"format":"dd-mm-yy","firstDay":1},"ko":{"format":"yy. m. d.","firstDay":0},"ky":{"format":"dd.mm.yy","firstDay":1},"lb":{"format":"dd.mm.yy","firstDay":1},"lt":{"format":"yy-mm-dd","firstDay":1},"lv":{"format":"dd.mm.yy","firstDay":1},"mk":{"format":"dd.mm.yy","firstDay":1},"ml":{"format":"dd/mm/yy","firstDay":1},"ms":{"format":"dd/mm/yy","firstDay":0},"nb":{"format":"dd.mm.yy","firstDay":1},"nl-BE":{"format":"dd/mm/yy","firstDay":1},"nl":{"format":"dd-mm-yy","firstDay":1},"nn":{"format":"dd.mm.yy","firstDay":1},"no":{"format":"dd.mm.yy","firstDay":1},"pl":{"format":"dd.mm.yy","firstDay":1},"pt-BR":{"format":"dd/mm/yy","firstDay":0},"pt":{"format":"dd/mm/yy","firstDay":0},"rm":{"format":"dd/mm/yy","firstDay":1},"ro":{"format":"dd.mm.yy","firstDay":1},"ru":{"format":"dd.mm.yy","firstDay":1},"sk":{"format":"dd.mm.yy","firstDay":1},"sl":{"format":"dd.mm.yy","firstDay":1},"sq":{"format":"dd.mm.yy","firstDay":1},"sr-SR":{"format":"dd.mm.yy","firstDay":1},"sr":{"format":"dd.mm.yy","firstDay":1},"sv":{"format":"yy-mm-dd","firstDay":1},"ta":{"format":"dd/mm/yy","firstDay":1},"th":{"format":"dd/mm/yy","firstDay":0},"tj":{"format":"dd.mm.yy","firstDay":1},"tr":{"format":"dd.mm.yy","firstDay":1},"uk":{"format":"dd.mm.yy","firstDay":1},"vi":{"format":"dd/mm/yy","firstDay":0},"zh-CN":{"format":"yy-mm-dd","firstDay":1},"zh-HK":{"format":"dd-mm-yy","firstDay":0},"zh-TW":{"format":"yy/mm/dd","firstDay":1}};
 	}
 
 	function getDatePlaceholder()
@@ -1491,10 +1794,12 @@ Fit.Controls.DatePicker = function(ctlId)
 	{
 		Fit.Validation.ExpectString(val);
 
-		var newFormat = getJqueryDateFormatFromLocale(val); // Null if locale does not exist
+		var loc = getJqueryDateFormatFromLocale(val); // Null if locale does not exist
 
-		if (newFormat === null)
+		if (loc === null)
 			Fit.Validation.ThrowError("Unknown locale '" + val + "'");
+
+		var newFormat = loc.format;
 
 		var wasOpen = open;
 
@@ -1615,3 +1920,5 @@ Fit.Controls.DatePicker = function(ctlId)
 }
 
 Fit._internal.Controls.DatePicker = {};
+
+Fit._internal.Controls.DatePicker.UseNativePickerOnTouch = false;
