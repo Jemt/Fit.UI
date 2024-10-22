@@ -2126,6 +2126,13 @@ declare namespace Fit
 			*/
 			public Locale(val?:string):string;
 			/**
+			* Get/set value indicating whether an entire week is selected, in which case the first day of the week is returned as control value.
+			* @function SelectWeek
+			* @param {boolean} [val=undefined] - If defined, True enables week selection, False disables it (default).
+			* @returns boolean
+			*/
+			public SelectWeek(val?:boolean):boolean;
+			/**
 			* Calling this function will open the calendar widget.
 			Whether this results in picker being displayed on mobile depends on implementation.
 			Often it will only work if Show() or Focused(true) is triggered by a user action such as a button click.
@@ -2147,6 +2154,13 @@ declare namespace Fit
 			* @returns string | null
 			*/
 			public TimePlaceholder(val?:string | null):string | null;
+			/**
+			* Get/set value indicating whether a DatePicker trigger icon is shown.
+			* @function TriggerIcon
+			* @param {boolean} [val=undefined] - If defined, True enables trigger icon (default), False disables it.
+			* @returns boolean
+			*/
+			public TriggerIcon(val?:boolean):boolean;
 			/**
 			* Get/set value as if it was changed by the user.
 			Contrary to Value(..), this function allows for a partial (or invalid) date value.
@@ -2434,6 +2448,36 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.Dialog
 			/**
+			* Display alert dialog.
+			* @function Alert
+			* @static
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @static
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @static
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
+			/**
 			* Add button to dialog.
 			* @function AddButton
 			* @param {Fit.Controls.Button} btn - Instance of Fit.Controls.Button.
@@ -2625,36 +2669,6 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
-			/**
-			* Display alert dialog.
-			* @function Alert
-			* @static
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @static
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @static
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -2782,6 +2796,36 @@ declare namespace Fit
 			*/
 			public Value(val?:string):string;
 			// Functions defined by Fit.Controls.Dialog
+			/**
+			* Display alert dialog.
+			* @function Alert
+			* @static
+			* @param {string} content - Content to display in alert dialog.
+			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
+			/**
+			* Display confirmation dialog with OK and Cancel buttons.
+			* @function Confirm
+			* @static
+			* @param {string} content - Content to display in confirmation dialog.
+			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
+			True is passed to callback function when OK is clicked, otherwise False.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
+			/**
+			* Display prompt dialog that allows for user input.
+			* @function Prompt
+			* @static
+			* @param {string} content - Content to display in prompt dialog.
+			* @param {string} defaultValue - Default value in input field.
+			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
+			Value entered in input field is passed, null if prompt is canceled.
+			* @returns Fit.Controls.DialogInterface
+			*/
+			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			/**
 			* Add button to dialog.
 			* @function AddButton
@@ -2968,36 +3012,6 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
-			/**
-			* Display alert dialog.
-			* @function Alert
-			* @static
-			* @param {string} content - Content to display in alert dialog.
-			* @param {Function} [cb=undefined] - Optional callback function invoked when OK button is clicked.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Alert(content:string, cb?:Function):Fit.Controls.DialogInterface;
-			/**
-			* Display confirmation dialog with OK and Cancel buttons.
-			* @function Confirm
-			* @static
-			* @param {string} content - Content to display in confirmation dialog.
-			* @param {Fit.Controls.DialogTypeDefs.ConfirmCallback} cb - Callback function invoked when a button is clicked.
-			True is passed to callback function when OK is clicked, otherwise False.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Confirm(content:string, cb:Fit.Controls.DialogTypeDefs.ConfirmCallback):Fit.Controls.DialogInterface;
-			/**
-			* Display prompt dialog that allows for user input.
-			* @function Prompt
-			* @static
-			* @param {string} content - Content to display in prompt dialog.
-			* @param {string} defaultValue - Default value in input field.
-			* @param {Fit.Controls.DialogTypeDefs.PromptCallback} [cb=undefined] - Callback function invoked when OK or Cancel button is clicked.
-			Value entered in input field is passed, null if prompt is canceled.
-			* @returns Fit.Controls.DialogInterface
-			*/
-			public static Prompt(content:string, defaultValue:string, cb?:Fit.Controls.DialogTypeDefs.PromptCallback):Fit.Controls.DialogInterface;
 			// Functions defined by Fit.Controls.Component
 			/**
 			* Destroys control to free up memory.
@@ -9539,74 +9553,6 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Cookies
 		/**
-		* Create instance of cookie container isolated to either current path (default)
-		or a custom path, and optionally an alternative part of the domain (by default
-		cookies are available only on the current domain, while defining a domain makes
-		cookies available to that particular domain and subdomains).
-		* @function Cookies
-		*/
-		constructor();
-		/**
-		* Get/set portion of domain to which cookies are isolated.
-		* @function Domain
-		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
-		Null to unset it to make cookies available to current domain only (excluding subdomains).
-		* @returns string | null
-		*/
-		public Domain(val?:string | null):string | null;
-		/**
-		* Returns cookie value if found, otherwise Null.
-		* @function Get
-		* @param {string} name - Unique cookie name.
-		* @returns string | null
-		*/
-		public Get(name:string):string | null;
-		/**
-		* Get/set path to which cookies are isolated.
-		* @function Path
-		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
-		* @returns string
-		*/
-		public Path(val?:string):string;
-		/**
-		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
-		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
-		is completely transparent.
-		* @function Prefix
-		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
-		* @returns string | null
-		*/
-		public Prefix(val?:string):string | null;
-		/**
-		* Remove cookie.
-		* @function Remove
-		* @param {string} name - Unique cookie name.
-		*/
-		public Remove(name:string):void;
-		/**
-		* Get/set SameSite policy.
-		* @function SameSite
-		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
-		* @returns string | null
-		*/
-		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
-		/**
-		* Get/set Secure flag.
-		* @function Secure
-		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
-		* @returns boolean
-		*/
-		public Secure(val?:boolean):boolean;
-		/**
-		* Create or update cookie.
-		* @function Set
-		* @param {string} name - Unique cookie name.
-		* @param {string} value - Cookie value (cannot contain semicolon!).
-		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
-		no expiration time will cause it to expire when session ends.
-		*/
-		public Set(name:string, value:string, seconds?:number):void;
-		/**
 		* Returns cookie value if found, otherwise Null.
 		* @function Get
 		* @static
@@ -9676,6 +9622,74 @@ declare namespace Fit
 		* @param {Fit.CookiesDefs.Cookie} newCookie - New or updated cookie.
 		*/
 		public static Set(newCookie:Fit.CookiesDefs.Cookie):void;
+		/**
+		* Create instance of cookie container isolated to either current path (default)
+		or a custom path, and optionally an alternative part of the domain (by default
+		cookies are available only on the current domain, while defining a domain makes
+		cookies available to that particular domain and subdomains).
+		* @function Cookies
+		*/
+		constructor();
+		/**
+		* Get/set portion of domain to which cookies are isolated.
+		* @function Domain
+		* @param {string | null} [val=undefined] - If defined, changes isolation to specified domain portion, including subdomains - pass
+		Null to unset it to make cookies available to current domain only (excluding subdomains).
+		* @returns string | null
+		*/
+		public Domain(val?:string | null):string | null;
+		/**
+		* Returns cookie value if found, otherwise Null.
+		* @function Get
+		* @param {string} name - Unique cookie name.
+		* @returns string | null
+		*/
+		public Get(name:string):string | null;
+		/**
+		* Get/set path to which cookies are isolated.
+		* @function Path
+		* @param {string} [val=undefined] - If defined, changes isolation to specified path.
+		* @returns string
+		*/
+		public Path(val?:string):string;
+		/**
+		* Get/set prefix added to all cookies - useful for grouping related cookies and to avoid naming conflicts.
+		Notice that Set/Get/Remove functions automatically apply the prefix to cookie names, so the use of a prefix
+		is completely transparent.
+		* @function Prefix
+		* @param {string} [val=undefined] - If defined, changes cookie prefix to specified value - pass Null to unset it.
+		* @returns string | null
+		*/
+		public Prefix(val?:string):string | null;
+		/**
+		* Remove cookie.
+		* @function Remove
+		* @param {string} name - Unique cookie name.
+		*/
+		public Remove(name:string):void;
+		/**
+		* Get/set SameSite policy.
+		* @function SameSite
+		* @param {"None" | "Lax" | "Strict" | null} [val=undefined] - If defined, changes SameSite policy - pass Null to unset it.
+		* @returns string | null
+		*/
+		public SameSite(val?:"None" | "Lax" | "Strict" | null):string | null;
+		/**
+		* Get/set Secure flag.
+		* @function Secure
+		* @param {boolean} [val=undefined] - If defined, changes Secure flag.
+		* @returns boolean
+		*/
+		public Secure(val?:boolean):boolean;
+		/**
+		* Create or update cookie.
+		* @function Set
+		* @param {string} name - Unique cookie name.
+		* @param {string} value - Cookie value (cannot contain semicolon!).
+		* @param {number} [seconds=undefined] - Optional expiration time in seconds. Creating a cookie with
+		no expiration time will cause it to expire when session ends.
+		*/
+		public Set(name:string, value:string, seconds?:number):void;
 	}
 	/**
 	* Core features extending the capabilities of native JS.
@@ -12141,6 +12155,13 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.DragDrop.Draggable
 			/**
+			* Get next z-index which will place an element above any draggable element.
+			* @function GetNextZindex
+			* @static
+			* @returns number
+			*/
+			public static GetNextZindex():number;
+			/**
 			* Bring draggable to front.
 			* @function BringToFront
 			*/
@@ -12201,13 +12222,6 @@ declare namespace Fit
 			* @returns boolean
 			*/
 			public ReturnFocus(val?:boolean):boolean;
-			/**
-			* Get next z-index which will place an element above any draggable element.
-			* @function GetNextZindex
-			* @static
-			* @returns number
-			*/
-			public static GetNextZindex():number;
 		}
 		/**
 		* 
