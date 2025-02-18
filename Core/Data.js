@@ -693,6 +693,40 @@ Fit.Color.HexToRgb = function(hex)
 	return "rgb(" + rgb.Red + ", " + rgb.Green + ", " + rgb.Blue + ")";
 }
 
+/// <function container="Fit.Color" name="GetContrastColor" access="public" static="true" returns="string">
+/// 	<description> Get "black" or "white" depending on which is best suited in combination with specified color </description>
+/// 	<param name="hex" type="string"> HEX color string, e.g. #C0C0C0 (hash symbol is optional) </param>
+/// 	<param name="threshold" type="number" default="undefined">
+/// 		Returns "black" when brightness is above threshold, "white" otherwise.
+/// 		0 = all black, 255 = all white. Value defaults to 128.
+/// 	</param>
+/// </function>
+Fit.Color.GetContrastColor = function(hex, threshold)
+{
+	Fit.Validation.ExpectString(hex);
+	Fit.Validation.ExpectInteger(threshold, true);
+
+	// Validate input
+	if (/^#?[A-Za-z0-9]{6}$/.test(hex) === false)
+	{
+		throw "Invalid HEX color";
+	}
+
+    // Remove hash from color code
+    hex = hex.replace(/^#/, "");
+
+    // Convert HEX to RGB
+    var r = parseInt(hex.substring(0, 2), 16);
+    var g = parseInt(hex.substring(2, 4), 16);
+    var b = parseInt(hex.substring(4, 6), 16);
+
+    // Calculate luminance (perceived brightness)
+    var luminance = (0.299 * r + 0.587 * g + 0.114 * b); // 0 = all black, 255 = all white
+
+    // Return black if the color is light, white otherwise
+	return luminance > (threshold || 128) ? "black" : "white";
+}
+
 /// <container name="Fit.ColorTypeDefs.RgbColor">
 /// 	<description> RGB color object </description>
 /// 	<member name="Red" type="integer"> </member>
