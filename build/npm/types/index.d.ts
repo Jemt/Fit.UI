@@ -896,6 +896,16 @@ declare namespace Fit
 	{
 		// Functions defined by Fit.Color
 		/**
+		* Get "black" or "white" depending on which is best suited in combination with specified color.
+		* @function GetContrastColor
+		* @static
+		* @param {string} hex - HEX color string, e.g. #C0C0C0 (hash symbol is optional).
+		* @param {number} [threshold=undefined] - Returns "black" when brightness is above threshold, "white" otherwise.
+		0 = all black, 255 = all white. Value defaults to 128.
+		* @returns string
+		*/
+		public static GetContrastColor(hex:string, threshold?:number):string;
+		/**
 		* Convert HEX color string into RGB color string.
 		* @function HexToRgb
 		* @static
@@ -1174,6 +1184,278 @@ declare namespace Fit
 			* @returns Fit.TypeDefs.CssValue
 			*/
 			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			// Functions defined by Fit.Controls.ControlBase
+			/**
+			* Add CSS class to DOMElement representing control.
+			* @function AddCssClass
+			* @param {string} val - CSS class to add.
+			*/
+			public AddCssClass(val:string):void;
+			/**
+			* Set callback function used to perform on-the-fly validation against control.
+			* @function AddValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Function receiving an instance of the control.
+			A value of False or a non-empty string with an
+			error message must be returned if value is invalid.
+			*/
+			public AddValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Set regular expression used to perform on-the-fly validation against control value, as returned by the Value() function.
+			* @function AddValidationRule
+			* @param {RegExp} validator - Regular expression to validate value against.
+			* @param {string} [errorMessage=undefined] - Optional error message displayed if value validation fails.
+			*/
+			public AddValidationRule(validator:RegExp, errorMessage?:string):void;
+			/**
+			* Get/set value indicating whether control is always considered dirty. This
+			comes in handy when programmatically changing a value of a control on behalf
+			of the user. Some applications may choose to only save values from dirty controls.
+			* @function AlwaysDirty
+			* @param {boolean} [val=undefined] - If defined, Always Dirty is enabled/disabled.
+			* @returns boolean
+			*/
+			public AlwaysDirty(val?:boolean):boolean;
+			/**
+			* Set flag indicating whether control should post back changes automatically when value is changed.
+			* @function AutoPostBack
+			* @param {boolean} [val=undefined] - If defined, True enables auto post back, False disables it.
+			* @returns boolean
+			*/
+			public AutoPostBack(val?:boolean):boolean;
+			/**
+			* Clear control value.
+			* @function Clear
+			*/
+			public Clear():void;
+			/**
+			* Get/set value indicating whether control is enabled or disabled.
+			A disabled control's value and state is still included on postback, if part of a form.
+			* @function Enabled
+			* @param {boolean} [val=undefined] - If defined, True enables control (default), False disables control.
+			* @returns boolean
+			*/
+			public Enabled(val?:boolean):boolean;
+			/**
+			* Get/set value indicating whether control has focus.
+			Control must be rooted in DOM and be visible for control to gain focus.
+			* @function Focused
+			* @param {boolean} [value=undefined] - If defined, True assigns focus, False removes focus (blur).
+			* @returns boolean
+			*/
+			public Focused(value?:boolean):boolean;
+			/**
+			* Check whether CSS class is found on DOMElement representing control.
+			* @function HasCssClass
+			* @param {string} val - CSS class to check for.
+			* @returns boolean
+			*/
+			public HasCssClass(val:string):boolean;
+			/**
+			* Get/set control height - returns object with Value and Unit properties.
+			* @function Height
+			* @param {number} [val=undefined] - If defined, control height is updated to specified value. A value of -1 resets control height.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=px] - If defined, control height is updated to specified CSS unit.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public Height(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			/**
+			* Get value indicating whether user has changed control value.
+			* @function IsDirty
+			* @returns boolean
+			*/
+			public IsDirty():boolean;
+			/**
+			* Get value indicating whether control value is valid.
+			Control value is considered invalid if control is required, but no value is set,
+			or if control value does not match regular expression set using SetValidationExpression(..).
+			* @function IsValid
+			* @returns boolean
+			*/
+			public IsValid():boolean;
+			/**
+			* Get/set value indicating whether control initially appears as valid, even
+			though it is not. It will appear invalid once the user touches the control,
+			or when control value is validated using Fit.Controls.ValidateAll(..).
+			* @function LazyValidation
+			* @param {boolean} [val=undefined] - If defined, Lazy Validation is enabled/disabled.
+			* @returns boolean
+			*/
+			public LazyValidation(val?:boolean):boolean;
+			/**
+			* Register OnBlur event handler which is invoked when control loses focus.
+			* @function OnBlur
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnBlur(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Register OnChange event handler which is invoked when control value is changed either programmatically or by user.
+			* @function OnChange
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnChange(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Register OnFocus event handler which is invoked when control gains focus.
+			* @function OnFocus
+			* @param {Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>} cb - Event handler function which accepts Sender (ControlBase).
+			*/
+			public OnFocus(cb:Fit.Controls.ControlBaseTypeDefs.BaseEvent<this>):void;
+			/**
+			* Remove all validation rules.
+			* @function RemoveAllValidationRules
+			*/
+			public RemoveAllValidationRules():void;
+			/**
+			* Remove CSS class from DOMElement representing control.
+			* @function RemoveCssClass
+			* @param {string} val - CSS class to remove.
+			*/
+			public RemoveCssClass(val:string):void;
+			/**
+			* Remove validation function used to perform on-the-fly validation against control.
+			* @function RemoveValidationRule
+			* @param {Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>} validator - Validation function registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:Fit.Controls.ControlBaseTypeDefs.ValidationCallback<this>):void;
+			/**
+			* Remove regular expression used to perform on-the-fly validation against control value.
+			* @function RemoveValidationRule
+			* @param {RegExp} validator - Regular expression registered using AddValidationRule(..).
+			*/
+			public RemoveValidationRule(validator:RegExp):void;
+			/**
+			* Get/set value indicating whether control is required to be set.
+			* @function Required
+			* @param {boolean} [val=undefined] - If defined, control required feature is enabled/disabled.
+			* @returns boolean
+			*/
+			public Required(val?:boolean):boolean;
+			/**
+			* Get/set scope to which control belongs - this is used to validate multiple
+			controls at once using Fit.Controls.ValidateAll(scope) or Fit.Controls.DirtyCheckAll(scope).
+			* @function Scope
+			* @param {string} [val=undefined] - If defined, control scope is updated.
+			* @returns string
+			*/
+			public Scope(val?:string):string;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
+			* @function SetValidationCallback
+			* @param {Function | null} cb - Function receiving control value - must return True if value is valid, otherwise False.
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator.
+			*/
+			public SetValidationCallback(cb:Function | null, errorMsg?:string):void;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set regular expression used to perform on-the-fly validation against control value.
+			* @function SetValidationExpression
+			* @param {RegExp | null} regEx - Regular expression to validate against.
+			* @param {string} [errorMsg=undefined] - If defined, specified error message is displayed when user clicks or hovers validation error indicator.
+			*/
+			public SetValidationExpression(regEx:RegExp | null, errorMsg?:string):void;
+			/**
+			* DEPRECATED! Please use AddValidationRule(..) instead.
+			Set callback function used to perform on-the-fly validation against control value.
+			* @function SetValidationHandler
+			* @param {Function | null} cb - Function receiving an instance of the control and its value.
+			An error message string must be returned if value is invalid,
+			otherwise Null or an empty string if the value is valid.
+			*/
+			public SetValidationHandler(cb:Function | null):void;
+			/**
+			* Get/set value indicating whether control immediately shows and
+			updates its validation error as the user changes the control value.
+			* @function ShowValidationErrorsOnChange
+			* @param {boolean} [val=undefined] - If defined, True enables feature, False disables it.
+			* @returns boolean
+			*/
+			public ShowValidationErrorsOnChange(val?:boolean):boolean;
+			/**
+			* Get/set value as if it was changed by the user. Contrary to Value(..), this function will never reset the dirty state.
+			Restrictions/filtering/modifications may be enforced just as the UI control might do, e.g. prevent the use of certain
+			characters, or completely ignore input if not allowed. It may also allow invalid values such as a partially entered date
+			value. The intention with UserValue(..) is to mimic the behaviour of what the user can do with the user interface control.
+			For picker controls the value format is equivalent to the one dictated by the Value(..) function.
+			* @function UserValue
+			* @param {string} [val=undefined] - If defined, value is inserted into control.
+			* @returns string
+			*/
+			public UserValue(val?:string):string;
+			/**
+			* Get/set control value.
+			For controls supporting multiple selections: Set value by providing a string in one the following formats:
+			title1=val1[;title2=val2[;title3=val3]] or val1[;val2[;val3]].
+			If Title or Value contains reserved characters (semicolon or equality sign), these most be URIEncoded.
+			Selected items are returned in the first format described, also with reserved characters URIEncoded.
+			Providing a new value to this function results in OnChange being fired.
+			* @function Value
+			* @param {string} [val=undefined] - If defined, value is inserted into control.
+			* @param {boolean} [preserveDirtyState=false] - If defined, True prevents dirty state from being reset, False (default) resets the dirty state.
+			If dirty state is reset (default), the control value will be compared against the value passed,
+			to determine whether it has been changed by the user or not, when IsDirty() is called.
+			* @returns string
+			*/
+			public Value(val?:string, preserveDirtyState?:boolean):string;
+			/**
+			* Get/set value indicating whether control is visible.
+			* @function Visible
+			* @param {boolean} [val=undefined] - If defined, control visibility is updated.
+			* @returns boolean
+			*/
+			public Visible(val?:boolean):boolean;
+			/**
+			* Get/set control width - returns object with Value and Unit properties.
+			* @function Width
+			* @param {number} [val=undefined] - If defined, control width is updated to specified value. A value of -1 resets control width.
+			* @param {Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"} [unit=px] - If defined, control width is updated to specified CSS unit.
+			* @returns Fit.TypeDefs.CssValue
+			*/
+			public Width(val?:number, unit?:Fit.TypeDefs.CssUnit | "%" | "ch" | "cm" | "em" | "ex" | "in" | "mm" | "pc" | "pt" | "px" | "rem" | "vh" | "vmax" | "vmin" | "vw"):Fit.TypeDefs.CssValue;
+			// Functions defined by Fit.Controls.Component
+			/**
+			* Destroys control to free up memory.
+			Make sure to call Dispose() on Component which can be done like so:
+			this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
+			{
+			     // Add control specific dispose logic here
+			     base(); // Call Dispose on Component
+			});.
+			* @function Dispose
+			*/
+			public Dispose():void;
+			/**
+			* Get DOMElement representing control.
+			* @function GetDomElement
+			* @returns HTMLElement
+			*/
+			public GetDomElement():HTMLElement;
+			/**
+			* Get unique Control ID.
+			* @function GetId
+			* @returns string
+			*/
+			public GetId():string;
+			/**
+			* Render control, either inline or to element specified.
+			* @function Render
+			* @param {HTMLElement} [toElement=undefined] - If defined, control is rendered to this element.
+			*/
+			public Render(toElement?:HTMLElement):void;
+		}
+		/**
+		* ColorPicker control which allows for color selection.
+		Extending from Fit.Controls.ControlBase.
+		* @class [Fit.Controls.ColorPicker ColorPicker]
+		*/
+		class ColorPicker
+		{
+			// Functions defined by Fit.Controls.ColorPicker
+			/**
+			* Create instance of ColorPicker control.
+			* @function ColorPicker
+			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
+			*/
+			constructor(ctlId?:string);
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control.
