@@ -1456,6 +1456,13 @@ declare namespace Fit
 			* @param {string} [ctlId=undefined] - Unique control ID that can be used to access control using Fit.Controls.Find(..).
 			*/
 			constructor(ctlId?:string);
+			/**
+			* Get/set value indicating whether control should show HEX color code (default) or not.
+			* @function ShowValue
+			* @param {boolean} [val=undefined] - If defined, True shows label with HEX color code, False hides it.
+			* @returns boolean
+			*/
+			public ShowValue(val?:boolean):boolean;
 			// Functions defined by Fit.Controls.ControlBase
 			/**
 			* Add CSS class to DOMElement representing control.

@@ -158,6 +158,10 @@ Fit.Controls.ColorPicker = function(ctlId)
 	// Public
 	// ============================================
 
+	/// <function container="Fit.Controls.ColorPicker" name="ShowValue" access="public" returns="boolean">
+	/// 	<description> Get/set value indicating whether control should show HEX color code (default) or not </description>
+	/// 	<param name="val" type="boolean" default="undefined"> If defined, True shows label with HEX color code, False hides it </param>
+	/// </function>
 	this.ShowValue = function(val)
 	{
 		Fit.Validation.ExpectBoolean(val, true);
