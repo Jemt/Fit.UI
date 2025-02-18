@@ -13,12 +13,14 @@ fi
 
 mkdir dist
 mkdir -p dist/Controls/Input
+mkdir -p dist/Controls/ColorPicker
 mkdir -p dist/Controls/TreeView
 mkdir -p dist/Resources
 
 cp Fit.UI*.js dist/
 cp Fit.UI*.css dist/
 cp ../Controls/Input/*.png dist/Controls/Input
+cp ../Controls/ColorPicker/*.jpg dist/Controls/ColorPicker
 cp ../Controls/TreeView/*.png dist/Controls/TreeView
 cp -R ../Resources/CKEditor dist/Resources/CKEditor
 cp -R ../Resources/FontAwesome dist/Resources/FontAwesome

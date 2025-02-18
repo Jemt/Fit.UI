@@ -1,0 +1,82 @@
+div.FitUiControlColorPicker
+{
+	height: 2em; /* Equal height for all controls */
+	width: 200px;
+
+	border: 0.065em solid #BBBBBB;
+	border-radius: 2px;
+
+	background-image: url("Controls/ColorPicker/transparent.jpg");
+	background-repeat: repeat;
+}
+
+div.FitUiControlColorPicker input[type="color"],
+div.FitUiControlColorPicker span
+{
+	cursor: pointer;
+}
+div.FitUiControlColorPicker[data-enabled="false"] input[type="color"],
+div.FitUiControlColorPicker[data-enabled="false"] span
+{
+	cursor: default;
+}
+
+div.FitUiControlColorPicker input[type="color"]
+{
+	width: 100%;
+	height: 100%;
+	opacity: 0; /* Hide ugly native picker - selected color is applied as background-color to outer control element */
+}
+
+/* Focused indicator */
+div.FitUiControlColorPicker[data-focused="true"]
+{
+	border-color: #4484C7;
+}
+
+/* Error indicator */
+div.FitUiControlColorPicker[data-enabled="true"][data-valid="false"][data-showinvalid="true"]
+{
+	outline: none;
+}
+div.FitUiControlColorPicker[data-enabled="true"][data-valid="false"][data-showinvalid="true"][data-focused="false"]
+{
+	border-color: red;
+}
+
+/* Disabled indicator */
+div.FitUiControlColorPicker[data-enabled="false"]
+{
+	opacity: 0.7;
+}
+div.FitUiControlColorPicker[data-enabled="false"] span
+{
+	opacity: 0.5;
+}
+
+/* Label for HEX color code */
+div.FitUiControlColorPicker span:first-of-type
+{
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	left: 0;
+	width: 100%; /* Allow user to start text selection far away from value */
+	padding-left: 0.25em;
+}
+
+/* Clear button */
+div.FitUiControlColorPicker span:last-of-type
+{
+	position: absolute;
+	top: 50%;
+	transform: translateY(calc(-50% - 0.05em));
+	right: 0.2em;
+	font-size: 1.4em;
+}
+
+/* Hide label and clear button when no color is selected */
+div.FitUiControlColorPicker[data-transparent="true"] span:last-of-type
+{
+	display: none;
+}
