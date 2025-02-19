@@ -6,8 +6,7 @@ div.FitUiControlColorPicker
 	border: 0.065em solid #BBBBBB;
 	border-radius: 2px;
 
-	background-image: url("Controls/ColorPicker/transparent.jpg");
-	background-repeat: repeat;
+	background: repeating-linear-gradient(-55deg, #f2f2f2, #f2f2f2 0.4em, #e6e6e6 0.4em, #e6e6e6 0.8em); /* Indicate no color selection */
 }
 
 div.FitUiControlColorPicker input[type="color"],

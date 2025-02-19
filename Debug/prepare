@@ -22,9 +22,6 @@ fi
 mkdir -p Controls/Input
 cp ../Controls/Input/*.png Controls/Input
 
-mkdir -p Controls/ColorPicker
-cp ../Controls/ColorPicker/*.jpg Controls/ColorPicker
-
 mkdir -p Controls/TreeView
 cp ../Controls/TreeView/*.png Controls/TreeView
 
