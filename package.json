@@ -5,7 +5,7 @@
   "main": "index.js",
   "devDependencies": {
     "concurrently": "^6.1.0",
-    "http-server": "^0.12.3",
+    "http-server": "^14.1.1",
     "opn": "^6.0.0",
     "uglify-js": "^3.13.6",
     "uglifycss": "0.0.29"
