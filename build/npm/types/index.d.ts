@@ -10558,6 +10558,16 @@ declare namespace Fit
 		*/
 		public static IsVisible(elm:Node):boolean;
 		/**
+		* Determines whether position:fixed is constrained by CSS properties
+		such as animation or transform which will cause positioning to become
+		relative to animated/transformed parent, rather than relative to viewport.
+		* @function PositionFixedConstrained
+		* @static
+		* @param {HTMLElement} elm - Element to check for constraint.
+		* @returns boolean
+		*/
+		public static PositionFixedConstrained(elm:HTMLElement):boolean;
+		/**
 		* Remove DOMNode from its container element.
 		* @function Remove
 		* @static
