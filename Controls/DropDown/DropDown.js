@@ -183,7 +183,8 @@ Fit.Controls.DropDown = function(ctlId)
 						return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
 					}
 
-					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+					// Notice that dropdownMenu might be rooted in <body> if it is constrained by CSS properties preventing reliable use of position:fixed - see optimizeDropDownPosition(..) for details
+					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false && target !== dropDownMenu && Fit.Dom.Contained(dropDownMenu, target) === false)
 					{
 						me.CloseDropDown();
 					}
@@ -208,7 +209,8 @@ Fit.Controls.DropDown = function(ctlId)
 						return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
 					}
 
-					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
+					// Notice that dropdownMenu might be rooted in <body> if it is constrained by CSS properties preventing reliable use of position:fixed - see optimizeDropDownPosition(..) for details
+					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false && target !== dropDownMenu && Fit.Dom.Contained(dropDownMenu, target) === false)
 					{
 						coords = Fit.Events.GetPointerState().Coordinates.Document;
 					}
