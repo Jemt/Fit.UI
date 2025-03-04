@@ -761,6 +761,38 @@ Fit.Dom.GetBoundingPosition = function(elm)
 	return { X: Math.round(bcr.x || bcr.left), Y: Math.round(bcr.y || bcr.top) }; // Several legacy browsers use top/left instead of x/y
 }
 
+/// <function container="Fit.Dom" name="PositionFixedConstrained" access="public" static="true" returns="boolean">
+/// 	<description>
+/// 		Determines whether position:fixed is constrained by CSS properties
+/// 		such as animation or transform which will cause positioning to become
+/// 		relative to animated/transformed parent, rather than relative to viewport.
+/// 	</description>
+/// 	<param name="elm" type="DOMElement"> Element to check for constraint </param>
+/// </function>
+Fit.Dom.PositionFixedConstrained = function(elm)
+{
+	Fit.Validation.ExpectDomElement(elm);
+
+	if (Fit.Dom.IsRooted(elm) === false)
+	{
+		return true; // Report constrained as position:fixed will not work unless element is rooted
+	}
+
+    var d = document.createElement("div");
+    d.style.cssText = "position:fixed; top: -10px; left: -10px;";
+
+    var p = elm.parentElement;
+    p.appendChild(d);
+
+    var rect = d.getBoundingClientRect();
+    p.removeChild(d);
+
+    var positionedRelativeToViewport = ((rect.x || rect.left) === -10 && (rect.y || rect.top) === -10);
+	var positionFixedConstrained = positionedRelativeToViewport === false;
+
+	return positionFixedConstrained;
+}
+
 /// <function container="Fit.Dom" name="GetPosition" access="public" static="true" returns="Fit.TypeDefs.Position | null">
 /// 	<description>
 /// 		Get position for visible element.

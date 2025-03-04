@@ -2590,6 +2590,18 @@ Fit.Controls.DropDown = function(ctlId)
 			// as this creates a new stacking context to which position:fixed
 			// becomes relative.
 
+			// Move dropdown to document root if position:fixed won't work
+			// due to e.g. animation or transform in CSS (see note above).
+			if (Fit.Dom.PositionFixedConstrained(dropDownMenu) === true)
+			{
+				// Copy styles to ensure that dropdown menu assume styles identical to control itself
+				dropDownMenu.style.fontSize = Fit.Dom.GetComputedStyle(dropDownMenu, "font-size");
+				dropDownMenu.style.color = Fit.Dom.GetComputedStyle(dropDownMenu, "color");
+				dropDownMenu.style.fontFamily = Fit.Dom.GetComputedStyle(dropDownMenu, "font-family");
+
+				Fit.Dom.Add(document.body, dropDownMenu); // Moved back in resetDropDownPosition() when dropdown is closed
+			}
+
 			var viewPortDimensions = Fit.Browser.GetViewPortDimensions();											// Returns { Width, Height } - actual space available (scrollbars are not included in these dimensions)
 			var controlPositionY = Fit.Dom.GetBoundingPosition(itemContainer).Y;									// Position from top
 			var controlPositionX = Fit.Dom.GetBoundingPosition(itemContainer).X;									// Position from left
@@ -2717,6 +2729,18 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function resetDropDownPosition()
 	{
+		// Move dropdown menu back if it was moved to document
+		// root due to position:fixed being constrained by CSS
+		// animation, transform or similar. See optimizeDropDownPosition(..)
+		if (dropDownMenu.parentElement === document.body)
+		{
+			dropDownMenu.style.fontSize = "";
+			dropDownMenu.style.color = "";
+			dropDownMenu.style.fontFamily = "";
+
+			me._internal.AddDomElement(dropDownMenu);
+		}
+
 		// Reset changes made by optimizeDropDownPosition()
 		dropDownMenu.style.position = "";
 		dropDownMenu.style.width = (maxWidth.Value > -1 ? dropDownMenu.style.width : ""); // Preserve width if DropDownMaxWidth is enabled since it also modifies this property
