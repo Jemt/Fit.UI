@@ -598,6 +598,10 @@ Fit.Controls.DropDown = function(ctlId)
 	{
 		// This will destroy control - it will no longer work!
 
+		// Make sure globally mounted dropdown menu is returned to control's container in case
+		// control is disposed while open - otherwise it will not be removed from the document.
+		resetDropDownPosition();
+
 		if (picker !== null)
 			picker.Destroy();
 
