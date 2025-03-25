@@ -183,8 +183,7 @@ Fit.Controls.DropDown = function(ctlId)
 						return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
 					}
 
-					// Notice that dropdownMenu might be rooted in <body> if it is constrained by CSS properties preventing reliable use of position:fixed - see optimizeDropDownPosition(..) for details
-					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false && target !== dropDownMenu && Fit.Dom.Contained(dropDownMenu, target) === false)
+					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
 					{
 						me.CloseDropDown();
 					}
@@ -209,8 +208,7 @@ Fit.Controls.DropDown = function(ctlId)
 						return; // Do not close DropDown if target no longer exists - this may happen if something is removed within DropDown (e.g. an item in the WSDropDown's action menu)
 					}
 
-					// Notice that dropdownMenu might be rooted in <body> if it is constrained by CSS properties preventing reliable use of position:fixed - see optimizeDropDownPosition(..) for details
-					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false && target !== dropDownMenu && Fit.Dom.Contained(dropDownMenu, target) === false)
+					if (me.IsDropDownOpen() === true && target !== me.GetDomElement() && Fit.Dom.Contained(me.GetDomElement(), target) === false)
 					{
 						coords = Fit.Events.GetPointerState().Coordinates.Document;
 					}
@@ -597,10 +595,6 @@ Fit.Controls.DropDown = function(ctlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		// This will destroy control - it will no longer work!
-
-		// Make sure globally mounted dropdown menu is returned to control's container in case
-		// control is disposed while open - otherwise it will not be removed from the document.
-		resetDropDownPosition();
 
 		if (picker !== null)
 			picker.Destroy();
@@ -2482,7 +2476,17 @@ Fit.Controls.DropDown = function(ctlId)
 		var spaceRequiredRightSide = getDropDownMaxWidthPixelValue();	// DropDownMaxWidth as px value - DropDown menu opens to the side that best accommodates the needed space - opening to the right is preferred
 		var spacingToEdge = 10;											// Makes sure that DropDown menu has this amount of spacing (in pixels) to the edge of the viewport or scroll parent
 
-		if (detectBoundariesRelToViewPort === false) // Detecting collisions against scroll parent
+		// Some styles, e.g. transform:translate(..), will make position:fixed become relative
+		// to the element with transform, rather than the viewport. Issue a warning in this case
+		// and revert to positioning dropdown menu relative to its scroll container instead.
+		var positionFixedConstrained = false;
+		if (detectBoundariesRelToViewPort === true && Fit.Dom.PositionFixedConstrained(dropDownMenu) === true)
+		{
+			console.warn("Unable to position dropdown menu relative to viewport due to CSS constraint");
+			positionFixedConstrained = true;
+		}
+
+		if (detectBoundariesRelToViewPort === false || positionFixedConstrained === true) // Detecting collisions against scroll parent
 		{
 			var posFromTopWithinContainer = -1;		// DropDown control's position from top within scrollable parent
 			var posFromLeftWithinContainer = -1;	// DropDown control's position from left within scrollable parent
@@ -2595,18 +2599,6 @@ Fit.Controls.DropDown = function(ctlId)
 			// is contained in a parent that uses CSS animation or transform,
 			// as this creates a new stacking context to which position:fixed
 			// becomes relative.
-
-			// Move dropdown to document root if position:fixed won't work
-			// due to e.g. animation or transform in CSS (see note above).
-			if (Fit.Dom.PositionFixedConstrained(dropDownMenu) === true)
-			{
-				// Copy styles to ensure that dropdown menu assume styles identical to control itself
-				dropDownMenu.style.fontSize = Fit.Dom.GetComputedStyle(dropDownMenu, "font-size");
-				dropDownMenu.style.color = Fit.Dom.GetComputedStyle(dropDownMenu, "color");
-				dropDownMenu.style.fontFamily = Fit.Dom.GetComputedStyle(dropDownMenu, "font-family");
-
-				Fit.Dom.Add(document.body, dropDownMenu); // Moved back in resetDropDownPosition() when dropdown is closed
-			}
 
 			var viewPortDimensions = Fit.Browser.GetViewPortDimensions();											// Returns { Width, Height } - actual space available (scrollbars are not included in these dimensions)
 			var controlPositionY = Fit.Dom.GetBoundingPosition(itemContainer).Y;									// Position from top
@@ -2735,18 +2727,6 @@ Fit.Controls.DropDown = function(ctlId)
 
 	function resetDropDownPosition()
 	{
-		// Move dropdown menu back if it was moved to document
-		// root due to position:fixed being constrained by CSS
-		// animation, transform or similar. See optimizeDropDownPosition(..)
-		if (dropDownMenu.parentElement === document.body)
-		{
-			dropDownMenu.style.fontSize = "";
-			dropDownMenu.style.color = "";
-			dropDownMenu.style.fontFamily = "";
-
-			me._internal.AddDomElement(dropDownMenu);
-		}
-
 		// Reset changes made by optimizeDropDownPosition()
 		dropDownMenu.style.position = "";
 		dropDownMenu.style.width = (maxWidth.Value > -1 ? dropDownMenu.style.width : ""); // Preserve width if DropDownMaxWidth is enabled since it also modifies this property
