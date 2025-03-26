@@ -2472,6 +2472,14 @@ Fit.Controls.DropDown = function(ctlId)
 		// Allow DropDown to reposition when items are added/remove which might affect height of control
 		resetDropDownPosition();
 
+		// Allow external code to do custom positioning. This is not public API
+		// and the behaviour might change at any time - use functionality with caution!
+		if (typeof(me._customDropDownPositioning) === "function")
+		{
+			me._customDropDownPositioning(me, dropDownMenu, getDropDownMaxWidthPixelValue());
+			return;
+		}
+
 		var spaceRequiredBelowControl = 100;							// Opens upwards if this amount of pixels is not available below control, and more space is available above control
 		var spaceRequiredRightSide = getDropDownMaxWidthPixelValue();	// DropDownMaxWidth as px value - DropDown menu opens to the side that best accommodates the needed space - opening to the right is preferred
 		var spacingToEdge = 10;											// Makes sure that DropDown menu has this amount of spacing (in pixels) to the edge of the viewport or scroll parent
