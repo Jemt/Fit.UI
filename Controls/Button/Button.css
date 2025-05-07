@@ -116,8 +116,8 @@ div.FitUiControlButton:focus
 }
 div.FitUiControlButton[data-enabled="true"]:focus
 {
-	outline: 2px solid #4484C7;
-	outline-offset: 2px;
+	outline: 0.125em solid #4484C7;
+	outline-offset: 0.15em;
 	border: 1px solid #4484C7\9; /* Legacy IE (9 and earlier) which does not support outline */
 }
 

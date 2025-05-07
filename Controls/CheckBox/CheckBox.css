@@ -21,8 +21,9 @@ div.FitUiControlCheckBox:focus
 }
 div.FitUiControlCheckBox[data-enabled="true"]:focus > div
 {
-	border-color: #4484C7;
-	color: #4484C7;
+	outline: 0.125em solid #4484C7;
+	outline-offset: 0.15em;
+	border: 1px solid #4484C7\9; /* Legacy IE (9 and earlier) which does not support outline */
 }
 
 div.FitUiControlCheckBox > div
