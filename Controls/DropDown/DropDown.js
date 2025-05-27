@@ -2047,12 +2047,27 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		}
 
+		var isIgnoreKey = function(keyCode, allowDelete)
+		{
+			// 8 = Backspace, 9 = Tab, 13 = Enter, 16 = Shift, 20 = Caps lock, 27 = Escape, 37-40 = Arrow keys, 46 = Delete
+
+			var modKeys = Fit.Events.GetModifierKeys();
+			return modKeys.Ctrl === true || modKeys.Alt === true || modKeys.Meta === true || // Ignore all keystrokes combined with modifiers
+				Fit.Array.Contains([9, 13, 16, 20, 27, 37, 38, 39, 40], keyCode) === true || (allowDelete !== true && (keyCode === 8 || keyCode === 46));
+		};
+
 		txt.onkeydown = function(e) // Fires continuously for any key pressed - both characters and e.g backspace/delete/arrows etc. Key press may be canceled (change has not yet occured)
 		{
 			var ev = Fit.Events.GetEvent(e);
 
 			txtActive = txt;
 			clearAllInputsButActive();
+
+			if (isIgnoreKey(ev.keyCode) === false)
+			{
+				updatePlaceholder(true, true); // Make sure placeholder is removed immediately on keystroke
+				setInputEditing(txt, true);
+			}
 
 			if (picker !== null)
 			{
@@ -2071,8 +2086,7 @@ Fit.Controls.DropDown = function(ctlId)
 
 				// Skip if key press is TAB, ENTER, ESC, LEFT, UP, RIGHT, or DOWN.
 				// Also ignore key press if combined with modifier keys (except if SHIFT+Key for upper case letters, of course).
-				var modKeys = Fit.Events.GetModifierKeys();
-				if (Fit.Array.Contains([9, 13, 27, 37, 38, 39, 40], ev.keyCode) === false && (modKeys.Shift === false || modKeys.KeyDown !== 16) && modKeys.Ctrl === false && modKeys.Alt === false && modKeys.Meta === false)
+				if (isIgnoreKey(ev.keyCode, true) === false)
 				{
 					// User is entering a value - clear input before character is applied to input
 
@@ -2244,12 +2258,12 @@ Fit.Controls.DropDown = function(ctlId)
 			}
 		}
 
-		txt.onkeypress = function(e) // Fires continuously for real character keys (unless suppressed in OnKeyDown)
+		// DISABLED - no longer supported on Chromium on Android - code moved to OnKeyDown handler above
+		/*txt.onkeypress = function(e) // Fires continuously for real character keys (unless suppressed in OnKeyDown)
 		{
 			updatePlaceholder(true, true); // Make sure placeholder is removed immediately on keystroke
-
 			setInputEditing(txt, true);
-		}
+		}*/
 
 		txt.onkeyup = function(e) // Fires only once when a key is released (unless suppressed in OnKeyDown)
 		{
