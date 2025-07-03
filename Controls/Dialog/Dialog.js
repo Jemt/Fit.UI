@@ -1246,9 +1246,9 @@ Fit.Controls.Dialog = function(controlId)
 
 		if ((buttons !== null || titleContainer !== null) && (me.Maximized() === true || me.Height().Value !== -1 || me.MinimumHeight().Value !== -1 || me.MaximumHeight().Value !== -1))
 		{
-			var dh = dialog.offsetHeight;
-			var th = (titleContainer !== null ? titleContainer.offsetHeight : 0);
-			var bh = (buttons !== null ? buttons.offsetHeight : 0);
+			var dh = dialog.getBoundingClientRect().height; /*dialog.offsetHeight*/;
+			var th = (titleContainer !== null ? titleContainer.getBoundingClientRect().height /*titleContainer.offsetHeight*/ : 0);
+			var bh = (buttons !== null ? buttons.getBoundingClientRect().height /*buttons.offsetHeight*/ : 0);
 
 			content.style.height = (dh - th - bh) + "px";
 		}
