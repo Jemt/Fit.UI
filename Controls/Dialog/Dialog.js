@@ -122,6 +122,25 @@ Fit.Controls.Dialog = function(controlId)
 				}
 			}
 		});
+
+		if (Fit.Browser.IsTouchEnabled() === true)
+		{
+			// Prevent invocation of OnMouseUp, OnMouseDown, and OnClick on elements behind the dialog
+			// on touch devices, if the dialog is disposed during invocation of OnTouchStart or OnTouchEnd.
+			// This will also prevent a UI control from receiving focus if positioned behind the dialog.
+			// See https://github.com/Jemt/Fit.UI/issues/215 for more information.
+
+			var stopEventIfDialogIsDisposed = function(e)
+			{
+				if (me === null)
+				{
+					Fit.Events.PreventDefault(e); // Dialog was disposed as a result of event - halt event
+				}
+			};
+
+			Fit.Events.AddHandler(me.GetDomElement(), "touchstart", stopEventIfDialogIsDisposed);
+			Fit.Events.AddHandler(me.GetDomElement(), "touchend", stopEventIfDialogIsDisposed);
+		}
 	}
 
 	// ============================================
