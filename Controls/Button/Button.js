@@ -43,7 +43,16 @@ Fit.Controls.Button = function(controlId)
 		Fit.Events.AddHandler(element, Fit.Browser.IsTouchEnabled() === true ? "touchend" : "click", function(e)
 		{
 			if (invokeClick === true && me.Enabled() === true)
+			{
+				// On computers the button would have gained focus by now, before triggering the OnClick callback,
+				// but not on touch devices, where the button receives focus after the OnTouchEnd event finishes.
+				// To ensure consistent behaviour across devices, we force focus the button on touch devices so that
+				// external code is able to determine focused state for the button, and return focus to the button later.
+				// See https://github.com/Jemt/Fit.UI/issues/214 for details.
+				me.Focused(true);
+
 				me.Click();
+			}
 
 			if (focusedBeforeClick !== null)
 			{
