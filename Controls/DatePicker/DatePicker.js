@@ -60,11 +60,21 @@ Fit.Controls.DatePicker = function(ctlId)
 		input.placeholder = getDatePlaceholder();
 		input.tabIndex = ((isMobile === true) ? -1 : 0);
 
-		// Prevent jQuery UI from focusing input field when calendar is opened (brings up virtual keyboard on touch devices).
+		// Prevent jQuery UI from focusing input field on touch devices when calendar is opened or when changing year/month (brings up virtual keyboard).
 		// https://github.com/Jemt/Fit.UI/blob/5e8f2183d75ae17ddb8086ebbe39025a7a7c98bb/Resources/JqueryUI-1.11.4.custom/jquery-ui.js#L1090
 		// => https://github.com/Jemt/Fit.UI/blob/5e8f2183d75ae17ddb8086ebbe39025a7a7c98bb/Resources/JqueryUI-1.11.4.custom/external/jquery/jquery.js#L5268
 		input._focus = input.focus;
-		input.focus = function() { console.debug("focus() disabled for this input field"); };
+		input.focus = function()
+		{
+			if (Fit.Device.OptimizeForTouch === true && me.TriggerIcon() === true)
+			{
+				icon.focus();
+			}
+			else
+			{
+				input._focus();
+			}
+		};
 
 		input.onkeydown = function(e)
 		{
@@ -243,12 +253,13 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		icon = document.createElement("span");
 		icon.className = "fa fa-calendar";
+		icon.style.outline = "none"; // Avoid outline when focused
 		icon.tabIndex = -1;
 		icon.onclick = function(e)
 		{
 			me.Show();
 
-			if (me.TriggerIcon() === false) // Focus input if icon is hidden
+			if (me.TriggerIcon() === false) // Focus input if icon is hidden (using opacity:0)
 			{
 				input._focus();
 			}
@@ -331,7 +342,7 @@ Fit.Controls.DatePicker = function(ctlId)
 			}
 		}
 
-		var hasFocus = Fit.Array.Contains([input, inputTime, inputMobile, inputTimeMobile], Fit.Dom.GetFocused()) === true;
+		var hasFocus = Fit.Array.Contains([icon, input, inputTime, inputMobile, inputTimeMobile], Fit.Dom.GetFocused()) === true;
 
 		if (hasFocus === false && isMobile === false)
 		{
@@ -1288,16 +1299,18 @@ Fit.Controls.DatePicker = function(ctlId)
 			{
 				// Retain focus when changing month or year using calendar
 				// widget, which causes its DOM to be removed and replaced.
-				// Focus is later returned to DatePicker, but not in time for
+				// Focus is later returned to input field, but not in time for
 				// OnFocusOut. Related issue: https://github.com/Jemt/Fit.UI/issues/194
-				if (Fit.Device.OptimizeForTouch === true && me.TriggerIcon() === true)
+				// DISABLED: Logic moved to input.focus override.
+				/*if (Fit.Device.OptimizeForTouch === true && me.TriggerIcon() === true)
 				{
 					icon.focus(); // Focusing icon to prevent virtual keyboard from being shown on touch devices
 				}
 				else
 				{
 					input._focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused
-				}
+				}*/
+				input.focus();
 
 				if (open === true) // Remember which year and month the user navigated to
 				{
@@ -1315,14 +1328,16 @@ Fit.Controls.DatePicker = function(ctlId)
 			{
 				startDate = null;
 
-				if (Fit.Device.OptimizeForTouch === true && me.TriggerIcon() === true)
+				// DISABLED: Logic moved to input.focus override
+				/*if (Fit.Device.OptimizeForTouch === true && me.TriggerIcon() === true)
 				{
 					icon.focus(); // Focusing icon to prevent virtual keyboard from being shown on touch devices
 				}
 				else
 				{
 					input._focus(); // Do not use Focused(true) as it will not re-focus input, since control is already considered focused
-				}
+				}*/
+				input.focus();
 
 				input.onchange();
 			},
