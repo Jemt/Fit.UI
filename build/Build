@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
 	echo "Bash script must be executing within the build folder"
 	exit
@@ -10,15 +12,16 @@ fi
 
 echo "Invoking Merge"
 
-if [[ "$1" == "--nomin" ]] ; then
-	echo
-	echo "WARNING: Fit.UI is NOT minified!"
-	echo "This build is NOT suitable for distribution!"
-	echo
-	./Merge umd # No minification
-else
-	./Merge umd minify
-fi
+# if [[ "$1" == "--nomin" ]] ; then
+# 	echo
+# 	echo "WARNING: Fit.UI is NOT minified!"
+# 	echo "This build is NOT suitable for distribution!"
+# 	echo
+# 	./Merge umd # No minification
+# else
+# 	./Merge umd minify
+# fi
+./Merge umd
 
 # Build documentation
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
 	echo "Bash script must be executing within the build folder"
 	exit

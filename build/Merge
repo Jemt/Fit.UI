@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
 	echo "Bash script must be executing within the build folder"
 	exit
@@ -91,8 +93,13 @@ if [ -f Fit.UI.min.css ] ; then
 fi
 
 echo "Minifying using UglifyJS and UglifyCSS"
-../node_modules/uglify-js/bin/uglifyjs Fit.UI.js --output Fit.UI.min.js
-../node_modules/uglifycss/uglifycss Fit.UI.css --output Fit.UI.min.css
+if [[ -f ../node_modules/uglify-js/bin/uglifyjs && -f ../node_modules/uglifycss/uglifycss ]] ; then
+	../node_modules/uglify-js/bin/uglifyjs Fit.UI.js --output Fit.UI.min.js
+	../node_modules/uglifycss/uglifycss Fit.UI.css --output Fit.UI.min.css
+else
+	echo "ERROR - unable to minify Fit.UI without NPM packages installed - run: npm install"
+	exit 1
+fi
 
 #if [[ "$1" == "minify" || "$2" == "minify" ]] ; then
 #	if [[ -x "$(command -v uglifyjs)" && -x "$(command -v uglifycss)" ]] ; then
