@@ -273,3 +273,78 @@ div.FitUiControlDatePicker input[type="time"]
 	right: 0px;
 	width: 35%;
 }
+
+/* Support for range visualization (modern browsers only: Chrome/Edge 105+, Safari 15.4+, Firefox 121+, Opera 91+) */
+
+:root
+{
+	--datepicker-range-selection-background: #D2E8FF;
+	--datepicker-range-start-background: #A9C4E0;
+	--datepicker-range-end-background: #A9C4E0;
+	--datepicker-range-end-line-color: #003D80; /* Use transparent to hide line */
+	--datepicker-range-today-background: #D1D1D1;
+	--datepicker-range-today-contained-background: #D1D1D1;
+	--datepicker-range-hover-background: #D1D1D1;
+}
+
+/* Remove default backgrounds and borders */
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td,
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td a,
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td a.fitui-state-hover
+{
+	background: none;
+	border-color: transparent;
+}
+
+/* Style range */
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td.FitUiControlDatePickerSelectedRange
+{
+	background-color: #D2E8FF;
+	background-color: var(--datepicker-range-selection-background, #D2E8FF);
+}
+
+/* Style anchor date (start date) */
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td.FitUiControlDatePickerAnchorDate
+{
+	background-color: #A9C4E0;
+	background-color: var(--datepicker-range-start-background, #A9C4E0);
+}
+
+/* Style selected date (end date) */
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td.FitUiControlDatePickerSelectedDate
+{
+	background-color: #A9C4E0;
+	background-color: var(--datepicker-range-end-background, #A9C4E0);
+	position: relative;
+}
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td.FitUiControlDatePickerSelectedDate:after /* Add line below selected date */
+{
+	content: "";
+	display: block;
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 0.15em;
+	background-color: #003D80;
+	background-color: var(--datepicker-range-end-line-color, #003D80);
+}
+
+/* Style "today" */
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td:has(a.fitui-state-highlight)
+{
+	background-color: #D1D1D1;
+	background-color: var(--datepicker-range-today-background, #D1D1D1);
+}
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td.FitUiControlDatePickerSelectedRange:has(a.fitui-state-highlight) /* "Today" is contained within a range, in which case we might want to use the color of the range to prevent "today" from standing out */
+{
+	background-color: #D1D1D1;
+	background-color: var(--datepicker-range-today-contained-background, #D1D1D1);
+}
+
+/* Style hover (mouse over) */
+div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td:hover /* avoid :has(a.fitui-state-hover) as fitui-state-hover class might get stuck after selection, until hovering calendar again */
+{
+	background-color: #D1D1D1;
+	background-color: var(--datepicker-range-hover-background, #D1D1D1);
+}

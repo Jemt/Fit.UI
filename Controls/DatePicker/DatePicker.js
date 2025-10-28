@@ -32,6 +32,7 @@ Fit.Controls.DatePicker = function(ctlId)
 	var datepickerElm = null;					// jQuery UI calendar widget element (remains null until shown for the first time - element shared among all DatePicker instances)
 	var datePickerYears = "c-10:c+10";			// Calendar widget's year range (from current year, going 10 years back and 10 years forward)
 	var datepickerDate = null;					// Which date to display in the calendar widget when no date is selected - null or Date
+	var anchorDate = null;						// Date to/from which a range is drawn when a date is selected in the calendar
 	var startDate = null;						// Which year/month to display in calendar widget if view needs to be restored (related to restoreView variable)
 	var selectWeek = false;						// Whether to select an entire week when a day is selected
 	var middleOfWeek = null;					// Wednesday in selected week when selectWeek is enabled - used to select correct week when changing locale
@@ -354,6 +355,33 @@ Fit.Controls.DatePicker = function(ctlId)
 		return hasFocus;
 	}
 
+	/// <function container="Fit.Controls.DatePicker" name="AnchorDate" access="public" returns="Date | null">
+	/// 	<description>
+	/// 		Get/set anchor date to/from which a range to the selected date is visualized on desktop devices.
+	/// 		Notice that this feature requires modern browsers like Chrome/Edge 105+, Safari 15.4+, Firefox 121+, Opera 91+.
+	/// 	</description>
+	/// 	<param name="val" type="Date | null" default="undefined">
+	/// 		If defined, provided date will serve as anchor date for calendar view
+	/// 	</param>
+	/// </function>
+	this.AnchorDate = function(val)
+	{
+		Fit.Validation.ExpectDate(val, true);
+
+		if (val !== undefined && val !== anchorDate)
+		{
+			anchorDate = val;
+
+			if (open === true)
+			{
+				me.Hide();
+				me.Show();
+			}
+		}
+
+		return anchorDate;
+	}
+
 	/// <function container="Fit.Controls.DatePicker" name="CalendarStartDate" access="public" returns="Date | null">
 	/// 	<description>
 	/// 		Get/set calendar start date - this date is used when control has no value
@@ -640,7 +668,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
 
-		me = input = inputTime = icon = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = placeholderDate = placeholderTime = weeks = jquery = datepicker = datepickerElm = startDate = selectWeek = middleOfWeek = open = focused = restoreView = updateCalConf = detectBoundaries = detectBoundariesRelToViewPort = isMobile = inputMobile = inputTimeMobile = null;
+		me = input = inputTime = icon = orgVal = preVal = prevTimeVal = locale = localeEnforced = format = formatEnforced = placeholderDate = placeholderTime = weeks = jquery = datepicker = datepickerElm = datePickerYears = datepickerDate = anchorDate = startDate = selectWeek = middleOfWeek = open = focused = restoreView = updateCalConf = detectBoundaries = detectBoundariesRelToViewPort = isMobile = inputMobile = inputTimeMobile = null;
 		base();
 	});
 
@@ -851,7 +879,7 @@ Fit.Controls.DatePicker = function(ctlId)
 		return selectWeek;
 	}
 
-	this.WeekNumbers = function(val) // Not supported on mobile, and jQuery calendar is buggy: https://bugs.jqueryui.com/ticket/14907
+	this.WeekNumbers = function(val) // Not supported on mobile, and jQuery calendar is buggy when first day of the week is sunday: https://bugs.jqueryui.com/ticket/14907
 	{
 		Fit.Validation.ExpectBoolean(val, true);
 
@@ -1340,6 +1368,47 @@ Fit.Controls.DatePicker = function(ctlId)
 				input.focus();
 
 				input.onchange();
+			},
+			beforeShowDay: function(date)
+			{
+				var selectable = true;
+				var cssClassNames = [];
+				var toolTip = "";
+
+				var value = me.Date();
+				var now = new Date();
+
+				// Produce timestamps based on dates only (discard time portion)
+				var related = anchorDate !== null ? new Date(anchorDate.getFullYear(), anchorDate.getMonth(), anchorDate.getDate(), 0, 0, 0, 0).getTime() : -1;
+				var selected = value !== null ? new Date(value.getFullYear(), value.getMonth(), value.getDate(), 0, 0, 0, 0).getTime() : -1;
+				var current = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).getTime();
+				var today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
+
+				if (related !== -1 && selected !== -1 && related !== selected)
+				{
+					var minValue = related < selected ? related : selected;
+					var maxValue = related > selected ? related : selected;
+
+					if (current >= minValue && current <= maxValue)
+					{
+						cssClassNames.push("FitUiControlDatePickerSelectedRange");
+					}
+				}
+
+				if (current === related)
+				{
+					cssClassNames.push("FitUiControlDatePickerAnchorDate");
+				}
+				else if (current === selected)
+				{
+					cssClassNames.push("FitUiControlDatePickerSelectedDate");
+				}
+				else if (current === today)
+				{
+					cssClassNames.push("FitUiControlDatePickerToday");
+				}
+
+				return [selectable, cssClassNames.join(" "), toolTip];
 			},
 			beforeShow: function(elm, dp)
 			{
