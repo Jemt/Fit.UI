@@ -2320,6 +2320,14 @@ declare namespace Fit
 		{
 			// Functions defined by Fit.Controls.DatePicker
 			/**
+			* Get/set anchor date to/from which a range to the selected date is visualized on desktop devices.
+			Notice that this feature requires modern browsers like Chrome/Edge 105+, Safari 15.4+, Firefox 121+, Opera 91+.
+			* @function AnchorDate
+			* @param {Date | null} [val=undefined] - If defined, provided date will serve as anchor date for calendar view.
+			* @returns Date | null
+			*/
+			public AnchorDate(val?:__fitUiAliasDate | null):__fitUiAliasDate | null;
+			/**
 			* Get/set calendar start date - this date is used when control has no value.
 			* @function CalendarStartDate
 			* @param {Date | null} [val=undefined] - If defined, provided date will serve as start date for calendar view.
