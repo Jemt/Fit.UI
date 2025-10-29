@@ -1,5 +1,6 @@
 /* Norwegian initialisation for the jQuery UI date picker plugin. */
 /* Written by Naimdjon Takhirov (naimdjon@gmail.com). */
+/* Months/days upper cased by Jimmy Thomsen for Fit.UI (https://fitui.org) */
 
 ( function( factory ) {
 	if ( false && typeof define === "function" && define.amd ) {
