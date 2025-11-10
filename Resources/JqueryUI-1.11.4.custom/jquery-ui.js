@@ -1344,7 +1344,11 @@ $.extend(Datepicker.prototype, {
 		if (inst.inline){
 			this._updateDatepicker(inst);
 		} else {
-			this._hideDatepicker();
+			// Fit.UI specific callback - allow calendar to remain open when selecting a date in the calendar widget
+			var onBeforeAutoClose = this._get(inst, "onBeforeAutoClose");
+			var hideCalendar = !onBeforeAutoClose || onBeforeAutoClose() !== false ? true : false;
+
+			hideCalendar && this._hideDatepicker();
 			this._lastInput = inst.input[0];
 			if (typeof(inst.input[0]) !== "object") {
 				inst.input.focus(); // restore focus

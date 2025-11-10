@@ -372,11 +372,14 @@ Fit.Controls.DatePicker = function(ctlId)
 		{
 			anchorDate = val;
 
-			if (open === true)
+			if (open === true) // Reopen calendar to immediately reflect changed date range
 			{
 				me.Hide();
 				me.Show();
 			}
+
+			// Update valid state in case validation is based on AnchorDate
+			me._internal.Validate();
 		}
 
 		return anchorDate;
@@ -1157,6 +1160,7 @@ Fit.Controls.DatePicker = function(ctlId)
 					Fit.Dom.Data(calendarWidget, "disable-light-dismiss", "true");
 
 					Fit.Dom.Data(calendarWidget, "select-week", selectWeek ? "true" : "false");
+					Fit.Dom.Data(calendarWidget, "valid", me.IsValid() ? "true" : "false");
 
 					moveCalenderWidgetLocally();
 
@@ -1508,6 +1512,18 @@ Fit.Controls.DatePicker = function(ctlId)
 						me.Value(val); // Changes middleOfWeek (restored below)
 						middleOfWeek = middleOfWeekBefore;
 					});
+				}
+			},
+			onBeforeAutoClose: function() // Fit.UI specific callback - triggered when auto closing as a result of selecting a date in the calendar widget
+			{
+				if (me.AnchorDate() !== null)
+				{
+					// Open/Close to update visualized date range,
+					// happening in the beforeShowDay(..) callback.
+					me.Hide();
+					me.Show();
+
+					return false; // Do not auto close calendar
 				}
 			},
 			onClose: function(dateText, dp)

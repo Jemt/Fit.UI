@@ -222,11 +222,17 @@ div.fitui-widget-content a.fitui-state-highlight /* Current day */
 	background-color: #EDEDED;
 }
 
-div.fitui-widget-content a.fitui-state-active /* Selected day */
+div.fitui-widget-content[data-valid="true"] a.fitui-state-active /* Selected valid day */
 {
 	background: #D2E8FF;
 	color: #454545;
 	border-color: #83BBE8;
+}
+div.fitui-widget-content[data-valid="false"] a.fitui-state-active /* Selected invalid day */
+{
+	background: #ffd2de;
+	color: #454545;
+	border-color: #faa1b9;
 }
 
 /* Support for week selection */
@@ -287,9 +293,17 @@ div.FitUiControlDatePicker input[type="time"]
 	--datepicker-range-hover-background: #D1D1D1;
 }
 
+div.fitui-datepicker[data-valid="false"]
+{
+	--datepicker-range-selection-background: #ffd2de;
+	--datepicker-range-start-background: #e0a9a9;
+	--datepicker-range-end-background: #e0a9a9;
+	--datepicker-range-end-line-color: #800000; /* Use transparent to hide line */
+}
+
 /* Remove default backgrounds and borders */
 div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td,
-div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td a,
+div.fitui-datepicker[data-valid]:has(td.FitUiControlDatePickerSelectedRange) td a, /* [data-valid] required to achieve sufficient specificy to overrule styling for selected day */
 div.fitui-datepicker:has(td.FitUiControlDatePickerSelectedRange) td a.fitui-state-hover
 {
 	background: none;

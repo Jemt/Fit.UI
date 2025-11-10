@@ -53,3 +53,10 @@ to the jQuery UI build is also necessary.
    a complete list of all locales which maps to their corresponding
    DateFormat strings - this list should be updated if localization
    files are updated.
+
+9) On November 10th 2025 an addition was made to the jQuery UI DatePicker which allows us to suppress automatic closing
+   of the calendar widget when a date is selected. Find the _selectDate function and locate the this._hideDatepicker() call.
+   This call is made conditional using a new callback named onBeforeAutoClose. The calendar is not closed if the callback returns false:
+   var onBeforeAutoClose = this._get(inst, "onBeforeAutoClose");
+   var hideCalendar = !onBeforeAutoClose || onBeforeAutoClose() !== false ? true : false;
+   hideCalendar && this._hideDatepicker();
