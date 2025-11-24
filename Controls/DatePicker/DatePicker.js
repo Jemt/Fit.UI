@@ -1516,12 +1516,15 @@ Fit.Controls.DatePicker = function(ctlId)
 			},
 			onBeforeAutoClose: function() // Fit.UI specific callback - triggered when auto closing as a result of selecting a date in the calendar widget
 			{
-				if (me.AnchorDate() !== null)
+				if (me.IsValid() === false && me.ShowValidationErrorsOnChange() === true)
 				{
-					// Open/Close to update visualized date range,
-					// happening in the beforeShowDay(..) callback.
-					me.Hide();
-					me.Show();
+					if (me.AnchorDate() !== null)
+					{
+						// Open/Close to update visualized date range,
+						// happening in the beforeShowDay(..) callback.
+						me.Hide();
+						me.Show();
+					}
 
 					return false; // Do not auto close calendar
 				}
