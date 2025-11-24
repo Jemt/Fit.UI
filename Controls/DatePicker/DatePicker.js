@@ -1514,7 +1514,7 @@ Fit.Controls.DatePicker = function(ctlId)
 					});
 				}
 			},
-			onBeforeAutoClose: function() // Fit.UI specific callback - triggered when auto closing as a result of selecting a date in the calendar widget
+			/*onBeforeAutoClose: function() // Fit.UI specific callback - triggered when auto closing as a result of selecting a date in the calendar widget
 			{
 				if (me.IsValid() === false && me.ShowValidationErrorsOnChange() === true)
 				{
@@ -1528,7 +1528,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 					return false; // Do not auto close calendar
 				}
-			},
+			},*/
 			onClose: function(dateText, dp)
 			{
 				open = false;
