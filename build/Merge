@@ -1,6 +1,8 @@
 #!/bin/bash
 
-set -e
+set -e				# Exit immediately if a command exits with a non-zero status code
+LC_ALL=C			# Ensures the same sort order across different systems, e.g. for ls and glob patterns - all files with UPPERCASE letters come before files starting with lowercase letters
+shopt -s nullglob	# Makes sure a glob pattern such as ../folder/*/ returns null if the folder is empty, hence prevents a loop from running, rather than returning itself (../folder/*/), which is obviously not a valid sub folder
 
 if [[ $(pwd) != $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ) ]] ; then
 	echo "Bash script must be executing within the build folder"
@@ -40,25 +42,26 @@ echo >> Fit.UI.css
 cat ../Resources/JqueryUI-1.11.4.custom/jquery-ui.css >> Fit.UI.css
 echo >> Fit.UI.css
 
-for file in `ls ../Core/*js | grep -v Core/Core.js | grep -v Core/Validation.js | grep -v Core/json2.js`
+for file in ../Core/*js
 do
+	[[ "$file" =~ /(Core|Validation|json2)\.js$ ]] && continue # RegEx match - skip Core.js, Validation.js, json2.js
 	cat $file >> Fit.UI.js
 	echo >> Fit.UI.js
 done
 
 # Merge UI controls
 
-for dir in `ls ../Controls`
+for dir in ../Controls/*/
 do
-	for file in `ls ../Controls/$dir | grep .js`
+	for file in "$dir"*.js
 	do
-		cat ../Controls/$dir/$file >> Fit.UI.js
+		cat "$file" >> Fit.UI.js
 		echo >> Fit.UI.js
 	done
 
-	for file in `ls ../Controls/$dir | grep .css`
+	for file in "$dir"*.css
 	do
-		cat ../Controls/$dir/$file >> Fit.UI.css
+		cat "$file" >> Fit.UI.css
 		echo >> Fit.UI.css
 	done
 done
