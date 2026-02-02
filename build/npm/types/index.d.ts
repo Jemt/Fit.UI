@@ -5166,6 +5166,12 @@ declare namespace Fit
 			{
 				// Properties defined by Fit.Controls.InputTypeDefs.DesignModeConfigToolbar
 				/**
+				* Enable text coloring (text color and back color) - accepts a boolean to enable
+				or disable colors, or a string array of available HEX color values (defaults to True).
+				* @member {boolean | string[]} [Colors=undefined]
+				*/
+				Colors?:boolean | string[];
+				/**
 				* Enable detach button (defaults to false).
 				* @member {boolean} [Detach=undefined]
 				*/
