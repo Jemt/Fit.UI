@@ -1294,6 +1294,10 @@ Fit.Controls.Input = function(ctlId)
 	/// <container name="Fit.Controls.InputTypeDefs.DesignModeConfigToolbar">
 	/// 	<description> Toolbar buttons enabled in DesignMode </description>
 	/// 	<member name="Formatting" type="boolean" default="undefined"> Enable text formatting (bold, italic, underline) (defaults to True) </member>
+	/// 	<member name="Colors" type="boolean | string[]" default="undefined">
+	/// 		Enable text coloring (text color and back color) - accepts a boolean to enable
+	/// 		or disable colors, or a string array of available HEX color values (defaults to True)
+	/// 	</member>
 	/// 	<member name="Justify" type="boolean" default="undefined"> Enable text alignment (defaults to True) </member>
 	/// 	<member name="Lists" type="boolean" default="undefined"> Enable ordered and unordered lists with indentation (defaults to True) </member>
 	/// 	<member name="Links" type="boolean" default="undefined"> Enable links (defaults to True) </member>
@@ -2176,6 +2180,15 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
+		if (!config.Toolbar || config.Toolbar.Colors === undefined || config.Toolbar.Colors === true || (config.Toolbar.Colors instanceof Array && config.Toolbar.Colors.length > 0))
+		{
+			Fit.Array.Add(toolbar,
+			{
+				name: "Colors",
+				items: [ "TextColor", "BGColor" ]
+			});
+		}
+
 		if (!config.Toolbar || config.Toolbar.Justify !== false)
 		{
 			Fit.Array.Add(toolbar,
@@ -2534,8 +2547,12 @@ Fit.Controls.Input = function(ctlId)
 		// and from table plugin: https://github.com/ckeditor/ckeditor4/blob/4df6984595e3b73de61cd2a1b1a7ec823f9cfbdc/plugins/table/plugin.js#L24C1-L25C1
 		//disallowedContent += (disallowedContent !== "" ? ";" : "") + "td th{background-color,border*,height,vertical-align,white-space,width}"; // Remove all CSS properties except text-align - retains all attributes (colspan, rowspan)
 
+		var textColors = config.Toolbar && config.Toolbar.Colors instanceof Array ? config.Toolbar.Colors : ["#55A8F3", "#7AC943", "#FEDD2F", "#F7931E", "#F05A50", "#B56BE3", "#0D63B7", "#0A8A2A", "#E0C32E", "#E26A1A", "#C9261A", "#7A4594", "#174B7E", "#0F5B1A", "#C59A23", "#B65414", "#8C140B", "#5E3378", "#002856", "#003F0F", "#9E7318", "#8A3F10", "#4D0000", "#3D224F", "#FFFFFF", "#DADADA", "#A6A6A6", "#6D6D6D", "#303030", "#000000"];
+
+
 		designEditor = CKEDITOR.replace(me.GetId() + "_DesignMode",
 		{
+			versionCheck: false,
 			toolbarLocation: designEditorConfig !== null && designEditorConfig.Toolbar && designEditorConfig.Toolbar.Position === "Bottom" ? "bottom" : "top",
 			uiColor: Fit._internal.Controls.Input.Editor.Skin === "moono-lisa" || Fit._internal.Controls.Input.Editor.Skin === null ? "#FFFFFF" : undefined,
 			//allowedContent: true, // http://docs.ckeditor.com/#!/guide/dev_allowed_content_rules and http://docs.ckeditor.com/#!/api/CKEDITOR.config-cfg-allowedContent
@@ -2550,6 +2567,7 @@ Fit.Controls.Input = function(ctlId)
 			height: me.Height().Value > -1 ? me.Height().Value + me.Height().Unit : "100%", // Height of content area - toolbar and bottom panel takes up additional space - once editor is loaded, the outer dimensions are accurately set using updateDesignEditorSize() - a height of 100% enables auto grow
 			startupFocus: me.Focused() === true ? "end" : false, // Doesn't work when editor is hidden while initializing to avoid flickering - focus is set again when editor is made visible in instanceReady handler, at which point it will place cursor at the end of the editor if startupFocus is set to "end"
 			extraPlugins: plugins.join(","),
+			colorButton_colors: textColors.join(",").replace(/#/g, ""),
 			clipboard_handleImages: false, // Disable native support for image pasting - allow base64imagepaste plugin to handle image data if loaded
 			base64image: // Custom property used by base64image plugin if loaded
 			{
