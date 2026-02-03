@@ -2611,14 +2611,30 @@ Fit.Controls.Input = function(ctlId)
 					if (designEditorMustDisposeWhenReady === true)
 					{
 						Fit.Browser.Debug("WARNING: Input control '" + me.GetId() + "' was disposed while initializing DesignMode - now resuming disposal");
-						me.Dispose();
+						setTimeout(function() // Postpone - plugins (e.g. ColorButton) might register an instanceReady handler and expect the instance to still exist - postponing is fine, instanceReady and designEditorMustDisposeWhenReady already makes the operation async.
+						{
+							if (me === null)
+							{
+								return;
+							}
+
+							me.Dispose();
+						}, 0);
 						return;
 					}
 
 					if (designEditorMustReloadWhenReady === true)
 					{
 						Fit.Browser.Debug("WARNING: Editor for Input control '" + me.GetId() + "' finished loading, but properties affecting editor has changed while initializing - reloading to adjust to changes");
-						reloadEditor(true);
+						setTimeout(function() // Postpone - plugins (e.g. ColorButton) might register an instanceReady handler and expect the instance to still exist - postponing is fine, instanceReady and designEditorMustReloadWhenReady already makes the operation async.
+						{
+							if (me === null)
+							{
+								return;
+							}
+
+							reloadEditor(true);
+						}, 0);
 						return;
 					}
 
