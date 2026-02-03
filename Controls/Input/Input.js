@@ -2786,76 +2786,47 @@ Fit.Controls.Input = function(ctlId)
 						}
 					}
 
+					// Register necessary events with color panel when opened
+
+					Fit.Array.ForEach(designEditor.container.$.querySelectorAll("a.cke_button__textcolor, a.cke_button__bgcolor"), function(button)
+					{
+						lockDesignEditorDialogButtonToFocusState(button, function() // Callback invoked to get panel associated with button
+						{
+							var panel = null;
+
+							// Color panel has no color plugin identifier, so we need to inspect all panel iframes to look for a plugin identifier inside
+							Fit.Array.ForEach(document.querySelectorAll("div.cke_panel > iframe"), function(iframe)
+							{
+								if (iframe.contentDocument !== null) // Null if hosted on foreign domain
+								{
+									var colorBlock = iframe.contentDocument.querySelector("div.cke_colorblock");
+
+									if (colorBlock !== null)
+									{
+										// Color panel found. Panel is shared between instances and used for both the
+										// text color and back color. We know parentElement exists because of the query selector.
+										panel = iframe.parentElement;
+										return false; // Break loop
+									}
+								}
+							});
+
+							return panel;
+						});
+					});
+
 					// Register necessary events with emoji panel when opened
 
 					var emojiButton = designEditor.container.$.querySelector("a.cke_button__emojipanel");
 
-					if (emojiButton !== null) // Better safe than sorry
+					if (emojiButton !== null) // Button might not be enabled
 					{
-						Fit.Events.AddHandler(emojiButton, "click", function(e)
+						lockDesignEditorDialogButtonToFocusState(emojiButton, function() // Callback invoked to get panel associated with button
 						{
-							// Make sure OnFocus fires before locking focus state
+							var emojiPanel = document.querySelector("div.cke_emoji-panel"); // Shared among instances
 
-							if (me.Focused() === false)
+							if (emojiPanel !== null) // Better safe than sorry
 							{
-								// Control not focused - make sure OnFocus fires when emoji button is clicked,
-								// and make sure ControlBase internally considers itself focused, so there is
-								// no risk of OnFocus being fired twice without OnBlur firing in between,
-								// when focus state is unlocked, and focus is perhaps re-assigned to another
-								// DOM element within the control, which will be the case if the design editor
-								// is switched back to an ordinary input field (e.g. using DesignMode(false)).
-								me.Focused(true);
-							}
-
-							// Prevent control from firing OnBlur when emoji dialog is opened.
-							// Notice that locking the focus state will also prevent OnFocus
-							// from being fired automatically.
-							me._internal.FocusStateLocked(true);
-
-							setTimeout(function() // Postpone - emoji panel is made visible after click event
-							{
-								// Allow light dismissable panels/callouts to prevent close/dismiss
-								// when interacting with emoji widget hosted outside of panels/callouts,
-								// by detecting the presence of a data-disable-light-dismiss="true" attribute.
-								var emojiPanel = document.querySelector("div.cke_emoji-panel"); // Shared among instances
-
-								if (emojiPanel !== null) // Better safe than sorry
-								{
-									Fit.Dom.Data(emojiPanel, "disable-light-dismiss", "true");
-
-									emojiPanel._associatedFitUiControl = me;
-
-									designEditorActiveToolbarPanel =
-									{
-										DomElement: emojiPanel,
-										UnlockFocusStateIfEmojiPanelIsClosed: function() // Function called regularly via interval timer while emoji panel is open to make sure focus state is unlocked when emoji panel is closed, e.g. by pressing ESC, clicking outside of emoji panel, or by choosing an emoji
-										{
-											if (designModeEnabledAndReady() === false /* No longer in DesignMode */ || Fit.Dom.IsVisible(emojiPanel) === false /* Emoji panel closed */ || emojiPanel._associatedFitUiControl !== me /* Emoji panel now opened from another editor */)
-											{
-												designEditorActiveToolbarPanel = null;
-
-												// Disable focus lock - let ControlBase handle OnFocus and OnBlur automatically again
-												me._internal.FocusStateLocked(false);
-
-												// Fire OnBlur in case user changed focus while emoji panel was open.
-												// OnBlur does not fire automatically when focus state is locked.
-												if (me.Focused() === false)
-												{
-													me._internal.FireOnBlur();
-												}
-											}
-										},
-										CloseEmojiPanel: function()
-										{
-											if (emojiPanel._associatedFitUiControl === me && Fit.Dom.IsVisible(emojiPanel) === true && Fit.Dom.Contained(emojiPanel, Fit.Dom.GetFocused()) === true)
-											{
-												designEditor.focus();
-												designEditorActiveToolbarPanel.UnlockFocusStateIfEmojiPanelIsClosed();
-											}
-										}
-									}
-								}
-
 								// Hide status bar in emoji dialog
 								var emojiFrame = emojiPanel.querySelector("iframe");
 								var emojiContent = emojiFrame && emojiFrame.contentDocument;
@@ -2863,31 +2834,9 @@ Fit.Controls.Input = function(ctlId)
 								var emojiContentStatus = emojiContent && emojiContent.querySelector(".cke_emoji-status_bar");
 								emojiContentBlock && (emojiContentBlock.style.height = "220px");
 								emojiContentStatus && (emojiContentStatus.style.display = "none");
+							}
 
-								var checkClosedId = setInterval(function()
-								{
-									// Invoke cleanup function regularly to make sure
-									// focus lock is relased when emoji panel is closed,
-									// and to fire OnBlur if another control was focused
-									// while emoji panel was open.
-
-									if (me === null)
-									{
-										clearInterval(checkClosedId);
-										return;
-									}
-
-									if (designEditorActiveToolbarPanel !== null)
-									{
-										designEditorActiveToolbarPanel.UnlockFocusStateIfEmojiPanelIsClosed(); // Nullfies designEditorActiveToolbarPanel if emoji panel is closed
-									}
-
-									if (designEditorActiveToolbarPanel === null)
-									{
-										clearInterval(checkClosedId);
-									}
-								}, 250);
-							}, 0);
+							return emojiPanel;
 						});
 					}
 
@@ -3356,7 +3305,105 @@ Fit.Controls.Input = function(ctlId)
 
 			designEditorRestoreButtonState = null;
 		}
-	};
+	}
+
+	function lockDesignEditorDialogButtonToFocusState(button, getPanelCallback)
+	{
+		Fit.Validation.ExpectElement(button);
+		Fit.Validation.ExpectFunction(getPanelCallback);
+
+		Fit.Events.AddHandler(button, "click", function(e)
+		{
+			// Make sure OnFocus fires before locking focus state
+
+			if (me.Focused() === false)
+			{
+				// Control not focused - make sure OnFocus fires when emoji button is clicked,
+				// and make sure ControlBase internally considers itself focused, so there is
+				// no risk of OnFocus being fired twice without OnBlur firing in between,
+				// when focus state is unlocked, and focus is perhaps re-assigned to another
+				// DOM element within the control, which will be the case if the design editor
+				// is switched back to an ordinary input field (e.g. using DesignMode(false)).
+				me.Focused(true);
+			}
+
+			// Prevent control from firing OnBlur when emoji dialog is opened.
+			// Notice that locking the focus state will also prevent OnFocus
+			// from being fired automatically.
+			me._internal.FocusStateLocked(true);
+
+			setTimeout(function() // Postpone - wait for dialog to be mounted in DOM
+			{
+				var panel = getPanelCallback(); // Panel is shared among instances
+
+				if (panel === null)
+				{
+					return;
+				}
+
+				// Allow light dismissable panels/callouts to prevent close/dismiss
+				// when interacting with emoji widget hosted outside of panels/callouts,
+				// by detecting the presence of a data-disable-light-dismiss="true" attribute.
+				Fit.Dom.Data(panel, "disable-light-dismiss", "true");
+
+				panel._associatedFitUiControl = me;
+
+				designEditorActiveToolbarPanel =
+				{
+					DomElement: panel,
+					UnlockFocusStateIfEmojiPanelIsClosed: function() // Function called regularly via interval timer while emoji panel is open to make sure focus state is unlocked when emoji panel is closed, e.g. by pressing ESC, clicking outside of emoji panel, or by choosing an emoji
+					{
+						if (designModeEnabledAndReady() === false /* No longer in DesignMode */ || Fit.Dom.IsVisible(panel) === false /* Emoji panel closed */ || panel._associatedFitUiControl !== me /* Emoji panel now opened from another editor */)
+						{
+							designEditorActiveToolbarPanel = null;
+
+							// Disable focus lock - let ControlBase handle OnFocus and OnBlur automatically again
+							me._internal.FocusStateLocked(false);
+
+							// Fire OnBlur in case user changed focus while emoji panel was open.
+							// OnBlur does not fire automatically when focus state is locked.
+							if (me.Focused() === false)
+							{
+								me._internal.FireOnBlur();
+							}
+						}
+					},
+					CloseEmojiPanel: function()
+					{
+						if (panel._associatedFitUiControl === me && Fit.Dom.IsVisible(panel) === true && Fit.Dom.Contained(panel, Fit.Dom.GetFocused()) === true)
+						{
+							designEditor.focus();
+							designEditorActiveToolbarPanel.UnlockFocusStateIfEmojiPanelIsClosed();
+						}
+					}
+				};
+
+				var checkClosedId = setInterval(function()
+				{
+					// Invoke cleanup function regularly to make sure
+					// focus lock is relased when emoji panel is closed,
+					// and to fire OnBlur if another control was focused
+					// while emoji panel was open.
+
+					if (me === null)
+					{
+						clearInterval(checkClosedId);
+						return;
+					}
+
+					if (designEditorActiveToolbarPanel !== null)
+					{
+						designEditorActiveToolbarPanel.UnlockFocusStateIfEmojiPanelIsClosed(); // Nullfies designEditorActiveToolbarPanel if emoji panel is closed
+					}
+
+					if (designEditorActiveToolbarPanel === null)
+					{
+						clearInterval(checkClosedId);
+					}
+				}, 250);
+			}, 0);
+		});
+	}
 
 	function updateDesignEditorSize()
 	{
