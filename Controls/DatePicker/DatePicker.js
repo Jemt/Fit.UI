@@ -738,12 +738,14 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		if (Fit.Validation.IsSet(val) === true)
 		{
-			localeEnforced = true;
-			setLocale(val);
-
-			if (selectWeek === true)
+			if (setLocale(val) === true)
 			{
-				selectFirstDayOfWeek(middleOfWeek);
+				localeEnforced = true;
+
+				if (selectWeek === true)
+				{
+					selectFirstDayOfWeek(middleOfWeek);
+				}
 			}
 		}
 
@@ -1900,7 +1902,10 @@ Fit.Controls.DatePicker = function(ctlId)
 		var loc = getJqueryDateFormatFromLocale(val); // Null if locale does not exist
 
 		if (loc === null)
-			Fit.Validation.ThrowError("Unknown locale '" + val + "'");
+		{
+			console.warn("Unknown locale '" + val + "'");
+			return false;
+		}
 
 		var newFormat = loc.format;
 
@@ -1925,6 +1930,8 @@ Fit.Controls.DatePicker = function(ctlId)
 			me.Show();
 			restoreView = false;
 		}
+
+		return true;
 	}
 
 	function setFormat(val)
@@ -2012,7 +2019,7 @@ Fit.Controls.DatePicker = function(ctlId)
 
 		// Update locale
 
-		// Make sure locale exists - otherwise setLocale throws an error
+		// Make sure locale exists - otherwise setLocale emits a warning
 		if (Fit.Array.Contains(Fit.Array.GetKeys(getLocales()), key) === true)
 		{
 			setLocale(key);
