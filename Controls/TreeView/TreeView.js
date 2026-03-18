@@ -1653,7 +1653,7 @@ Fit.Controls.TreeView = function(ctlId)
 				// starting from the top again. Therefore, if node passed is visible
 				// in the hierarcy (not hidden behind collapsed nodes), then use it.
 
-				nodeIsVisibleInHierarchy = true;
+				var nodeIsVisibleInHierarchy = true;
 
 				var parent = node;
 				while ((parent = parent.GetParent()) !== null)
