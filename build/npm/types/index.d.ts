@@ -4598,6 +4598,16 @@ declare namespace Fit
 			*/
 			public Maximized(val?:boolean):boolean;
 			/**
+			* Get/set the maximum text length. Be aware that HTML formatting in Design Mode
+			does not count - use AddValidationRule(..) to set a hard limit if needed.
+			Returns -1 when no maximum text length is imposed.
+			* @function MaxLength
+			* @param {number} [val=undefined] - If defined, value is set as maximum text length.
+			* @param {Fit.Controls.InputTypeDefs.MaxLengthConfig} [config=undefined] - Optional configuration for how maximum text length is handled and behaves.
+			* @returns number
+			*/
+			public MaxLength(val?:number, config?:Fit.Controls.InputTypeDefs.MaxLengthConfig):number;
+			/**
 			* Get/set value indicating whether control is in Multi Line mode (textarea).
 			* @function MultiLine
 			* @param {boolean} [val=undefined] - If defined, True enables Multi Line mode, False disables it.
@@ -5439,6 +5449,29 @@ declare namespace Fit
 				* @member {string} Value
 				*/
 				Value:string;
+			}
+			/**
+			* Configuration for MaxLength feature.
+			* @class [Fit.Controls.InputTypeDefs.MaxLengthConfig MaxLengthConfig]
+			*/
+			class MaxLengthConfig
+			{
+				// Properties defined by Fit.Controls.InputTypeDefs.MaxLengthConfig
+				/**
+				* Hide character counter until this number of characters is reached.
+				* @member {number} [HideUntilCharCount=0]
+				*/
+				HideUntilCharCount?:number;
+				/**
+				* If True, shows a validation error message when the maximum text lenght is reached.
+				* @member {boolean} [ShowValidationError=false]
+				*/
+				ShowValidationError?:boolean;
+				/**
+				* If True, blocks additional input when maximum text length is reached.
+				* @member {boolean} [StopInputOnLimit=true]
+				*/
+				StopInputOnLimit?:boolean;
 			}
 		}
 		/**
