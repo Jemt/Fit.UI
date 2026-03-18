@@ -461,6 +461,55 @@ div.FitUiControlInput[data-designmode="true"][data-toolbar="false"] [contentedit
 	cursor: pointer;
 }
 
+/* Character counter callout */
+
+div.FitUiControlInput[data-maxlength="true"] > span[data-maxlength]
+{
+	display: none;
+}
+div.FitUiControlInput[data-maxlength="true"][data-focused="true"] > span[data-maxlength]
+{
+	display: inline;
+	cursor: default;
+	position: absolute;
+	top: 0em;
+	right: 0;
+	transform: translateX(calc(100% + 1em));
+	font-size: 0.8em;
+	line-height: 2.5em;
+	padding: 0em 0.5em;
+	background-color: #696969;
+	color: white;
+	border-radius: 0.5em;
+}
+div.FitUiControlInput[data-maxlength="true"][data-focused="true"][data-designmode="true"] > span[data-maxlength] /* Align with toolbar */
+{
+	top: 0.6em;
+}
+div.FitUiControlInput[data-maxlength="true"][data-focused="true"] > span[data-maxlength]:before /* counter text, e.g. 33/100 */
+{
+	content: attr(data-maxlength);
+}
+div.FitUiControlInput[data-maxlength="true"][data-focused="true"] > span[data-maxlength]:after /* Left side arrow */
+{
+	content: "";
+	position: absolute;
+	top: 50%;
+	right: calc(100% - 0.1em);
+	transform: translateY(-50%);
+	border-width: 0.6em;
+	border-style: solid;
+	border-color: transparent #696969 transparent transparent;
+}
+div.FitUiControlInput[data-maxlength="true"][data-focused="true"][data-valid="false"] > span[data-maxlength]
+{
+	background-color: red;
+}
+div.FitUiControlInput[data-maxlength="true"][data-focused="true"][data-valid="false"] > span[data-maxlength]:after
+{
+	border-color: transparent red transparent transparent;
+}
+
 /* Fluent UI compatibility */
 
 /* The following elements are mounted in document root - make sure they stay on

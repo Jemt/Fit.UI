@@ -8,6 +8,8 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 
 	"en":
 	{
+		"MaxLengthExceeded": "A maximum of {0} characters allowed",
+
 		"Detach": "Open in dialog",
 		"Ok": "OK",
 		"Cancel": "Cancel",
@@ -30,6 +32,8 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 	},
 	"da":
 	{
+		"MaxLengthExceeded": "Højest {0} tegn tilladt",
+
 		"Detach": "Åben i dialog",
 		"Ok": "OK",
 		"Cancel": "Annullér",
@@ -52,6 +56,8 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 	},
 	"de":
 	{
+		"MaxLengthExceeded": "Höchstens {0} Zeichen erlaubt",
+
 		"Detach": "Im Dialog öffnen",
 		"Ok": "OK",
 		"Cancel": "Abbrechen",
@@ -74,6 +80,8 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 	},
 	"no":
 	{
+		"MaxLengthExceeded": "Maksimalt {0} tegn tillatt",
+
 		"Detach": "Åpne i dialog",
 		"Ok": "OK",
 		"Cancel": "Avbryt",

@@ -17,6 +17,10 @@ Fit.Controls.Input = function(ctlId)
 	var orgVal = "";			// Holds initial value used to determine IsDirty state
 	var preVal = "";			// Holds latest change made by user - used to determine whether OnChange needs to be fired
 	var input = null;
+	var charCounter = null;
+	var charCounterConfig = null;
+	var maxLength = -1;
+	var curLength = -1;			// Holds input length - HTML formatting is excluded in Design Mode as it represents characters entered by the user
 	var changeObserverId = -1;	// Holds interval ID to observer function for controls (e.g. color picker) not continuously firing OnChange when value is changed
 	var cmdResize = null;
 	var designEditor = null;
@@ -73,8 +77,11 @@ Fit.Controls.Input = function(ctlId)
 		input.type = "text";
 		input.autocomplete = "off";
 		input.spellcheck = true;
-		input.onkeyup = function()
+		input.oninput/*onkeyup*/ = function()
 		{
+			curLength = -1; // Let getInputLength() calculate new length when called
+			updateCharCounter();
+
 			if (designEditorClearPlaceholder === true)
 			{
 				designEditorClearPlaceholder = false;	// Prevent additional calls to updateDesignEditorPlaceholder - it retrieves editor value which is expensive
@@ -109,7 +116,7 @@ Fit.Controls.Input = function(ctlId)
 				}
 			}
 		}
-		input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
+		/*input.onchange = function() // OnKeyUp does not catch changes by mouse (e.g. paste or moving selected text)
 		{
 			if (me === null)
 			{
@@ -120,11 +127,12 @@ Fit.Controls.Input = function(ctlId)
 			}
 
 			input.onkeyup();
-		}
+		}*/
 		me._internal.AddDomElement(input);
 
 		me.AddCssClass("FitUiControlInput");
 
+		me._internal.Data("maxlength", "false");
 		me._internal.Data("multiline", "false");
 		me._internal.Data("maximizable", "false");
 		me._internal.Data("maximized", "false");
@@ -161,7 +169,7 @@ Fit.Controls.Input = function(ctlId)
 			{
 				changeObserverId = setInterval(function()
 				{
-					input.onkeyup();
+					input.oninput(); //input.onkeyup();
 				}, 100);
 			}
 		});
@@ -220,6 +228,42 @@ Fit.Controls.Input = function(ctlId)
 			nativeResizableAvailable = window.MouseEvent && new MouseEvent("mousemove", {}).buttons !== undefined || false;
 		}
 		catch (err) {}
+
+		// MaxLength support
+
+		me.AddValidationRule(function(sender)
+		{
+			if (maxLength > 0 && getInputLength() > maxLength)
+			{
+				return charCounterConfig.ShowValidationError === true ? locale.MaxLengthExceeded.replace("{0}", maxLength + "") : false;
+			}
+		});
+
+		Fit.Events.AddHandler(me.GetDomElement(), "keypress", function(e)
+		{
+			var ev = Fit.Events.GetEvent(e);
+
+			// Suppress key stroke if max length is reached in HTML editor.
+			// This is not perfect. Line breaks and emojis are not intercepted, neither is paste
+			// operations, but such input will get caught as invalid if it exceeds maxlength when
+			// focus is lost (see OnBlur handler below) or on the next key stroke. Poor man's implementation.
+			if (maxLength > 0 && designEditor !== null && charCounterConfig.StopInputOnLimit === true && ev.keyCode !== 8 && ev.keyCode !== 46 && ev.ctrlKey === false && ev.altKey === false && ev.metaKey === false && getInputLength() >= maxLength && window.getSelection().toString() === "")
+			{
+				Fit.Events.PreventDefault(ev);
+			}
+		});
+
+		me.OnBlur(function(sender)
+		{
+			// HTML editor does not fire OnChange when inserting emojis. Make sure
+			// counter and valid state is properly reflected when focus is lost.
+			if (maxLength > 0 && designEditor !== null)
+			{
+				curLength = -1; // Let getInputLength() calculate new length when called
+				updateCharCounter();
+				me._internal.Validate();
+			}
+		});
 	}
 
 	// ============================================
@@ -532,7 +576,11 @@ Fit.Controls.Input = function(ctlId)
 			}
 
 			if (fireOnChange === true)
+			{
+				curLength = -1; // Let getInputLength() calculate new length when called
+				updateCharCounter();
 				me._internal.FireOnChange();
+			}
 		}
 
 		if (designModeEnabledAndReady() === true)
@@ -741,7 +789,7 @@ Fit.Controls.Input = function(ctlId)
 			});
 		}
 
-		me = orgVal = preVal = input = changeObserverId = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached = designEditorClearPlaceholder = designEditorCleanEditableDom = designEditorGlobalKeyDownEventId = designEditorGlobalKeyUpEventId /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
+		me = orgVal = preVal = input = charCounter = charCounterConfig = maxLength = curLength = changeObserverId = cmdResize = designEditor = designEditorDom = designEditorDirty = designEditorDirtyPending = designEditorConfig = designEditorReloadConfig = designEditorRestoreButtonState = designEditorSuppressPaste = designEditorSuppressOnResize = designEditorMustReloadWhenReady = designEditorMustDisposeWhenReady = designEditorUpdateSizeDebouncer = designEditorHeightMonitorId = designEditorActiveToolbarPanel = designEditorDetached = designEditorClearPlaceholder = designEditorCleanEditableDom = designEditorGlobalKeyDownEventId = designEditorGlobalKeyUpEventId /*= htmlWrappedInParagraph*/ = wasAutoChangedToMultiLineMode = minimizeHeight = maximizeHeight = minMaxUnit = maximizeHeightConfigured = resizable = nativeResizableAvailable = mutationObserverId = rootedEventId = createWhenReadyIntervalId = isIe8 = debounceOnChangeTimeout = debouncedOnChange = imageBlobUrls = locale = null;
 
 		base();
 	});
@@ -833,6 +881,91 @@ Fit.Controls.Input = function(ctlId)
 	// ============================================
 	// Public
 	// ============================================
+
+	/// <container name="Fit.Controls.InputTypeDefs.MaxLengthConfig">
+	/// 	<description> Configuration for MaxLength feature </description>
+	/// 	<member name="HideUntilCharCount" type="integer" default="0">
+	/// 		Hide character counter until this number of characters is reached
+	/// 	</member>
+	/// 	<member name="StopInputOnLimit" type="boolean" default="true">
+	/// 		If True, blocks additional input when maximum text length is reached
+	/// 	</member>
+	/// 	<member name="ShowValidationError" type="boolean" default="false">
+	/// 		If True, shows a validation error message when the maximum text lenght is reached
+	/// 	</member>
+	/// </container>
+
+	/// <function container="Fit.Controls.Input" name="MaxLength" access="public" returns="integer">
+	/// 	<description>
+	/// 		Get/set the maximum text length. Be aware that HTML formatting in Design Mode
+	/// 		does not count - use AddValidationRule(..) to set a hard limit if needed.
+	/// 		Returns -1 when no maximum text length is imposed.
+	/// 	</description>
+	/// 	<param name="val" type="integer" default="undefined"> If defined, value is set as maximum text length </param>
+	/// 	<param name="config" type="Fit.Controls.InputTypeDefs.MaxLengthConfig" default="undefined">
+	/// 		Optional configuration for how maximum text length is handled and behaves.
+	/// 	</param>
+	/// </function>
+	this.MaxLength = function(val, config)
+	{
+		Fit.Validation.ExpectInteger(val, true);
+		Fit.Validation.ExpectObject(config, true);
+		Fit.Validation.ExpectInteger((config || {}).HideUntilCharCount, true);
+		Fit.Validation.ExpectBoolean((config || {}).StopInputOnLimit, true);
+		Fit.Validation.ExpectBoolean((config || {}).ShowValidationError, true);
+
+		if (Fit.Validation.IsSet(val) === true)
+		{
+			if (val > 0)
+			{
+				charCounterConfig =
+				{
+					HideUntilCharCount: config && config.HideUntilCharCount || 0,
+					StopInputOnLimit: config ? config.StopInputOnLimit !== false : true,
+					ShowValidationError: config ? config.ShowValidationError === true : false
+				};
+
+				maxLength = val;
+				me._internal.Data("maxlength", "true");
+
+				if (charCounter === null)
+				{
+					charCounter = document.createElement("span");
+					charCounter.title = locale.MaxLengthExceeded.replace("{0}", maxLength + "");
+					me._internal.AddDomElement(charCounter);
+				}
+
+				if (charCounterConfig.HideUntilCharCount > 0)
+				{
+					charCounter.style.display = "none"; // Updated when updateCharCounter() is called
+				}
+
+				if (charCounterConfig.StopInputOnLimit === true)
+				{
+					Fit.Dom.Attribute(input, "maxlength", maxLength + ""); // Prevents user from entering too many characters
+				}
+
+				updateCharCounter();
+				me._internal.Validate();
+			}
+			else if (val <= 0 && charCounter !== null)
+			{
+				charCounterConfig = null;
+
+				maxLength = -1;
+				me._internal.Data("maxlength", "false");
+
+				me._internal.RemoveDomElement(charCounter);
+				charCounter = null;
+
+				Fit.Dom.Attribute(input, "maxlength", null);
+
+				me._internal.Validate();
+			}
+		}
+
+		return maxLength;
+	}
 
 	/// <function container="Fit.Controls.Input" name="Placeholder" access="public" returns="string">
 	/// 	<description> Get/set value used as a placeholder to indicate expected input on supported browsers </description>
@@ -978,16 +1111,18 @@ Fit.Controls.Input = function(ctlId)
 				var focused = me.Focused();
 
 				var oldInput = input;
-				me._internal.RemoveDomElement(oldInput);
 
 				input = document.createElement("textarea");
 				input.value = oldInput.value;
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
 				input.disabled = oldInput.disabled;
-				input.onkeyup = oldInput.onkeyup;
-				input.onchange = oldInput.onchange;
-				me._internal.AddDomElement(input);
+				//input.onkeyup = oldInput.onkeyup;
+				//input.onchange = oldInput.onchange;
+				input.oninput = oldInput.oninput;
+
+				Fit.Dom.Attribute(input, "maxlength", charCounterConfig && charCounterConfig.StopInputOnLimit === true ? maxLength + "" : null);
+				Fit.Dom.Replace(oldInput, input);
 
 				if (nativeResizableAvailable === true)
 				{
@@ -1018,7 +1153,6 @@ Fit.Controls.Input = function(ctlId)
 				var focused = me.Focused();
 
 				var oldInput = input;
-				me._internal.RemoveDomElement(oldInput);
 
 				if (cmdResize !== null)
 				{
@@ -1043,9 +1177,12 @@ Fit.Controls.Input = function(ctlId)
 				input.spellcheck = oldInput.spellcheck;
 				input.placeholder = oldInput.placeholder;
 				input.disabled = oldInput.disabled;
-				input.onkeyup = oldInput.onkeyup;
-				input.onchange = oldInput.onchange;
-				me._internal.AddDomElement(input);
+				//input.onkeyup = oldInput.onkeyup;
+				//input.onchange = oldInput.onchange;
+				input.oninput = oldInput.oninput;
+
+				Fit.Dom.Attribute(input, "maxlength", charCounterConfig && charCounterConfig.StopInputOnLimit === true ? maxLength + "" : null);
+				Fit.Dom.Replace(oldInput, input);
 
 				me.Height(-1);
 
@@ -2084,6 +2221,45 @@ Fit.Controls.Input = function(ctlId)
 	// Private
 	// ============================================
 
+	function updateCharCounter()
+	{
+		if (charCounter !== null)
+		{
+			var currentLength = getInputLength();
+			Fit.Dom.Data(charCounter, "maxlength", currentLength + "/" + maxLength);
+
+			if (charCounter.style.display === "none") // Hidden if HideUntilCharCount is enabled
+			{
+				var showCounter = currentLength >= charCounterConfig.HideUntilCharCount;
+
+				if (showCounter === true) // Only go from hidden to shown, not the other way around - it might confuse the user if it comes and goes
+				{
+					charCounter.style.display = "";
+				}
+			}
+		}
+	}
+
+	function getInputLength()
+	{
+		if (curLength === -1)
+		{
+			if (designEditor !== null)
+			{
+				//return Fit.String.StripHtml(me.Value()).length;
+				var span = document.createElement("span");
+				span.innerHTML = me.Value();
+				curLength = span.textContent.length; // Discards formatting and transforms HTML/HEX entities into characters
+			}
+			else
+			{
+				curLength = me.Value().length;
+			}
+		}
+
+		return curLength;
+	}
+
 	function createEditor()
 	{
 		// NOTICE: CKEDITOR requires input control to be rooted in DOM.
@@ -2943,7 +3119,7 @@ Fit.Controls.Input = function(ctlId)
 						designEditorDirty = true;
 					}
 
-					input.onkeyup();
+					input.oninput(); //input.onkeyup();
 				},
 				resize: function() // Fires when size is changed (except via auto grow), not just when resized using resize handle in lower right cornor
 				{
@@ -4209,6 +4385,12 @@ Fit.Controls.Input = function(ctlId)
 			{
 				designEditorDetached = detachedEditor;
 			}
+		}
+
+		if (charCounter !== null)
+		{
+			charCounter.title = locale.MaxLengthExceeded.replace("{0}", maxLength + "");
+			me._internal.Validate();
 		}
 	}
 
