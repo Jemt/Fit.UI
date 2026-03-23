@@ -231,7 +231,7 @@ Fit.Controls.Input = function(ctlId)
 
 		// MaxLength support
 
-		me.AddValidationRule(function(sender)
+		me._internal.AddPersistentValidationRule(function(sender)
 		{
 			if (maxLength > 0 && getInputLength() > maxLength)
 			{

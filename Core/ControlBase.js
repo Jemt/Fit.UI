@@ -245,6 +245,7 @@ Fit.Controls.ControlBase = function(controlId)
 	var validationHandlerFunc = null;	// Obsolete - used by SetValidationHandler
 	var validationHandlerError = null;	// Obsolete - used by SetValidationHandler
 	var validationRules = [];
+	var validationRulesPersistent = [];
 	var validationRuleError = null;
 	var lazyValidation = false;
 	var lazyValidationDisabled = false;
@@ -384,7 +385,7 @@ Fit.Controls.ControlBase = function(controlId)
 	this.Dispose = Fit.Core.CreateOverride(this.Dispose, function()
 	{
 		Fit.Internationalization.RemoveOnLocaleChanged(localize);
-		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRuleError = lazyValidation = lazyValidationDisabled = hideValidationErrorOnChanging = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
+		me = container = width = height = scope = required = validationExpr = validationError = validationErrorType = validationCallbackFunc = validationCallbackError = validationHandlerFunc = validationHandlerError = validationRules = validationRulesPersistent = validationRuleError = lazyValidation = lazyValidationDisabled = hideValidationErrorOnChanging = hasValidated = blockAutoPostBack = onChangeHandlers = onFocusHandlers = onBlurHandlers = hasFocus = onBlurTimeout = ensureFocusFires = waitingForFocus = focusStateLocked = txtValue = txtDirty = txtValid = txtEnabled = baseControlDisabled = ie8DisabledLayer = null;
 		base();
 	});
 
@@ -862,7 +863,7 @@ Fit.Controls.ControlBase = function(controlId)
 		validationHandlerError = null;
 		validationRuleError = null;
 
-		if (validationExpr === null && validationCallbackFunc === null && validationHandlerFunc === null && required === false && validationRules.length === 0)
+		if (validationExpr === null && validationCallbackFunc === null && validationHandlerFunc === null && required === false && validationRules.length === 0 && validationRulesPersistent.length === 0)
 			return true;
 
 		var obj = me.Value();
@@ -897,9 +898,9 @@ Fit.Controls.ControlBase = function(controlId)
 			return false;
 		}
 
-		if (validationRules.length > 0)
+		if (validationRules.length > 0 || validationRulesPersistent.length > 0)
 		{
-			Fit.Array.ForEach(validationRules, function(rule)
+			Fit.Array.ForEach(Fit.Array.Merge(validationRules, validationRulesPersistent), function(rule)
 			{
 				if (rule.Type === "Callback")
 				{
@@ -1423,6 +1424,12 @@ Fit.Controls.ControlBase = function(controlId)
 	{
 		Fit.Validation.ExpectDomElement(elm);
 		Fit.Dom.Remove(elm);
+	}
+
+	this._internal.AddPersistentValidationRule = function(validator)
+	{
+		Fit.Validation.ExpectFunction(validator);
+		validationRulesPersistent.push( { Type: "Callback", Validator: validator, ErrorMessage: null } );
 	}
 
 	this._internal.Validate = function(force)
