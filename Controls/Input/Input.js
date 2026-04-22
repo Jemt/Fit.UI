@@ -3010,6 +3010,17 @@ Fit.Controls.Input = function(ctlId)
 								var emojiContentStatus = emojiContent && emojiContent.querySelector(".cke_emoji-status_bar");
 								emojiContentBlock && (emojiContentBlock.style.height = "220px");
 								emojiContentStatus && (emojiContentStatus.style.display = "none");
+
+								// Prevent page from scrolling if emoji panel temporarily opens outside of viewport boundaries
+								var emojiContentInput = emojiContent.querySelector("input");
+								if (emojiContentInput !== null)
+								{
+									var emojiContentInputFocus = emojiContentInput.focus;
+									emojiContentInput.focus = function(options)
+									{
+										emojiContentInputFocus.call(this, { preventScroll: true });
+									}
+								}
 							}
 
 							return emojiPanel;
