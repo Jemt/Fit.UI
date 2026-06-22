@@ -426,7 +426,7 @@ Fit.Controls.TreeView = function(ctlId)
 					// This will also fire the PickerBase.OnFocusIn event since TreeView fires this event
 					// whenever it gains focus. This allows e.g. DropDown to yet again move focus to its
 					// primary input field.
-					rootNode.GetDomElement().focus();
+					rootNode.GetDomElement().focus({ preventScroll: true });
 				}
 			});
 		}
