@@ -1163,6 +1163,7 @@ Fit.Controls.DropDown = function(ctlId)
 		// Drag and Drop
 
 		var drg = new Fit.DragDrop.Draggable(container, item);
+		drg.OnDragStart(createOnDragStart(cmdDelete));
 		drg.OnDragStop(onDragStop);
 		drg.OnDragging(onDragging);
 
@@ -2804,6 +2805,18 @@ Fit.Controls.DropDown = function(ctlId)
 		}
 	}
 
+	function createOnDragStart(cmdDeleteButton)
+	{
+		return function(draggable, clickTarget)
+		{
+			if (clickTarget === cmdDeleteButton)
+			{
+				focusInputOnMobile = me.Focused() === false ? false : focusInputOnMobile; // On mobile, do not focus input when removing an item (see cmdDelete.onclick - arrow gets focused instead), unless control already has focus, in which case we honour existing state
+				return false; // Prevent drag operation - user is removing an item
+			}
+		}
+	}
+
 	function onDragStop(draggable)
 	{
 		draggable.Reset();
@@ -2841,6 +2854,7 @@ Fit.Controls.DropDown = function(ctlId)
 			// secondly it's easier to ensure consistency across browsers
 			// as various events are implemented differently, especially
 			// when drag and drop comes into place.
+			focusInputOnMobile = me.Focused() === false ? false : focusInputOnMobile; // On mobile, do not focus input when moving an item (arrow gets focused instead), unless control already has focus, in which case we honour existing state
 			focusAssigned = true;
 			focusInput(txtPrimary);
 

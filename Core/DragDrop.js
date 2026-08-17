@@ -57,10 +57,11 @@ Fit.DragDrop.Draggable = function(domElm, domTriggerElm)
 				return; // Skip - current element is a draggable parent to which event propagated
 
 			var ev = Fit.Events.GetEvent(e);
+			var target = Fit.Events.GetTarget(e);
 
 			if (onDragStart)
 			{
-				if (onDragStart(elm) === false)
+				if (onDragStart(elm, target) === false)
 				{
 					return;
 				}
