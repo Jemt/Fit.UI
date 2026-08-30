@@ -1,5 +1,7 @@
 # Fit.UI
 
+[![Join the chat at https://gitter.im/FitUI/Lobby](https://badges.gitter.im/FitUI/Lobby.svg)](https://gitter.im/FitUI/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Fit.UI is an object oriented JavaScript based UI framework.
 It consists of two main parts:
 
