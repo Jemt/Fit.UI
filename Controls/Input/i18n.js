@@ -16,6 +16,16 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 		"CancelConfirmTitle": "Discard changes?",
 		"CancelConfirmDescription": "Are you sure you want to discard the changes?",
 
+		// HTML editor - accessible names
+		"DesignModeTitle": "Text field with formatting",
+		"DesignModeBasicFormatting": "Basic formatting",
+		"DesignModeColors": "Colors",
+		"DesignModeJustify": "Alignment",
+		"DesignModeLists": "Lists",
+		"DesignModeLinks": "Links",
+		"DesignModeInsert": "Insert",
+		"DesignModeDetachableEditor": "Detachable editor",
+
 		// HTML editor - table plugins
 		"TableTools": "Table tools",
 		"CreateTable": "Create table",
@@ -34,11 +44,21 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 	{
 		"MaxLengthExceeded": "Højest {0} tegn tilladt",
 
-		"Detach": "Åben i dialog",
+		"Detach": "Åbn i dialog",
 		"Ok": "OK",
 		"Cancel": "Annullér",
 		"CancelConfirmTitle": "Annullér ændringer?",
 		"CancelConfirmDescription": "Er du sikker på at du vil annullere ændringerne?",
+
+		// HTML editor - accessible names
+		"DesignModeTitle": "Tekstfelt med formatering",
+		"DesignModeBasicFormatting": "Grundformatering",
+		"DesignModeColors": "Farver",
+		"DesignModeJustify": "Justering",
+		"DesignModeLists": "Lister",
+		"DesignModeLinks": "Links",
+		"DesignModeInsert": "Indsæt",
+		"DesignModeDetachableEditor": "Løsrevet editor",
 
 		// HTML editor - table plugins
 		"TableTools": "Tabelværktøjer",
@@ -64,6 +84,16 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 		"CancelConfirmTitle": "Änderungen verwerfen?",
 		"CancelConfirmDescription": "Möchten Sie die Änderungen wirklich verwerfen?",
 
+		// HTML editor - accessible names
+		"DesignModeTitle": "Textfeld mit Formatierung",
+		"DesignModeBasicFormatting": "Grundformatierung",
+		"DesignModeColors": "Farben",
+		"DesignModeJustify": "Ausrichtung",
+		"DesignModeLists": "Listen",
+		"DesignModeLinks": "Links",
+		"DesignModeInsert": "Einfügen",
+		"DesignModeDetachableEditor": "Losgelöster Editor",
+
 		// HTML editor - table plugins
 		"TableTools": "Tabellenwerkzeuge",
 		"CreateTable": "Tabelle erstellen",
@@ -87,6 +117,16 @@ Fit.Internationalization.AddLocalization(Fit.Controls.Input,
 		"Cancel": "Avbryt",
 		"CancelConfirmTitle": "Avbryt endringer?",
 		"CancelConfirmDescription": "Er du sikker på at du vil avbryte endringene?",
+
+		// HTML editor - accessible names
+		"DesignModeTitle": "Tekstfelt med formatering",
+		"DesignModeBasicFormatting": "Grunnformatering",
+		"DesignModeColors": "Farger",
+		"DesignModeJustify": "Justering",
+		"DesignModeLists": "Lister",
+		"DesignModeLinks": "Lenker",
+		"DesignModeInsert": "Sett inn",
+		"DesignModeDetachableEditor": "Løsrevet editor",
 
 		// HTML editor - table plugins
 		"TableTools": "Tabellverktøy",

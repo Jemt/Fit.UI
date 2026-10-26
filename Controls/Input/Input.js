@@ -2351,7 +2351,7 @@ Fit.Controls.Input = function(ctlId)
 		{
 			Fit.Array.Add(toolbar,
 			{
-				name: "BasicFormatting",
+				name: locale.DesignModeBasicFormatting,
 				items: [ "Bold", "Italic", "Underline" ]
 			});
 		}
@@ -2360,7 +2360,7 @@ Fit.Controls.Input = function(ctlId)
 		{
 			Fit.Array.Add(toolbar,
 			{
-				name: "Colors",
+				name: locale.DesignModeColors,
 				items: [ "TextColor", "BGColor" ]
 			});
 		}
@@ -2369,7 +2369,7 @@ Fit.Controls.Input = function(ctlId)
 		{
 			Fit.Array.Add(toolbar,
 			{
-				name: "Justify",
+				name: locale.DesignModeJustify,
 				items: [ "JustifyLeft", "JustifyCenter", "JustifyRight" ]
 			});
 		}
@@ -2378,7 +2378,7 @@ Fit.Controls.Input = function(ctlId)
 		{
 			Fit.Array.Add(toolbar,
 			{
-				name: "Lists",
+				name: locale.DesignModeLists,
 				items: [ "NumberedList", "BulletedList", "Indent", "Outdent" ]
 			});
 		}
@@ -2387,7 +2387,7 @@ Fit.Controls.Input = function(ctlId)
 		{
 			Fit.Array.Add(toolbar,
 			{
-				name: "Links",
+				name: locale.DesignModeLinks,
 				items: [ "Link", "Unlink" ]
 			});
 		}
@@ -2415,7 +2415,7 @@ Fit.Controls.Input = function(ctlId)
 			{
 				Fit.Array.Add(toolbar,
 				{
-					name: "Insert",
+					name: locale.DesignModeInsert,
 					items: insert
 				});
 			}
@@ -2450,7 +2450,7 @@ Fit.Controls.Input = function(ctlId)
 
 				Fit.Array.Add(customToolbarGroups,
 				{
-					name: "DetachableEditor",
+					name: locale.DesignModeDetachableEditor,
 					items: ["Detach"/*, "TestButton"*/]
 				});
 			}
@@ -2739,6 +2739,7 @@ Fit.Controls.Input = function(ctlId)
 			readOnly: me.Enabled() === false,
 			tabIndex: me.Enabled() === false ? -1 : 0,
 			title: "",
+			applicationTitle: locale.DesignModeTitle, // Accessible name of editor - defaults to e.g. "Rich Text Editor, Input1_DesignMode", exposing the internal control ID
 			width: "100%", // Assume width of container
 			height: me.Height().Value > -1 ? me.Height().Value + me.Height().Unit : "100%", // Height of content area - toolbar and bottom panel takes up additional space - once editor is loaded, the outer dimensions are accurately set using updateDesignEditorSize() - a height of 100% enables auto grow
 			startupFocus: me.Focused() === true ? "end" : false, // Doesn't work when editor is hidden while initializing to avoid flickering - focus is set again when editor is made visible in instanceReady handler, at which point it will place cursor at the end of the editor if startupFocus is set to "end"
