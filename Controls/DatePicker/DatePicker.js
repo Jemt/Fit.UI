@@ -1420,6 +1420,22 @@ Fit.Controls.DatePicker = function(ctlId)
 			{
 				datepickerElm = dp.dpDiv[0] || null;
 
+				// Make sure the calendar never holds focus by returning focus to the input field.
+				// Calendar is mounted outside the control's container which might cause issues with modal
+				// dialogs or panels with focus traps. The calendar has a month and year picker which can
+				// retain focus, hence allows for focus to be moved outside of said dialogs and panels.
+
+				if (datepickerElm._fitUiFocusTrapped !== true)
+				{
+					datepickerElm._fitUiFocusTrapped = true;
+
+					Fit.Events.AddHandler(datepickerElm, "focusin", function(e)
+					{
+						var ev = Fit.Events.GetEvent(e)
+						ev.relatedTarget.focus(); // Return focus to previously focused element (input field) - do NOT use 'input.focus()' as this is a shared calendar instance!
+					});
+				}
+
 				// Load locale if not already loaded
 
 				if (datepicker.jq.datepicker.regional[locale] === null)
