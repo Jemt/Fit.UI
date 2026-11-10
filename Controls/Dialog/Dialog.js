@@ -1395,6 +1395,37 @@ Fit.Controls.Dialog._internal.BaseDialog = function(content, showCancel, cb)
 	var d = new Fit.Controls.Dialog();
 	d.Content(content.replace(/\n/g, "<br>"));
 	d.Modal(true);
+	d.MaximumHeight(95, "%"); // Stay within viewport - although this will also prevent the dialog from automatically adjusting its height based on dynamic content, e.g. expand/collapse like <details> (unlikely) or non-cached images/videos (more likely)
+
+	// DISABLED - simple prompts were never ment to show dynamic
+	// or complex content, but are merely a replacement for built-in
+	// alert(..), prompt(..), and confirm(..) dialogs.
+	/*
+	// Improve support for images/videos - might be used in prompts.
+	// Re-calculate height when images and videos are done loading.
+	var onMediaChanged = function(e)
+	{
+		if (d.GetDomElement() !== null) // Returns null if dialog has been disposed
+		{
+			d.MaximumHeight(95, "%"); // Triggers setContentHeight() and updatePosition()
+		}
+	};
+	Fit.Array.ForEach(d.GetContentDomElement().querySelectorAll("img"), function(img)
+	{
+		if (img.complete !== true) // Image not loaded yet
+		{
+			Fit.Events.AddHandler(img, "load", onMediaChanged);
+			Fit.Events.AddHandler(img, "error", onMediaChanged); // Broken image also changes layout (alt text and broken image icon)
+		}
+	});
+	Fit.Array.ForEach(d.GetContentDomElement().querySelectorAll("video"), function(video)
+	{
+		if (video.readyState < 1) // Below HAVE_METADATA (1) - video dimensions are not known yet
+		{
+			Fit.Events.AddHandler(video, "loadedmetadata", onMediaChanged); // No error handler - a failing video keeps its default dimensions
+		}
+	});
+	*/
 
 	Fit.Dom.AddClass(d.GetDomElement(), "FitUiControlDialogBase");
 	Fit.Dom.AddClass(d._internal.GetLayerElement(), "FitUiControlDialogBaseModalLayer");
